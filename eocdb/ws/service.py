@@ -114,8 +114,8 @@ class Service:
         address = self.service_info['address']
         port = self.service_info['port']
         _LOG.info(f'service running, listening on {address}:{port} (press CTRL+C to stop service)')
-        if len(self.context.config.get('Datasets', {})) == 0:
-            _LOG.warning('no datasets configured')
+        if len(self.context.config.get('databases', {})) == 0:
+            _LOG.warning('no databases configured')
         IOLoop.current().start()
 
     def stop(self, kill=False):
@@ -160,7 +160,10 @@ class Service:
     def _maybe_load_config(self):
         config_file = self.config_file
         if config_file is None:
-            config_file = DEFAULT_CONFIG_FILE
+            if os.path.isfile(DEFAULT_CONFIG_FILE):
+                config_file = DEFAULT_CONFIG_FILE
+            else:
+                return
         try:
             stat = os.stat(config_file)
         except OSError as e:
