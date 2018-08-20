@@ -24,10 +24,7 @@ Install
     $ python setup.py develop
     $ pytest --cov=eocdb
 
-To run the server on default port 8080:
+To run the server on its default port:
 
-    $ xcube-server -v -c xcube_server/res/demo/config.yml
+    $ eocdb-server -v -c eocdb/ws/res/demo/config.yml
 
-or shorter
-
-    $ xcs -v -c xcube_server/res/demo/config.yml
