@@ -1,0 +1,1 @@
+eodbc-server's static resources
