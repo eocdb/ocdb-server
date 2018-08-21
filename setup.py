@@ -32,7 +32,7 @@ requirements = [
     'tornado',
 ]
 
-packages = find_packages(exclude=["test", "test.*"])
+packages = find_packages(exclude=["tests", "tests.*"])
 
 VERSION = None
 DESCRIPTION = None

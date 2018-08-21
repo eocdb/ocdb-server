@@ -1,6 +1,6 @@
 import unittest
 
-from test.ws.helpers import RequestParamsMock
+from tests.ws.helpers import RequestParamsMock
 
 from eocdb.ws.errors import ServiceBadRequestError
 from eocdb.ws.reqparams import RequestParams

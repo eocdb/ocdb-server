@@ -1,11 +1,11 @@
 # import os
 import unittest
 
-from test.ws.helpers import new_test_service_context
+from tests.ws.helpers import new_test_service_context
 
 
 # import xarray as xr
-# from test.helpers import get_res_test_dir, new_test_service_context, RequestParamsMock
+# from tests.helpers import get_res_test_dir, new_test_service_context, RequestParamsMock
 # from eocdb.ws.context import ServiceContext
 # from eocdb.ws.errors import ServiceBadRequestError, ServiceResourceNotFoundError
 
@@ -29,7 +29,7 @@ class ServiceContextTest(unittest.TestCase):
             },
             ctx.get_app_info())
 
-# # TODO: test error cases!
+# # TODO: tests error cases!
 #
 # def test_config_and_dataset_cache(self):
 #     ctx = new_test_service_context()

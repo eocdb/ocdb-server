@@ -1,4 +1,4 @@
-from test.ws.helpers import new_test_service_context
+from tests.ws.helpers import new_test_service_context
 from tornado.testing import AsyncHTTPTestCase
 
 from eocdb.ws.app import new_application
