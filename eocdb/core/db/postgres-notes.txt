@@ -1,6 +1,0 @@
-Lists common commands for PostGIS/Postgres
-
-create user
------------
-
-CREATE USER nasenmann WITH LOGIN PASSWORD 'a_secret';

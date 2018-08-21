@@ -10,7 +10,6 @@ dependencies:
   # runtime dependencies
   #
   - numpy =1.14.3
-  - psycopg2 =2.7.5
   - pyyaml =3.12
   - tornado =5.0.2
   #
