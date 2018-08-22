@@ -27,4 +27,14 @@ Install
 To run the server on its default port:
 
     $ eocdb-server -v -c eocdb/ws/res/demo/config.yml
+    
+To run the server with the default config in a docker container using docker-compose:
+
+    $ docker-compose build  eocdb-server
+    $ docker-compose up -d eocdb-server
+    
+ To run the server with the default config in a docker container without docker-compose:
+ 
+    $ docker build -t eocdb-server:0.1.0 .
+    $ docker run -d -p 4000:4000 eocdb-server:0.1.0
 
