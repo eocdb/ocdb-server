@@ -9,4 +9,6 @@ services:
       - "4000:4000"
     command: >
       "source activate eocdb-dev && eocdb-server -a 0.0.0.0 -v -c eocdb/ws/res/demo/config.yml"
-
+    healthcheck:
+      test: ["CMD", "curl", "localhost:4000/"]
+      interval: 30s
