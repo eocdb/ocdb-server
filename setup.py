@@ -27,7 +27,6 @@ from setuptools import setup, find_packages
 # in alphabetical oder
 requirements = [
     'numpy',
-    'psycopg2',
     'pyyaml',
     'tornado',
 ]
