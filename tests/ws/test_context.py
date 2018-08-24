@@ -13,7 +13,7 @@ from tests.ws.helpers import new_test_service_context
 class ServiceContextTest(unittest.TestCase):
     def test_get_set_config(self):
         ctx = new_test_service_context()
-        self.assertEqual({'databases': None}, ctx.config)
+        self.assertEqual({'databases': []}, ctx.config)
         config = {'databases': {'id': 'dummy', 'user': 'scott', 'password': 'tiger'}}
         ctx.config = config
         self.assertIsNot(config, ctx.config)
