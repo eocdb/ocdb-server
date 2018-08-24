@@ -215,28 +215,28 @@ class ServiceRequestHandler(RequestHandler):
         """
         self.application.time_of_last_activity = time.clock()
 
+    @classmethod
+    def to_json(cls, obj) -> str:
+        """Convert object *obj* to JSON string"""
+        return json.dumps(obj, indent=2)
+
     def write_error(self, status_code, **kwargs):
+        """
+        Overwrite ``RequestHandler`` default behaviour. Our implementation writes a server error response as
+        JSON object using the form {"error": {"code": *status_code*, ... }}.
+
+        If the "serve_traceback" is set and *kwargs* contains a value for keyword "exc_info",
+        it is expected to be a traceback object from an exception handler and the error object will also contain
+        a field "traceback" containing the traceback text lines.
+        """
         self.set_header('Content-Type', 'application/json')
-        # if self.settings.get("serve_traceback") and "exc_info" in kwargs:
-        if "exc_info" in kwargs:
-            # in debug mode, try to send a traceback
-            lines = []
-            for line in traceback.format_exception(*kwargs["exc_info"]):
-                lines.append(line)
-            self.finish(json.dumps({
-                'error': {
-                    'code': status_code,
-                    'message': self._reason,
-                    'traceback': lines,
-                }
-            }, indent=2))
-        else:
-            self.finish(json.dumps({
-                'error': {
-                    'code': status_code,
-                    'message': self._reason,
-                }
-            }, indent=2))
+        obj = dict(error=dict(code=status_code, message=self._reason))
+        if self.settings.get("serve_traceback") and "exc_info" in kwargs:
+            traceback_lines = []
+            for traceback_line in traceback.format_exception(*kwargs["exc_info"]):
+                traceback_lines.append(traceback_line)
+            obj['traceback'] = traceback_lines
+        self.finish(self.to_json(obj))
 
 
 class ServiceRequestParams(RequestParams):

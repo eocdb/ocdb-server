@@ -1,7 +1,9 @@
-from tests.ws.helpers import new_test_service_context
+import json
+
 from tornado.testing import AsyncHTTPTestCase
 
 from eocdb.ws.app import new_application
+from tests.ws.helpers import new_test_service_context
 
 
 # For usage of the tornado.testing.AsyncHTTPTestCase see http://www.tornadoweb.org/en/stable/testing.html
@@ -15,6 +17,28 @@ class HandlersTest(AsyncHTTPTestCase):
     def test_fetch_base(self):
         response = self.fetch('/')
         self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        self.assertEqual(dict(name='eocdb-server',
+                              version='0.1.0',
+                              description='EUMETSAT Ocean Colour In-Situ Database Server'),
+                         json.loads(response.body))
+
+    def test_fetch_query_succeeds(self):
+        response = self.fetch('/eocdb/api/measurements?query=ernie')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        self.assertEqual(dict(id=[1, 2, 3, 4, 5],
+                              lon=[58.1, 58.4, 58.5, 58.2, 58.9],
+                              lat=[11.1, 11.4, 10.9, 10.8, 11.2],
+                              chl=[0.3, 0.2, 0.7, 0.2, 0.1]),
+                         json.loads(response.body))
+
+    def test_fetch_query_fails(self):
+        response = self.fetch('/eocdb/api/measurements?query=bert')
+        self.assertEqual(400, response.code)
+        self.assertEqual('The only valid query string is "ernie"', response.reason)
+        self.assertEqual(dict(error=dict(code=400, message='The only valid query string is "ernie"')),
+                         json.loads(response.body))
 
     # def test_fetch_wmts_capabilities(self):
     #     response = self.fetch('/xcube/wmts/1.0.0/WMTSCapabilities.xml')

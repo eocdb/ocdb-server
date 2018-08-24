@@ -19,8 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-import json
-
 from .service import ServiceRequestHandler
 
 
@@ -32,7 +30,16 @@ class InfoHandler(ServiceRequestHandler):
 
     def get(self):
         self.set_header('Content-Type', 'text/json')
-        self.write(json.dumps(self.service_context.get_app_info(), indent=2))
+        self.write(self.to_json((self.service_context.get_app_info())))
+
+
+# noinspection PyAbstractClass
+class MeasurementsQueryHandler(ServiceRequestHandler):
+
+    def get(self):
+        self.set_header('Content-Type', 'text/json')
+        query_string = self.params.get_query_argument('query', '')
+        self.write(self.to_json(self.service_context.query_measurements(query_string)))
 
 # class GetWMTSCapabilitiesXmlHandler(ServiceRequestHandler):
 #     @gen.coroutine
