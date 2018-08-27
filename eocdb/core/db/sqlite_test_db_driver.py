@@ -16,8 +16,26 @@ class SQLiteTestDbDriver:
 
         try:
             cursor = self._get_cursor()
-            cursor.execute('''CREATE TABLE data_files(name text, description)''')
-            cursor.execute("INSERT INTO data_files VALUES('Ernie', 'I am your favourite result')")
+            cursor.execute('''CREATE TABLE data_files(id integer primary key autoincrement, 
+            name text, 
+            description)''')
+            
+            cursor.execute('''CREATE TABLE data_measurement(id integer primary key autoincrement, 
+            file_id integer not null, 
+            lon real,
+            lat real, 
+            chl real,
+            foreign key(file_id) references datafiles(id))''')
+
+            cursor.execute("INSERT INTO data_files VALUES(null, 'ernie', 'I am your favourite result')")
+
+            file_id = cursor.lastrowid
+
+            cursor.execute("INSERT INTO data_measurement VALUES(null, ?, ?, ?, ?)", (file_id, 58.1, 11.1, 0.3, ))
+            cursor.execute("INSERT INTO data_measurement VALUES(null, ?, ?, ?, ?)", (file_id, 58.4, 11.4, 0.2, ))
+            cursor.execute("INSERT INTO data_measurement VALUES(null, ?, ?, ?, ?)", (file_id, 58.5, 10.9, 0.7, ))
+            cursor.execute("INSERT INTO data_measurement VALUES(null, ?, ?, ?, ?)", (file_id, 58.2, 10.8, 0.2, ))
+            cursor.execute("INSERT INTO data_measurement VALUES(null, ?, ?, ?, ?)", (file_id, 58.9, 11.2, 0.1, ))
 
             self.connection.commit()
 
@@ -30,18 +48,25 @@ class SQLiteTestDbDriver:
     def get(self, name):
         cursor = self._get_cursor()
 
-        parameter = (name, )
+        parameter = (name,)
         cursor.execute('SELECT * FROM data_files WHERE name=?', parameter)
-        results = cursor.fetchall()
+        results_files = cursor.fetchall()
 
+        results = list()
+        for result_file in results_files:
+            file_id = result_file[0]
+            cursor.execute('SELECT * FROM data_measurement WHERE file_id=?', (file_id, ))
+            measurements = cursor.fetchall()
+            results.append((result_file , measurements, ))
+            
         return results
 
     def insert(self, name, description):
         cursor = self._get_cursor()
 
         try:
-            values = (name, description, )
-            cursor.execute("INSERT INTO data_files VALUES(?,?)", values)
+            values = (name, description,)
+            cursor.execute("INSERT INTO data_files VALUES(null, ?,?)", values)
 
             self.connection.commit()
         except:

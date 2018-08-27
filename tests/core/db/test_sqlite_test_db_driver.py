@@ -13,11 +13,12 @@ class TestSQLiteTestDbDriver(unittest.TestCase):
         self.driver.close()
 
     def test_fetch_ernie_data(self):
-        results = self.driver.get("Ernie")
+        results = self.driver.get("ernie")
 
         self.assertEqual(1, len(results))
-        self.assertEqual("Ernie", results[0][0])
-        self.assertEqual("I am your favourite result", results[0][1])
+        self.assertEqual(1, results[0][0][0])
+        self.assertEqual("ernie", results[0][0][1])
+        self.assertEqual("I am your favourite result", results[0][0][2])
 
     def test_fetch_bert_data(self):
         results = self.driver.get("Bert")
@@ -29,5 +30,6 @@ class TestSQLiteTestDbDriver(unittest.TestCase):
 
         results = self.driver.get("Bibo")
         self.assertEqual(1, len(results))
-        self.assertEqual("Bibo", results[0][0])
-        self.assertEqual("I'm the new guy", results[0][1])
+        self.assertEqual(2, results[0][0][0])  # id
+        self.assertEqual("Bibo", results[0][0][1])  # name
+        self.assertEqual("I'm the new guy", results[0][0][2])  # description
