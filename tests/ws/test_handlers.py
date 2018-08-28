@@ -35,6 +35,14 @@ class HandlersTest(AsyncHTTPTestCase):
                                       [58.9, 11.2, 0.1]]},
                          json.loads(response.body))
 
+    def test_fetch_query_succeeds_no_results(self):
+        response = self.fetch('/eocdb/api/measurements?query=bert')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        self.assertEqual({'records': []},
+                         json.loads(response.body))
+
     def test_fetch_query_fails(self):
         response = self.fetch('/eocdb/api/measurements?query=trigger_error')
         self.assertEqual(400, response.code)
