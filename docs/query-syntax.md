@@ -32,6 +32,7 @@ The query string
 
 The query string
 
+* `chl:(4 OR 20)`
 * ...
 
 
@@ -50,3 +51,5 @@ The query string
 * https://github.com/Esri/geoportal-server/wiki/Using-Lucene-Search-Text-Queries
 * https://www.oclc.org/developer/develop/worldshare-platform/architecture/query-syntax.en.html
 * http://www.opensearchserver.com/documentation/api_v2/search_parameters/README.md
+
+
