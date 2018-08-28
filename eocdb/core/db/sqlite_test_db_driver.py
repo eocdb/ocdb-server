@@ -1,5 +1,8 @@
 import sqlite3
 
+from eocdb.core.dataset import Dataset
+from eocdb.core.db.db_dataset import DbDataset
+
 
 class SQLiteTestDbDriver:
 
@@ -45,8 +48,13 @@ class SQLiteTestDbDriver:
             # @todo 3 tb/tb add meaningful error message 2018-08-23
             raise Exception("Database connect failed")
 
-    def get(self, name):
+    def get(self, name) -> Dataset:
+        if name == 'trigger_error':
+            raise Exception("Just for testing")
+
         cursor = self._get_cursor()
+
+        dataset = DbDataset()
 
         parameter = (name,)
         cursor.execute('SELECT * FROM data_files WHERE name=?', parameter)
@@ -56,10 +64,13 @@ class SQLiteTestDbDriver:
         for result_file in results_files:
             file_id = result_file[0]
             cursor.execute('SELECT * FROM data_measurement WHERE file_id=?', (file_id, ))
+
             measurements = cursor.fetchall()
-            results.append((result_file , measurements, ))
+            # @todo 2 tb/tb now we remove the db-ids - but there may be circumstances when we need these 2018-08-28
+            for measurement in measurements:
+                dataset.add_record(measurement[2:len(measurement)])
             
-        return results
+        return dataset
 
     def insert(self, name, description):
         cursor = self._get_cursor()

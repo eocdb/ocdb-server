@@ -27,17 +27,19 @@ class HandlersTest(AsyncHTTPTestCase):
         response = self.fetch('/eocdb/api/measurements?query=ernie')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-        self.assertEqual(dict(id=[1, 2, 3, 4, 5],
-                              lon=[58.1, 58.4, 58.5, 58.2, 58.9],
-                              lat=[11.1, 11.4, 10.9, 10.8, 11.2],
-                              chl=[0.3, 0.2, 0.7, 0.2, 0.1]),
+
+        self.assertEqual({'records': [[58.1, 11.1, 0.3],
+                                      [58.4, 11.4, 0.2],
+                                      [58.5, 10.9, 0.7],
+                                      [58.2, 10.8, 0.2],
+                                      [58.9, 11.2, 0.1]]},
                          json.loads(response.body))
 
     def test_fetch_query_fails(self):
-        response = self.fetch('/eocdb/api/measurements?query=bert')
+        response = self.fetch('/eocdb/api/measurements?query=trigger_error')
         self.assertEqual(400, response.code)
-        self.assertEqual('The only valid query string is "ernie"', response.reason)
-        self.assertEqual(dict(error=dict(code=400, message='The only valid query string is "ernie"')),
+        self.assertEqual('Database error', response.reason)
+        self.assertEqual(dict(error=dict(code=400, message='Database error')),
                          json.loads(response.body))
 
     # def test_fetch_wmts_capabilities(self):
