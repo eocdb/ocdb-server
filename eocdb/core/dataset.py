@@ -6,6 +6,11 @@ class Dataset(metaclass=ABCMeta):
 
     @property
     @abstractmethod
+    def metadata(self) -> Dict[str, Any]:
+        """ Get the dataset's metadata header. """
+
+    @property
+    @abstractmethod
     def attribute_count(self) -> int:
         """ Get the number of attributes (columns). """
 
@@ -34,9 +39,16 @@ class Dataset(metaclass=ABCMeta):
         return DictBackedDataset(obj)
 
 
+# noinspection PyAbstractClass
 class DictBackedDataset(Dataset):
     def __init__(self, obj: Dict[str, Any]):
         self._obj = obj
+
+    @property
+    def metadata(self) -> Dict[str, Any]:
+        if 'metadata' in self._obj:
+            return self._obj['metadata']
+        return {}
 
     @property
     def attribute_count(self) -> int:
