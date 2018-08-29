@@ -58,7 +58,7 @@ class QueryTest(TestCase):
 
 class CollectingQueryVisitor(QueryVisitor[str]):
 
-    def visit_list(self, qt: PhraseQuery, terms: List[str]) -> Optional[str]:
+    def visit_phrase(self, qt: PhraseQuery, terms: List[str]) -> Optional[str]:
         return ' | '.join(terms)
 
     def visit_unary_op(self, qt: UnaryOpQuery, term: str) -> Optional[str]:

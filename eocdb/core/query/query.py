@@ -42,7 +42,7 @@ class PhraseQuery(Query):
         return f'PhraseQuery([{args}])'
 
     def accept(self, visitor: 'QueryVisitor') -> Any:
-        return visitor.visit_list(self, [term.accept(visitor) for term in self.terms])
+        return visitor.visit_phrase(self, [term.accept(visitor) for term in self.terms])
 
     def op_precedence(self) -> int:
         return 500
@@ -118,8 +118,8 @@ class UnaryOpQuery(Query):
 
 class TextQuery(Query):
     def __init__(self, text: str, name: str = None, is_quoted=False):
+        self.name = name  # If None, the context-specific default field name is used
         self.text = text
-        self.name = name  # If None --> global search
         self.is_quoted = is_quoted
 
     @property
@@ -164,10 +164,10 @@ class QueryVisitor(Generic[T], metaclass=ABCMeta):
     """ Visitor used to visit all nodes of a Query tree. """
 
     @abstractmethod
-    def visit_list(self, qt: PhraseQuery, terms: List[T]) -> Optional[T]:
+    def visit_phrase(self, qt: PhraseQuery, terms: List[T]) -> Optional[T]:
         """
-        Visit a QTList query term and compute an optional result.
-        :param qt: The QTList query term to be visited.
+        Visit a PhraseQuery query term and compute an optional result.
+        :param qt: The PhraseQuery query term to be visited.
         :param terms: The results of the list elements' visit.
         :return: The optional result of the visit.
         """
@@ -175,8 +175,8 @@ class QueryVisitor(Generic[T], metaclass=ABCMeta):
     @abstractmethod
     def visit_binary_op(self, qt: BinaryOpQuery, term1: T, term2: T) -> Optional[T]:
         """
-        Visit a QTBinOp query term and compute an optional result.
-        :param qt: The QTBinOp query term to be visited.
+        Visit a BinaryOpQuery query term and compute an optional result.
+        :param qt: The BinaryOpQuery query term to be visited.
         :param term1: The result of the first operand's visit.
         :param term2: The result of the second operand's visit.
         :return: The optional result of the visit.
@@ -185,8 +185,8 @@ class QueryVisitor(Generic[T], metaclass=ABCMeta):
     @abstractmethod
     def visit_unary_op(self, qt: UnaryOpQuery, term: T) -> Optional[T]:
         """
-        Visit a QTUnOp query term and compute an optional result.
-        :param qt: The QTUnOp query term to be visited.
+        Visit a UnaryOpQuery query term and compute an optional result.
+        :param qt: The UnaryOpQuery query term to be visited.
         :param term: The result of the unary operand's visit.
         :return: The optional result of the visit.
         """
@@ -194,7 +194,7 @@ class QueryVisitor(Generic[T], metaclass=ABCMeta):
     @abstractmethod
     def visit_text(self, qt: TextQuery) -> Optional[T]:
         """
-        Visit a QTText query term and compute an optional result.
-        :param qt: The QTText query term to be visited.
+        Visit a TextQuery query term and compute an optional result.
+        :param qt: The TextQuery query term to be visited.
         :return: The optional result of the visit.
         """
