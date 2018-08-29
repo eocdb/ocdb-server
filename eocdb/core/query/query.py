@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional, Any, TypeVar, Generic
+from typing import List, Optional, Any, TypeVar, Generic, Union
 
 KW_AND = 'AND'
 KW_OR = 'OR'
@@ -45,7 +45,7 @@ class PhraseQuery(Query):
         return visitor.visit_phrase(self, [term.accept(visitor) for term in self.terms])
 
     def op_precedence(self) -> int:
-        return 500
+        return 400
 
 
 class BinaryOpQuery(Query):
@@ -114,6 +114,50 @@ class UnaryOpQuery(Query):
             return 800
         else:
             return 900
+
+
+class RangeQuery(Query):
+    def __init__(self,
+                 start_value: Union[str, float, int],
+                 end_value: Union[str, float, int],
+                 name: str = None,
+                 is_exclusive=False):
+        self.name = name  # If None, the context-specific default field name is used
+        self.start_value = start_value
+        self.end_value = end_value
+        self.is_exclusive = is_exclusive
+
+    def __eq__(self, other):
+        return isinstance(other, TextQuery) \
+               and self.name == other.name \
+               and self.start_value == other.start_value \
+               and self.end_value == other.end_value \
+               and self.is_exclusive == other.is_exclusive
+
+    def __str__(self) -> str:
+        s = ''
+        if self.name:
+            s += self.name + ':' + s
+        v = f'{self.start_value} TO {self.end_value}'
+        if self.is_exclusive:
+            s += '{' + v + '}'
+        else:
+            s += '[' + v + ']'
+        return s
+
+    def __repr__(self):
+        args = f'{self.start_value}, {self.end_value}'
+        if self.name:
+            args += f', name="{self.name}"'
+        if self.is_exclusive:
+            args += f', is_exclusive={self.is_exclusive}'
+        return f'RangeQuery({args})'
+
+    def accept(self, visitor: 'QueryVisitor') -> Any:
+        return visitor.visit_range(self)
+
+    def op_precedence(self) -> int:
+        return 1000
 
 
 class TextQuery(Query):
@@ -196,5 +240,13 @@ class QueryVisitor(Generic[T], metaclass=ABCMeta):
         """
         Visit a TextQuery query term and compute an optional result.
         :param qt: The TextQuery query term to be visited.
+        :return: The optional result of the visit.
+        """
+
+    @abstractmethod
+    def visit_range(self, qt: RangeQuery) -> Optional[T]:
+        """
+        Visit a RangeQuery query term and compute an optional result.
+        :param qt: The RangeQuery query term to be visited.
         :return: The optional result of the visit.
         """
