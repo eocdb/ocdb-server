@@ -20,8 +20,8 @@ class QueryTest(TestCase):
                                   'TextQuery("c*t")',
                                   TextQuery('c*t'))
         self._assert_str_and_repr('animal:"cat dog"',
-                                  'TextQuery("cat dog", name="animal")',
-                                  TextQuery('cat dog', name='animal'))
+                                  'TextQuery("cat dog", name="animal", is_quoted=True)',
+                                  TextQuery('cat dog', is_quoted=True, name='animal'))
 
         self._assert_str_and_repr('+cat',
                                   'UnaryOpQuery("+", TextQuery("cat"))',

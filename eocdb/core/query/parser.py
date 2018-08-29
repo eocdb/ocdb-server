@@ -19,7 +19,7 @@ class QueryParser:
 
     @classmethod
     def parse(cls, query: str) -> Optional[Query]:
-        return QueryParser(query)._parse_list()
+        return QueryParser(query)._parse(context_name=None)
 
     def __init__(self, query: str):
         self._query = query
@@ -27,10 +27,13 @@ class QueryParser:
         self._size = len(self._tokens)
         self._index = 0
 
-    def _parse_list(self) -> Optional[Query]:
+    def _parse(self, context_name: str = None) -> Optional[Query]:
+        return self._parse_list(context_name=context_name)
+
+    def _parse_list(self, context_name: str = None) -> Optional[Query]:
         terms = []
         while True:
-            term = self._parse_or()
+            term = self._parse_or(context_name=context_name)
             if term is None:
                 break
             terms.append(term)
@@ -40,78 +43,85 @@ class QueryParser:
             return terms[0]
         return PhraseQuery(terms)
 
-    def _parse_or(self) -> Optional[Query]:
-        term1 = self._parse_and()
+    def _parse_or(self, context_name: str = None) -> Optional[Query]:
+        term1 = self._parse_and(context_name=context_name)
         if term1 is None:
             return None
-        t, v, i = self._peek()
-        if t == QueryTokenizer.TOKEN_TYPE_KEYWORD and v == KW_OR:
+        token_type, token_value, token_pos = self._peek()
+        if token_type == QueryTokenizer.TOKEN_TYPE_KEYWORD and token_value == KW_OR:
             self._inc()
-            term2 = self._parse_or()
+            term2 = self._parse_or(context_name=context_name)
             if term2 is None:
                 return term1
-            return BinaryOpQuery(v, term1, term2)
+            return BinaryOpQuery(token_value, term1, term2)
         else:
             return term1
 
-    def _parse_and(self) -> Optional[Query]:
-        term1 = self._parse_unary()
+    def _parse_and(self, context_name: str = None) -> Optional[Query]:
+        term1 = self._parse_unary(context_name=context_name)
         if term1 is None:
             return None
-        t, v, i = self._peek()
-        if t == QueryTokenizer.TOKEN_TYPE_KEYWORD and v == KW_AND:
+        token_type, token_value, token_pos = self._peek()
+        if token_type == QueryTokenizer.TOKEN_TYPE_KEYWORD and token_value == KW_AND:
             self._inc()
-            term2 = self._parse_or()
+            term2 = self._parse_and(context_name=context_name)
             if term2 is None:
                 return term1
-            return BinaryOpQuery(v, term1, term2)
+            return BinaryOpQuery(token_value, term1, term2)
         else:
             return term1
 
-    def _parse_unary(self) -> Optional[Query]:
-        t, v, i = self._peek()
-        if t == QueryTokenizer.TOKEN_TYPE_KEYWORD and v == KW_NOT:
+    def _parse_unary(self, context_name: str = None) -> Optional[Query]:
+        token_type, token_value, token_pos = self._peek()
+        if token_type == QueryTokenizer.TOKEN_TYPE_KEYWORD and token_value == KW_NOT:
             self._inc()
-            term = self._parse_unary()
+            term = self._parse_unary(context_name=context_name)
             if term is None:
-                raise QuerySyntaxError(i, f'Term missing after {KW_NOT}')
+                raise QuerySyntaxError(token_pos, f'Term missing after {KW_NOT}')
             return UnaryOpQuery(KW_NOT, term)
-        elif t == QueryTokenizer.TOKEN_TYPE_CONTROL and v in OPERATORS:
+        elif token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value in OPERATORS:
             self._inc()
-            term = self._parse_primary()
+            term = self._parse_primary(context_name=context_name)
             if term is None:
-                raise QuerySyntaxError(i, f'Term missing after [{v}]')
-            return UnaryOpQuery(v, term)
+                raise QuerySyntaxError(token_pos, f'Term missing after [{token_value}]')
+            return UnaryOpQuery(token_value, term)
         else:
-            return self._parse_primary()
+            return self._parse_primary(context_name=context_name)
 
-    def _parse_primary(self) -> Optional[Query]:
-        t, v, i = self._peek()
-        if t == QueryTokenizer.TOKEN_TYPE_CONTROL and v == '(':
+    def _parse_primary(self, context_name: str = None) -> Optional[Query]:
+        token_type, token_value, token_pos = self._peek()
+        is_text = token_type == QueryTokenizer.TOKEN_TYPE_TEXT
+        is_qtext = token_type == QueryTokenizer.TOKEN_TYPE_QTEXT
+        if is_text or is_qtext:
             self._inc()
-            term = self._parse_list()
-            t, v, i = self._peek()
-            assert t == QueryTokenizer.TOKEN_TYPE_CONTROL and v == ')'
-            self._inc()
-            return term
-        if t == QueryTokenizer.TOKEN_TYPE_TEXT:
-            self._inc()
-            text = v
-            t, v, i = self._peek()
-            if t == QueryTokenizer.TOKEN_TYPE_CONTROL and v == ':':
+            text = token_value
+            token_type, token_value, token_pos = self._peek()
+            if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == ':':
                 self._inc()
                 name = text
                 if not name.isidentifier():
-                    raise QuerySyntaxError(i, 'Name expected before [:]')
-                t, text, i = self._peek()
-                if t == QueryTokenizer.TOKEN_TYPE_TEXT:
+                    raise QuerySyntaxError(token_pos, 'Name expected before [:]')
+                token_type, text, token_pos = self._peek()
+                is_text = token_type == QueryTokenizer.TOKEN_TYPE_TEXT
+                is_qtext = token_type == QueryTokenizer.TOKEN_TYPE_QTEXT
+                if is_text or is_qtext:
                     self._inc()
-                    return TextQuery(text, name=name)
-                raise QuerySyntaxError(i, 'Missing text after [:]')
+                    return TextQuery(text, name=name, is_quoted=is_qtext)
+                raise QuerySyntaxError(token_pos, 'Missing text after [:]')
             else:
-                return TextQuery(text)
-        if t is not None:
-            raise QuerySyntaxError(i, f'Unexpected [{v}]')
+                return TextQuery(text, name=context_name, is_quoted=is_qtext)
+
+        if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == '(':
+            self._inc()
+            term = self._parse(context_name)
+            token_type, token_value, token_pos = self._peek()
+            assert token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == ')'
+            self._inc()
+            return term
+
+        if token_type is not None:
+            raise QuerySyntaxError(token_pos, f'Unexpected [{token_value}]')
+
         return None
 
     def _inc(self):
@@ -131,6 +141,7 @@ class QueryTokenizer:
     TOKEN_TYPE_CONTROL = 'CONTROL'
     TOKEN_TYPE_KEYWORD = 'KEYWORD'
     TOKEN_TYPE_TEXT = 'TEXT'
+    TOKEN_TYPE_QTEXT = 'QTEXT'
 
     @classmethod
     def tokenize(cls, query: str) -> List[Token]:
@@ -199,7 +210,7 @@ class QueryTokenizer:
             self._eat_char()
         if not self._peek():
             raise QuerySyntaxError(self._index, f'Missing matching [{quote_char}]')
-        self._new_token(QueryTokenizer.TOKEN_TYPE_TEXT, self._query[start_index: self._index], start_index)
+        self._new_token(QueryTokenizer.TOKEN_TYPE_QTEXT, self._query[start_index: self._index], start_index)
         self._eat_char()
         return self._index
 

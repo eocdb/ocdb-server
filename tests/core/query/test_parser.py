@@ -52,9 +52,9 @@ class QueryTokenizerTest(TestCase):
                          QueryTokenizer.tokenize("+cat -dog"))
 
     def test_quoted_text(self):
-        self.assertEqual([('TEXT', 'type: cat', 1)],
+        self.assertEqual([('QTEXT', 'type: cat', 1)],
                          QueryTokenizer.tokenize("'type: cat'"))
-        self.assertEqual([('TEXT', 'cat AND  dog ', 1)],
+        self.assertEqual([('QTEXT', 'cat AND  dog ', 1)],
                          QueryTokenizer.tokenize('"cat AND  dog "'))
 
         with self.assertRaises(QuerySyntaxError) as cm:

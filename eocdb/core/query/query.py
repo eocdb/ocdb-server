@@ -117,24 +117,26 @@ class UnaryOpQuery(Query):
 
 
 class TextQuery(Query):
-    def __init__(self, text: str, name: str = None):
+    def __init__(self, text: str, name: str = None, is_quoted=False):
         self.text = text
         self.name = name  # If None --> global search
-        self.is_exact = ' ' in text
-        self.is_wildcard = '*' in text or '?' in text
+        self.is_quoted = is_quoted
+
+    @property
+    def is_wildcard(self):
+        return not self.is_quoted and ('*' in self.text or '?' in self.text)
 
     def __eq__(self, other):
         return isinstance(other, TextQuery) \
                and self.name == other.name \
                and self.text == other.text \
-               and self.is_exact == other.is_exact \
-               and self.is_wildcard == other.is_wildcard
+               and self.is_quoted == other.is_quoted
 
     def __str__(self) -> str:
         s = ''
         if self.name:
             s += self.name + ':'
-        if self.is_exact:
+        if self.is_quoted:
             s += f'"{self.text}"'
         else:
             s += self.text
@@ -144,6 +146,8 @@ class TextQuery(Query):
         args = f'"{self.text}"'
         if self.name:
             args += f', name="{self.name}"'
+        if self.is_quoted:
+            args += f', is_quoted={self.is_quoted}'
         return f'TextQuery({args})'
 
     def accept(self, visitor: 'QTVisitor') -> Any:
