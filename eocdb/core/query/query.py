@@ -19,7 +19,7 @@ class Query(metaclass=ABCMeta):
     """
 
     @abstractmethod
-    def accept(self, visitor: 'QTVisitor') -> Any:
+    def accept(self, visitor: 'QueryVisitor') -> Any:
         pass
 
     @abstractmethod
@@ -41,7 +41,7 @@ class PhraseQuery(Query):
         args = ', '.join(map(repr, self.terms))
         return f'PhraseQuery([{args}])'
 
-    def accept(self, visitor: 'QTVisitor') -> Any:
+    def accept(self, visitor: 'QueryVisitor') -> Any:
         return visitor.visit_list(self, [term.accept(visitor) for term in self.terms])
 
     def op_precedence(self) -> int:
@@ -74,7 +74,7 @@ class BinaryOpQuery(Query):
         t2 = repr(self.term2)
         return f'BinaryOpQuery("{self.op}", {t1}, {t2})'
 
-    def accept(self, visitor: 'QTVisitor') -> Any:
+    def accept(self, visitor: 'QueryVisitor') -> Any:
         return visitor.visit_binary_op(self, self.term1.accept(visitor), self.term2.accept(visitor))
 
     def op_precedence(self) -> int:
@@ -106,7 +106,7 @@ class UnaryOpQuery(Query):
     def __repr__(self):
         return f'UnaryOpQuery("{self.op}", {repr(self.term)})'
 
-    def accept(self, visitor: 'QTVisitor') -> Any:
+    def accept(self, visitor: 'QueryVisitor') -> Any:
         return visitor.visit_unary_op(self, self.term.accept(visitor))
 
     def op_precedence(self) -> int:
@@ -150,7 +150,7 @@ class TextQuery(Query):
             args += f', is_quoted={self.is_quoted}'
         return f'TextQuery({args})'
 
-    def accept(self, visitor: 'QTVisitor') -> Any:
+    def accept(self, visitor: 'QueryVisitor') -> Any:
         return visitor.visit_text(self)
 
     def op_precedence(self) -> int:
@@ -160,7 +160,9 @@ class TextQuery(Query):
 T = TypeVar('T')
 
 
-class QTVisitor(Generic[T], metaclass=ABCMeta):
+class QueryVisitor(Generic[T], metaclass=ABCMeta):
+    """ Visitor used to visit all nodes of a Query tree. """
+
     @abstractmethod
     def visit_list(self, qt: PhraseQuery, terms: List[T]) -> Optional[T]:
         """

@@ -1,7 +1,7 @@
 from typing import Optional, List
 from unittest import TestCase
 
-from eocdb.core.query.query import TextQuery, PhraseQuery, UnaryOpQuery, BinaryOpQuery, QTVisitor
+from eocdb.core.query.query import TextQuery, PhraseQuery, UnaryOpQuery, BinaryOpQuery, QueryVisitor
 
 
 class QueryTest(TestCase):
@@ -53,10 +53,10 @@ class QueryTest(TestCase):
                           UnaryOpQuery("-", TextQuery('snake')),
                           BinaryOpQuery("AND", TextQuery("dog"), TextQuery('cat'))])
         self.assertEqual('mouse | -(snake) | AND(dog, cat)',
-                         qt.accept(CollectingQTVisitor()))
+                         qt.accept(CollectingQueryVisitor()))
 
 
-class CollectingQTVisitor(QTVisitor[str]):
+class CollectingQueryVisitor(QueryVisitor[str]):
 
     def visit_list(self, qt: PhraseQuery, terms: List[str]) -> Optional[str]:
         return ' | '.join(terms)
