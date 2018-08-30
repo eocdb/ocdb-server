@@ -1,7 +1,7 @@
 from typing import List, Tuple, Optional
 
-from eocdb.core.query.query import Query, PhraseQuery, UnaryOpQuery, BinaryOpQuery, TextQuery, \
-    KW_AND, KW_OR, KW_NOT, KEYWORDS, OPERATORS
+from eocdb.core.query.query import Query, PhraseQuery, UnaryOpQuery, BinaryOpQuery, FieldValueQuery, \
+    KW_AND, KW_OR, KW_NOT, KEYWORDS, OPERATORS, FieldWildcardQuery
 
 _OP_CHARS = ', '.join(f'[{op}]' for op in OPERATORS)
 
@@ -106,10 +106,16 @@ class QueryParser:
                 is_qtext = token_type == QueryTokenizer.TOKEN_TYPE_QTEXT
                 if is_text or is_qtext:
                     self._inc()
-                    return TextQuery(text, name=name, is_quoted=is_qtext)
+                    if FieldWildcardQuery.is_wildcard_text(text):
+                        return FieldWildcardQuery(name, text)
+                    else:
+                        return FieldValueQuery(name, text)
                 raise QuerySyntaxError(token_pos, 'Missing text after [:]')
             else:
-                return TextQuery(text, name=context_name, is_quoted=is_qtext)
+                if FieldWildcardQuery.is_wildcard_text(text):
+                    return FieldWildcardQuery(context_name, text)
+                else:
+                    return FieldValueQuery(context_name, text)
 
         if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == '(':
             self._inc()

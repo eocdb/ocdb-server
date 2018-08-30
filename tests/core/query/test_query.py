@@ -1,7 +1,8 @@
 from typing import Optional, List
 from unittest import TestCase
 
-from eocdb.core.query.query import TextQuery, PhraseQuery, UnaryOpQuery, BinaryOpQuery, QueryVisitor, RangeQuery
+from eocdb.core.query.query import FieldValueQuery, PhraseQuery, UnaryOpQuery, BinaryOpQuery, QueryVisitor, \
+    FieldRangeQuery, FieldWildcardQuery
 
 
 class QueryTest(TestCase):
@@ -9,79 +10,127 @@ class QueryTest(TestCase):
         self.assertEqual(expected_str, str(term))
         self.assertEqual(expected_repr, repr(term))
 
-    def test_text(self):
+    def test_field_value(self):
         self._assert_str_and_repr('cat',
-                                  'TextQuery("cat")',
-                                  TextQuery('cat'))
+                                  'FieldValueQuery(None, "cat")',
+                                  FieldValueQuery(None, 'cat'))
         self._assert_str_and_repr('animal:cat',
-                                  'TextQuery("cat", name="animal")',
-                                  TextQuery('cat', name='animal'))
-        self._assert_str_and_repr('c*t',
-                                  'TextQuery("c*t")',
-                                  TextQuery('c*t'))
+                                  'FieldValueQuery("animal", "cat")',
+                                  FieldValueQuery('animal', 'cat'))
+        self._assert_str_and_repr('large:True',
+                                  'FieldValueQuery("large", True)',
+                                  FieldValueQuery('large', True))
+        self._assert_str_and_repr('size:627247',
+                                  'FieldValueQuery("size", 627247)',
+                                  FieldValueQuery('size', 627247))
+        self._assert_str_and_repr('"c*t"',
+                                  'FieldValueQuery(None, "c*t")',
+                                  FieldValueQuery(None, 'c*t'))
         self._assert_str_and_repr('animal:"cat dog"',
-                                  'TextQuery("cat dog", name="animal", is_quoted=True)',
-                                  TextQuery('cat dog', is_quoted=True, name='animal'))
+                                  'FieldValueQuery("animal", "cat dog")',
+                                  FieldValueQuery('animal', 'cat dog'))
 
-        self.assertEqual(1000, TextQuery('cat').op_precedence())
+        self.assertEqual(1000, FieldValueQuery(None, 'cat').op_precedence())
 
-    def test_range(self):
+    def test_field_wildcard(self):
+        self._assert_str_and_repr('cat',
+                                  'FieldWildcardQuery(None, "cat")',
+                                  FieldWildcardQuery(None, 'cat'))
+        self._assert_str_and_repr('animal:?at',
+                                  'FieldWildcardQuery("animal", "?at")',
+                                  FieldWildcardQuery('animal', '?at'))
+        self._assert_str_and_repr('c*t',
+                                  'FieldWildcardQuery(None, "c*t")',
+                                  FieldWildcardQuery(None, 'c*t'))
+        self._assert_str_and_repr('animal:d\\??',
+                                  'FieldWildcardQuery("animal", "d\\??")',
+                                  FieldWildcardQuery('animal', 'd\\??'))
+
+        with self.assertRaises(AssertionError):
+            FieldWildcardQuery('large', True)
+        with self.assertRaises(AssertionError):
+            FieldWildcardQuery('size', 34634)
+
+        self.assertEqual(False, FieldWildcardQuery.is_wildcard_text(''))
+        self.assertEqual(False, FieldWildcardQuery.is_wildcard_text('abcde'))
+        self.assertEqual(False, FieldWildcardQuery.is_wildcard_text('ab\\? de'))
+        self.assertEqual(False, FieldWildcardQuery.is_wildcard_text('ab? de'))
+        self.assertEqual(True, FieldWildcardQuery.is_wildcard_text('ab?\\ de'))
+        self.assertEqual(True, FieldWildcardQuery.is_wildcard_text('ab?_de'))
+        self.assertEqual(True, FieldWildcardQuery.is_wildcard_text('ab*cde'))
+        self.assertEqual(True, FieldWildcardQuery.is_wildcard_text('*'))
+        self.assertEqual(True, FieldWildcardQuery.is_wildcard_text('?'))
+        self.assertEqual(True, FieldWildcardQuery.is_wildcard_text('???'))
+
+        self.assertEqual(1000, FieldValueQuery(None, 'cat').op_precedence())
+
+    def test_field_range(self):
         self._assert_str_and_repr('[0.2 TO 1.6]',
-                                  'RangeQuery(0.2, 1.6)',
-                                  RangeQuery(0.2, 1.6))
+                                  'FieldRangeQuery(None, 0.2, 1.6)',
+                                  FieldRangeQuery(None, 0.2, 1.6))
         self._assert_str_and_repr('size:[0.2 TO 1.6]',
-                                  'RangeQuery(0.2, 1.6, name="size")',
-                                  RangeQuery(0.2, 1.6, name='size'))
+                                  'FieldRangeQuery("size", 0.2, 1.6)',
+                                  FieldRangeQuery('size', 0.2, 1.6))
         self._assert_str_and_repr('size:{0 TO 100}',
-                                  'RangeQuery(0, 100, name="size", is_exclusive=True)',
-                                  RangeQuery(0, 100, name='size', is_exclusive=True))
+                                  'FieldRangeQuery("size", 0, 100, is_exclusive=True)',
+                                  FieldRangeQuery('size', 0, 100, is_exclusive=True))
 
-        self.assertEqual(1000, RangeQuery(0.2, 1.6).op_precedence())
+        self.assertEqual(1000, FieldRangeQuery(None, 0.2, 1.6).op_precedence())
 
     def test_unary_op(self):
         self._assert_str_and_repr('NOT cat',
-                                  'UnaryOpQuery("NOT", TextQuery("cat"))',
-                                  UnaryOpQuery('NOT', TextQuery('cat')))
+                                  'UnaryOpQuery("NOT", FieldValueQuery(None, "cat"))',
+                                  UnaryOpQuery('NOT', FieldValueQuery(None, 'cat')))
         self._assert_str_and_repr('+cat',
-                                  'UnaryOpQuery("+", TextQuery("cat"))',
-                                  UnaryOpQuery('+', TextQuery('cat')))
+                                  'UnaryOpQuery("+", FieldValueQuery(None, "cat"))',
+                                  UnaryOpQuery('+', FieldValueQuery(None, 'cat')))
 
-        self.assertEqual(800, UnaryOpQuery('NOT', TextQuery('cat')).op_precedence())
+        self.assertEqual(800, UnaryOpQuery('NOT', FieldValueQuery(None, 'cat')).op_precedence())
 
     def test_binary_op(self):
         self._assert_str_and_repr('cat AND dog',
-                                  'BinaryOpQuery("AND", TextQuery("cat"), TextQuery("dog"))',
-                                  BinaryOpQuery('AND', TextQuery('cat'), TextQuery('dog')))
+                                  'BinaryOpQuery("AND", FieldValueQuery(None, "cat"), FieldValueQuery(None, "dog"))',
+                                  BinaryOpQuery('AND', FieldValueQuery(None, 'cat'),
+                                                FieldValueQuery(None, 'dog')))
 
         self._assert_str_and_repr('NOT snake AND (cat OR dog)',
-                                  'BinaryOpQuery("AND", UnaryOpQuery("NOT", TextQuery("snake")),'
-                                  ' BinaryOpQuery("OR", TextQuery("cat"), TextQuery("dog")))',
+                                  'BinaryOpQuery("AND", UnaryOpQuery("NOT", FieldValueQuery(None, "snake")),'
+                                  ' BinaryOpQuery("OR", FieldValueQuery(None, "cat"), FieldValueQuery(None, "dog")))',
                                   BinaryOpQuery('AND',
-                                                UnaryOpQuery('NOT', TextQuery('snake')),
-                                                BinaryOpQuery('OR', TextQuery('cat'), TextQuery('dog'))))
+                                                UnaryOpQuery('NOT', FieldValueQuery(None, 'snake')),
+                                                BinaryOpQuery('OR', FieldValueQuery(None, 'cat'),
+                                                              FieldValueQuery(None, 'dog'))))
         self._assert_str_and_repr('(cat OR dog) AND NOT snake',
-                                  'BinaryOpQuery("AND", BinaryOpQuery("OR", TextQuery("cat"),'
-                                  ' TextQuery("dog")), UnaryOpQuery("NOT", TextQuery("snake")))',
+                                  'BinaryOpQuery("AND", BinaryOpQuery("OR", FieldValueQuery(None, "cat"),'
+                                  ' FieldValueQuery(None, "dog")), UnaryOpQuery("NOT", FieldValueQuery(None, "snake")))',
                                   BinaryOpQuery('AND',
-                                                BinaryOpQuery('OR', TextQuery('cat'), TextQuery('dog')),
-                                                UnaryOpQuery('NOT', TextQuery('snake'))))
+                                                BinaryOpQuery('OR', FieldValueQuery(None, 'cat'),
+                                                              FieldValueQuery(None, 'dog')),
+                                                UnaryOpQuery('NOT', FieldValueQuery(None, 'snake'))))
 
-        self.assertEqual(600, BinaryOpQuery('AND', TextQuery('cat'), TextQuery('dog')).op_precedence())
-        self.assertEqual(500, BinaryOpQuery('OR', TextQuery('cat'), TextQuery('dog')).op_precedence())
+        self.assertEqual(600, BinaryOpQuery('AND',
+                                            FieldValueQuery(None, 'cat'),
+                                            FieldValueQuery(None, 'dog')).op_precedence())
+        self.assertEqual(500, BinaryOpQuery('OR',
+                                            FieldValueQuery(None, 'cat'),
+                                            FieldValueQuery(None, 'dog')).op_precedence())
 
     def test_phrase(self):
         self._assert_str_and_repr('animal:cat dog',
-                                  'PhraseQuery([TextQuery("cat", name="animal"), TextQuery("dog")])',
-                                  PhraseQuery([TextQuery('cat', name='animal'), TextQuery("dog")]))
+                                  'PhraseQuery([FieldValueQuery("animal", "cat"), FieldValueQuery(None, "dog")])',
+                                  PhraseQuery([FieldValueQuery('animal', 'cat'),
+                                               FieldValueQuery(None, "dog")]))
 
-        self.assertEqual(400, PhraseQuery([TextQuery('cat'), TextQuery('dog')]).op_precedence())
+        self.assertEqual(400, PhraseQuery([FieldValueQuery(None, 'cat'),
+                                           FieldValueQuery(None, 'dog')]).op_precedence())
 
     def test_accept(self):
-        qt = PhraseQuery([TextQuery('mouse'),
-                          UnaryOpQuery("-", TextQuery('snake')),
-                          RangeQuery(4, 12, name='size'),
-                          BinaryOpQuery("AND", TextQuery("dog"), TextQuery('cat'))])
-        self.assertEqual('mouse | -(snake) | size:[4 TO 12] | AND(dog, cat)',
+        qt = PhraseQuery([FieldValueQuery(None, 'mouse'),
+                          UnaryOpQuery("-", FieldValueQuery(None, 'snake')),
+                          FieldValueQuery(name='size', value=15),
+                          FieldRangeQuery(name='size', start_value=4, end_value=12),
+                          BinaryOpQuery("AND", FieldValueQuery(None, "dog"), FieldValueQuery(None, 'cat'))])
+        self.assertEqual('mouse | -(snake) | size:15 | size:[4 TO 12] | AND(dog, cat)',
                          qt.accept(CollectingQueryVisitor()))
 
 
@@ -96,8 +145,11 @@ class CollectingQueryVisitor(QueryVisitor[str]):
     def visit_binary_op(self, qt: BinaryOpQuery, term1: str, term2: str) -> Optional[str]:
         return f'{qt.op}({term1}, {term2})'
 
-    def visit_text(self, qt: TextQuery) -> Optional[str]:
+    def visit_field_value(self, qt: FieldValueQuery) -> Optional[str]:
         return str(qt)
 
-    def visit_range(self, qt: RangeQuery) -> Optional[str]:
+    def visit_field_wildcard(self, qt: FieldWildcardQuery) -> Optional[str]:
+        return str(qt)
+
+    def visit_field_range(self, qt: FieldRangeQuery) -> Optional[str]:
         return str(qt)

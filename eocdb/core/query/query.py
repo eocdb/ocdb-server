@@ -1,5 +1,5 @@
 from abc import ABCMeta, abstractmethod
-from typing import List, Optional, Any, TypeVar, Generic, Union
+from typing import List, Optional, Any, TypeVar, Generic, Union, Sequence
 
 KW_AND = 'AND'
 KW_OR = 'OR'
@@ -9,6 +9,8 @@ KEYWORDS = {KW_AND, KW_OR, KW_NOT}
 OP_INCLUDE = '+'
 OP_EXCLUDE = '-'
 OPERATORS = {OP_INCLUDE, OP_EXCLUDE}
+
+Value = Union[str, bool, int, float, None]
 
 
 class Query(metaclass=ABCMeta):
@@ -26,20 +28,30 @@ class Query(metaclass=ABCMeta):
     def op_precedence(self) -> int:
         return False
 
+    def is_of_same_type(self, other: Any):
+        return type(self) is type(other)
+
+    @abstractmethod
+    def args_to_repr(self) -> str:
+        """ Get Python representation of constructor args."""
+
+    def __repr__(self) -> str:
+        return f'{type(self).__name__}({self.args_to_repr()})'
+
 
 class PhraseQuery(Query):
-    def __init__(self, terms: List[Query]):
-        self.terms = terms
+    def __init__(self, terms: Sequence[Query]):
+        self.terms = tuple(terms)
 
     def __eq__(self, other) -> bool:
-        return isinstance(other, PhraseQuery) and self.terms == other.terms
+        return self.is_of_same_type(other) and self.terms == other.terms
 
     def __str__(self) -> str:
         return ' '.join(map(str, self.terms))
 
-    def __repr__(self) -> str:
+    def args_to_repr(self) -> str:
         args = ', '.join(map(repr, self.terms))
-        return f'PhraseQuery([{args}])'
+        return f'[{args}]'
 
     def accept(self, visitor: 'QueryVisitor') -> Any:
         return visitor.visit_phrase(self, [term.accept(visitor) for term in self.terms])
@@ -55,7 +67,7 @@ class BinaryOpQuery(Query):
         self.term2 = term2
 
     def __eq__(self, other):
-        return isinstance(other, BinaryOpQuery) \
+        return self.is_of_same_type(other) \
                and self.op == other.op \
                and self.term1 == other.term1 \
                and self.term2 == other.term2
@@ -69,10 +81,10 @@ class BinaryOpQuery(Query):
             t2 = f'({t2})'
         return f'{t1} {self.op} {t2}'
 
-    def __repr__(self):
+    def args_to_repr(self) -> str:
         t1 = repr(self.term1)
         t2 = repr(self.term2)
-        return f'BinaryOpQuery("{self.op}", {t1}, {t2})'
+        return f'"{self.op}", {t1}, {t2}'
 
     def accept(self, visitor: 'QueryVisitor') -> Any:
         return visitor.visit_binary_op(self, self.term1.accept(visitor), self.term2.accept(visitor))
@@ -90,7 +102,7 @@ class UnaryOpQuery(Query):
         self.term = term
 
     def __eq__(self, other) -> bool:
-        return isinstance(other, UnaryOpQuery) \
+        return self.is_of_same_type(other) \
                and self.op == other.op \
                and self.term == other.term
 
@@ -103,8 +115,8 @@ class UnaryOpQuery(Query):
         else:
             return f'{self.op}{term}'
 
-    def __repr__(self):
-        return f'UnaryOpQuery("{self.op}", {repr(self.term)})'
+    def args_to_repr(self) -> str:
+        return f'"{self.op}", {repr(self.term)}'
 
     def accept(self, visitor: 'QueryVisitor') -> Any:
         return visitor.visit_unary_op(self, self.term.accept(visitor))
@@ -116,89 +128,132 @@ class UnaryOpQuery(Query):
             return 900
 
 
-class RangeQuery(Query):
-    def __init__(self,
-                 start_value: Union[str, float, int],
-                 end_value: Union[str, float, int],
-                 name: str = None,
-                 is_exclusive=False):
-        self.name = name  # If None, the context-specific default field name is used
+class FieldQuery(Query, metaclass=ABCMeta):
+    def __init__(self, name: Optional[str]):
+        self.name = name
+
+    def op_precedence(self) -> int:
+        return 1000
+
+    @abstractmethod
+    def value_to_str(self):
+        """ Turn value into string. """
+
+    def __str__(self) -> str:
+        value = self.value_to_str()
+        return f'{self.name}:{value}' if self.name else value
+
+    @abstractmethod
+    def value_args_to_repr(self):
+        """ Turn value(s) into Python representation. """
+
+    def args_to_repr(self) -> str:
+        args = self.value_args_to_repr()
+        return f'"{self.name}", {args}' if self.name else f'None, {args}'
+
+
+class FieldValueQuery(FieldQuery):
+    @classmethod
+    def is_text(cls, value: Value):
+        return isinstance(value, str)
+
+    def __init__(self, name: Optional[str], value: Value):
+        super().__init__(name)
+        self.value = value
+
+    def __eq__(self, other):
+        return self.is_of_same_type(other) \
+               and self.name == other.name \
+               and self.value == other.value
+
+    def value_to_str(self):
+        return '"' + self.value.replace('"', '\\"') + '"' \
+            if self._is_quoted_text() else str(self.value)
+
+    def value_args_to_repr(self):
+        return '"' + self.value.replace('"', '\\"') + '"' \
+            if isinstance(self.value, str) else repr(self.value)
+
+    def accept(self, visitor: 'QueryVisitor') -> Any:
+        return visitor.visit_field_value(self)
+
+    def op_precedence(self) -> int:
+        return 1000
+
+    def _is_text(self):
+        return self.is_text(self.value)
+
+    def _is_quoted_text(self) -> bool:
+        return self._is_text() \
+               and any(map(lambda c: c in ' +-&|!(){}[]^"~*?:\\', self.value))
+
+
+class FieldWildcardQuery(FieldValueQuery):
+
+    @classmethod
+    def is_wildcard_text(cls, value: Value) -> bool:
+
+        if not cls.is_text(value):
+            return False
+
+        escape = False
+        wildcard_char_seen = False
+        for i in range(len(value)):
+            c = value[i]
+            if c == '\\':
+                escape = True
+            elif not escape and c == '?' or c == '*':
+                wildcard_char_seen = True
+            elif not escape and c.isspace():
+                return False
+            else:
+                escape = False
+
+        return wildcard_char_seen
+
+    def __init__(self, name: Optional[str], value: str):
+        super().__init__(name, value)
+        assert isinstance(value, str)
+
+    def accept(self, visitor: 'QueryVisitor') -> Any:
+        return visitor.visit_field_wildcard(self)
+
+    def _is_quoted_text(self) -> bool:
+        return False
+
+
+class FieldRangeQuery(FieldQuery):
+
+    def __init__(self, name: Optional[str], start_value: Value, end_value: Value, is_exclusive=False):
+        super().__init__(name)
+        assert not (start_value is None and end_value is None)
         self.start_value = start_value
         self.end_value = end_value
         self.is_exclusive = is_exclusive
 
     def __eq__(self, other):
-        return isinstance(other, TextQuery) \
+        return self.is_of_same_type(other) \
                and self.name == other.name \
                and self.start_value == other.start_value \
                and self.end_value == other.end_value \
                and self.is_exclusive == other.is_exclusive
 
-    def __str__(self) -> str:
-        s = ''
-        if self.name:
-            s += self.name + ':' + s
+    def value_to_str(self):
         v = f'{self.start_value} TO {self.end_value}'
         if self.is_exclusive:
-            s += '{' + v + '}'
+            v = '{' + v + '}'
         else:
-            s += '[' + v + ']'
-        return s
+            v = '[' + v + ']'
+        return v
 
-    def __repr__(self):
+    def value_args_to_repr(self):
         args = f'{self.start_value}, {self.end_value}'
-        if self.name:
-            args += f', name="{self.name}"'
         if self.is_exclusive:
             args += f', is_exclusive={self.is_exclusive}'
-        return f'RangeQuery({args})'
+        return args
 
     def accept(self, visitor: 'QueryVisitor') -> Any:
-        return visitor.visit_range(self)
-
-    def op_precedence(self) -> int:
-        return 1000
-
-
-class TextQuery(Query):
-    def __init__(self, text: str, name: str = None, is_quoted=False):
-        self.name = name  # If None, the context-specific default field name is used
-        self.text = text
-        self.is_quoted = is_quoted
-
-    @property
-    def is_wildcard(self):
-        return not self.is_quoted and ('*' in self.text or '?' in self.text)
-
-    def __eq__(self, other):
-        return isinstance(other, TextQuery) \
-               and self.name == other.name \
-               and self.text == other.text \
-               and self.is_quoted == other.is_quoted
-
-    def __str__(self) -> str:
-        s = ''
-        if self.name:
-            s += self.name + ':'
-        if self.is_quoted:
-            s += f'"{self.text}"'
-        else:
-            s += self.text
-        return s
-
-    def __repr__(self):
-        args = f'"{self.text}"'
-        if self.name:
-            args += f', name="{self.name}"'
-        if self.is_quoted:
-            args += f', is_quoted={self.is_quoted}'
-        return f'TextQuery({args})'
-
-    def accept(self, visitor: 'QueryVisitor') -> Any:
-        return visitor.visit_text(self)
-
-    def op_precedence(self) -> int:
-        return 1000
+        return visitor.visit_field_range(self)
 
 
 T = TypeVar('T')
@@ -236,17 +291,65 @@ class QueryVisitor(Generic[T], metaclass=ABCMeta):
         """
 
     @abstractmethod
-    def visit_text(self, qt: TextQuery) -> Optional[T]:
+    def visit_field_value(self, qt: FieldValueQuery) -> Optional[T]:
         """
-        Visit a TextQuery query term and compute an optional result.
-        :param qt: The TextQuery query term to be visited.
+        Visit a FieldValueQuery query term and compute an optional result.
+        :param qt: The FieldValueQuery query term to be visited.
         :return: The optional result of the visit.
         """
 
     @abstractmethod
-    def visit_range(self, qt: RangeQuery) -> Optional[T]:
+    def visit_field_range(self, qt: FieldRangeQuery) -> Optional[T]:
         """
-        Visit a RangeQuery query term and compute an optional result.
-        :param qt: The RangeQuery query term to be visited.
+        Visit a FieldRangeQuery query term and compute an optional result.
+        :param qt: The FieldRangeQuery query term to be visited.
         :return: The optional result of the visit.
         """
+
+    @abstractmethod
+    def visit_field_wildcard(self, qt: FieldWildcardQuery) -> Optional[T]:
+        """
+        Visit a FieldRangeQuery query term and compute an optional result.
+        :param qt: The FieldRangeQuery query term to be visited.
+        :return: The optional result of the visit.
+        """
+
+
+# noinspection PyPep8Naming
+class QueryBuilder:
+
+    @classmethod
+    def value(cls, value: Value, name: str = None):
+        return FieldValueQuery(name, value)
+
+    @classmethod
+    def range(cls, from_value: Value, to_value: Value, is_exclusive=False, name: str = None):
+        return FieldRangeQuery(name, from_value, to_value, is_exclusive=is_exclusive)
+
+    @classmethod
+    def wildcard(cls, value: str, name: str = None):
+        return FieldWildcardQuery(name, value)
+
+    @classmethod
+    def include(cls, t: FieldQuery):
+        return UnaryOpQuery('+', t)
+
+    @classmethod
+    def exclude(cls, t: FieldQuery):
+        return UnaryOpQuery('-', t)
+
+    @classmethod
+    def phrase(cls, *terms: Query):
+        return PhraseQuery(terms)
+
+    @classmethod
+    def NOT(cls, t: Query):
+        return UnaryOpQuery('NOT', t)
+
+    @classmethod
+    def AND(cls, t1: Query, t2: Query):
+        return BinaryOpQuery('AND', t1, t2)
+
+    @classmethod
+    def OR(cls, t1: Query, t2: Query):
+        return BinaryOpQuery('OR', t1, t2)

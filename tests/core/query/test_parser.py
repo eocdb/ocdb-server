@@ -1,25 +1,27 @@
 from unittest import TestCase
 
-from eocdb.core.query.parser import QueryTokenizer, QuerySyntaxError, QueryParser, TextQuery, PhraseQuery, UnaryOpQuery, \
-    BinaryOpQuery
+from eocdb.core.query.parser import QueryTokenizer, QuerySyntaxError, QueryParser
+from eocdb.core.query.query import QueryBuilder
 
 
 class QueryParserTest(TestCase):
     def test_simple(self):
+        b = QueryBuilder
         self.assertEqual(None,
                          QueryParser.parse(""))
         self.assertEqual(None,
                          QueryParser.parse("   "))
-        self.assertEqual(TextQuery("cat"),
+        self.assertEqual(b.value("cat"),
                          QueryParser.parse("cat"))
-        self.assertEqual(PhraseQuery([TextQuery("cat"), TextQuery("dog")]),
+        self.assertEqual(b.phrase(b.value("cat"), b.value("dog")),
                          QueryParser.parse("cat dog"))
-        self.assertEqual(BinaryOpQuery('AND', TextQuery("cat"), TextQuery("dog")),
+        self.assertEqual(b.AND(b.value("cat"), b.value("dog")),
                          QueryParser.parse("cat AND  dog "))
-        self.assertEqual(TextQuery("cat", name='type'),
+        self.assertEqual(b.value("cat", name='type'),
                          QueryParser.parse("type:cat"))
-        self.assertEqual(PhraseQuery([UnaryOpQuery('+', TextQuery("cat")), UnaryOpQuery('-', TextQuery("dog"))]),
-                         QueryParser.parse("+cat -dog"))
+        self.assertEqual(
+            b.phrase(b.include(b.value("cat")), b.exclude(b.value("dog"))),
+            QueryParser.parse("+cat -dog"))
 
 
 class QueryTokenizerTest(TestCase):
