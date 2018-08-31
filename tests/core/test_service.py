@@ -1,58 +1,18 @@
 from unittest import TestCase
 
-from eocdb.core.service import Service, ServiceInfo, ServiceRegistry, ServiceError
+from eocdb.core.service import Service, ServiceRegistry, ServiceError
+from tests.core.helpers import TestServiceA, TestServiceB
 
 
-class TestServiceBase(Service):
+class ServiceTest(TestCase):
 
-    def __init__(self):
-        self.value1 = None
-        self.value2 = None
-        self.num_inits = 0
-        self.num_updates = 0
-        self.num_disposes = 0
+    def test_info(self):
+        self.assertEqual(dict(name='Service'), Service.info())
+        self.assertEqual(dict(name='TestServiceA'), TestServiceA.info())
 
-    def init(self, value1=None, value2=None):
-        self.num_inits += 1
-        self.value1 = value1
-        self.value2 = value2
-        assert not (self.value1 == 1 and self.value2 == 1)
-
-    def update(self, value1=None, value2=None):
-        self.num_updates += 1
-        self.value1 = value1
-        self.value2 = value2
-        assert not (self.value1 == 2 and self.value2 == 2)
-
-    def dispose(self):
-        self.num_disposes += 1
-        assert not (self.value1 == 3 and self.value2 == 3)
-
-    @classmethod
-    def info(cls) -> ServiceInfo:
-        return dict(name=cls.__name__)
-
-
-class TestServiceA(TestServiceBase):
-    pass
-
-
-class TestServiceB(TestServiceA):
-    pass
-
-
-class TestServiceC(TestServiceB):
-    pass
-
-
-class TestServiceD(TestServiceB):
-    pass
-
-
-class TestServiceE(TestServiceB):
-    def __init__(self):
-        super().__init__()
-        assert False
+    def test_default_instance(self):
+        service_a = TestServiceA()
+        self.assertIs(service_a, service_a.instance())
 
 
 class ServiceRegistryTest(TestCase):
@@ -63,10 +23,10 @@ class ServiceRegistryTest(TestCase):
     def test_update_and_find(self):
         self.registry.update({
             "service_a": {
-                "type": "tests.core.test_service.TestServiceA",
+                "type": "tests.core.helpers.TestServiceA",
             },
             "service_b": {
-                "type": "tests.core.test_service.TestServiceB",
+                "type": "tests.core.helpers.TestServiceB",
             },
         })
 
@@ -104,13 +64,13 @@ class ServiceRegistryTest(TestCase):
     def test_nominal_updates(self):
         self.registry.update({
             "service_a": {
-                "type": "tests.core.test_service.TestServiceA",
+                "type": "tests.core.helpers.TestServiceA",
                 "parameters": {
                     "value1": 1,
                 },
             },
             "service_b": {
-                "type": "tests.core.test_service.TestServiceB",
+                "type": "tests.core.helpers.TestServiceB",
             },
         })
 
@@ -127,13 +87,13 @@ class ServiceRegistryTest(TestCase):
 
         self.registry.update({
             "service_a": {
-                "type": "tests.core.test_service.TestServiceA",
+                "type": "tests.core.helpers.TestServiceA",
                 "parameters": {
                     "value1": 2,
                 },
             },
             "service_c": {
-                "type": "tests.core.test_service.TestServiceC",
+                "type": "tests.core.helpers.TestServiceC",
             },
         })
 
@@ -154,16 +114,16 @@ class ServiceRegistryTest(TestCase):
 
         self.registry.update({
             "service_a": {
-                "type": "tests.core.test_service.TestServiceA",
+                "type": "tests.core.helpers.TestServiceA",
                 "parameters": {
                     "value1": 3,
                 },
             },
             "service_c1": {
-                "type": "tests.core.test_service.TestServiceC",
+                "type": "tests.core.helpers.TestServiceC",
             },
             "service_c2": {
-                "type": "tests.core.test_service.TestServiceC",
+                "type": "tests.core.helpers.TestServiceC",
             },
         })
 
@@ -214,26 +174,33 @@ class ServiceRegistryTest(TestCase):
         self.assertEqual(1, service_c1.num_disposes)
         self.assertEqual(1, service_c2.num_disposes)
 
+    def test_illegal_registry_constr(self):
+        with self.assertRaises(ServiceError) as cm:
+            # noinspection PyTypeChecker
+            self.registry.update([])
+        self.assertEqual("service configuration must be a dictionary",
+                         f'{cm.exception}')
+
     def test_illegal_service_init(self):
         with self.assertRaises(ServiceError) as cm:
             self.registry.update({
                 "service_a": {
-                    "type": "tests.core.test_service.TestServiceA",
+                    "type": "tests.core.helpers.TestServiceA",
                     "parameters": {
                         "value1": 1,
                         "value2": 1,
                     },
                 },
             })
-        self.assertEqual("failed to initialize service of type <class 'tests.core.test_service.TestServiceA'>"
-                         " with configuration {'type': 'tests.core.test_service.TestServiceA',"
+        self.assertEqual("failed to initialize service of type <class 'tests.core.helpers.TestServiceA'>"
+                         " with configuration {'type': 'tests.core.helpers.TestServiceA',"
                          " 'parameters': {'value1': 1, 'value2': 1}}",
                          f'{cm.exception}')
 
     def test_illegal_service_update(self):
         self.registry.update({
             "service_a": {
-                "type": "tests.core.test_service.TestServiceA",
+                "type": "tests.core.helpers.TestServiceA",
                 "parameters": {
                     "value1": 1,
                     "value2": 2,
@@ -243,36 +210,36 @@ class ServiceRegistryTest(TestCase):
         with self.assertRaises(ServiceError) as cm:
             self.registry.update({
                 "service_a": {
-                    "type": "tests.core.test_service.TestServiceA",
+                    "type": "tests.core.helpers.TestServiceA",
                     "parameters": {
                         "value1": 2,
                         "value2": 2,
                     },
                 },
             })
-        self.assertEqual("failed to update service of type <class 'tests.core.test_service.TestServiceA'>"
-                         " with configuration {'type': 'tests.core.test_service.TestServiceA',"
+        self.assertEqual("failed to update service of type <class 'tests.core.helpers.TestServiceA'>"
+                         " with configuration {'type': 'tests.core.helpers.TestServiceA',"
                          " 'parameters': {'value1': 2, 'value2': 2}}",
                          f'{cm.exception}')
 
         with self.assertRaises(ServiceError) as cm:
             self.registry.update({
                 "service_a": {
-                    "type": "tests.core.test_service.TestServiceB",
+                    "type": "tests.core.helpers.TestServiceB",
                     "parameters": {
                         "value1": 1,
                         "value2": 2,
                     },
                 },
             })
-        self.assertEqual("failed to update service of type <class 'tests.core.test_service.TestServiceA'>"
+        self.assertEqual("failed to update service of type <class 'tests.core.helpers.TestServiceA'>"
                          " changing a service's type is not (yet) supported",
                          f'{cm.exception}')
 
     def test_illegal_service_dispose(self):
         self.registry.update({
             "service_a": {
-                "type": "tests.core.test_service.TestServiceA",
+                "type": "tests.core.helpers.TestServiceA",
                 "parameters": {
                     "value1": 3,
                     "value2": 3,
@@ -281,8 +248,8 @@ class ServiceRegistryTest(TestCase):
         })
         with self.assertRaises(ServiceError) as cm:
             self.registry.dispose()
-        self.assertEqual("failed to dispose service of type <class 'tests.core.test_service.TestServiceA'>"
-                         " with configuration {'type': 'tests.core.test_service.TestServiceA',"
+        self.assertEqual("failed to dispose service of type <class 'tests.core.helpers.TestServiceA'>"
+                         " with configuration {'type': 'tests.core.helpers.TestServiceA',"
                          " 'parameters': {'value1': 3, 'value2': 3}}",
                          f'{cm.exception}')
 
@@ -315,19 +282,19 @@ class ServiceRegistryTest(TestCase):
             {
                 '_': {"type": "mymodule.Test"}
             },
-            'invalid service "type" value: module mymodule.Test not found'
+            'invalid service "type" value: module mymodule not found'
         )
         self._assert_illegal_config(
             {
-                '_': {"type": "tests.core.test_service.TestServiceX"}
+                '_': {"type": "tests.core.helpers.TestServiceX"}
             },
-            'invalid service "type" value: class TestServiceX not found in module tests.core.test_service'
+            'invalid service "type" value: class TestServiceX not found in module tests.core.helpers'
         )
         self._assert_illegal_config(
             {
-                '_': {"type": "tests.core.test_service.TestServiceE"}
+                '_': {"type": "tests.core.helpers.TestServiceE"}
             },
-            'invalid service "type" value: cannot create instance of class tests.core.test_service.TestServiceE'
+            'invalid service "type" value: cannot create instance of class tests.core.helpers.TestServiceE'
         )
 
     def _assert_illegal_config(self, illegal_config, expected_message):

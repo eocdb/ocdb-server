@@ -43,7 +43,7 @@ class Service(metaclass=ABCMeta):
     @classmethod
     def info(cls) -> ServiceInfo:
         """ Get basic service information. """
-        raise NotImplementedError()
+        return dict(name=cls.__name__)
 
     @abstractmethod
     def init(self, **config):
@@ -57,7 +57,6 @@ class Service(metaclass=ABCMeta):
     def dispose(self):
         """ Dispose this service, because the configuration has changed. """
 
-    @property
     def instance(self):
         """ Get the actual service instance. """
         return self
@@ -144,6 +143,8 @@ class ServiceRegistry(ServiceLookup):
         Update registry with new service configurations. *configs* is a mapping
         from service identifiers to respective services' configuration.
         """
+        if not isinstance(configs, dict):
+            raise ServiceError('service configuration must be a dictionary')
 
         new_ids = set(configs.keys())
         old_ids = set(self._configs.keys())
@@ -202,7 +203,7 @@ class ServiceRegistry(ServiceLookup):
             module = importlib.import_module(module_name)
         except ModuleNotFoundError as error:
             raise ServiceError(f'invalid service "{SERVICE_TYPE_CONFIG_NAME}" value: '
-                               f'module {qual_class_name} not found') from error
+                               f'module {module_name} not found') from error
 
         try:
             service_class = getattr(module, class_name)
