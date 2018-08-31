@@ -42,20 +42,20 @@ class Service(metaclass=ABCMeta):
 
     @classmethod
     def info(cls) -> ServiceInfo:
-        """ Get basic database service information. """
+        """ Get basic service information. """
         raise NotImplementedError()
 
     @abstractmethod
     def init(self, **config):
-        """ Initialize this database service. """
+        """ Initialize this service. """
 
     @abstractmethod
     def update(self, **config):
-        """ Initialize this database service, because the configuration has changed. """
+        """ Initialize this service, because the configuration has changed. """
 
     @abstractmethod
     def dispose(self):
-        """ Dispose this database service, because the configuration has changed. """
+        """ Dispose this service, because the configuration has changed. """
 
     @property
     def instance(self):
@@ -80,36 +80,42 @@ class ServiceLookup(metaclass=ABCMeta):
 
     @abstractmethod
     def find_by_filter(self, service_filter: ServiceFilter) -> Sequence[Service]:
-        """ Get basic database service information. """
+        """ Get basic service information. """
 
 
 class ServiceRegistry(ServiceLookup):
     """ 
     A service registry that can be updated by service configurations. 
     
-    Example for two service configurations that are database service services:
+    Example for two database driver configurations:
     
-      "database_services": {
-        "EUMETSAT-OCDB": {
-          "type": "eocdb.db.services.MongoDbDriver",
-          "write": True,
-          "read": True,
-          "parameters": {
-            "url": "...",
-            "user": "scott",
-            "password": "tiger",
-          }
-        },
-        "SeaBASS-Test": {
-          "type": "eocdb.db.services.SeaBassDriver",
-          "write": False,
-          "read": True,
-          "parameters": {
-            "service_url": "https://seabass.gsfc.nasa.gov/",
-            "access_token": "7345-f3e2-aa50-76b3",
-          }
+        "database_drivers": {
+            "EUMETSAT-OCDB": {
+                "type": "eocdb.db.services.MongoDbDriver",
+                "write": True,
+                "read": True,
+                "parameters": {
+                    "url": "...",
+                    "user": "scott",
+                    "password": "tiger",
+                }
+            },
+            "SeaBASS-Test": {
+                "type": "eocdb.db.services.SeaBassDriver",
+                "write": False,
+                "read": True,
+                "parameters": {
+                    "service_url": "https://seabass.gsfc.nasa.gov/",
+                    "access_token": "7345-f3e2-aa50-76b3",
+                }
+            }
         }
-      }
+
+    Within a service configuration, the only required setting is "type", whose value must be a
+    the fully qualified name of an existing and accessible class.
+
+    The optional setting "parameters" is expected to be a dictionary of keyword-arguments passed to the
+    service, i.e. ``service.init(**config)`` and ``service.update(**config)``.
     
     """
 
@@ -118,17 +124,26 @@ class ServiceRegistry(ServiceLookup):
         self._services = dict()
 
     def find_by_id(self, service_id: ServiceId) -> Optional[Service]:
+        """ Find service by identifier *service_id*. Return None, if no such service exists. """
         return self._services.get(service_id)
 
     def find_by_type(self, service_type: ServiceType) -> Sequence[Service]:
+        """ Find services that are instances of the given type *service_type*. """
         return [service for service in self._services.values() if isinstance(service, service_type)]
 
     def find_by_filter(self, service_filter: ServiceFilter) -> Sequence[Service]:
+        """
+        Find service by a filter function. *service_filter* is called
+        with the service id, the service, and its configuration.
+        """
         return [self._services[service_id] for service_id in self._services.keys()
                 if service_filter(service_id, self._services[service_id], self._configs[service_id])]
 
     def update(self, configs: ServiceConfigs):
-        """ Update registry with new server configuration. """
+        """
+        Update registry with new service configurations. *configs* is a mapping
+        from service identifiers to respective services' configuration.
+        """
 
         new_ids = set(configs.keys())
         old_ids = set(self._configs.keys())
@@ -154,6 +169,7 @@ class ServiceRegistry(ServiceLookup):
                 self._update_service(service, old_config, new_config)
 
     def dispose(self):
+        """ Dispose and remove all services. """
         self.update({})
 
     def _get_service(self, service_id: str) -> Tuple[Service, ServiceConfig]:
@@ -170,7 +186,7 @@ class ServiceRegistry(ServiceLookup):
 
     @classmethod
     def _load_service(cls, config: ServiceConfig) -> Optional[Service]:
-        qual_class_name = config.get('type')
+        qual_class_name = config.get(SERVICE_TYPE_CONFIG_NAME)
         if not qual_class_name:
             raise ServiceError(f'missing service "{SERVICE_TYPE_CONFIG_NAME}" value')
         if '.' not in qual_class_name:
@@ -202,9 +218,10 @@ class ServiceRegistry(ServiceLookup):
 
     @classmethod
     def _init_service(cls, service: Service, config: ServiceConfig):
+        params = config.get(SERVICE_PARAMS_CONFIG_NAME, {})
         # noinspection PyBroadException
         try:
-            service.init(**(config.get(SERVICE_PARAMS_CONFIG_NAME, {})))
+            service.init(**params)
         except Exception as error:
             raise ServiceError(f'failed to initialize service of type {type(service)} '
                                f'with configuration {config}') from error
