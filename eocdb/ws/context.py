@@ -24,9 +24,10 @@ import logging
 import os
 from typing import Any, Dict
 
+from eocdb.core.db.sqlite_test_db_driver import SQLiteTestDbDriver
+from eocdb.ws.errors import ServiceBadRequestError
 from . import __version__, __description__
 from .defaults import DEFAULT_SERVER_NAME, DEFAULT_MAX_THREAD_COUNT
-from .errors import ServiceBadRequestError
 
 _LOG = logging.getLogger('eocdb')
 
@@ -40,6 +41,8 @@ class ServiceContext:
         self._config = dict(config or {})
         self.thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=DEFAULT_MAX_THREAD_COUNT,
                                                                  thread_name_prefix=DEFAULT_SERVER_NAME)
+        # @todo 2 tb/tb move to factory and fetch the one configured 2018-08-28
+        self.database = SQLiteTestDbDriver()
 
     @property
     def config(self) -> Config:
@@ -54,19 +57,16 @@ class ServiceContext:
 
     # noinspection PyMethodMayBeStatic
     def get_app_info(self) -> Dict:
-        return dict(name=DEFAULT_SERVER_NAME,
-                    description=__description__,
-                    version=__version__)
+        return dict(name=DEFAULT_SERVER_NAME, description=__description__, version=__version__)
 
     # noinspection PyMethodMayBeStatic
     def query_measurements(self, query_string: str):
-        # TODO: use database API (tb)
-        if query_string == 'ernie':
-            return dict(id=[1, 2, 3, 4, 5],
-                        lon=[58.1, 58.4, 58.5, 58.2, 58.9],
-                        lat=[11.1, 11.4, 10.9, 10.8, 11.2],
-                        chl=[0.3, 0.2, 0.7, 0.2, 0.1])
-        else:
-            raise ServiceBadRequestError('The only valid query string is "ernie"')
+        try:
+            # @todo 1 tb/tb need to move this to the initialisation 2018-08-28
+            self.database.connect()
+            dataset = self.database.get(query_string)
+            return dataset.to_dict()
+        except:
+            raise ServiceBadRequestError('Database error')
 
     # Here: add service methods, use thread_pool for concurrent requests
