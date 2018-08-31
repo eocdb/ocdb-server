@@ -1,3 +1,5 @@
 databases:
   default:
-    type: tests.ws.helpers.DatabaseTestDriver
+    type: eocdb.core.db.sqlite_test_db_driver.SQLiteTestDbDriver
+    read: true
+    write: true

@@ -3,7 +3,6 @@ from typing import Optional
 
 import yaml
 
-from eocdb.core.service import Service
 from eocdb.ws.context import WsContext
 from eocdb.ws.reqparams import RequestParams
 
@@ -28,13 +27,3 @@ class RequestParamsMock(RequestParams):
         return self.kvp.get(name, default)
 
 
-class DatabaseTestDriver(Service):
-
-    def init(self, **config):
-        super().init(**config)
-
-    def update(self, **config):
-        super().update(**config)
-
-    def dispose(self):
-        super().dispose()

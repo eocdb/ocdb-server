@@ -24,11 +24,9 @@ import logging
 import os
 from typing import Any, Dict
 
-from eocdb.core.db.sqlite_test_db_driver import SQLiteTestDbDriver
-from eocdb.ws.errors import ServiceBadRequestError
+from eocdb.ws.errors import WsBadRequestError
 from . import __version__, __description__
 from .defaults import DEFAULT_SERVER_NAME, DEFAULT_MAX_THREAD_COUNT
-from .errors import WsBadRequestError
 from ..core.service import ServiceRegistry
 
 _LOG = logging.getLogger('eocdb')
@@ -44,6 +42,8 @@ class WsContext:
         self._base_dir = os.path.abspath(base_dir or '')
         self._config = {}
         self._database_drivers = ServiceRegistry()
+        self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=DEFAULT_MAX_THREAD_COUNT,
+                                                                  thread_name_prefix=DEFAULT_SERVER_NAME)
 
     @property
     def base_dir(self) -> str:
@@ -73,14 +73,15 @@ class WsContext:
                     description=__description__,
                     version=__version__)
 
+    def get_database_drivers_read_only(self):
+        return self._database_drivers.find_by_filter(lambda sid, driver, config: config.get('read', False))
+
     # noinspection PyMethodMayBeStatic
     def query_measurements(self, query_string: str):
-        try:
-            # @todo 1 tb/tb need to move this to the initialisation 2018-08-28
-            self.database.connect()
-            dataset = self.database.get(query_string)
-            return dataset.to_dict()
-        except:
-            raise ServiceBadRequestError('Database error')
+        datasets = []
+        for driver in self.get_database_drivers_read_only():
+            dataset = driver.instance().get(query_string)
+            datasets.append(dataset.to_dict())
+        return datasets
 
     # Here: add service methods, use thread_pool for concurrent requests

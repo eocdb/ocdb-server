@@ -13,9 +13,9 @@ from tests.ws.helpers import new_test_service_context
 class WsContextTest(unittest.TestCase):
     def test_get_set_config(self):
         ctx = new_test_service_context()
-        self.assertEqual({'databases': {'default': {'type': 'tests.ws.helpers.DatabaseTestDriver'}}},
-                         ctx.config)
-        new_config = {'databases': {'default': {'type': 'tests.ws.helpers.DatabaseTestDriver'}}, 'bibo': 4}
+        old_config = ctx.config
+        new_config = dict(old_config)
+        new_config.update(bibo=3567)
         ctx.configure(new_config)
         self.assertIsNot(new_config, ctx.config)
         self.assertEqual(new_config, ctx.config)
