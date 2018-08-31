@@ -21,7 +21,7 @@ class ServiceContextTest(unittest.TestCase):
 
     def test_get_app_info(self):
         ctx = new_test_service_context()
-        self.assertEquals(
+        self.assertEqual(
             {
                 'name': 'eocdb-server',
                 'version': '0.1.0',

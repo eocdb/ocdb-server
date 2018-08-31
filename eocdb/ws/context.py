@@ -39,7 +39,8 @@ class ServiceContext:
     def __init__(self, base_dir=None, config: Config = None):
         self.base_dir = os.path.abspath(base_dir or '')
         self._config = dict(config or {})
-        self.thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=DEFAULT_MAX_THREAD_COUNT, thread_name_prefix=DEFAULT_SERVER_NAME)
+        self.thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=DEFAULT_MAX_THREAD_COUNT,
+                                                                 thread_name_prefix=DEFAULT_SERVER_NAME)
         # @todo 2 tb/tb move to factory and fetch the one configured 2018-08-28
         self.database = SQLiteTestDbDriver()
 

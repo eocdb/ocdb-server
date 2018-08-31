@@ -42,3 +42,11 @@ class DbDatsetTest(TestCase):
 
         self.assertEqual({"records": [[-39.4, 110.8, 0.267612499], [-39.5, 110.9, 0.367612499]]}, self.dataset.to_dict())
 
+    def test_add_attributes_and_get(self):
+        attribute_names = ["lon", "lat", "chl"]
+
+        self.dataset.add_attributes(attribute_names)
+
+        self.assertEqual(3, self.dataset.attribute_count)
+        self.assertEqual(attribute_names, self.dataset.attribute_names)
+

@@ -7,6 +7,7 @@ class DbDataset(Dataset):
 
     def __init__(self):
         self._records = []
+        self._attributes = []
 
     @property
     def metadata(self) -> Dict[str, Any]:
@@ -14,11 +15,14 @@ class DbDataset(Dataset):
 
     @property
     def attribute_count(self) -> int:
-        return 0
+        return len(self._attributes)
 
     @property
     def attribute_names(self) -> List[str]:
-        return []
+        return self._attributes
+
+    def add_attributes(self, attribute_names):
+        self._attributes.extend(attribute_names)
 
     @property
     def record_count(self) -> int:
@@ -33,3 +37,5 @@ class DbDataset(Dataset):
 
     def to_dict(self) -> Dict[str, Any]:
         return {'records' : self._records}
+
+

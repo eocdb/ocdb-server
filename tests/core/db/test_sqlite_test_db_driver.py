@@ -22,6 +22,9 @@ class TestSQLiteTestDbDriver(unittest.TestCase):
         self.assertAlmostEqual(58.5, dataset.records[2][0], 8)
         self.assertAlmostEqual(10.9, dataset.records[2][1], 8)
 
+        self.assertEqual(3, dataset.attribute_count)
+        self.assertEqual(['lon', 'lat', 'chl'], dataset.attribute_names)
+
     def test_fetch_bert_data(self):
         dataset = self.driver.get("Bert")
 

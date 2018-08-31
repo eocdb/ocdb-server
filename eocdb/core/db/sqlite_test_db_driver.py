@@ -55,12 +55,13 @@ class SQLiteTestDbDriver:
         cursor = self._get_cursor()
 
         dataset = DbDataset()
+        # @todo 2 tb/tb this must come from the data_file 2018-08-31
+        dataset.add_attributes(["lon", "lat", "chl"])
 
         parameter = (name,)
         cursor.execute('SELECT * FROM data_files WHERE name=?', parameter)
         results_files = cursor.fetchall()
 
-        results = list()
         for result_file in results_files:
             file_id = result_file[0]
             cursor.execute('SELECT * FROM data_measurement WHERE file_id=?', (file_id, ))
