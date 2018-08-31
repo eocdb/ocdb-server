@@ -3,15 +3,16 @@ from typing import Optional
 
 import yaml
 
-from eocdb.ws.context import ServiceContext
+from eocdb.core.service import Service
+from eocdb.ws.context import WsContext
 from eocdb.ws.reqparams import RequestParams
 
 
-def new_test_service_context() -> ServiceContext:
-    ctx = ServiceContext(base_dir=get_test_res_dir())
+def new_test_service_context() -> WsContext:
+    ctx = WsContext(base_dir=get_test_res_dir())
     config_file = os.path.join(ctx.base_dir, 'config.yml')
     with open(config_file) as fp:
-        ctx.config = yaml.load(fp)
+        ctx.configure(yaml.load(fp))
     return ctx
 
 
@@ -25,3 +26,15 @@ class RequestParamsMock(RequestParams):
 
     def get_query_argument(self, name: str, default: Optional[str]) -> Optional[str]:
         return self.kvp.get(name, default)
+
+
+class DatabaseTestDriver(Service):
+
+    def init(self, **config):
+        super().init(**config)
+
+    def update(self, **config):
+        super().update(**config)
+
+    def dispose(self):
+        super().dispose()

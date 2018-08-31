@@ -26,34 +26,47 @@ from typing import Any, Dict
 
 from . import __version__, __description__
 from .defaults import DEFAULT_SERVER_NAME, DEFAULT_MAX_THREAD_COUNT
-from .errors import ServiceBadRequestError
+from .errors import WsBadRequestError
+from ..core.service import ServiceRegistry
 
 _LOG = logging.getLogger('eocdb')
 
 Config = Dict[str, Any]
 
+DATABASE_DRIVERS_CONFIG_NAME = "databases"
 
-class ServiceContext:
 
-    def __init__(self, base_dir=None, config: Config = None):
-        self.base_dir = os.path.abspath(base_dir or '')
-        self._config = dict(config or {})
-        self.thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=DEFAULT_MAX_THREAD_COUNT,
-                                                                 thread_name_prefix=DEFAULT_SERVER_NAME)
+class WsContext:
+
+    def __init__(self, base_dir=None):
+        self._base_dir = os.path.abspath(base_dir or '')
+        self._config = {}
+        self._database_drivers = ServiceRegistry()
+
+    @property
+    def base_dir(self) -> str:
+        return self._base_dir
 
     @property
     def config(self) -> Config:
         return self._config
 
-    @config.setter
-    def config(self, config: Config):
-        if self._config:
-            # Here: React to changed configuration
-            pass
-        self._config = dict(config or {})
+    def configure(self, new_config: Config):
+        old_config = self._config
+        new_config = new_config or {}
 
-    # noinspection PyMethodMayBeStatic
-    def get_app_info(self) -> Dict:
+        old_database_drivers = old_config.get(DATABASE_DRIVERS_CONFIG_NAME, {})
+        new_database_drivers = new_config.get(DATABASE_DRIVERS_CONFIG_NAME, {})
+        if old_database_drivers != new_database_drivers:
+            self._database_drivers.update(new_database_drivers)
+
+        self._config = dict(new_config)
+
+    def dispose(self):
+        self._database_drivers.dispose()
+
+    @classmethod
+    def get_app_info(cls) -> Dict:
         return dict(name=DEFAULT_SERVER_NAME,
                     description=__description__,
                     version=__version__)
@@ -67,6 +80,6 @@ class ServiceContext:
                         lat=[11.1, 11.4, 10.9, 10.8, 11.2],
                         chl=[0.3, 0.2, 0.7, 0.2, 0.1])
         else:
-            raise ServiceBadRequestError('The only valid query string is "ernie"')
+            raise WsBadRequestError('The only valid query string is "ernie"')
 
     # Here: add service methods, use thread_pool for concurrent requests

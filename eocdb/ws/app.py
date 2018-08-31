@@ -31,7 +31,7 @@ from eocdb.ws import __version__ as VERSION
 # noinspection PyPep8Naming
 from eocdb.ws import __description__ as DESCRIPTION
 from eocdb.ws.handlers import InfoHandler, MeasurementsQueryHandler
-from eocdb.ws.service import url_pattern, Service
+from eocdb.ws.webservice import url_pattern, WebService
 from eocdb.ws.defaults import DEFAULT_PORT, DEFAULT_ADDRESS, DEFAULT_UPDATE_PERIOD, DEFAULT_CONFIG_FILE
 
 
@@ -53,7 +53,7 @@ def new_application():
     return application
 
 
-def new_service(args=None) -> Service:
+def new_web_service(args=None) -> WebService:
     if args is None:
         args = sys.argv[1:]
 
@@ -65,12 +65,12 @@ def new_service(args=None) -> Service:
                         default=DEFAULT_ADDRESS)
     parser.add_argument('--port', '-p', dest='port', metavar='PORT', type=int,
                         default=DEFAULT_PORT,
-                        help='Port number where the service will listen on. '
+                        help='Port number where the web service will listen on. '
                              f'Defaults to {DEFAULT_PORT}.')
     parser.add_argument('--update', '-u', dest='update_period', metavar='UPDATE_PERIOD', type=float,
                         default=DEFAULT_UPDATE_PERIOD,
-                        help='Service will update after given seconds of inactivity. Zero or a negative value will '
-                             'disable update checks. '
+                        help='Check for configuration updates after given period in seconds. '
+                             'Zero or a negative value will disable configuration update checks. '
                              f'Defaults to {DEFAULT_UPDATE_PERIOD!r}.')
     parser.add_argument('--config', '-c', dest='config_file', metavar='CONFIG_FILE', default=None,
                         help='Configuration file. '
@@ -80,18 +80,18 @@ def new_service(args=None) -> Service:
 
     args_obj = parser.parse_args(args)
 
-    return Service(new_application(),
-                   log_to_stderr=args_obj.verbose,
-                   port=args_obj.port,
-                   address=args_obj.address,
-                   config_file=args_obj.config_file,
-                   update_period=args_obj.update_period)
+    return WebService(new_application(),
+                      log_to_stderr=args_obj.verbose,
+                      port=args_obj.port,
+                      address=args_obj.address,
+                      config_file=args_obj.config_file,
+                      update_period=args_obj.update_period)
 
 
 def main(args=None) -> int:
     try:
         print(f'{DESCRIPTION}, version {VERSION}')
-        service = new_service(args)
+        service = new_web_service(args)
         service.start()
         return 0
     except Exception as e:

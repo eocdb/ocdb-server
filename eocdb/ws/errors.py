@@ -22,7 +22,7 @@
 from tornado.web import HTTPError
 
 
-class ServiceError(HTTPError):
+class WsError(HTTPError):
     """
     Exception raised by tile service request handlers.
     """
@@ -31,7 +31,7 @@ class ServiceError(HTTPError):
         super().__init__(status_code=status_code, log_message=log_message, reason=reason)
 
 
-class ServiceConfigError(ServiceError):
+class WsConfigError(WsError):
     """
     Exception raised by tile service request handlers.
     """
@@ -40,7 +40,7 @@ class ServiceConfigError(ServiceError):
         super().__init__(reason, log_message=log_message)
 
 
-class ServiceBadRequestError(ServiceError):
+class WsBadRequestError(WsError):
     """
     Exception raised by tile service request handlers.
     """
@@ -49,7 +49,7 @@ class ServiceBadRequestError(ServiceError):
         super().__init__(reason, status_code=400, log_message=log_message)
 
 
-class ServiceResourceNotFoundError(ServiceError):
+class WsResourceNotFoundError(WsError):
     """
     Exception raised by tile service request handlers.
     """

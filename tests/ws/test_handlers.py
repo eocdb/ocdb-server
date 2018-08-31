@@ -11,7 +11,7 @@ from tests.ws.helpers import new_test_service_context
 class HandlersTest(AsyncHTTPTestCase):
     def get_app(self):
         application = new_application()
-        application.service_context = new_test_service_context()
+        application.ws_context = new_test_service_context()
         return application
 
     def test_fetch_base(self):

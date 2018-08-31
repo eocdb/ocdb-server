@@ -1,1 +1,3 @@
-databases: []
+databases:
+  default:
+    type: tests.ws.helpers.DatabaseTestDriver

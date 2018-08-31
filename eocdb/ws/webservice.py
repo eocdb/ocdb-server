@@ -36,14 +36,14 @@ from tornado.ioloop import IOLoop
 from tornado.log import enable_pretty_logging
 from tornado.web import RequestHandler, Application
 
-from .context import ServiceContext, Config
+from .context import WsContext
 from .defaults import DEFAULT_ADDRESS, DEFAULT_PORT, DEFAULT_CONFIG_FILE, DEFAULT_UPDATE_PERIOD, DEFAULT_LOG_PREFIX
 from .reqparams import RequestParams
 
 _LOG = logging.getLogger('eocdb')
 
 
-class Service:
+class WebService:
     """
     A web service that provides a remote API to some application.
     """
@@ -55,8 +55,7 @@ class Service:
                  config_file: Optional[str] = None,
                  update_period: Optional[float] = DEFAULT_UPDATE_PERIOD,
                  log_file_prefix: str = DEFAULT_LOG_PREFIX,
-                 log_to_stderr: bool = False,
-                 config: Optional[Config] = None) -> None:
+                 log_to_stderr: bool = False) -> None:
 
         """
         Start a tile service.
@@ -94,10 +93,9 @@ class Service:
                                  address=address,
                                  started=datetime.now().isoformat(sep=' '),
                                  pid=os.getpid())
-        self.context = ServiceContext(config=config, base_dir=os.path.dirname(self.config_file or os.path.abspath('')))
-        self._maybe_load_config()
+        self.ws_context = WsContext(base_dir=os.path.dirname(self.config_file or os.path.abspath('')))
 
-        application.service_context = self.context
+        application.ws_context = self.ws_context
         application.time_of_last_activity = time.clock()
         self.application = application
 
@@ -113,8 +111,8 @@ class Service:
     def start(self):
         address = self.service_info['address']
         port = self.service_info['port']
-        _LOG.info(f'service running, listening on {address}:{port} (press CTRL+C to stop service)')
-        if len(self.context.config.get('databases', {})) == 0:
+        _LOG.info(f'web service running, listening on {address}:{port} (press CTRL+C to stop service)')
+        if len(self.ws_context.config.get('databases', {})) == 0:
             _LOG.warning('no databases configured')
         IOLoop.current().start()
 
@@ -129,13 +127,16 @@ class Service:
 
     def _on_shut_down(self):
 
-        _LOG.info('stopping service...')
+        _LOG.info('stopping web service...')
 
         # noinspection PyUnresolvedReferences,PyBroadException
         try:
             self.update_timer.cancel()
         except Exception:
             pass
+
+        # Shutdown services such as database drivers
+        self.ws_context.dispose()
 
         if self.server:
             self.server.stop()
@@ -175,7 +176,8 @@ class Service:
             self.config_mtime = stat.st_mtime
             try:
                 with open(config_file) as stream:
-                    self.context.config = yaml.load(stream)
+                    # Reconfigure services such as database drivers
+                    self.ws_context.configure(yaml.load(stream))
                 self.config_error = None
                 _LOG.info(f'configuration file {config_file!r} successfully loaded')
             except (yaml.YAMLError, OSError) as e:
@@ -186,22 +188,22 @@ class Service:
 
 
 # noinspection PyAbstractClass
-class ServiceRequestHandler(RequestHandler):
+class WsRequestHandler(RequestHandler):
 
     def __init__(self, application, request, **kwargs):
-        super(ServiceRequestHandler, self).__init__(application, request, **kwargs)
-        self._params = ServiceRequestParams(self)
+        super(WsRequestHandler, self).__init__(application, request, **kwargs)
+        self._params = WsRequestParams(self)
 
     @property
-    def service_context(self) -> ServiceContext:
-        return self.application.service_context
+    def ws_context(self) -> WsContext:
+        return self.application.ws_context
 
     @property
     def base_url(self):
         return self.request.protocol + '://' + self.request.host
 
     @property
-    def params(self) -> 'ServiceRequestParams':
+    def params(self) -> 'WsRequestParams':
         return self._params
 
     def set_default_headers(self):
@@ -239,7 +241,7 @@ class ServiceRequestHandler(RequestHandler):
         self.finish(self.to_json(obj))
 
 
-class ServiceRequestParams(RequestParams):
+class WsRequestParams(RequestParams):
     def __init__(self, handler: RequestHandler):
         self.handler = handler
 
@@ -249,7 +251,7 @@ class ServiceRequestParams(RequestParams):
         :param name: Query argument name
         :param default: Default value.
         :return: the value or none
-        :raise: ServiceBadRequestError
+        :raise: WsBadRequestError
         """
         return self.handler.get_query_argument(name, default=default)
 

@@ -22,7 +22,7 @@
 from abc import abstractmethod, ABCMeta
 from typing import Optional, Tuple
 
-from .errors import ServiceBadRequestError
+from .errors import WsBadRequestError
 
 
 class RequestParams(metaclass=ABCMeta):
@@ -34,14 +34,14 @@ class RequestParams(metaclass=ABCMeta):
         :param name: Name of the value
         :param value: The string value
         :return: The int value
-        :raise: ServiceBadRequestError
+        :raise: WsBadRequestError
         """
         if value is None:
-            raise ServiceBadRequestError(f'{name!r} must be an integer, but none was given')
+            raise WsBadRequestError(f'{name!r} must be an integer, but none was given')
         try:
             return int(value)
         except ValueError as e:
-            raise ServiceBadRequestError(f'{name!r} must be an integer, but was {value!r}') from e
+            raise WsBadRequestError(f'{name!r} must be an integer, but was {value!r}') from e
 
     @classmethod
     def to_float(cls, name: str, value: str) -> float:
@@ -50,14 +50,14 @@ class RequestParams(metaclass=ABCMeta):
         :param name: Name of the value
         :param value: The string value
         :return: The float value
-        :raise: ServiceBadRequestError
+        :raise: WsBadRequestError
         """
         if value is None:
-            raise ServiceBadRequestError(f'{name!r} must be a number, but none was given')
+            raise WsBadRequestError(f'{name!r} must be a number, but none was given')
         try:
             return float(value)
         except ValueError as e:
-            raise ServiceBadRequestError(f'{name!r} must be a number, but was {value!r}') from e
+            raise WsBadRequestError(f'{name!r} must be a number, but was {value!r}') from e
 
     @abstractmethod
     def get_query_argument(self, name: str, default: Optional[str]) -> Optional[str]:
@@ -66,7 +66,7 @@ class RequestParams(metaclass=ABCMeta):
         :param name: Query argument name
         :param default: Default value.
         :return: the value or none
-        :raise: ServiceBadRequestError
+        :raise: WsBadRequestError
         """
 
     def get_query_argument_int(self, name: str, default: Optional[int]) -> Optional[int]:
@@ -75,7 +75,7 @@ class RequestParams(metaclass=ABCMeta):
         :param name: Query argument name
         :param default: Default value.
         :return: int value
-        :raise: ServiceBadRequestError
+        :raise: WsBadRequestError
         """
         value = self.get_query_argument(name, default=None)
         return self.to_int(name, value) if value is not None else default
@@ -86,7 +86,7 @@ class RequestParams(metaclass=ABCMeta):
         :param name: Query argument name
         :param default: Default value.
         :return: float value
-        :raise: ServiceBadRequestError
+        :raise: WsBadRequestError
         """
         value = self.get_query_argument(name, default=None)
         return self.to_float(name, value) if value is not None else default
