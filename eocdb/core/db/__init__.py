@@ -19,4 +19,4 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .dbdriver import DbDriver, DbDriverConfig, DbDriverInfo, DbDriverRegistry
+from eocdb.core.service import Service, ServiceConfig, ServiceInfo, ServiceRegistry
