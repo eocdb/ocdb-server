@@ -94,28 +94,32 @@ class QueryParser:
         is_qtext = token_type == QueryTokenizer.TOKEN_TYPE_QTEXT
         if is_text or is_qtext:
             self._inc()
-            text = token_value
+            value = token_value
             token_type, token_value, token_pos = self._peek()
             if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == ':':
                 self._inc()
-                name = text
+                name = value
                 if not name.isidentifier():
                     raise QuerySyntaxError(token_pos, 'Name expected before [:]')
-                token_type, text, token_pos = self._peek()
+                token_type, token_value, token_pos = self._peek()
                 is_text = token_type == QueryTokenizer.TOKEN_TYPE_TEXT
                 is_qtext = token_type == QueryTokenizer.TOKEN_TYPE_QTEXT
-                if is_text or is_qtext:
+                is_num = token_type == QueryTokenizer.TOKEN_TYPE_NUMBER
+                if is_text or is_qtext or is_num:
                     self._inc()
-                    if FieldWildcardQuery.is_wildcard_text(text):
-                        return FieldWildcardQuery(name, text)
+                    if is_text and FieldWildcardQuery.is_wildcard_text(token_value):
+                        return FieldWildcardQuery(name, token_value)
                     else:
-                        return FieldValueQuery(name, text)
-                raise QuerySyntaxError(token_pos, 'Missing text after [:]')
+                        return FieldValueQuery(name, token_value)
+                raise QuerySyntaxError(token_pos, 'Missing value after [:]')
+            elif is_text and FieldWildcardQuery.is_wildcard_text(value):
+                return FieldWildcardQuery(context_name, value)
             else:
-                if FieldWildcardQuery.is_wildcard_text(text):
-                    return FieldWildcardQuery(context_name, text)
-                else:
-                    return FieldValueQuery(context_name, text)
+                return FieldValueQuery(context_name, value)
+
+        if token_type == QueryTokenizer.TOKEN_TYPE_NUMBER:
+            self._inc()
+            return FieldValueQuery(context_name, token_value)
 
         if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == '(':
             self._inc()
@@ -124,6 +128,10 @@ class QueryParser:
             assert token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == ')'
             self._inc()
             return term
+
+        if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == ')':
+            # don't self._inc() here, it is done above in the '(' case
+            return None
 
         if token_type is not None:
             raise QuerySyntaxError(token_pos, f'Unexpected [{token_value}]')
@@ -147,6 +155,7 @@ class QueryTokenizer:
     TOKEN_TYPE_CONTROL = 'CONTROL'
     TOKEN_TYPE_KEYWORD = 'KEYWORD'
     TOKEN_TYPE_TEXT = 'TEXT'
+    TOKEN_TYPE_NUMBER = 'NUMBER'
     TOKEN_TYPE_QTEXT = 'QTEXT'
 
     @classmethod
@@ -201,7 +210,15 @@ class QueryTokenizer:
             if text in KEYWORDS:
                 self._new_token(QueryTokenizer.TOKEN_TYPE_KEYWORD, text, start_index)
             else:
-                self._new_token(QueryTokenizer.TOKEN_TYPE_TEXT, text, start_index)
+                try:
+                    value = int(text)
+                    self._new_token(QueryTokenizer.TOKEN_TYPE_NUMBER, value, start_index)
+                except ValueError:
+                    try:
+                        value = float(text)
+                        self._new_token(QueryTokenizer.TOKEN_TYPE_NUMBER, value, start_index)
+                    except ValueError:
+                        self._new_token(QueryTokenizer.TOKEN_TYPE_TEXT, text, start_index)
 
     def _eat_ctrl_char_token(self, ctrl_char) -> int:
         start_index = self._index
