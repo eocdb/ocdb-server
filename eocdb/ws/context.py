@@ -24,49 +24,64 @@ import logging
 import os
 from typing import Any, Dict
 
-from eocdb.core.db.sqlite_test_db_driver import SQLiteTestDbDriver
-from eocdb.ws.errors import ServiceBadRequestError
+from eocdb.ws.errors import WsBadRequestError
 from . import __version__, __description__
 from .defaults import DEFAULT_SERVER_NAME, DEFAULT_MAX_THREAD_COUNT
+from ..core.service import ServiceRegistry
 
 _LOG = logging.getLogger('eocdb')
 
 Config = Dict[str, Any]
 
+DATABASE_DRIVERS_CONFIG_NAME = "databases"
 
-class ServiceContext:
 
-    def __init__(self, base_dir=None, config: Config = None):
-        self.base_dir = os.path.abspath(base_dir or '')
-        self._config = dict(config or {})
-        self.thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=DEFAULT_MAX_THREAD_COUNT,
-                                                                 thread_name_prefix=DEFAULT_SERVER_NAME)
-        # @todo 2 tb/tb move to factory and fetch the one configured 2018-08-28
-        self.database = SQLiteTestDbDriver()
+class WsContext:
+
+    def __init__(self, base_dir=None):
+        self._base_dir = os.path.abspath(base_dir or '')
+        self._config = {}
+        self._database_drivers = ServiceRegistry()
+        self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=DEFAULT_MAX_THREAD_COUNT,
+                                                                  thread_name_prefix=DEFAULT_SERVER_NAME)
+
+    @property
+    def base_dir(self) -> str:
+        return self._base_dir
 
     @property
     def config(self) -> Config:
         return self._config
 
-    @config.setter
-    def config(self, config: Config):
-        if self._config:
-            # Here: React to changed configuration
-            pass
-        self._config = dict(config or {})
+    def configure(self, new_config: Config):
+        old_config = self._config
+        new_config = new_config or {}
 
-    # noinspection PyMethodMayBeStatic
-    def get_app_info(self) -> Dict:
-        return dict(name=DEFAULT_SERVER_NAME, description=__description__, version=__version__)
+        old_database_drivers = old_config.get(DATABASE_DRIVERS_CONFIG_NAME, {})
+        new_database_drivers = new_config.get(DATABASE_DRIVERS_CONFIG_NAME, {})
+        if old_database_drivers != new_database_drivers:
+            self._database_drivers.update(new_database_drivers)
+
+        self._config = dict(new_config)
+
+    def dispose(self):
+        self._database_drivers.dispose()
+
+    @classmethod
+    def get_app_info(cls) -> Dict:
+        return dict(name=DEFAULT_SERVER_NAME,
+                    description=__description__,
+                    version=__version__)
+
+    def get_database_drivers_read_only(self):
+        return self._database_drivers.find_by_filter(lambda sid, driver, config: config.get('read', False))
 
     # noinspection PyMethodMayBeStatic
     def query_measurements(self, query_string: str):
-        try:
-            # @todo 1 tb/tb need to move this to the initialisation 2018-08-28
-            self.database.connect()
-            dataset = self.database.get(query_string)
-            return dataset.to_dict()
-        except:
-            raise ServiceBadRequestError('Database error')
+        datasets = []
+        for driver in self.get_database_drivers_read_only():
+            dataset = driver.instance().get(query_string)
+            datasets.append(dataset.to_dict())
+        return datasets
 
     # Here: add service methods, use thread_pool for concurrent requests

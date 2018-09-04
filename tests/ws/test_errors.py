@@ -2,20 +2,23 @@ import unittest
 
 from tornado.web import HTTPError
 
-from eocdb.ws.errors import ServiceError, ServiceConfigError, ServiceBadRequestError, ServiceResourceNotFoundError
+from eocdb.ws.errors import WsError, WsConfigError, WsBadRequestError, WsResourceNotFoundError
 
 
 class ErrorsTest(unittest.TestCase):
-    def test_same_base_type(self):
-        self.assertIsInstance(ServiceError(''), HTTPError)
-        self.assertEqual(500, ServiceError('').status_code)
-        self.assertEqual(503, ServiceError('', status_code=503).status_code)
+    def test_base_error(self):
+        self.assertIsInstance(WsError(''), HTTPError)
+        self.assertEqual(500, WsError('').status_code)
+        self.assertEqual(503, WsError('', status_code=503).status_code)
 
-        self.assertIsInstance(ServiceConfigError(''), ServiceError)
-        self.assertEqual(500, ServiceConfigError('').status_code)
+    def test_config_error(self):
+        self.assertIsInstance(WsConfigError(''), WsError)
+        self.assertEqual(500, WsConfigError('').status_code)
 
-        self.assertIsInstance(ServiceBadRequestError(''), ServiceError)
-        self.assertEqual(400, ServiceBadRequestError('').status_code)
+    def test_bad_request_error(self):
+        self.assertIsInstance(WsBadRequestError(''), WsError)
+        self.assertEqual(400, WsBadRequestError('').status_code)
 
-        self.assertIsInstance(ServiceResourceNotFoundError(''), ServiceError)
-        self.assertEqual(404, ServiceResourceNotFoundError('').status_code)
+    def test_resource_not_found_error(self):
+        self.assertIsInstance(WsResourceNotFoundError(''), WsError)
+        self.assertEqual(404, WsResourceNotFoundError('').status_code)
