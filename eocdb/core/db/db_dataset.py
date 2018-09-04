@@ -8,10 +8,14 @@ class DbDataset(Dataset):
     def __init__(self):
         self._records = []
         self._attributes = []
+        self._metadata = dict()
 
     @property
     def metadata(self) -> Dict[str, Any]:
-        return dict()
+        return self._metadata
+
+    def set_metadata(self, metadata):
+        self._metadata = metadata
 
     @property
     def attribute_count(self) -> int:
