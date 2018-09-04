@@ -6,18 +6,19 @@ from tests.ws.helpers import new_test_service_context
 
 # import xarray as xr
 # from tests.helpers import get_res_test_dir, new_test_service_context, RequestParamsMock
-# from eocdb.ws.context import ServiceContext
-# from eocdb.ws.errors import ServiceBadRequestError, ServiceResourceNotFoundError
+# from eocdb.ws.context import WsContext
+# from eocdb.ws.errors import WsBadRequestError, WsResourceNotFoundError
 
 
-class ServiceContextTest(unittest.TestCase):
+class WsContextTest(unittest.TestCase):
     def test_get_set_config(self):
         ctx = new_test_service_context()
-        self.assertEqual({'databases': []}, ctx.config)
-        config = {'databases': {'id': 'dummy', 'user': 'scott', 'password': 'tiger'}}
-        ctx.config = config
-        self.assertIsNot(config, ctx.config)
-        self.assertEqual(config, ctx.config)
+        old_config = ctx.config
+        new_config = dict(old_config)
+        new_config.update(bibo=3567)
+        ctx.configure(new_config)
+        self.assertIsNot(new_config, ctx.config)
+        self.assertEqual(new_config, ctx.config)
 
     def test_get_app_info(self):
         ctx = new_test_service_context()
@@ -89,7 +90,7 @@ class ServiceContextTest(unittest.TestCase):
 #     tile = ctx.get_dataset_tile('demo', 'conc_tsm', '0', '0', '0', RequestParamsMock(time='2017-01-26'))
 #     self.assertIsInstance(tile, bytes)
 #
-#     with self.assertRaises(ServiceBadRequestError) as cm:
+#     with self.assertRaises(WsBadRequestError) as cm:
 #         ctx.get_dataset_tile('demo', 'conc_tsm', '0', '0', '0', RequestParamsMock(time='Gnaaark!'))
 #     self.assertEqual(400, cm.exception.status_code)
 #     self.assertEqual("'Gnaaark!' is not a valid value for "
@@ -107,12 +108,12 @@ class ServiceContextTest(unittest.TestCase):
 #     self.assertIsInstance(ds, xr.Dataset)
 #     self.assertIsInstance(var, xr.DataArray)
 #
-#     with self.assertRaises(ServiceResourceNotFoundError) as cm:
+#     with self.assertRaises(WsResourceNotFoundError) as cm:
 #         ctx.get_dataset_and_variable('demox', 'conc_ys')
 #     self.assertEqual(404, cm.exception.status_code)
 #     self.assertEqual("Dataset 'demox' not found", cm.exception.reason)
 #
-#     with self.assertRaises(ServiceResourceNotFoundError) as cm:
+#     with self.assertRaises(WsResourceNotFoundError) as cm:
 #         ctx.get_dataset_and_variable('demo', 'conc_ys')
 #     self.assertEqual(404, cm.exception.status_code)
 #     self.assertEqual("Variable 'conc_ys' not found in dataset 'demo'", cm.exception.reason)
@@ -157,13 +158,13 @@ class ServiceContextTest(unittest.TestCase):
 #                          'numberOfLevelZeroTilesY': 1},
 #     }, tile_grid)
 #
-#     with self.assertRaises(ServiceBadRequestError) as cm:
+#     with self.assertRaises(WsBadRequestError) as cm:
 #         ctx.get_dataset_tile_grid('demo', 'conc_chl', 'ol2.json', 'http://bibo')
 #     self.assertEqual(400, cm.exception.status_code)
 #     self.assertEqual("Unknown tile schema format 'ol2.json'", cm.exception.reason)
 #
 # def test_get_ne2_tile_grid(self):
-#     ctx = ServiceContext()
+#     ctx = WsContext()
 #     tile_grid = ctx.get_ne2_tile_grid('ol4.json', 'http://bibo')
 #     self.assertEqual({
 #         'url': 'http://bibo/xcube/tile/ne2/{z}/{x}/{y}.jpg',
@@ -176,13 +177,13 @@ class ServiceContextTest(unittest.TestCase):
 #                      'tileSize': [256, 256]},
 #     }, tile_grid)
 #
-#     with self.assertRaises(ServiceBadRequestError) as cm:
+#     with self.assertRaises(WsBadRequestError) as cm:
 #         ctx.get_ne2_tile_grid('cesium', 'http://bibo')
 #     self.assertEqual(400, cm.exception.status_code)
 #     self.assertEqual("Unknown tile schema format 'cesium'", cm.exception.reason)
 #
 # def test_get_colorbars(self):
-#     ctx = ServiceContext()
+#     ctx = WsContext()
 #
 #     response = ctx.get_color_bars('text/json')
 #     self.assertIsInstance(response, str)
@@ -194,7 +195,7 @@ class ServiceContextTest(unittest.TestCase):
 #     self.assertTrue(len(response) > 40)
 #     self.assertEqual('<!DOCTYPE html>\n<html lang="en">\n<head><', response[0:40])
 #
-#     with self.assertRaises(ServiceBadRequestError) as cm:
+#     with self.assertRaises(WsBadRequestError) as cm:
 #         ctx.get_color_bars('text/xml')
 #     self.assertEqual(400, cm.exception.status_code)
 #     self.assertEqual("Format 'text/xml' not supported for color bars", cm.exception.reason)

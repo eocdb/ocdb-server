@@ -2,23 +2,23 @@ import unittest
 
 from tests.ws.helpers import RequestParamsMock
 
-from eocdb.ws.errors import ServiceBadRequestError
+from eocdb.ws.errors import WsBadRequestError
 from eocdb.ws.reqparams import RequestParams
 
 
 class RequestParamsTest(unittest.TestCase):
     def test_to_int(self):
         self.assertEqual(2123, RequestParams.to_int('x', '2123'))
-        with self.assertRaises(ServiceBadRequestError):
+        with self.assertRaises(WsBadRequestError):
             RequestParams.to_int('x', None)
-        with self.assertRaises(ServiceBadRequestError):
+        with self.assertRaises(WsBadRequestError):
             RequestParams.to_int('x', 'bibo')
 
     def test_to_float(self):
         self.assertEqual(-0.2, RequestParams.to_float('x', '-0.2'))
-        with self.assertRaises(ServiceBadRequestError):
+        with self.assertRaises(WsBadRequestError):
             RequestParams.to_float('x', None)
-        with self.assertRaises(ServiceBadRequestError):
+        with self.assertRaises(WsBadRequestError):
             RequestParams.to_float('x', 'bibo')
 
     def test_get_query_argument(self):

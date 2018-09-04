@@ -11,7 +11,7 @@ from tests.ws.helpers import new_test_service_context
 class HandlersTest(AsyncHTTPTestCase):
     def get_app(self):
         application = new_application()
-        application.service_context = new_test_service_context()
+        application.ws_context = new_test_service_context()
         return application
 
     def test_fetch_base(self):
@@ -28,84 +28,23 @@ class HandlersTest(AsyncHTTPTestCase):
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        self.assertEqual({'records': [[58.1, 11.1, 0.3],
-                                      [58.4, 11.4, 0.2],
-                                      [58.5, 10.9, 0.7],
-                                      [58.2, 10.8, 0.2],
-                                      [58.9, 11.2, 0.1]]},
+        self.assertEqual([{'records': [[58.1, 11.1, 0.3],
+                                       [58.4, 11.4, 0.2],
+                                       [58.5, 10.9, 0.7],
+                                       [58.2, 10.8, 0.2],
+                                       [58.9, 11.2, 0.1]]}],
                          json.loads(response.body))
 
     def test_fetch_query_succeeds_no_results(self):
         response = self.fetch('/eocdb/api/measurements?query=bert')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-
-        self.assertEqual({'records': []},
+        self.assertEqual([{'records': []}],
                          json.loads(response.body))
 
     def test_fetch_query_fails(self):
         response = self.fetch('/eocdb/api/measurements?query=trigger_error')
-        self.assertEqual(400, response.code)
-        self.assertEqual('Database error', response.reason)
-        self.assertEqual(dict(error=dict(code=400, message='Database error')),
+        self.assertEqual(500, response.code)
+        self.assertEqual('Internal Server Error', response.reason)
+        self.assertEqual({'error': {'code': 500, 'message': 'Internal Server Error'}},
                          json.loads(response.body))
-
-    # def test_fetch_wmts_capabilities(self):
-    #     response = self.fetch('/xcube/wmts/1.0.0/WMTSCapabilities.xml')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_wmts_tile(self):
-    #     response = self.fetch('/xcube/wmts/1.0.0/tile/demo/conc_chl/0/0/0.png')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_wmts_tile_with_params(self):
-    #     response = self.fetch('/xcube/wmts/1.0.0/tile/demo/conc_chl/0/0/0.png?time=current&cbar=jet')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_dataset_tile(self):
-    #     response = self.fetch('/xcube/tile/demo/conc_chl/0/0/0.png')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_dataset_tile_with_params(self):
-    #     response = self.fetch('/xcube/tile/demo/conc_chl/0/0/0.png?time=current&cbar=jet')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_dataset_tile_grid_ol4_json(self):
-    #     response = self.fetch('/xcube/tilegrid/demo/conc_chl/ol4.json')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_dataset_tile_grid_cesium_json(self):
-    #     response = self.fetch('/xcube/tilegrid/demo/conc_chl/cesium.json')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_ne2_tile(self):
-    #     response = self.fetch('/xcube/tile/ne2/0/0/0.jpg')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_ne2_tile_grid(self):
-    #     response = self.fetch('/xcube/tilegrid/ne2/ol4.json')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_datasets_json(self):
-    #     response = self.fetch('/xcube/datasets.json')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_variables_json(self):
-    #     response = self.fetch('/xcube/variables/demo.json')
-    #     self.assertEqual(200, response.code)
-    #     response = self.fetch('/xcube/variables/demo.json?client=ol4')
-    #     self.assertEqual(200, response.code)
-    #     response = self.fetch('/xcube/variables/demo.json?client=cesium')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_coords_json(self):
-    #     response = self.fetch('/xcube/coords/demo/time.json')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_color_bars_json(self):
-    #     response = self.fetch('/xcube/colorbars.json')
-    #     self.assertEqual(200, response.code)
-    #
-    # def test_fetch_color_bars_html(self):
-    #     response = self.fetch('/xcube/colorbars.html')
-    #     self.assertEqual(200, response.code)

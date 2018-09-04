@@ -2,12 +2,22 @@ import sqlite3
 
 from eocdb.core.dataset import Dataset
 from eocdb.core.db.db_dataset import DbDataset
+from eocdb.core.service import Service
 
 
-class SQLiteTestDbDriver:
+class SQLiteTestDbDriver(Service):
 
     def __init__(self):
         self.connection = None
+
+    def init(self, **config):
+        self.connect()
+
+    def update(self, **config):
+        self.connect()
+
+    def dispose(self):
+        self.close()
 
     # @todo 2 tb/tb we want to pass in the connection parameters here 2018-08-23
     def connect(self):
