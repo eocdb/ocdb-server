@@ -1,7 +1,7 @@
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Union
 
 from eocdb.core.query.query import Query, PhraseQuery, UnaryOpQuery, BinaryOpQuery, FieldValueQuery, \
-    KW_AND, KW_OR, KW_NOT, KEYWORDS, OPERATORS, FieldWildcardQuery
+    KW_AND, KW_OR, KW_NOT, KEYWORDS, OPERATORS, FieldWildcardQuery, FieldRangeQuery, FieldValue
 
 _OP_CHARS = ', '.join(f'[{op}]' for op in OPERATORS)
 
@@ -12,7 +12,9 @@ class QuerySyntaxError(Exception):
         self.position = position
 
 
-Token = Tuple[str, str, int]
+Token = Union[Tuple[str, str, int], Tuple[None, None, None]]
+
+_NONE_TOKEN = (None, None, None)
 
 
 class QueryParser:
@@ -47,9 +49,9 @@ class QueryParser:
         term1 = self._parse_and(context_name=context_name)
         if term1 is None:
             return None
-        token_type, token_value, token_pos = self._peek()
+        token_type, token_value, token_pos = self._get_token()
         if token_type == QueryTokenizer.TOKEN_TYPE_KEYWORD and token_value == KW_OR:
-            self._inc()
+            self._next_token()
             term2 = self._parse_or(context_name=context_name)
             if term2 is None:
                 return term1
@@ -61,9 +63,9 @@ class QueryParser:
         term1 = self._parse_unary(context_name=context_name)
         if term1 is None:
             return None
-        token_type, token_value, token_pos = self._peek()
+        token_type, token_value, token_pos = self._get_token()
         if token_type == QueryTokenizer.TOKEN_TYPE_KEYWORD and token_value == KW_AND:
-            self._inc()
+            self._next_token()
             term2 = self._parse_and(context_name=context_name)
             if term2 is None:
                 return term1
@@ -72,15 +74,15 @@ class QueryParser:
             return term1
 
     def _parse_unary(self, context_name: str = None) -> Optional[Query]:
-        token_type, token_value, token_pos = self._peek()
+        token_type, token_value, token_pos = self._get_token()
         if token_type == QueryTokenizer.TOKEN_TYPE_KEYWORD and token_value == KW_NOT:
-            self._inc()
+            self._next_token()
             term = self._parse_unary(context_name=context_name)
             if term is None:
                 raise QuerySyntaxError(token_pos, f'Term missing after {KW_NOT}')
             return UnaryOpQuery(KW_NOT, term)
         elif token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value in OPERATORS:
-            self._inc()
+            self._next_token()
             term = self._parse_primary(context_name=context_name)
             if term is None:
                 raise QuerySyntaxError(token_pos, f'Term missing after [{token_value}]')
@@ -89,65 +91,99 @@ class QueryParser:
             return self._parse_primary(context_name=context_name)
 
     def _parse_primary(self, context_name: str = None) -> Optional[Query]:
-        token_type, token_value, token_pos = self._peek()
-        is_text = token_type == QueryTokenizer.TOKEN_TYPE_TEXT
-        is_qtext = token_type == QueryTokenizer.TOKEN_TYPE_QTEXT
-        if is_text or is_qtext:
-            self._inc()
-            text = token_value
-            token_type, token_value, token_pos = self._peek()
+        token_type, token_value, token_pos = self._get_token()
+        new_context_name = None
+        if token_type == QueryTokenizer.TOKEN_TYPE_TEXT or token_type == QueryTokenizer.TOKEN_TYPE_QTEXT:
+            self._next_token()
+            value = token_value
+            token_type, token_value, token_pos = self._get_token()
             if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == ':':
-                self._inc()
-                name = text
-                if not name.isidentifier():
-                    raise QuerySyntaxError(token_pos, 'Name expected before [:]')
-                token_type, text, token_pos = self._peek()
-                is_text = token_type == QueryTokenizer.TOKEN_TYPE_TEXT
-                is_qtext = token_type == QueryTokenizer.TOKEN_TYPE_QTEXT
-                if is_text or is_qtext:
-                    self._inc()
-                    if FieldWildcardQuery.is_wildcard_text(text):
-                        return FieldWildcardQuery(name, text)
-                    else:
-                        return FieldValueQuery(name, text)
-                raise QuerySyntaxError(token_pos, 'Missing text after [:]')
+                self._next_token()
+                new_context_name = value
             else:
-                if FieldWildcardQuery.is_wildcard_text(text):
-                    return FieldWildcardQuery(context_name, text)
+                self._prev_token()
+
+        token_type, token_value, token_pos = self._get_token()
+        if self._is_value_token_type(token_type):
+            is_text = token_type == QueryTokenizer.TOKEN_TYPE_TEXT
+            self._next_token()
+            if is_text and FieldWildcardQuery.is_wildcard_text(token_value):
+                return FieldWildcardQuery(new_context_name or context_name, token_value)
+            else:
+                return FieldValueQuery(new_context_name or context_name, token_value)
+
+        if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and (token_value == '[' or token_value == '{'):
+            range_open_char = token_value
+            range_close_char = ']' if range_open_char == '[' else '}'
+            is_exclusive = range_open_char == '{'
+            self._next_token()
+            token_type, token_value, token_pos = self._get_token()
+            if self._is_value_token_type(token_type):
+                start_value = token_value
+                self._next_token()
+                token_type, token_value, token_pos = self._get_token()
+                if token_type == QueryTokenizer.TOKEN_TYPE_TEXT and token_value == 'TO':
+                    self._next_token()
+                    token_type, token_value, token_pos = self._get_token()
+                    if self._is_value_token_type(token_type):
+                        end_value = token_value
+                        self._next_token()
+                        token_type, token_value, token_pos = self._get_token()
+                        if token_type != QueryTokenizer.TOKEN_TYPE_CONTROL or token_value != range_close_char:
+                            raise QuerySyntaxError(token_pos, f'Missing [{range_close_char}] to close a value range')
+                        return FieldRangeQuery(new_context_name or context_name,
+                                               start_value, end_value, is_exclusive=is_exclusive)
+                    else:
+                        raise QuerySyntaxError(token_pos, f'Unexpected [{token_value}] after "TO" in value range')
                 else:
-                    return FieldValueQuery(context_name, text)
+                    raise QuerySyntaxError(token_pos, f'Missing keyword "TO" after first value in value range')
+            else:
+                raise QuerySyntaxError(token_pos, f'Missing first value of value range after [${range_open_char}]')
 
         if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == '(':
-            self._inc()
-            term = self._parse(context_name)
-            token_type, token_value, token_pos = self._peek()
-            assert token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == ')'
-            self._inc()
+            self._next_token()
+            term = self._parse(new_context_name or context_name)
+            token_type, token_value, token_pos = self._get_token()
+            if token_type != QueryTokenizer.TOKEN_TYPE_CONTROL or token_value != ')':
+                raise QuerySyntaxError(token_pos, f'Missing closing [)]')
+
+            self._next_token()
             return term
 
-        if token_type is not None:
-            raise QuerySyntaxError(token_pos, f'Unexpected [{token_value}]')
+        if new_context_name:
+            raise QuerySyntaxError(token_pos, f'Missing value or value range after [{new_context_name}:]')
+
+        if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value == ')':
+            # don't self._inc() here, it is done above in the '(' case
+            return None
 
         return None
 
-    def _inc(self):
-        self._index += 1
+    def _is_value_token_type(self, token_type: int) -> bool:
+        return token_type in QueryTokenizer.VALUE_TOKEN_TYPES
 
-    def _push_back(self):
-        self._index -= 1
-
-    def _peek(self) -> Token:
+    def _get_token(self) -> Token:
         if self._index < self._size:
             return self._tokens[self._index]
-        # noinspection PyTypeChecker
-        return None, None, None
+        return _NONE_TOKEN
+
+    def _next_token(self):
+        self._index += 1
+
+    def _prev_token(self):
+        self._index -= 1
 
 
 class QueryTokenizer:
     TOKEN_TYPE_CONTROL = 'CONTROL'
     TOKEN_TYPE_KEYWORD = 'KEYWORD'
     TOKEN_TYPE_TEXT = 'TEXT'
+    TOKEN_TYPE_NUMBER = 'NUMBER'
     TOKEN_TYPE_QTEXT = 'QTEXT'
+
+    VALUE_TOKEN_TYPES = {TOKEN_TYPE_TEXT,
+                         TOKEN_TYPE_QTEXT,
+                         TOKEN_TYPE_NUMBER}
 
     @classmethod
     def tokenize(cls, query: str) -> List[Token]:
@@ -165,43 +201,60 @@ class QueryTokenizer:
         while True:
             c = self._peek()
             if c == '':
-                self._consume_text_or_keyword(i1)
+                self._consume_literal_or_keyword(i1)
                 break
             elif c.isspace():
-                self._consume_text_or_keyword(i1)
+                self._consume_literal_or_keyword(i1)
                 i1 = self._eat_space()
             elif c == '\\':
                 self._eat_char()
                 self._eat_char()
-            elif c in OPERATORS or c == ':':
-                self._consume_text_or_keyword(i1)
+            elif c == ':':
+                self._consume_literal_or_keyword(i1)
+                i1 = self._eat_ctrl_char_token(c)
+            elif c == '[' or c == ']' or c == '{' or c == '}':
+                self._consume_literal_or_keyword(i1)
                 i1 = self._eat_ctrl_char_token(c)
             elif c == '(':
-                self._consume_text_or_keyword(i1)
-                i1 = self._eat_ctrl_char_token('(')
+                self._consume_literal_or_keyword(i1)
+                i1 = self._eat_ctrl_char_token(c)
                 self._open_level()
             elif c == ')':
-                self._consume_text_or_keyword(i1)
-                i1 = self._eat_ctrl_char_token(')')
+                self._consume_literal_or_keyword(i1)
+                i1 = self._eat_ctrl_char_token(c)
                 self._close_level()
             elif c == '"' or c == "'":
-                self._consume_text_or_keyword(i1)
+                self._consume_literal_or_keyword(i1)
                 i1 = self._eat_quoted_text(c)
             else:
                 self._eat_char()
 
-        self._check_level()
+        self._check_level_opened()
 
         return self._tokens
 
-    def _consume_text_or_keyword(self, start_index: int):
+    def _consume_literal_or_keyword(self, start_index: int):
         end_index = self._index
         text = self._query[start_index: end_index]
         if text:
             if text in KEYWORDS:
                 self._new_token(QueryTokenizer.TOKEN_TYPE_KEYWORD, text, start_index)
+            elif text in OPERATORS:
+                self._new_token(QueryTokenizer.TOKEN_TYPE_CONTROL, text, start_index)
             else:
-                self._new_token(QueryTokenizer.TOKEN_TYPE_TEXT, text, start_index)
+                try:
+                    value = int(text)
+                    self._new_token(QueryTokenizer.TOKEN_TYPE_NUMBER, value, start_index)
+                except ValueError:
+                    try:
+                        value = float(text)
+                        self._new_token(QueryTokenizer.TOKEN_TYPE_NUMBER, value, start_index)
+                    except ValueError:
+                        i = 0
+                        while i < len(text) and text[i] in OPERATORS:
+                            self._new_token(QueryTokenizer.TOKEN_TYPE_CONTROL, text[i], start_index + i)
+                            i += 1
+                        self._new_token(QueryTokenizer.TOKEN_TYPE_TEXT, text[i:], start_index + i)
 
     def _eat_ctrl_char_token(self, ctrl_char) -> int:
         start_index = self._index
@@ -234,7 +287,7 @@ class QueryTokenizer:
             return self._query[self._index]
         return ''
 
-    def _new_token(self, typ: str, text: str, index: int):
+    def _new_token(self, typ: str, text: FieldValue, index: int):
         self._tokens.append((typ, text, index))
 
     def _open_level(self):
@@ -242,10 +295,12 @@ class QueryTokenizer:
 
     def _close_level(self):
         self._level -= 1
-        self._check_level()
+        self._check_level_closed()
 
-    def _check_level(self):
+    def _check_level_closed(self):
         if self._level < 0:
             raise QuerySyntaxError(self._index, f'Missing matching [(]')
+
+    def _check_level_opened(self):
         if self._level > 0:
             raise QuerySyntaxError(self._index, f'Missing matching [)]')

@@ -22,7 +22,7 @@ Install
 
     $ source activate eocdb-dev
     $ python setup.py develop
-    $ pytest --cov=eocdb
+    $ pytest --cov=eocdb --cov-report html
 
 To run the server on its default port:
 
