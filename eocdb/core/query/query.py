@@ -340,8 +340,12 @@ class QueryBuilder:
         return FieldValueQuery(name, value)
 
     @classmethod
-    def range(cls, from_value: FieldValue, to_value: FieldValue, is_exclusive=False, name: str = None):
-        return FieldRangeQuery(name, from_value, to_value, is_exclusive=is_exclusive)
+    def inrange(cls, from_value: FieldValue, to_value: FieldValue, name: str = None):
+        return FieldRangeQuery(name, from_value, to_value, is_exclusive=False)
+
+    @classmethod
+    def within(cls, from_value: FieldValue, to_value: FieldValue, name: str = None):
+        return FieldRangeQuery(name, from_value, to_value, is_exclusive=True)
 
     @classmethod
     def wildcard(cls, value: str, name: str = None):

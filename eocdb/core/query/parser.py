@@ -1,7 +1,7 @@
-from typing import List, Tuple, Optional, Union
+from typing import List, Tuple, Optional, Union, Type
 
-from eocdb.core.query.query import Query, PhraseQuery, UnaryOpQuery, BinaryOpQuery, FieldValueQuery, \
-    KW_AND, KW_OR, KW_NOT, KEYWORDS, OPERATORS, FieldWildcardQuery, FieldRangeQuery, FieldValue
+from eocdb.core.query.query import Query, QueryBuilder, FieldValue, FieldQuery, \
+    KW_AND, KW_OR, KW_NOT, KEYWORDS, OPERATORS, OP_INCLUDE, OP_EXCLUDE, FieldWildcardQuery
 
 _OP_CHARS = ', '.join(f'[{op}]' for op in OPERATORS)
 
@@ -20,11 +20,12 @@ _NONE_TOKEN = (None, None, None)
 class QueryParser:
 
     @classmethod
-    def parse(cls, query: str) -> Optional[Query]:
-        return QueryParser(query)._parse(context_name=None)
+    def parse(cls, query: str, builder: Type[QueryBuilder] = QueryBuilder) -> Optional[Query]:
+        return QueryParser(query, builder=builder)._parse(context_name=None)
 
-    def __init__(self, query: str):
+    def __init__(self, query: str, builder: Type[QueryBuilder]):
         self._query = query
+        self._builder = builder
         self._tokens = QueryTokenizer.tokenize(self._query)
         self._size = len(self._tokens)
         self._index = 0
@@ -43,7 +44,7 @@ class QueryParser:
             return None
         if len(terms) == 1:
             return terms[0]
-        return PhraseQuery(terms)
+        return self._builder.phrase(*terms)
 
     def _parse_or(self, context_name: str = None) -> Optional[Query]:
         term1 = self._parse_and(context_name=context_name)
@@ -55,7 +56,7 @@ class QueryParser:
             term2 = self._parse_or(context_name=context_name)
             if term2 is None:
                 return term1
-            return BinaryOpQuery(token_value, term1, term2)
+            return self._builder.OR(term1, term2)
         else:
             return term1
 
@@ -69,7 +70,7 @@ class QueryParser:
             term2 = self._parse_and(context_name=context_name)
             if term2 is None:
                 return term1
-            return BinaryOpQuery(token_value, term1, term2)
+            return self._builder.AND(term1, term2)
         else:
             return term1
 
@@ -80,13 +81,21 @@ class QueryParser:
             term = self._parse_unary(context_name=context_name)
             if term is None:
                 raise QuerySyntaxError(token_pos, f'Term missing after {KW_NOT}')
-            return UnaryOpQuery(KW_NOT, term)
+            return self._builder.NOT(term)
         elif token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and token_value in OPERATORS:
+            op = token_value
             self._next_token()
             term = self._parse_primary(context_name=context_name)
             if term is None:
-                raise QuerySyntaxError(token_pos, f'Term missing after [{token_value}]')
-            return UnaryOpQuery(token_value, term)
+                raise QuerySyntaxError(token_pos, f'Term missing after [{op}]')
+            if not isinstance(term, FieldQuery):
+                raise QuerySyntaxError(token_pos, f'Value or value range expected after [{op}]')
+            if op == OP_INCLUDE:
+                return self._builder.include(term)
+            elif op == OP_EXCLUDE:
+                return self._builder.exclude(term)
+            else:
+                assert False
         else:
             return self._parse_primary(context_name=context_name)
 
@@ -108,9 +117,9 @@ class QueryParser:
             is_text = token_type == QueryTokenizer.TOKEN_TYPE_TEXT
             self._next_token()
             if is_text and FieldWildcardQuery.is_wildcard_text(token_value):
-                return FieldWildcardQuery(new_context_name or context_name, token_value)
+                return self._builder.wildcard(token_value, name=new_context_name or context_name)
             else:
-                return FieldValueQuery(new_context_name or context_name, token_value)
+                return self._builder.value(token_value, name=new_context_name or context_name)
 
         if token_type == QueryTokenizer.TOKEN_TYPE_CONTROL and (token_value == '[' or token_value == '{'):
             range_open_char = token_value
@@ -131,8 +140,10 @@ class QueryParser:
                         token_type, token_value, token_pos = self._get_token()
                         if token_type != QueryTokenizer.TOKEN_TYPE_CONTROL or token_value != range_close_char:
                             raise QuerySyntaxError(token_pos, f'Missing [{range_close_char}] to close a value range')
-                        return FieldRangeQuery(new_context_name or context_name,
-                                               start_value, end_value, is_exclusive=is_exclusive)
+                        if is_exclusive:
+                            return self._builder.within(start_value, end_value, name=new_context_name or context_name)
+                        else:
+                            return self._builder.inrange(start_value, end_value, name=new_context_name or context_name)
                     else:
                         raise QuerySyntaxError(token_pos, f'Unexpected [{token_value}] after "TO" in value range')
                 else:
@@ -159,7 +170,8 @@ class QueryParser:
 
         return None
 
-    def _is_value_token_type(self, token_type: int) -> bool:
+    @classmethod
+    def _is_value_token_type(cls, token_type: int) -> bool:
         return token_type in QueryTokenizer.VALUE_TOKEN_TYPES
 
     def _get_token(self) -> Token:
