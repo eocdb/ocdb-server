@@ -44,10 +44,18 @@ class MongoDbDriver:
         if query_expression is None:
             cursor = self.collection.find()
         else:
-            name = query_expression.name
-            min = query_expression.start_value
-            max = query_expression.end_value
-            cursor = self.collection.find({"records." + name: {"$gt" : min, "$lt" : max}})
+            # @todo 1 tb/tb replace with MongoExpressionParse - and remove the hardwired stuff here
+            term_1 = query_expression.term1
+            name_1 = term_1.name
+            min_1 = term_1.start_value
+            max_1 = term_1.end_value
+
+            term_2 = query_expression.term2
+            name_2 = term_2.name
+            min_2 = term_2.start_value
+            max_2 = term_2.end_value
+
+            cursor = self.collection.find({'records.' + name_1: {"$gt" : min_1, "$lt" : max_1}, "records." + name_2: {"$gt" : min_2, "$lt" : max_2}})
 
         results = []
         for record in cursor:
