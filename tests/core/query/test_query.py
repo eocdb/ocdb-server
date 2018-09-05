@@ -7,6 +7,7 @@ from eocdb.core.query.query import FieldValueQuery, PhraseQuery, UnaryOpQuery, B
 
 
 class QueryTest(TestCase):
+
     def _assert_str_and_repr(self, expected_str, expected_repr, term):
         self.assertEqual(expected_str, str(term))
         self.assertEqual(expected_repr, repr(term))
@@ -137,6 +138,7 @@ class QueryTest(TestCase):
                          q.accept(CollectingQueryVisitor()))
 
     def test_gen_sql(self):
+        self.maxDiff = None
         sql_gen = SqlQueryGenerator(table_name='data_files',
                                     default_column_names=('title', 'description'))
         q = QueryParser.parse('(chlorophyll chl) AND lat:[-20 TO -10] AND lon:[40 TO 50]')
@@ -145,7 +147,7 @@ class QueryTest(TestCase):
         self.assertEqual('select * from data_files where'
                          ' ((title like "chlorophyll" or description like "chlorophyll")'
                          ' or (title like "chl" or description like "chl"))'
-                         ' and (lat >= -20 and lat <= -10)', sql_gen.sql)
+                         ' and ((lat >= -20 and lat <= -10) and (lon >= 40 and lon <= 50))', sql_gen.sql)
 
 
 class CollectingQueryVisitor(QueryVisitor[str]):

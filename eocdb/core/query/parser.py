@@ -140,6 +140,7 @@ class QueryParser:
                         token_type, token_value, token_pos = self._get_token()
                         if token_type != QueryTokenizer.TOKEN_TYPE_CONTROL or token_value != range_close_char:
                             raise QuerySyntaxError(token_pos, f'Missing [{range_close_char}] to close a value range')
+                        self._next_token()
                         if is_exclusive:
                             return self._builder.within(start_value, end_value, name=new_context_name or context_name)
                         else:

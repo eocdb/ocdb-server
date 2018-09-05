@@ -71,6 +71,9 @@ class QueryParserTest(TestCase):
         self.assertEqual(B.OR(B.value("cat"), B.AND(B.value("dog"), B.value("bird"))),
                          P.parse("cat OR dog AND bird"))
 
+        self.assertEqual(B.AND(B.inrange(107, 110, name="lon"), B.inrange(-40, -35, name="lat")),
+                         P.parse("lon:[107 TO 110] AND lat:[-40 TO -35]"))
+
     def test_group(self):
         self.assertEqual(B.AND(B.OR(B.value("cat"),
                                     B.value("dog")),
