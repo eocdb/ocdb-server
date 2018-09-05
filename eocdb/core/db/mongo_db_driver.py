@@ -16,7 +16,7 @@ class MongoDbDriver:
             # @todo 2 tb/tb use specific exception classes here 2018-08-31
             raise Exception("Database already connected, do not call this twice!")
 
-        #self.client = MongoClient("10.3.14.146", 27017)
+        #self.client = MongoClient("10.3.14.146", 27017, username="eocdb", password="bdcoe")
         self.client = MongoClient("localhost", 27017)
 
         # @todo 3 tb/tb although this is the recommended way to check for server-up, it hangs when server is down 2019-09-04
@@ -40,8 +40,15 @@ class MongoDbDriver:
     def insert(self, document):
         self.collection.insert_one(document)
 
-    def get(self):
-        cursor = self.collection.find()
+    def get(self, query_expression=None):
+        if query_expression is None:
+            cursor = self.collection.find()
+        else:
+            name = query_expression.name
+            min = query_expression.start_value
+            max = query_expression.end_value
+            cursor = self.collection.find({"records." + name: {"$gt" : min, "$lt" : max}})
+
         results = []
         for record in cursor:
             dataset = DbDataset()
