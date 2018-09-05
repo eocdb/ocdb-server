@@ -280,54 +280,54 @@ class QueryVisitor(Generic[T], metaclass=ABCMeta):
     """ Visitor used to visit all nodes of a Query tree. """
 
     @abstractmethod
-    def visit_phrase(self, qt: PhraseQuery, terms: List[T]) -> Optional[T]:
+    def visit_phrase(self, q: PhraseQuery, terms: List[T]) -> Optional[T]:
         """
         Visit a PhraseQuery query term and compute an optional result.
-        :param qt: The PhraseQuery query term to be visited.
+        :param q: The PhraseQuery query term to be visited.
         :param terms: The results of the list elements' visit.
         :return: The optional result of the visit.
         """
 
     @abstractmethod
-    def visit_binary_op(self, qt: BinaryOpQuery, term1: T, term2: T) -> Optional[T]:
+    def visit_binary_op(self, q: BinaryOpQuery, term1: T, term2: T) -> Optional[T]:
         """
         Visit a BinaryOpQuery query term and compute an optional result.
-        :param qt: The BinaryOpQuery query term to be visited.
+        :param q: The BinaryOpQuery query term to be visited.
         :param term1: The result of the first operand's visit.
         :param term2: The result of the second operand's visit.
         :return: The optional result of the visit.
         """
 
     @abstractmethod
-    def visit_unary_op(self, qt: UnaryOpQuery, term: T) -> Optional[T]:
+    def visit_unary_op(self, q: UnaryOpQuery, term: T) -> Optional[T]:
         """
         Visit a UnaryOpQuery query term and compute an optional result.
-        :param qt: The UnaryOpQuery query term to be visited.
+        :param q: The UnaryOpQuery query term to be visited.
         :param term: The result of the unary operand's visit.
         :return: The optional result of the visit.
         """
 
     @abstractmethod
-    def visit_field_value(self, qt: FieldValueQuery) -> Optional[T]:
+    def visit_field_value(self, q: FieldValueQuery) -> Optional[T]:
         """
         Visit a FieldValueQuery query term and compute an optional result.
-        :param qt: The FieldValueQuery query term to be visited.
+        :param q: The FieldValueQuery query term to be visited.
         :return: The optional result of the visit.
         """
 
     @abstractmethod
-    def visit_field_range(self, qt: FieldRangeQuery) -> Optional[T]:
+    def visit_field_range(self, q: FieldRangeQuery) -> Optional[T]:
         """
         Visit a FieldRangeQuery query term and compute an optional result.
-        :param qt: The FieldRangeQuery query term to be visited.
+        :param q: The FieldRangeQuery query term to be visited.
         :return: The optional result of the visit.
         """
 
     @abstractmethod
-    def visit_field_wildcard(self, qt: FieldWildcardQuery) -> Optional[T]:
+    def visit_field_wildcard(self, q: FieldWildcardQuery) -> Optional[T]:
         """
         Visit a FieldRangeQuery query term and compute an optional result.
-        :param qt: The FieldRangeQuery query term to be visited.
+        :param q: The FieldRangeQuery query term to be visited.
         :return: The optional result of the visit.
         """
 
@@ -336,41 +336,41 @@ class QueryVisitor(Generic[T], metaclass=ABCMeta):
 class QueryBuilder:
 
     @classmethod
-    def value(cls, value: FieldValue, name: str = None):
-        return FieldValueQuery(name, value)
+    def value(cls, v: FieldValue, name: str = None):
+        return FieldValueQuery(name, v)
 
     @classmethod
-    def inrange(cls, from_value: FieldValue, to_value: FieldValue, name: str = None):
-        return FieldRangeQuery(name, from_value, to_value, is_exclusive=False)
+    def wildcard(cls, v: str, name: str = None):
+        return FieldWildcardQuery(name, v)
 
     @classmethod
-    def within(cls, from_value: FieldValue, to_value: FieldValue, name: str = None):
-        return FieldRangeQuery(name, from_value, to_value, is_exclusive=True)
+    def inrange(cls, v1: FieldValue, v2: FieldValue, name: str = None):
+        return FieldRangeQuery(name, v1, v2, is_exclusive=False)
 
     @classmethod
-    def wildcard(cls, value: str, name: str = None):
-        return FieldWildcardQuery(name, value)
+    def within(cls, v1: FieldValue, v2: FieldValue, name: str = None):
+        return FieldRangeQuery(name, v1, v2, is_exclusive=True)
 
     @classmethod
-    def include(cls, t: FieldQuery):
-        return UnaryOpQuery('+', t)
+    def include(cls, q: FieldQuery):
+        return UnaryOpQuery('+', q)
 
     @classmethod
-    def exclude(cls, t: FieldQuery):
-        return UnaryOpQuery('-', t)
+    def exclude(cls, q: FieldQuery):
+        return UnaryOpQuery('-', q)
 
     @classmethod
     def phrase(cls, *terms: Query):
         return PhraseQuery(terms)
 
     @classmethod
-    def NOT(cls, t: Query):
-        return UnaryOpQuery('NOT', t)
+    def NOT(cls, q: Query):
+        return UnaryOpQuery('NOT', q)
 
     @classmethod
-    def AND(cls, t1: Query, t2: Query):
-        return BinaryOpQuery('AND', t1, t2)
+    def AND(cls, q1: Query, q2: Query):
+        return BinaryOpQuery('AND', q1, q2)
 
     @classmethod
-    def OR(cls, t1: Query, t2: Query):
-        return BinaryOpQuery('OR', t1, t2)
+    def OR(cls, q1: Query, q2: Query):
+        return BinaryOpQuery('OR', q1, q2)
