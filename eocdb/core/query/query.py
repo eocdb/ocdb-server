@@ -10,7 +10,11 @@ OP_INCLUDE = '+'
 OP_EXCLUDE = '-'
 OPERATORS = {OP_INCLUDE, OP_EXCLUDE}
 
-Value = Union[str, bool, int, float, None]
+_NoneType = type(None)
+
+FIELD_VALUE_TYPES = {str, int, float, _NoneType}
+
+FieldValue = Union[str, int, float, None]
 
 
 class Query(metaclass=ABCMeta):
@@ -154,11 +158,12 @@ class FieldQuery(Query, metaclass=ABCMeta):
 
 class FieldValueQuery(FieldQuery):
     @classmethod
-    def is_text(cls, value: Value):
+    def is_text(cls, value: FieldValue):
         return isinstance(value, str)
 
-    def __init__(self, name: Optional[str], value: Value):
+    def __init__(self, name: Optional[str], value: FieldValue):
         super().__init__(name)
+        assert type(value) in FIELD_VALUE_TYPES
         self.value = value
 
     def __eq__(self, other):
@@ -191,7 +196,7 @@ class FieldValueQuery(FieldQuery):
 class FieldWildcardQuery(FieldValueQuery):
 
     @classmethod
-    def is_wildcard_text(cls, value: Value) -> bool:
+    def is_wildcard_text(cls, value: FieldValue) -> bool:
 
         if not cls.is_text(value):
             return False
@@ -224,9 +229,21 @@ class FieldWildcardQuery(FieldValueQuery):
 
 class FieldRangeQuery(FieldQuery):
 
-    def __init__(self, name: Optional[str], start_value: Value, end_value: Value, is_exclusive=False):
+    def __init__(self, name: Optional[str], start_value: FieldValue, end_value: FieldValue, is_exclusive=False):
         super().__init__(name)
         assert not (start_value is None and end_value is None)
+        assert type(start_value) in FIELD_VALUE_TYPES
+        assert type(end_value) in FIELD_VALUE_TYPES
+        if start_value is not None and end_value is not None:
+            if isinstance(start_value, str) or isinstance(end_value, str):
+                start_value = str(start_value)
+                end_value = str(end_value)
+            elif isinstance(start_value, float) or isinstance(end_value, float):
+                start_value = float(start_value)
+                end_value = float(end_value)
+            elif isinstance(start_value, int) or isinstance(end_value, int):
+                start_value = int(start_value)
+                end_value = int(end_value)
         self.start_value = start_value
         self.end_value = end_value
         self.is_exclusive = is_exclusive
@@ -319,11 +336,11 @@ class QueryVisitor(Generic[T], metaclass=ABCMeta):
 class QueryBuilder:
 
     @classmethod
-    def value(cls, value: Value, name: str = None):
+    def value(cls, value: FieldValue, name: str = None):
         return FieldValueQuery(name, value)
 
     @classmethod
-    def range(cls, from_value: Value, to_value: Value, is_exclusive=False, name: str = None):
+    def range(cls, from_value: FieldValue, to_value: FieldValue, is_exclusive=False, name: str = None):
         return FieldRangeQuery(name, from_value, to_value, is_exclusive=is_exclusive)
 
     @classmethod

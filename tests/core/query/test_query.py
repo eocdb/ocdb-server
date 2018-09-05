@@ -17,9 +17,6 @@ class QueryTest(TestCase):
         self._assert_str_and_repr('animal:cat',
                                   'FieldValueQuery("animal", "cat")',
                                   FieldValueQuery('animal', 'cat'))
-        self._assert_str_and_repr('large:True',
-                                  'FieldValueQuery("large", True)',
-                                  FieldValueQuery('large', True))
         self._assert_str_and_repr('size:627247',
                                   'FieldValueQuery("size", 627247)',
                                   FieldValueQuery('size', 627247))
@@ -31,6 +28,11 @@ class QueryTest(TestCase):
                                   FieldValueQuery('animal', 'cat dog'))
 
         self.assertEqual(1000, FieldValueQuery(None, 'cat').op_precedence())
+
+        with self.assertRaises(AssertionError):
+            FieldValueQuery('large', True)
+        with self.assertRaises(AssertionError):
+            FieldValueQuery('items', [1, 2])
 
     def test_field_wildcard(self):
         self._assert_str_and_repr('cat',
