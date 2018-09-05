@@ -30,14 +30,19 @@ class QueryParserTest(TestCase):
         self.assertEqual(B.value("100", name='length'), P.parse("length:'100'"))
 
     def test_field_range(self):
-        self.assertEqual(B.range(0, 100, is_exclusive=False), P.parse("[0 TO 100]"))
-        self.assertEqual(B.range(0, 100, is_exclusive=True), P.parse("{0 TO 100}"))
-        self.assertEqual(B.range(0.5, 100.0, is_exclusive=True), P.parse("{0.5 TO 100}"))
-        self.assertEqual(B.range("snail", "snake", is_exclusive=False), P.parse("[snail TO snake]"))
-        self.assertEqual(B.range("0", "100", is_exclusive=False), P.parse("['0' TO '100']"))
-        self.assertEqual(B.range("cat", "100", is_exclusive=True), P.parse("{cat TO 100}"))
-        self.assertEqual(B.range(0, 100, is_exclusive=False, name='size'), P.parse("size:[0 TO 100]"))
-        self.assertEqual(B.range(0, 100, is_exclusive=True, name='size'), P.parse("size:{0 TO 100}"))
+        self.assertEqual(B.inrange(0, 100), P.parse("[0 TO 100]"))
+        self.assertEqual(B.inrange(0.5, 100.0), P.parse("[0.5 TO 100]"))
+        self.assertEqual(B.inrange("snail", "snake"), P.parse("[snail TO snake]"))
+        self.assertEqual(B.inrange("0", "100"), P.parse("['0' TO '100']"))
+        self.assertEqual(B.inrange("cat", "100"), P.parse("[cat TO 100]"))
+        self.assertEqual(B.inrange(0, 100, name='size'), P.parse("size:[0 TO 100]"))
+
+        self.assertEqual(B.within(0, 100), P.parse("{0 TO 100}"))
+        self.assertEqual(B.within(0.5, 100.0), P.parse("{0.5 TO 100}"))
+        self.assertEqual(B.within("snail", "snake"), P.parse("{snail TO snake}"))
+        self.assertEqual(B.within("0", "100"), P.parse("{'0' TO '100'}"))
+        self.assertEqual(B.within("cat", "100"), P.parse("{cat TO 100}"))
+        self.assertEqual(B.within(0, 100, name='size'), P.parse("size:{0 TO 100}"))
 
     def test_field_wildcard(self):
         self.assertEqual(B.wildcard("ca*"), P.parse("ca*"))
