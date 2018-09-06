@@ -17,9 +17,16 @@ class DbDataset(Dataset):
     def set_metadata(self, metadata):
         self._metadata = metadata
 
+    def add_metadatum(self, key, value):
+        self._metadata.update({key: value})
+
     @property
     def attribute_count(self) -> int:
         return len(self._attributes)
+
+    @property
+    def attributes(self) -> List[str]:
+        return self._attributes
 
     @property
     def attribute_names(self) -> List[str]:
@@ -40,6 +47,4 @@ class DbDataset(Dataset):
         self._records.append(record)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {'records' : self._records}
-
-
+        return {'records': self._records}
