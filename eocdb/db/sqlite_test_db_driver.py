@@ -1,7 +1,7 @@
 import sqlite3
 
 from eocdb.core.dataset import Dataset
-from eocdb.core.db.db_dataset import DbDataset
+from eocdb.db.db_dataset import DbDataset
 from eocdb.core.service import Service
 
 
