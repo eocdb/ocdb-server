@@ -1,5 +1,5 @@
 databases:
   default:
-    type: eocdb.core.db.sqlite_test_db_driver.SQLiteTestDbDriver
+    type: eocdb.db.sqlite_test_db_driver.SQLiteTestDbDriver
     read: true
     write: true
