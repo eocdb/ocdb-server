@@ -84,7 +84,7 @@ See also validation rule configuration section for further details.
     - Check the date-times in header: starts before it ends 
    
 
-
+```
     ### Validation rule config
     
     [general]
@@ -723,5 +723,4 @@ See also validation rule configuration section for further details.
     field_has_wrong_unit    | summary         | wrong_unit_header                | wrong_unit_footer
     field_cant_be_missing   | summary         | field_cant_be_missing_header     |
     bad_data_line           | truncate10      | bad_data_line_header             | bad_data_line_footer
-
-
+```
