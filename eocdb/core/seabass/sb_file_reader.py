@@ -70,9 +70,22 @@ class SbFileReader():
             dataset.add_metadatum(key[1:].strip(), value.strip())
 
     def _interprete_header(self, dataset):
-        # @todo 1 tb/tb implement
-        pass
+        self._delimiter_regex = self._extract_delimiter_regex(dataset)
 
     def _parse_records(self, dataset):
         # @todo 1 tb/tb implement
         pass
+
+    def _extract_delimiter_regex(self, dataset):
+        if not 'delimiter' in dataset.metadata:
+            raise IOError('Missing delimiter tag in header')
+
+        delimiter = dataset.metadata['delimiter']
+        if delimiter == 'comma':
+            return ',+'
+        elif delimiter == 'space':
+            return '\s+'
+        elif delimiter == 'tab':
+            return '\t+'
+        else:
+            raise IOError('Invalid delimiter-value in header')
