@@ -1,0 +1,726 @@
+## Fcheck validation rules
+
+There are three types of validation rules:
+
+- Rules for the header section
+- Rules for the data section
+
+Fcheck knows three ways of implementing rules:
+
+- The ones hard coded in fcheck.pl
+- Rules defined in fcheck.ini
+- Rules defined in fcheck.ini but the implementation is, nevertheless, hard coded ... :-\(
+
+The rules are given as an itemised list in teh format rule:expected bahaviour. Some rules refer
+to a section in the fcheck.ini file and are denoted by \[\] brackets.
+
+### Rule check order in fcheck.pl
+
+```perl
+check_headers_for_whitespace();
+check_for_required_headers();
+check_for_unknown_headers();
+check_for_invalid_numbers();
+check_header_compares();
+check_validity_section();
+check_fields();
+check_data();
+one_offs();
+```
+
+### File names and content
+
+- Spaces in file names 
+- DOS formats
+- Extra commas in CSV section
+
+### Header fields
+
+See also validation rule configuration section for further details.
+
+- check_headers_for_whitespace: no white spaces in header field names
+- check_for_required_headers: all required fields exist
+- check_for_unknown_headers: no header fields that are not defined in fcheck.ini
+- check_for_invalid_numbers: valid according to \[numbers\] section 
+    - Date format: YYYYMMDD or YYYJJJ
+    - Month field: 01..12
+    - Day of month exists (e.g. 20000431 does not)
+    - Date is greater than 1975
+    - Time in correct format: HH:MM:SS
+    - Time field in range: hours 01-24, minutes and secs 00-60
+    - Float can be parsed: value is number i.e. no invalid characters
+    - date/time/float/degree/int in bounds
+    - Julian day exists
+    - Lat/lon on water
+    - Non missing fields valid: no missing values
+    - Data lines valid: not empty, no leading, traling spaces
+    - Data lines valid: no. of values match no. of fields
+- check_header_compares:  valid according to \[header_value_comparison_problem\] section 
+- check_validity_section: valid according to \[validity\] section
+- check_fields (/fields and /units header): Correct units, duplicate fields, unknown fields
+    - no of fields equals no. of units
+    - no duplicates
+    - data field has correct \[unit\]
+    - data field exists in \[fields\]
+- check_data()
+    - Date doesn't match YYYYMMDD or YYYYJJJ: _invalid_date
+    - Month in date isn't between 1 and 12: _invalid_month
+    - Day of month doesn't exist: _invalid_day_of_month
+    - A date before 1975 is given: _data_pre_1975_detected
+    - Time doesn't match HH:MM:SS: _invalid_time
+    - Hours, minutes, or seconds out of range: _invalid_time_value
+    - Couldn't parse a given float/integer/date/time: _field_failed_to_parse
+    - Date/time/float/degree/int out of bounds: _field_out_of_bounds
+    - Julian day doesn't exist: _data_invalid_julian
+    - Lat/lon coordinates appear to be on land: _data_bathymetry_failed
+    - A field marked as non_null is null: _field_cant_be_missing
+    - Empty line in data: _empty_line
+    - Leading or trailing spaces: _spaces_around_line
+    - Data line columns don't match listed fields: _bad_data_line
+    - /begin_data or /end_data@? found: _obsolete_data_tags 
+- One offs (TODO: add expected behaviour):
+    - Check if the measurement depth is in the header, fields, neither or both.!?
+    - Check the locations in header: non on land?
+    - Check the date-times in header: starts before it ends 
+   
+
+```
+    ### Validation rule config
+    
+    [general]
+    #NAME            | VALUE
+    bathymetry_check | SRTM30_PLUS  # when changing this, make sure to update bad_bathymetry_header, as well.
+    strict_delim     | 1
+    
+    [header_value_comparison_problem]
+    #FIELD NAME 1   | COMPARE | FIELD NAME 2    | WARNING                    | ERROR
+    /north_latitude | >=      | /south_latitude |                            |
+    /east_longitude | >=      | /west_longitude | crossing_date_line_warning |
+    /start_date     | <=      | /end_date       |                            |
+    /experiment     | ne      | /cruise         |                            | cruise_same_as_experiment
+    
+    [headers]
+    #HEADER                              | REQUIRED          | WARNING                            | ERROR
+    /investigators                       | required          |                                    |
+    /affiliations                        | required          |                                    |
+    /contact                             | required          |                                    |
+    /experiment                          | required          |                                    |
+    /cruise                              | required          |                                    |
+    /station                             | optional          |                                    |
+    /station_alt_id                      | obsolete          |                                    |
+    /data_file_name                      | required          |                                    |
+    /associated_archives                 | obsolete          |                                    |
+    /associated_archive_types            | obsolete          |                                    |
+    /associated_files                    | obsolete          |                                    |
+    /associated_file_types               | obsolete          |                                    |
+    /original_file_name                  | obsolete          |                                    |
+    /documents                           | required          |                                    |
+    /calibration_files                   | required          |                                    |
+    /data_type                           | required          |                                    |
+    /data_status                         | optional          |                                    |
+    /parameters                          | obsolete          | obsolete_parameters_field_detected |
+    /start_date                          | required          |                                    |
+    /end_date                            | required          |                                    |
+    /start_time                          | required          |                                    |
+    /end_time                            | required          |                                    |
+    /north_latitude                      | required          |                                    |
+    /south_latitude                      | required          |                                    |
+    /east_longitude                      | required          |                                    |
+    /west_longitude                      | required          |                                    |
+    /water_depth                         | required          |                                    |
+    /measurement_depth                   | obsolete          |                                    |
+    /secchi_depth                        | optional          |                                    |
+    /cloud_percent                       | optional          |                                    |
+    /wave_height                         | optional          |                                    |
+    /wind_speed                          | optional          |                                    |
+    /volfilt                             | obsolete          |                                    |
+    !COMMENTS                            | obsolete          |                                    |
+    /missing                             | required          |                                    |
+    /delimiter                           | required          |                                    |
+    /fields                              | required          |                                    |
+    /units                               | required          |                                    |
+    /begin_header                        | obsolete no_value |                                    |
+    /end_header                          | obsolete no_value |                                    |
+    /end_header@                         | obsolete no_value |                                    | old_begin_and_end_tags
+    /received                            | obsolete          |                                    |
+    /identifier_product_doi              | obsolete          |                                    |
+    /below_detection_limit               | obsolete          |                                    |
+    /above_detection_limit               | obsolete          |                                    |
+    /optical_depth_warning               | obsolete          |                                    |
+    /area                                | obsolete          |                                    |
+    /null_correction                     | obsolete          |                                    |
+    /biotic_setting                      | obsolete          |                                    |
+    /biotic_class                        | obsolete          |                                    |
+    /biotic_subclass                     | obsolete          |                                    |
+    /biotic_group                        | obsolete          |                                    |
+    /biotic_community                    | obsolete          |                                    |
+    /geoform_tectonic_setting            | obsolete          |                                    |
+    /geoform_physiographic_setting       | obsolete          |                                    |
+    /geoform_origin                      | obsolete          |                                    |
+    /geoform                             | obsolete          |                                    |
+    /geoform_type                        | obsolete          |                                    |
+    /substrate_origin                    | obsolete          |                                    |
+    /substrate_class                     | obsolete          |                                    |
+    /substrate_subclass                  | obsolete          |                                    |
+    /substrate_group                     | obsolete          |                                    |
+    /substrate_subgroup                  | obsolete          |                                    |
+    /water_column_biogeochemical_feature | obsolete          |                                    |
+    /water_column_hydroform_class        | obsolete          |                                    |
+    /water_column_hydroform              | obsolete          |                                    |
+    /water_column_hydroform_type         | obsolete          |                                    |
+    /water_column_layer                  | obsolete          |                                    |
+    /water_column_salinity               | obsolete          |                                    |
+    /water_column_temperature            | obsolete          |                                    |
+    /chemical_formula                    | obsolete          |                                    |
+    /mass_to_charge                      | obsolete          |                                    |
+    
+    
+    [numbers]
+    #HEADER            | TYPE            | LOWER    | UPPER
+    #                  |                 | BOUND    | BOUND
+    _date              | date non_null   | 19750101 | today
+    _time              | time non_null   |          |
+    latitude           | degree non_null | -90      | 90
+    longitude          | degree non_null | -180     | 180
+    /water_depth       | float           | 0        |
+    /secchi_depth      | float           | 0        |
+    /measurement_depth | float           | 0        |
+    cloud              | float           |          |
+    wind               | float           |          |
+    wave               | float           |          |
+    /missing           | float           |          |
+    
+    
+    [fields]
+    #FIELD                              | UNIT                         | PARSE AS          | LOWER    | UPPER | WARNING                 | ERROR
+    #                                   |                              |                   | BOUND    | BOUND |                         |
+    a                                   | 1/m                          | positive          |          |       |                         |
+    a*ph                                | m^2/mg                       |                   | -0.00001 |       | field_out_of_bounds     |
+    a*srfa                              | m^2/mg                       |                   |          |       |                         |
+    aaer                                | 1/m                          | positive          |          |       |                         |
+    abs                                 | unitless                     | positive          |          |       |                         |
+    abs_blank                           | unitless                     | positive          |          |       | obsolete_field_detected |
+    abs_blank_ap                        | unitless                     | positive          |          |       |                         |
+    abs_blank_ad                        | unitless                     | positive          |          |       |                         |
+    abs_blank_ag                        | unitless                     | positive          |          |       |                         |
+    abs*                                | m^2/mg                       | positive          |          |       |                         |
+    abs_ad                              | unitless                     | positive          |          |       |                         |
+    abs_ag                              | unitless                     | positive          |          |       |                         |
+    abs_ap                              | unitless                     | positive          |          |       |                         |
+    abs_nacl                            | unitless                     | positive          |          |       |                         |
+    abundance                           | none                         | positive          |          |       |                         |
+    ad                                  | 1/m                          | positive          |          |       |                         |
+    ad_unc                              | 1/m                          | positive          |          |       |                         |
+    adg                                 | 1/m                          | positive          |          |       |                         |
+    ag                                  | 1/m                          | positive          |          |       |                         |
+    agp                                 | 1/m                          | positive          |          |       |                         |
+    asrfa                               | 1/m                          |                   |          |       |                         |
+    Allo                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    alpha-beta-Car                      | mg/m^3,ug/l                  | positive          |          |       |                         |
+    altitude                            | m                            | positive          |          |       |                         |
+    am                                  | unitless                     | positive          |          |       |                         |
+    angstrom                            | unitless                     |                   |          |       |                         |
+    Anth                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    AOT                                 | unitless                     |                   | 0.005    | 2.0   | field_out_of_bounds     |
+    AMC                                 | umol                         |                   |          |       |                         |
+    AMC-Leu                             | umol/l/hr                    |                   |          |       |                         |
+    ap                                  | 1/m                          | positive          |          |       |                         |
+    ap_unc                              | 1/m                          | positive          |          |       |                         |
+    aph                                 | 1/m                          | positive          |          |       |                         |
+    aph_unc                             | 1/m                          | positive          |          |       |                         |
+    associated_files                    | none                         | string            |          |       |                         |
+    associated_file_types               | none                         | string            |          |       |                         |
+    Asta                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    At                                  | degreesC                     | positive          |          |       |                         |
+    aw                                  | 1/m                          | positive          |          |       |                         |
+    b                                   | 1/m                          | positive          |          |       |                         |
+    bb                                  | 1/m                          | positive          |          |       |                         |
+    bbp                                 | 1/m                          | positive          |          |       |                         |
+    bbp_bp                              | unitless                     | positive          |          |       |                         |
+    bbw                                 | 1/m                          | positive          |          |       |                         |
+    bchl_a                              | mg/m^3,ug/l                  | positive          |          |       |                         |
+    bactp                               | pmol/L/hr                    | positive          |          |       |                         |
+    bact_abun                           | cells/L                      | positive          |          |       |                         |
+    benthic_type                        | none                         | string            |          |       |                         |
+    beta-beta-Car                       | mg/m^3,ug/l                  | positive          |          |       |                         |
+    beta-epi-Car                        | mg/m^3,ug/l                  | positive          |          |       |                         |
+    beta-psi-Car                        | mg/m^3,ug/l                  | positive          |          |       |                         |
+    bin_depth                           | m                            | positive          |          |       |                         |
+    bincount                            | none                         | positive          |          |       |                         |
+    biotic_setting                      | none                         |                   |          |       |                         |
+    biotic_class                        | none                         |                   |          |       |                         |
+    biotic_subclass                     | none                         |                   |          |       |                         |
+    biotic_group                        | none                         |                   |          |       |                         |
+    biotic_community                    | none                         |                   |          |       |                         |
+    bottle                              | none                         | string            |          |       |                         |
+    bp                                  | 1/m                          | positive          |          |       |                         |
+    BSi                                 | mmol/m^3                     | positive          |          |       |                         |
+    But-fuco                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    bw                                  | 1/m                          | positive          |          |       |                         |
+    c                                   | 1/m                          | positive          |          |       |                         |
+    C2H3N_H                             | ppbv                         | positive          |          |       |                         |
+    C2H4O_H                             | ppbv                         | positive          |          |       |                         |
+    C2H6S_H                             | ppbv                         | positive          |          |       |                         |
+    C3H6O_H                             | ppbv                         | positive          |          |       |                         |
+    C5H8_H                              | ppbv                         | positive          |          |       |                         |
+    C6H6_H                              | ppbv                         | positive          |          |       |                         |
+    Cantha                              | mg/m^3,ug/l                  | positive          |          |       |                         |
+    cdmf                                | volts,ppb                    | positive          |          |       |                         |
+    cdom                                | mg/m^3,ug/l,ppb              | positive          |          |       |                         |
+    cg                                  | 1/m                          | positive          |          |       |                         |
+    cgp                                 | 1/m                          | positive          |          |       |                         |
+    CH4O_H                              | ppbv                         | positive          |          |       |                         |
+    CH4S_H                              | ppbv                         | positive          |          |       |                         |
+    CHL                                 | mg/m^3,ug/l                  | positive          |          | 100   |                         |
+    Chl_ex                              | mg/m^3,ug/l                  | positive          |          | 100   |                         |
+    Chl_a                               | mg/m^3,ug/l                  | positive          |          | 100   |                         |
+    Chl_a_allom                         | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Chl_a_prime                         | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Chl_b                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Chl_c                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Chl_c1                              | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Chl_c1c2                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Chl_c2                              | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Chl_c3                              | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Chlide_a                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Chlide_b                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    chors_id                            | none                         | string            |          |       |                         |
+    cloud                               | %                            | positive          |          |       |                         |
+    cnw                                 | 1/m                          | positive          |          |       |                         |
+    comment                             | none                         | string            |          |       |                         |
+    cond                                | mmho/cm                      | positive          |          |       |                         |
+    cp                                  | 1/m                          | positive          |          |       |                         |
+    cp_gamma                            | unitless                     |                   |          |       |                         |
+    Croco                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    cw                                  | 1/m                          | positive          |          |       |                         |
+    cycle                               | none                         | positive          |          |       |                         |
+    date                                | yyyymmdd                     | non_null date     | 19750101 | today |                         |
+    date_processed                      | yyyymmdd                     | non_null date     | 19750101 | today |                         |
+    day                                 | dd                           | non_null int      | 1        | 31    |                         |
+    depth                               | m,meters                     | non_null positive |          |       |                         |
+    dewpoint                            | degreesC                     |                   |          |       |                         |
+    Diadchr                             | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Diadino                             | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Diato                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    DIC                                 | umol/kg                      | positive          |          |       |                         |
+    Dino                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    DMSA                                | ppt                          |                   |          |       |                         |
+    DMSSW                               | nmol/l                       | positive          |          |       |                         |
+    DNA                                 | mg/m^3                       | positive          |          |       |                         |
+    DOC                                 | umol/kg                      | positive          |          |       |                         |
+    DP                                  | mg/m^3,ug/l                  | positive          |          |       |                         |
+    DV_Chl_a                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    DV_Chl_b                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Echin                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Ed                                  | uW/cm^2/nm,uWcm-2nm-1        |                   | -0.001   | 250   | field_out_of_bounds     |
+    EdGND                               | volts                        |                   |          |       |                         |
+    elapsed_time                        | seconds                      | positive          |          |       |                         |
+    Elw                                 | uW/cm^2                      | positive          |          |       |                         |
+    Epar                                | uE/cm^2/s                    | positive          |          |       |                         |
+    epi-epi-Car                         | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Es                                  | uW/cm^2/nm,uWcm-2nm-1        |                   | -0.001   | 250   | field_out_of_bounds     |
+    EsGND                               | volts                        |                   |          |       |                         |
+    Esky                                | uW/cm^2/nm,uWcm-2nm-1        |                   |          |       |                         |
+    Esun                                | uW/cm^2/nm,uWcm-2nm-1        |                   |          |       |                         |
+    Esw                                 | uW/cm^2                      |                   |          |       |                         |
+    Et-8-carot                          | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Et-chlide_a                         | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Et-chlide_b                         | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Eu                                  | uW/cm^2/nm,uWcm-2nm-1        | positive          |          |       |                         |
+    EuGND                               | volts                        |                   |          |       |                         |
+    EuPAR                               | uE/cm^2/s                    | positive          |          |       |                         |
+    F0                                  | uW/cm^2/nm                   | positive          |          |       |                         |
+    F-initial                           | unitless                     | positive          |          |       |                         |
+    Fm                                  | unitless                     | positive          |          |       |                         |
+    Fv_Fm                               | unitless                     | positive          |          |       |                         |
+    FL-A                                | arbunits                     |                   |          |       |                         |
+    FL-H                                | arbunits                     |                   |          |       |                         |
+    FSC-A                               | arbunits                     |                   |          |       |                         |
+    FSC-H                               | arbunits                     |                   |          |       |                         |
+    FSCperp-H                           | arbunits                     |                   |          |       |                         |
+    Fuco                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    g                                   | d-1,1/d,d^-1                 |                   |          |       |                         |
+    g_herb                              | d-1,1/d,d^-1                 |                   |          |       |                         |
+    geoform_tectonic_setting            | none                         |                   |          |       |                         |
+    geoform_physiographic_setting       | none                         |                   |          |       |                         |
+    geoform_origin                      | none                         |                   |          |       |                         |
+    geoform                             | none                         |                   |          |       |                         |
+    geoform_type                        | none                         |                   |          |       |                         |
+    Gyro                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    heading                             | degrees                      | positive          | 0        | 360   | field_out_of_bounds     |
+    Hex-fuco                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Hex-kfuco                           | mg/m^3,ug/l                  | positive          |          |       |                         |
+    hour                                | hh                           | non_null int      | 0        | 23    |                         |
+    hpl_id                              | none                         | string            |          |       |                         |
+    hplc_gsfc_id                        | none                         | string            |          |       |                         |
+    It                                  | degreesC                     | positive          |          |       |                         |
+    iso_C2H3N_H                         | ppbv                         | positive          |          |       |                         |
+    iso_C2H4O_H                         | ppbv                         | positive          |          |       |                         |
+    iso_C2H6S_H                         | ppbv                         | positive          |          |       |                         |
+    iso_C3H6O_H                         | ppbv                         | positive          |          |       |                         |
+    iso_CH4O_H                          | ppbv                         | positive          |          |       |                         |
+    jd                                  | jjj                          | non_null int      | 1        | 366   |                         |
+    Kd                                  | 1/m,m-1                      | positive          |          |       |                         |
+    Kl                                  | 1/m,m-1                      | positive          |          |       |                         |
+    Knf                                 | 1/m,m-1                      | positive          |          |       |                         |
+    Kpar                                | 1/m,m-1                      | positive          |          |       |                         |
+    Ku                                  | 1/m,m-1                      | positive          |          |       |                         |
+    lat                                 | degrees                      | non_null          | -90      | 90    |                         |
+    lightlevel                          | %                            | positive          |          |       |                         |
+    lon                                 | degrees                      | non_null          | -180     | 180   |                         |
+    LSi                                 | mmol/m^3                     | positive          |          |       |                         |
+    Lsky                                | uW/cm^2/nm/sr,uWcm-2nm-1sr-1 | positive          |          |       |                         |
+    Lt                                  | uW/cm^2/nm/sr,uWcm-2nm-1sr-1 |                   |          |       |                         |
+    Lu                                  | uW/cm^2/nm/sr,uWcm-2nm-1sr-1 |                   | -0.001   | 5.0   | field_out_of_bounds     |
+    LuGND                               | volts                        |                   |          |       |                         |
+    Lut                                 | mg/m^3,ug/l                  |                   |          |       |                         |
+    Lw                                  | uW/cm^2/nm/sr,uWcm-2nm-1sr-1 |                   | -0.001   | 5.0   | field_out_of_bounds     |
+    Lwn                                 | uW/cm^2/nm/sr,uWcm-2nm-1sr-1 |                   | -0.001   |       |                         |
+    Lwnex                               | uW/cm^2/nm/sr,uWcm-2nm-1sr-1 |                   | -0.001   |       |                         |
+    Lyco                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    u                                   | d-1,1/d,d^-1                 |                   |          |       |                         |
+    u_ph                                | d-1,1/d,d^-1                 |                   |          |       |                         |
+    u_zoo                               | d-1,1/d,d^-1                 |                   |          |       |                         |
+    Me-chlide_a                         | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Me-chlide_b                         | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Mg_DVP                              | mg/m^3,ug/l                  | positive          |          |       |                         |
+    minute                              | mn                           | int               | 0        | 59    |                         |
+    Monado                              | mg/m^3,ug/l                  | positive          |          |       |                         |
+    month                               | mo                           | int               | 1        | 12    |                         |
+    mPF                                 | none                         | positive          |          |       |                         |
+    MUF                                 | umol                         |                   |          |       |                         |
+    MUF-But                             | umol/l/hr                    |                   |          |       |                         |
+    MUF-Glu                             | umol/l/hr                    |                   |          |       |                         |
+    MUF-PO4                             | umol/l/hr                    |                   |          |       |                         |
+    MV_Chl_a                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    MV_Chl_b                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    mz                                  | unitless                     | positive          |          |       |                         |
+    N2_fix                              | ug/m^3/d                     | positive          |          |       |                         |
+    nadir                               | degrees                      |                   |          |       |                         |
+    nanoeukaryote_abun                  | cell/l                       |                   |          |       |                         |
+    nanoeukaryote_biovol                | m^3/l                        |                   |          |       |                         |
+    nanoeukaryote_carbon                | ug/l                         |                   |          |       |                         |
+    natf                                | nE/m^2/sr/s                  | positive          |          |       |                         |
+    Neo                                 | mg/m^3,ug/l                  | positive          |          |       |                         |
+    NCCb                                | mmol/m^2/hr                  | positive          |          |       |                         |
+    NCPb                                | mmol/m^2/hr                  | positive          |          |       |                         |
+    NH4                                 | mmol/m^3                     | positive          |          |       |                         |
+    NO2                                 | mmol/m^3                     | positive          |          |       |                         |
+    NO2_NO3                             | mmol/m^3                     | positive          |          |       |                         |
+    NO3                                 | mmol/m^3                     | positive          |          |       |                         |
+    nPF                                 | none                         | positive          |          |       |                         |
+    NPP                                 | mg/m^3/d,ug/l/d              | positive          |          |       |                         |
+    nrb                                 | photoelectrons/usec/shot     | positive          |          |       |                         |
+    oxygen                              | ml/L                         | positive          |          |       |                         |
+    oxygen_saturation                   | %                            | positive          |          |       |                         |
+    Oz                                  | dobson                       | positive          |          |       |                         |
+    P-457                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    PAR                                 | uE/cm^2/s                    | positive          |          |       |                         |
+    PC                                  | mg/m^3                       | positive          |          |       |                         |
+    pCO2                                | uatm                         | positive          |          |       |                         |
+    Perid                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    pDrift                              | mbar                         | positive          |          |       |                         |
+    pH                                  | none                         | positive          | 0        | 14    | field_out_of_bounds     |
+    PHAEO                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Phide_a                             | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Phide_b                             | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Phide_c                             | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Phytin_a                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Phytin_b                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Phytin_c                            | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Phytyl-chl_c                        | mg/m^3,ug/l                  | positive          |          |       |                         |
+    phyto_carbon                        | ug/l                         | positive          |          |       |                         |
+    PIC                                 | mol/m^3                      | positive          |          |       |                         |
+    PIM                                 | mg/l                         |                   |          |       |                         |
+    picoeukaryote_abun                  | cell/l                       |                   |          |       |                         |
+    picoeukaryote_biovol                | m^3/l                        |                   |          |       |                         |
+    picoeukaryote_carbon                | ug/l                         |                   |          |       |                         |
+    pitch                               | degrees                      |                   |          |       |                         |
+    espitch                             | degrees                      |                   |          |       |                         |
+    edpitch                             | degrees                      |                   |          |       |                         |
+    PN                                  | mg/m^3,ug/l                  | positive          |          |       |                         |
+    PO4                                 | mmol/m^3                     | positive          |          |       |                         |
+    POC                                 | mg/m^3,ug/l                  | positive          |          |       |                         |
+    POM                                 | mg/l                         |                   |          |       |                         |
+    PON                                 | mg/m^3,ug/l                  | positive          |          |       |                         |
+    PP                                  | mgC/mgchla/hr                | positive          |          |       |                         |
+    PPC                                 | mg/m^3,ug/l                  | positive          |          |       |                         |
+    PPC_Tcar                            | none                         | positive          |          |       |                         |
+    PPC_Tpg                             | none                         | positive          |          |       |                         |
+    pPF                                 | none                         | positive          |          |       |                         |
+    Pras                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    pressure                            | dbar                         | positive          |          |       |                         |
+    pressure_atm                        | mbar                         | positive          |          |       |                         |
+    prochlorococcus_abun                | cell/l                       |                   |          |       |                         |
+    prochlorococcus_biovol              | m^3/l                        |                   |          |       |                         |
+    prochlorococcus_carbon              | ug/l                         |                   |          |       |                         |
+    PSC                                 | mg/m^3,ug/l                  | positive          |          |       |                         |
+    PSC_Tcar                            | none                         | positive          |          |       |                         |
+    PSD                                 | ul/l                         | positive          |          |       |                         |
+    PSP                                 | mg/m^3,ug/l                  | positive          |          |       |                         |
+    PSP_Tpg                             | none                         | positive          |          |       |                         |
+    pulse_width                         | seconds                      | positive          |          |       |                         |
+    pvel                                | m/s                          | positive          |          |       |                         |
+    Pyrophide_a                         | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Pyrophytin_a                        | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Pyrophytin_b                        | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Pyrophytin_c                        | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Q                                   | sr                           | positive          |          |       |                         |
+    quality                             | none                         | string            |          |       |                         |
+    R                                   | unitless                     | positive          |          |       |                         |
+    RelAbundance                        | %                            |                   |          |       |                         |
+    RelAz                               | degrees                      |                   |          |       |                         |
+    Rf                                  | uW/cm^2/nm/sr                | positive          |          |       |                         |
+    Rl                                  | 1/sr                         | positive          |          |       |                         |
+    roll                                | degrees                      |                   |          |       |                         |
+    esroll                              | degrees                      |                   |          |       |                         |
+    edroll                              | degrees                      |                   |          |       |                         |
+    Rpi                                 | unitless                     | positive          |          |       |                         |
+    Rrs                                 | 1/sr,sr^-1                   | positive          |          |       |                         |
+    rtilt                               | degrees                      |                   |          |       |                         |
+    S_ad                                | Slope                        | positive          |          |       |                         |
+    S_ag                                | Slope                        | positive          |          |       |                         |
+    sal                                 | PSU                          | positive          |          |       |                         |
+    sample                              | none                         | string            |          |       |                         |
+    SAZ                                 | degrees                      | positive          |          |       |                         |
+    sdy                                 | ddd                          | positive          |          |       |                         |
+    second                              | ss                           | non_null int      | 0        | 59    |                         |
+    SenZ                                | degrees                      | positive          |          |       |                         |
+    sig                                 | mV                           |                   |          |       |                         |
+    sigma_psii                          | angstrom^2                   | positive          |          |       |                         |
+    sigma_theta                         | kg/m^3                       | positive          |          |       |                         |
+    sigmaT                              | kg/m^3                       | positive          |          |       |                         |
+    SiO4                                | mmol/m^3                     | positive          |          |       |                         |
+    Siphn                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Siphx                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    SN                                  | none                         | string            |          |       |                         |
+    species                             | none                         | string            |          |       |                         |
+    speed_f_w                           | m/s                          |                   |          |       |                         |
+    SPM                                 | mg/L                         | positive          |          |       |                         |
+    SSC-A                               | arbunits                     |                   |          |       |                         |
+    SSC-H                               | arbunits                     |                   |          |       |                         |
+    SST                                 | degreesC                     |                   |          |       |                         |
+    station                             | none                         | string            |          |       |                         |
+    station_alt_id                      | none                         | string            |          |       |                         |
+    stimf                               | volts                        | positive          |          |       |                         |
+    substrate_origin                    | none                         |                   |          |       |                         |
+    substrate_class                     | none                         |                   |          |       |                         |
+    substrate_subclass                  | none                         |                   |          |       |                         |
+    substrate_group                     | none                         |                   |          |       |                         |
+    substrate_subgroup                  | none                         |                   |          |       |                         |
+    synechococcus_abun                  | cell/l                       |                   |          |       |                         |
+    synechococcus_biovol                | m^3/l                        |                   |          |       |                         |
+    synechococcus_carbon                | ug/l                         |                   |          |       |                         |
+    SZ                                  | m                            | positive          |          |       |                         |
+    SZA                                 | degrees                      | positive          |          |       |                         |
+    Tacc                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Tacc_Tchla                          | none                         | positive          |          |       |                         |
+    taxa_1                              | none                         | string            |          |       |                         |
+    taxa_2                              | none                         | string            |          |       |                         |
+    Tcar                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Tchl                                | mg/m^3,ug/l                  | positive          |          |       |                         |
+    TChl_Tcar                           | none                         | positive          |          |       |                         |
+    Tchla_Tpg                           | none                         | positive          |          |       |                         |
+    TDN                                 | mmol/m^3                     | positive          |          |       |                         |
+    Tdrift                              | degreesC                     | positive          |          |       |                         |
+    tilt                                | degrees                      |                   |          |       |                         |
+    time                                | hh:mm:ss                     | non_null time     |          |       |                         |
+    time_processed                      | hh:mm:ss                     | non_null time     |          |       |                         |
+    Tot_Chl_a                           | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Tot_Chl_b                           | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Tot_Chl_c                           | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Tpg                                 | mg/m^3,ug/l                  | positive          |          |       |                         |
+    trans                               | %                            | positive          |          |       |                         |
+    turbidity                           | NTU                          |                   |          |       |                         |
+    Urea                                | mmol/m^3                     | positive          |          |       |                         |
+    Vauch                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    VelNorth                            | m/s                          |                   |          |       |                         |
+    VelEast                             | m/s                          |                   |          |       |                         |
+    VelUp                               | m/s                          |                   |          |       |                         |
+    Viola                               | mg/m^3,ug/l                  | positive          |          |       |                         |
+    VOCair                              | ppbv                         | positive          |          |       |                         |
+    volfilt                             | L                            | positive          |          |       |                         |
+    VSF                                 | 1/m/sr                       | positive          |          |       |                         |
+    VSFg                                | 1/m/sr                       | positive          |          |       |                         |
+    VSFp                                | 1/m/sr                       | positive          |          |       |                         |
+    VSFw                                | 1/m/sr                       | positive          |          |       |                         |
+    VSF_angle                           | degrees                      | positive          |          |       |                         |
+    water_column_biogeochemical_feature | none                         |                   |          |       |                         |
+    water_column_hydroform_class        | none                         |                   |          |       |                         |
+    water_column_hydroform              | none                         |                   |          |       |                         |
+    water_column_hydroform_type         | none                         |                   |          |       |                         |
+    water_column_layer                  | none                         |                   |          |       |                         |
+    water_column_salinity               | none                         |                   |          |       |                         |
+    water_column_temperature            | none                         |                   |          |       |                         |
+    water_depth                         | m                            | positive          |          |       |                         |
+    waveht                              | m                            | positive          |          |       |                         |
+    wavelength                          | nm                           | positive          |          |       |                         |
+    wdir                                | degrees                      | positive          | 0        | 360   | field_out_of_bounds     |
+    wind                                | m/s                          | positive          |          |       |                         |
+    Wt                                  | degreesC                     |                   | -4       | 40    | field_out_of_bounds     |
+    Wvp                                 | cm                           | positive          |          |       |                         |
+    year                                | yyyy                         | non_null year     | 1975     | today |                         |
+    Z_90                                | m                            | positive          |          |       |                         |
+    Z_DCM                               | m                            | positive          |          |       |                         |
+    Z_Eu                                | m                            | positive          |          |       |                         |
+    Z_MLD                               | m                            | positive          |          |       |                         |
+    Zea                                 | mg/m^3,ug/l                  | positive          |          |       |                         |
+    
+    [suffixes]
+    sd
+    cv
+    se
+    bincount
+    
+    [multi_dim_fieldnames]
+    # NAME | ACCEPTS NUMBER
+    #      | 0=NO NUMBER, 1=BEFORE, 2=AFTER
+    ang    | 1
+    em     | 2
+    ex     | 2
+    cilo   | 1
+    ciup   | 1
+    filt   | 1
+    ppt    | 1
+    size   | 1
+    
+    [strings]
+    #NAME                                                                      | SEVERITY | STRING
+    at_symbol_in_end_header                                                    | 1        | /end_header no longer requires a trailing @
+    no_starting_begin_header                                                   | 2        | Header did not start with /begin_header
+    no_ending_end_header                                                       | 2        | Header did not end with /end_header
+    duplicate_header                                                           | 2        | Duplicate headers found: {header}
+    number_out_of_bounds_error                                                 | 2        | Number [{header} ({value})] out of bounds [{lbound} - {ubound}]
+    spaces_in_filename                                                         | 2        | Filename [{filename}] has spaces! Please rename file to remove spaces.
+    headerline_contained_whitespace                                            | 2        | Header line "{line}" contains whitespace. Please remove or replace with underscores.
+    required_header_not_found                                                  | 2        | Required header label "{header}" not provided.
+    optional_header_not_found                                                  | 1        | Optional header "{header}" not provided.
+    invalid_header_line                                                        | 2        | Invalid header, line {line}.  Please remove or put in comments ('!')
+    unknown_header                                                             | 1        | The header {header} is not recognized by FCHECK.  Unless it is new, check if it is misspelled or should be made into a comment line (beginning with '!')
+    invalid_date                                                               | 2        | Header {header}:\n[{value}] malformed (format is YYYYMMDD)
+    invalid_time                                                               | 2        | Header {header}:\n[{value}] malformed (format is HH:MM:SS[GMT])
+    invalid_int                                                                | 2        | Header {header}:\n[{value}] malformed (must be integer)
+    invalid_float                                                              | 2        | Header {header}:\n[{value}] malformed (must be numeric: float or scientific notation [0.002 or 0.200E-02])
+    invalid_day_of_month                                                       | 2        | Header {header}:\n[{value}] malformed (invalid day of month detected)
+    invalid_month                                                              | 2        | Header {header}:\n[{value}] malformed (invalid month detected)
+    invalid_time_value                                                         | 2        | Header {header}:\n[{value}] malformed (invalid time detected)
+    invalid_header_location_format                                             | 2        | Header {header}:\n[{value}] malformed (format is float[DEG])
+    invalid_header_location_value                                              | 2        | Header {header}:\n[{value}] malformed value detected
+    header_value_comparison_problem                                            | 2        | Header {header1} should be {compare} {header2}.
+    cruise_same_as_experiment                                                  | 2        | Header /cruise should not be the same as /experiment, please make /cruise a 'subset' of /experiment.
+    crossing_date_line_warning                                                 | 2        | ! WARNING: east_longitude: [{value1}] < west_longitude [{value2}], implies crossing of the dateline! If you did not do so, please check these values.
+    missing_value_is_zero                                                      | 2        | Illegal missing value: {value}\nMissing values should be numeric and non-zero
+    only_one_missing_value_allowed                                             | 2        | Only one missing value is allowed.
+    simbios_found_in_headers                                                   | 2        | Header {header}:\nPlease use a {header} descriptor other than '{value}'.\nPreferrably one which describes the activity and separates it from others.  Please note that /experiment and /cruise are used to describe the general research and specific event, respectively.\nFor example:  /experiment=AMT, /cruise=AMT7.\nDo NOT use the acronym SIMBIOS in the experiment or cruise name.
+    validity_failed                                                            | 2        | Header {header}={value}:\n{statement}
+    bathymetry_failed                                                          | 1        | Based on an {method} depth, the location (Lat: {latitude} Lon:{longitude}) appears to be over land, please confirm lat/lon values.
+    pre_1975_header_date_detected                                              | 2        | Header {header}:\n[{value}] year < 1975, this is an error unless you are submitting a historic data set.
+    header_without_value_detected                                              | 2        | No value detected for {header}
+    no_value_header_with_value                                                 | 2        | Header {header} contains value ({value}) but should be blank
+    range_detected                                                             | 2        | Header {header}: Ranges are not acceptable in header values
+    cant_be_missing_or_none                                                    | 2        | Header {header} cannot be 'none' or 'NA' or equal to your missing value!
+    braces_or_brackets_found                                                   | 2        | Header {header}={value}: Braces and Brackets are not allowed in any header field except for the time and location headers
+    lat_or_lon_missing                                                         | 2        | Latitude and longitude headers cannot be missing values!
+    path_detected_in_filename                                                  | 2        | Header {header}: {value}\nFilenames should not contain file paths.
+    multiple_data_files_detected                                               | 2        | Header {header} should have only one file listed [{value}]
+    original_file_name_detected                                                | 2        | Header /original_file_name is no longer required, the file name should be entered as /data_file_name.
+    obsolete_field_detected                                                    | 1        | Field: {field} is depricated and should no longer be used. Please consult the SeaBASS list of Standard Field Names and Units for alternatives.
+    obsolete_parameters_field_detected                                         | 2        | Header /parameters is no longer required, just use /fields.
+    too_many_header_values_detected                                            | 2        | Header {header}:\n[{value}] One field only for {header}
+    validity_failed_to_parse                                                   | 2        | Validity checking header {header}:\nFailed to parse [{value}] as {type}.
+    duplicate_fields_found                                                     | 2        | Header {header}:\nDuplication of field names found in file.  Please rename the following fields uniquely:\n{fields}
+    unbalanced_units_and_fields                                                | 2        | Header {header}:\n \# of units [{numunits}] not matching \# of fields [{numfields}]
+    obsolete_data_tags                                                         | 2        | /begin_data, /end_data@, and /end_data markers are no longer supported.  Please remove.
+    field_has_wrong_unit                                                       | 2        | The units of "{field}" should be "{unit}", not "{bad_unit}".
+    field_out_of_bounds                                                        | 1        | Line {line}: The '{field}' field has value ({value}) outside expected range [{lbound} - {ubound}].
+    field_cant_be_missing                                                      | 2        | Line {line}: Missing value not allowed for {field}!
+    fields_not_recognized                                                      | 2        | Header {header}:\n{fields} not found in the name list.
+    suffix_doesnt_match                                                        | 2        | Header {header}:\n{field} does not have an associated field ({base_field}).
+    field_failed_to_parse                                                      | 2        | Line {line}: {field} ({value}) could not be parsed as {parse}!
+    field_contained_whitespace                                                 | 2        | Line {line}: {field} ({value}) contained whitespace!
+    data_bathymetry_failed                                                     | 1        | Line {line}: Lat: {latitude} Lon:{longitude}
+    empty_line                                                                 | 2        | Line {line}: {block} block contains empty line.
+    spaces_around_line                                                         | 1        | Line {line}: Leading or trailing spaces found in {block} line.
+    bad_data_line                                                              | 2        | Line {line}: Bad data line.
+    bad_data_line_delimiter                                                    | 2        | Line {line}: Doesn't contain the defined delimiter ({delim}).
+    data_invalid_date                                                          | 2        | Line {line}: [{value}] malformed (format is YYYYMMDD)
+    data_date_bounds_error                                                     | 2        | Line {line}: date ({value}) out of bounds [{lbound} - {ubound}]
+    data_invalid_month                                                         | 2        | Line {line}: [{value}] malformed (invalid month detected)
+    data_invalid_day_of_month                                                  | 2        | Line {line}: [{value}] malformed (invalid day of month detected)
+    data_invalid_julian                                                        | 2        | Line {line}: [{value}] malformed (invalid Julian day)
+    data_pre_1975_detected                                                     | 2        | Line {line}: [{value}] year < 1975, this is an error unless you are submitting a historic data set?
+    line_split_trailing_comma_detected                                         | 1        | Header line {line}: Comma detected and end of line, subsequent line joined.
+    old_begin_and_end_tags                                                     | 2        | Header {header} no longer requires a trailing @. Please remove.
+    header_start_after_finish                                                  | 2        | Header error: start date/time ({start}) must occur before end date/time ({end}).
+    file_in_dos_format                                                         | 0        | File contains DOS-style carriage returns.
+    file_in_csv_format_with_extra_commas                                       | 2        | File contains trailing commas, typical of CSV files.
+    
+    bad_bathymetry_header                                                      | 0        | Based on SRTM30_PLUS depth, the locations
+    bad_bathymetry_footer                                                      | 0        | appear to be over land, please confirm lat/lon values.
+    unrecognized_fields_footer                                                 | 0        | \tThis may be due to one of the following:\na) The fieldname is incorrectly formatted [Lw_490 rather than the required Lw490]\nb) The fieldname is not typical for standard SeaBASS submission, \n\ti.e. it's new to us!  If the fieldname does not have an equivalent\n\tstandardized name, please contact the SeaBASS administrator to discuss
+    field_out_of_bounds_header                                                 | 0        | The following fields are out of their expected ranges:
+    
+    depth_should_be_zero                                                       | 2        | Measurement depth should be 0.0 for /data_type={data_type}
+    no_depth_found                                                             | 2        | Measurement depth required as either a header value or a column in the data block.  All data MUST have an associated depth
+    depth_in_header_and_fields                                                 | 2        | The header /measurement_depth is not required if depth is in the data block.  Please set to missing value or remove from header.
+    
+    config_file_error                                                          | 1        | Error found in config file: {message}
+    
+    field_out_of_bounds_summary_head                                           | 0        | The following field(s) have value(s) outside expected range(s):
+    field_out_of_bounds_summary_foot                                           | 0        | Field: {field}, Range: [{lbound} - {ubound}]
+    
+    wrong_unit_header_summary                                                  | 0        | The following fields have incorrect units: "{field}"
+    
+    wrong_unit_header                                                          | 0        | Header /units:
+    wrong_unit_footer                                                          | 0        | The units of "{field}" should be {unit}, not "{bad_unit}".
+    
+    bad_data_line_header                                                       | 0        | ERROR: data line(s) differ in column count from the number of fields listed in the header.
+    bad_data_line_footer                                                       | 0        | Please check the following possible reasons for the error:\n* Is the /delimiter= ["space"] specified correctly (for example: the\n/delimiter=space but 'tabs' are separating the data)?\n* Are there blank lines at the end of the data?
+    
+    field_cant_be_missing_header                                               | 0        | Check your '{field}' field(s), detected missing values.
+    bathymetry_warning_version_number                                          | 1        | Bathymetry modules may require Perl v5.10 or greater, bathymetry may be inaccurate.
+    
+    invalid_comment_location                                                   | 2        | Invalid location for a comment, line {line}.
+    
+    bom_detected                                                               | 2        | Byte order marks detected at the beginning of file ({bytes}).
+    
+    #The procmail script looks for this message, so it should not be skipped.
+    #If changed, the procmail script must be changed, as well.
+    not_seabass_file                                                           | 2        | File does not appear to be a SeaBASS file. SeaBASS files start with "/begin_header" and all header lines begin with '/' or '!'
+    
+    [validity]
+    #HEADER         | (IN)VALID | MODIFIERS     | VALUES                                                                                                       | WARNING         | ERROR
+    /missing        | invalid   | float equals  | 0                                                                                                            |                 | missing_value_is_zero
+    /missing        | invalid   | contains any_ | ,                                                                                                            |                 | too_many_header_values_detected
+    /delimiter      | valid     | equals any    | space,comma,tab                                                                                              |                 |
+    /data_type      | valid     | equals any    | cast,drifter,pigment,flow_thru,matchup,above_water,mooring,sunphoto,scan,bottle,ancillary,diver,auv,airborne |                 |
+    /cruise         | invalid   | equals exact  | SIMBIOS                                                                                                      |                 | simbios_found_in_headers
+    /experiment     | invalid   | equals exact  | SIMBIOS                                                                                                      |                 | simbios_found_in_headers
+    /data_status    | valid     | equals any    | preliminary,update,final                                                                                     | validity_failed |
+    documents       | invalid   | equals any    | /missing                                                                                                     |                 | cant_be_missing_or_none
+    calibration     | invalid   | equals any    | /missing                                                                                                     |                 | cant_be_missing_or_none
+    contact         | invalid   | equals any    | /missing                                                                                                     |                 | cant_be_missing_or_none
+    /cruise         | invalid   | equals any    | /missing                                                                                                     |                 | cant_be_missing_or_none
+    /experiment     | invalid   | equals any    | /missing                                                                                                     |                 | cant_be_missing_or_none
+    investigators   | invalid   | equals any    | /missing                                                                                                     |                 | cant_be_missing_or_none
+    affiliations    | invalid   | equals any    | /missing                                                                                                     |                 | cant_be_missing_or_none
+    *               | invalid   | contains any  | [,],{,}                                                                                                      |                 | braces_or_brackets_found
+    *               | invalid   | contains any  | ',`,"                                                                                                        |                 |
+    latitude        | invalid   | equals any    | /missing                                                                                                     |                 | lat_or_lon_missing
+    longitude       | invalid   | equals any    | /missing                                                                                                     |                 | lat_or_lon_missing
+    file            | invalid   | contains any  | /,\                                                                                                          |                 | path_detected_in_filename
+    documents       | invalid   | contains any  | /,\                                                                                                          |                 | path_detected_in_filename
+    /data_file_name | invalid   | contains any_ | ,_;                                                                                                          |                 | multiple_data_files_detected
+    /data_type      | invalid   | contains any_ | ,                                                                                                            |                 | too_many_header_values_detected
+    
+    [report]
+    #ERROR NAME             | MODIFIER        | HEADER                           | FOOTER
+    *                       | truncate10 wrap |                                  |
+    data_bathymetry_failed  | truncate5       | bad_bathymetry_header            | bad_bathymetry_footer
+    fields_not_recognized   |                 |                                  | unrecognized_fields_footer
+    cant_be_missing_or_none | split           |                                  |
+    field_out_of_bounds     | summary         | field_out_of_bounds_summary_head | field_out_of_bounds_summary_foot
+    field_has_wrong_unit    | summary         | wrong_unit_header                | wrong_unit_footer
+    field_cant_be_missing   | summary         | field_cant_be_missing_header     |
+    bad_data_line           | truncate10      | bad_data_line_header             | bad_data_line_footer
+```
