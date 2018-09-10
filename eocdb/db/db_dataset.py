@@ -8,6 +8,7 @@ class DbDataset(Dataset):
     def __init__(self):
         self._records = []
         self._attributes = []
+        self._geo_locations = []
         self._metadata = dict()
 
     @property
@@ -45,6 +46,12 @@ class DbDataset(Dataset):
 
     def add_record(self, record):
         self._records.append(record)
+
+    def geo_locations(self) -> List[List]:
+        return self._geo_locations
+
+    def add_geo_location(self, lon, lat):
+        self._geo_locations.append({'lon' : lon, 'lat': lat})
 
     def to_dict(self) -> Dict[str, Any]:
         return {'records': self._records}

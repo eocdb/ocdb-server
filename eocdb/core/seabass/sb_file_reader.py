@@ -28,6 +28,7 @@ class SbFileReader():
 
         self._interprete_header(dataset)
         self._parse_records(dataset)
+        self._extract_searchfields(dataset)
 
         if self.handle_header is None or self.handle_header is True:
             raise IOError("/end_header tag missing")
@@ -79,6 +80,30 @@ class SbFileReader():
         variable_names = self.field_list.lower().split(',')
         dataset.add_attributes(variable_names)
 
+    def _extract_searchfields(self, dataset):
+
+        if 'lon' in dataset.attribute_names and 'lat' in dataset.attribute_names:
+            lon_index = dataset.attribute_names.index('lon')
+            lat_index = dataset.attribute_names.index('lat')
+            for record in dataset.records:
+                lon = record[lon_index]
+                lat = record[lat_index]
+                dataset.add_geo_location(lon, lat)
+
+        elif 'north_latitude' in dataset.metadata:
+            self._extract_geo_location_form_header(dataset)
+
+        else:
+            raise IOError("geolocation not properly encoded")
+
+    # @todo 1 tb/tb write test 2018-09-12
+    def _extract_geo_location_form_header(self, dataset):
+        east_lon_string = dataset.metadata['east_longitude']
+        lon = self._extract_angle(east_lon_string)
+        north_lat_string = dataset.metadata['north_latitude']
+        lat = self._extract_angle(north_lat_string)
+        dataset.add_geo_location(lon, lat)
+
     def _parse_records(self, dataset):
         while True:
             line = self._next_line()
@@ -126,3 +151,9 @@ class SbFileReader():
         except ValueError:
             return False
 
+    def _extract_angle(self, angle_str):
+        parse_str = angle_str
+        if '[' in angle_str:
+            unit_index = parse_str.find('[')
+            parse_str= angle_str[0:unit_index]
+        return float(parse_str)
