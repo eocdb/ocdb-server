@@ -99,6 +99,10 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertAlmostEqual(-110.03, document.geo_locations()[1]["lon"], 8)
         self.assertAlmostEqual(12.0, document.geo_locations()[1]["lat"], 8)
 
+    def test_parse_time_in_header(self):
+        # @todo 1 tb/tb continue here 2018-09-12
+        pass
+
     def test_extract_delimiter_regex(self):
         dataset = DbDataset()
         dataset.set_metadata({'delimiter': 'comma'})
