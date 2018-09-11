@@ -1,7 +1,7 @@
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
 
-from eocdb.core.db.db_dataset import DbDataset
+from eocdb.db.db_dataset import DbDataset
 
 
 class MongoDbDriver:

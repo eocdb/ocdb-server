@@ -1,3 +1,4 @@
+import datetime
 from unittest import TestCase
 
 from eocdb.db.db_dataset import DbDataset
@@ -61,3 +62,22 @@ class DbDatsetTest(TestCase):
         self.assertEqual(2, len(self.dataset.metadata))
 
         self.assertEqual("value_2", self.dataset.metadata["key_2"])
+
+    def test_add_geo_location_and_get(self):
+        self.assertEqual(0, len(self.dataset.geo_locations))
+
+        self.dataset.add_geo_location(12, 13)
+        self.dataset.add_geo_location(14, 15)
+
+        self.assertEqual(2, len(self.dataset.geo_locations))
+        self.assertAlmostEqual(14.0, self.dataset.geo_locations[1]['lon'], 8)
+        self.assertAlmostEqual(15.0, self.dataset.geo_locations[1]['lat'], 8)
+
+    def test_add_times_and_get(self):
+        self.assertEqual(0, len(self.dataset.times))
+
+        self.dataset.add_time(datetime.datetime.utcnow())
+        self.dataset.add_time(datetime.datetime.utcnow())
+
+        self.assertEqual(2, len(self.dataset.times))
+
