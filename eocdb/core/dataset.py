@@ -1,3 +1,4 @@
+import datetime
 from abc import ABCMeta, abstractmethod
 from typing import List, Dict, Any
 
@@ -28,6 +29,16 @@ class Dataset(metaclass=ABCMeta):
     @abstractmethod
     def records(self) -> List[List]:
         """ Get the data records. """
+
+    @property
+    @abstractmethod
+    def geo_locations(self) -> List[List]:
+        """ Get the geo-location for the records. """
+
+    @property
+    @abstractmethod
+    def times(self) -> List[datetime.datetime]:
+        """ Get the acquisition times for the records. """
 
     @abstractmethod
     def to_dict(self) -> Dict[str, Any]:

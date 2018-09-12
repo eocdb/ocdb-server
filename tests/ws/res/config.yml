@@ -1,5 +1,5 @@
 databases:
   default:
-    type: eocdb.db.sqlite_test_db_driver.SQLiteTestDbDriver
+    type: eocdb.db.mock_db_driver.MockDbDriver
     read: true
     write: true

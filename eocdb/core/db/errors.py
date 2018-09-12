@@ -19,8 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-# @todo 3 tb/tb change this rudimentary errors into real classes with OCDB specific interface 2018-09-12
-
 class Error(Exception):
     def __init__(self, *args, **kwargs):
         pass

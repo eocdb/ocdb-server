@@ -125,7 +125,7 @@ class SbFileReader():
             # time info solely in header
             start_date_string = dataset.metadata['start_date']
             start_time_string = dataset.metadata['start_time']
-            timestamp = self._extract_date(start_date_string, start_time_string)
+            timestamp = self._extract_date(start_date_string, start_time_string, check_gmt=True)
             dataset.add_time(timestamp)
 
         else:
@@ -207,8 +207,11 @@ class SbFileReader():
             parse_str = angle_str[0:unit_index]
         return float(parse_str)
 
-    def _extract_date(self, date_str, time_str):
-        # @todo 2 tb/tb check for GMT tag, if not present throw. Watch for other time zones 2018-09-11
+    def _extract_date(self, date_str, time_str, check_gmt=False):
+        if check_gmt:
+            if not '[GMT]' in time_str:
+                raise IOError("No time zone given. Required all times be expressed as [GMT]")
+
         year = int(date_str[0:4])
         month = int(date_str[4:6])
         day = int(date_str[6:8])

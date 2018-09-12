@@ -1,6 +1,6 @@
 import unittest
 
-from eocdb.db.sqlite_test_db_driver import SQLiteTestDbDriver
+from eocdb.core.db.sqlite_test_db_driver import SQLiteTestDbDriver
 
 
 class TestSQLiteTestDbDriver(unittest.TestCase):

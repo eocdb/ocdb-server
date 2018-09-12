@@ -54,7 +54,7 @@ class DbDatsetTest(TestCase):
                           'geo_locations': [{'lat': 18.076, 'lon': -107.23}],
                           'metadata': {'key_1': 'value_1', 'key_2': 'value_2'},
                           'records': [[-39.4, 110.8, 0.267612499], [-39.5, 110.9, 0.367612499]],
-                          'times': [datetime.datetime(2008, 10, 4, 15, 22, 51)]},
+                          'times': ['2008-10-04T15:22:51']},
                            self.dataset.to_dict())
 
     def test_add_attributes_and_get(self):

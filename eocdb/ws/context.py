@@ -78,10 +78,12 @@ class WsContext:
 
     # noinspection PyMethodMayBeStatic
     def query_measurements(self, query_string: str):
-        datasets = []
+        result_datasets = []
         for driver in self.get_database_drivers_read_only():
-            dataset = driver.instance().get(query_string)
-            datasets.append(dataset.to_dict())
-        return datasets
+            datasets = driver.instance().get(query_string)
+            if len(datasets) > 0:
+                for dataset in datasets:
+                    result_datasets.append(dataset.to_dict())
+        return result_datasets
 
     # Here: add service methods, use thread_pool for concurrent requests

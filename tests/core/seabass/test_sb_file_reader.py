@@ -154,8 +154,6 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertEqual(5, len(document.times))
         self.assertEqual(datetime.datetime(2001, 5, 10, 4, 37, 0), document.times[2])
 
-        print(document.to_dict())
-
     def test_extract_delimiter_regex(self):
         dataset = DbDataset()
         dataset.set_metadata({'delimiter': 'comma'})
@@ -211,6 +209,16 @@ class SbFileReaderTest(unittest.TestCase):
 
     def test_extract_date(self):
         self.assertEqual(datetime.datetime(2002, 7, 11, 14, 22, 53), self.reader._extract_date("20020711", "14:22:53[GMT]"))
+
+    def test_extract_date_throws_on_missing_GMT(self):
+        try:
+            datetime.datetime(2002, 7, 11, 14, 22, 53), self.reader._extract_date("20030812", "15:23:54", check_gmt=True)
+            self.fail("IOError expected.")
+        except IOError:
+            pass
+
+    def test_extract_date_missing_GMT_ignored_if_requested(self):
+        datetime.datetime(2003, 8, 12, 15, 23, 54), self.reader._extract_date("20030812", "15:23:54", check_gmt=False)
 
     def test_extract_geo_location_from_header(self):
         dataset = DbDataset()

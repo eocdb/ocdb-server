@@ -28,10 +28,6 @@ class DbDataset(Dataset):
         return len(self._attributes)
 
     @property
-    def attributes(self) -> List[str]:
-        return self._attributes
-
-    @property
     def attribute_names(self) -> List[str]:
         return self._attributes
 
@@ -69,5 +65,8 @@ class DbDataset(Dataset):
         result_dict.update({'records': self._records})
         result_dict.update({'attributes': self._attributes})
         result_dict.update({'geo_locations': self._geo_locations})
-        result_dict.update({'times': self._times})
+        converted_times = []
+        for time in self._times:
+            converted_times.append(time.isoformat())
+        result_dict.update({'times': converted_times})
         return result_dict
