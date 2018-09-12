@@ -28,18 +28,27 @@ class HandlersTest(AsyncHTTPTestCase):
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        self.assertEqual([{'records': [[58.1, 11.1, 0.3],
+        self.assertEqual([{'attributes': ['lon', 'lat', 'chl'],
+                           'geo_locations': [],
+                           'metadata': {},
+                           'records': [[58.1, 11.1, 0.3],
                                        [58.4, 11.4, 0.2],
                                        [58.5, 10.9, 0.7],
                                        [58.2, 10.8, 0.2],
-                                       [58.9, 11.2, 0.1]]}],
+                                       [58.9, 11.2, 0.1]],
+                           'times': []}],
                          json.loads(response.body))
 
     def test_fetch_query_succeeds_no_results(self):
         response = self.fetch('/eocdb/api/measurements?query=bert')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-        self.assertEqual([{'records': []}],
+        # @todo 1 tb/tb this should be an empty list, not an empty documen: correct! 2018-09-12
+        self.assertEqual([{'attributes': ['lon', 'lat', 'chl'],
+                           'geo_locations': [],
+                           'metadata': {},
+                           'records': [],
+                           'times': []}],
                          json.loads(response.body))
 
     def test_fetch_query_fails(self):

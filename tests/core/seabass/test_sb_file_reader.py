@@ -154,6 +154,8 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertEqual(5, len(document.times))
         self.assertEqual(datetime.datetime(2001, 5, 10, 4, 37, 0), document.times[2])
 
+        print(document.to_dict())
+
     def test_extract_delimiter_regex(self):
         dataset = DbDataset()
         dataset.set_metadata({'delimiter': 'comma'})

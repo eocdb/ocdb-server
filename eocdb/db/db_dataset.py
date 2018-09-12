@@ -64,4 +64,10 @@ class DbDataset(Dataset):
         self._times.append(timestamp)
 
     def to_dict(self) -> Dict[str, Any]:
-        return {'records': self._records}
+        result_dict = dict()
+        result_dict.update({'metadata': self.metadata})
+        result_dict.update({'records': self._records})
+        result_dict.update({'attributes': self._attributes})
+        result_dict.update({'geo_locations': self._geo_locations})
+        result_dict.update({'times': self._times})
+        return result_dict
