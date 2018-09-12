@@ -146,7 +146,6 @@ class SbFileReader():
         else:
             raise IOError("Geolocation not properly encoded")
 
-    # @todo 1 tb/tb write test 2018-09-12
     def _extract_geo_location_form_header(self, dataset):
         east_lon_string = dataset.metadata['east_longitude']
         lon = self._extract_angle(east_lon_string)

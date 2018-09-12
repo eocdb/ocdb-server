@@ -209,3 +209,15 @@ class SbFileReaderTest(unittest.TestCase):
 
     def test_extract_date(self):
         self.assertEqual(datetime.datetime(2002, 7, 11, 14, 22, 53), self.reader._extract_date("20020711", "14:22:53[GMT]"))
+
+    def test_extract_geo_location_from_header(self):
+        dataset = DbDataset()
+        dataset.add_metadatum('east_longitude', '22.7')
+        dataset.add_metadatum('north_latitude', '-17.09')
+
+        self.reader._extract_geo_location_form_header(dataset)
+
+        self.assertEqual(1, len(dataset.geo_locations))
+        self.assertAlmostEqual(22.7, dataset.geo_locations[0]['lon'], 8)
+        self.assertAlmostEqual(-17.09, dataset.geo_locations[0]['lat'], 8)
+
