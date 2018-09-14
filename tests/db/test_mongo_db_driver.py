@@ -1,6 +1,6 @@
 import unittest
 
-from eocdb.core.db.mongo_db_driver import MongoDbDriver
+from eocdb.db.mongo_db_driver import MongoDbDriver
 from eocdb.core.query.parser import QueryParser
 
 

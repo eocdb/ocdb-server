@@ -1,5 +1,5 @@
 databases:
   default:
-    type: eocdb.db.mock_db_driver.MockDbDriver
+    type: eocdb.core.db.mock_db_driver.MockDbDriver
     read: true
     write: true

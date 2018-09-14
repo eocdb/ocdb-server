@@ -2,7 +2,7 @@ import datetime
 import unittest
 
 from eocdb.core.seabass.sb_file_reader import SbFileReader
-from eocdb.db.db_dataset import DbDataset
+from eocdb.core.db.db_dataset import DbDataset
 
 
 class SbFileReaderTest(unittest.TestCase):

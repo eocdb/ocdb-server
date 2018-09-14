@@ -1,7 +1,7 @@
 import datetime
 from unittest import TestCase
 
-from eocdb.db.db_dataset import DbDataset
+from eocdb.core.db.db_dataset import DbDataset
 
 
 class DbDatsetTest(TestCase):

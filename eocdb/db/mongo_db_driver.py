@@ -5,8 +5,8 @@ from pymongo.errors import ConnectionFailure
 
 from eocdb.core import Dataset
 from eocdb.core.db.errors import OperationalError
-from eocdb.db.db_dataset import DbDataset
-from eocdb.db.db_driver import DbDriver
+from eocdb.core.db.db_dataset import DbDataset
+from eocdb.core.db.db_driver import DbDriver
 
 
 class MongoDbDriver(DbDriver):

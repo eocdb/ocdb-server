@@ -1,7 +1,7 @@
 import datetime
 import re
 
-from eocdb.db.db_dataset import DbDataset
+from eocdb.core.db.db_dataset import DbDataset
 
 EOF = 'end_of_file'
 
