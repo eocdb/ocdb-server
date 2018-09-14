@@ -1,7 +1,8 @@
 import sqlite3
 
 from eocdb.core.dataset import Dataset
-from eocdb.db.db_dataset import DbDataset
+from eocdb.core.db.errors import OperationalError, DatabaseError
+from eocdb.core.db.db_dataset import DbDataset
 from eocdb.core.service import Service
 
 
@@ -22,8 +23,7 @@ class SQLiteTestDbDriver(Service):
     # @todo 2 tb/tb we want to pass in the connection parameters here 2018-08-23
     def connect(self):
         if self.connection is not None:
-            # @todo 2 tb/tb use specific exception classes here 2018-08-23
-            raise Exception("Database already connected, do not call this twice!")
+            raise OperationalError("Database already connected, do not call this twice!")
 
         self.connection = sqlite3.connect(":memory:")
 
@@ -54,9 +54,8 @@ class SQLiteTestDbDriver(Service):
 
         except:
             self.connection.rollback()
-            # @todo 2 tb/tb use specific exception classes here 2018-08-23
             # @todo 3 tb/tb add meaningful error message 2018-08-23
-            raise Exception("Database connect failed")
+            raise OperationalError("Database connect failed")
 
     def get(self, name) -> Dataset:
         if name == 'trigger_error':
@@ -92,10 +91,9 @@ class SQLiteTestDbDriver(Service):
 
             self.connection.commit()
         except:
-            # @todo 2 tb/tb use specific exception classes here 2018-08-23
             # @todo 3 tb/tb add meaningful error message 2018-08-23
             self.connection.rollback()
-            raise Exception("Database insert failed")
+            raise DatabaseError("Database insert failed")
 
     def close(self):
         if self.connection is not None:
@@ -104,7 +102,6 @@ class SQLiteTestDbDriver(Service):
 
     def _get_cursor(self):
         if self.connection is None:
-            # @todo 2 tb/tb use specific exception classes here 2018-08-23
-            raise Exception("Driver not connected")
+            raise OperationalError("Driver not connected")
 
         return self.connection.cursor()

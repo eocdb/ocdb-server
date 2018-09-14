@@ -28,19 +28,28 @@ class HandlersTest(AsyncHTTPTestCase):
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        self.assertEqual([{'records': [[58.1, 11.1, 0.3],
-                                       [58.4, 11.4, 0.2],
-                                       [58.5, 10.9, 0.7],
-                                       [58.2, 10.8, 0.2],
-                                       [58.9, 11.2, 0.1]]}],
+        self.assertEqual([{'attributes': ['lon', 'lat', 'chl', 'depth'],
+                           'geo_locations': [{'lat': 16.45, 'lon': -34.7}],
+                           'metadata': {'contact': 'ernie@sesame_street.com',
+                           'experiment': 'Counting pigments',
+                           'name': 'ernie'},
+                           'records': [[-34.7, 16.45, 0.345, 12.2],
+                                       [-34.7, 16.45, 0.298, 14.6],
+                                       [-34.7, 16.45, 0.307, 18.3],
+                                       [-34.7, 16.45, 0.164, 22.6],
+                                       [-34.7, 16.45, 0.108, 29.8]],
+                           'times': ['2017-05-22T08:32:44',
+                                     '2017-05-22T08:32:48',
+                                     '2017-05-22T08:32:52',
+                                     '2017-05-22T08:32:56',
+                                     '2017-05-22T08:33:00']}],
                          json.loads(response.body))
 
     def test_fetch_query_succeeds_no_results(self):
         response = self.fetch('/eocdb/api/measurements?query=bert')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-        self.assertEqual([{'records': []}],
-                         json.loads(response.body))
+        self.assertEqual([], json.loads(response.body))
 
     def test_fetch_query_fails(self):
         response = self.fetch('/eocdb/api/measurements?query=trigger_error')
