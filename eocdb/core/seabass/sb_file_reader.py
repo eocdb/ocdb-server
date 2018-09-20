@@ -14,6 +14,7 @@ class SbFileReader():
 
     def read(self, filename):
         with open(filename, 'r') as file:
+            self.line_index = 0
             lines = file.readlines()
             return self._parse(lines)
 
@@ -65,6 +66,10 @@ class SbFileReader():
 
             # split line, trim and remove leading slash
             line = re.sub("[\r\n]+", '', line).strip()
+            if not '=' in line:
+                # then it is no key/value pair - skip this line tb 2018-09-20
+                continue
+
             [key, value] = line.split('=', 1)
             key = key[1:].strip()
             value = value.strip()
@@ -96,20 +101,26 @@ class SbFileReader():
                 time_string = str(record[time_index])
                 timestamp = self._extract_date(date_string, time_string)
                 dataset.add_time(timestamp)
+
         elif 'year' in dataset.attribute_names and 'hour' in dataset.attribute_names:
             year_index = dataset.attribute_names.index('year')
             month_index = dataset.attribute_names.index('month')
             day_index = dataset.attribute_names.index('day')
             hour_index = dataset.attribute_names.index('hour')
             minute_index = dataset.attribute_names.index('minute')
-            second_index = dataset.attribute_names.index('second')
+            second_index = -1
+            if 'second' in dataset.attribute_names:
+                second_index = dataset.attribute_names.index('second')
+
             for record in dataset.records:
                 year = record[year_index]
                 month = record[month_index]
                 day = record[day_index]
                 hour = record[hour_index]
                 minute = record[minute_index]
-                second = record[second_index]
+                second = 0
+                if second_index >= 0:
+                    second = record[second_index]
                 dataset.add_time(datetime.datetime(year, month, day, hour, minute, second))
 
         elif 'date' not in dataset.attribute_names and 'time' in dataset.attribute_names:
@@ -125,7 +136,10 @@ class SbFileReader():
             # time info solely in header
             start_date_string = dataset.metadata['start_date']
             start_time_string = dataset.metadata['start_time']
-            timestamp = self._extract_date(start_date_string, start_time_string, check_gmt=True)
+            timestamp = self._extract_date(start_date_string, start_time_string, check_gmt=False)
+            # temporarily disabled, there are datasets in the SeaBASS excerpt that contain no time zone.
+            # check docs if we allow for this .... tb 2018-09-20
+            # timestamp = self._extract_date(start_date_string, start_time_string, check_gmt=True)
             dataset.add_time(timestamp)
 
         else:
@@ -208,6 +222,7 @@ class SbFileReader():
         return float(parse_str)
 
     def _extract_date(self, date_str, time_str, check_gmt=False):
+        time_str = time_str.upper()
         if check_gmt:
             if not '[GMT]' in time_str:
                 raise IOError("No time zone given. Required all times be expressed as [GMT]")
@@ -215,8 +230,14 @@ class SbFileReader():
         year = int(date_str[0:4])
         month = int(date_str[4:6])
         day = int(date_str[6:8])
-        hour = int(time_str[0:2])
-        minute = int(time_str[3:5])
-        second = int(time_str[6:8])
+
+        if '[GMT]' in time_str:
+            gmt_index = time_str.index('[GMT]')
+            time_str = time_str[0:gmt_index]
+
+        tokens = time_str.split(':')
+        hour = int(tokens[0])
+        minute = int(tokens[1])
+        second = int(tokens[2])
 
         return datetime.datetime(year, month, day, hour, minute, second)

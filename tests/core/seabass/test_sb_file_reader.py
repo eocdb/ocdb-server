@@ -104,6 +104,36 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertEqual(4, len(document.times))
         self.assertEqual(datetime.datetime(1992, 3, 1, 23, 4, 0), document.times[3])
 
+    def test_parse_location_in_records_time_info_in_separate_record_fields_missing_seconds(self):
+        sb_file = ['/begin_header\n',
+                   '/delimiter=space\n',
+                   '/fields=year,month,day,hour,minute,lat,lon,CHL,depth\n',
+                   '/end_header\n',
+                   '1992 03 01 23 04 12.00 -110.03 0.1700 18\n',
+                   '1992 03 01 23 04 12.00 -110.03 0.1900 29\n',
+                   '1992 03 01 23 04 12.00 -110.03 0.4600 46\n',
+                   '1992 03 01 23 04 12.00 -110.03 0.3600 70\n']
+
+        document = self.reader._parse(sb_file)
+        self.assertEqual({'delimiter': 'space'}, document.metadata)
+
+        self.assertEqual(9, document.attribute_count)
+        self.assertEqual("month", document.attribute_names[1])
+        self.assertEqual("lon", document.attribute_names[6])
+
+        self.assertEqual(4, document.record_count)
+        self.assertEqual(3, document.records[2][1])
+        self.assertEqual(23, document.records[2][3])
+        self.assertAlmostEqual(0.46, document.records[2][7], 8)
+        self.assertEqual(10, len(document.records[0]))
+
+        self.assertEqual(4, len(document.geo_locations))
+        self.assertAlmostEqual(-110.03, document.geo_locations[1]["lon"], 8)
+        self.assertAlmostEqual(12.0, document.geo_locations[1]["lat"], 8)
+
+        self.assertEqual(4, len(document.times))
+        self.assertEqual(datetime.datetime(1992, 3, 1, 23, 4, 0), document.times[3])
+
     def test_parse_time_in_header(self):
         sb_file = ['/begin_header\n',
                    '/delimiter=space\n',
@@ -209,6 +239,9 @@ class SbFileReaderTest(unittest.TestCase):
 
     def test_extract_date(self):
         self.assertEqual(datetime.datetime(2002, 7, 11, 14, 22, 53), self.reader._extract_date("20020711", "14:22:53[GMT]"))
+
+    def test_extract_date_no_leading_zero(self):
+        self.assertEqual(datetime.datetime(2002, 7, 11, 2, 23, 54), self.reader._extract_date("20020711", "2:23:54[GMT]"))
 
     def test_extract_date_throws_on_missing_GMT(self):
         try:
