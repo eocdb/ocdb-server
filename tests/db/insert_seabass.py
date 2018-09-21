@@ -15,6 +15,9 @@ class InsertSeabass():
         reader = SbFileReader()
 
         for root, dirs, files in os.walk(input_dir):
+            if not 'archive' in root:
+                continue
+
             for name in files:
                 full_path = os.path.join(root, name)
                 to_ingest = False

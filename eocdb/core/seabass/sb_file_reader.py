@@ -174,6 +174,10 @@ class SbFileReader():
                 break
 
             tokens = re.split(self._delimiter_regex, line)
+            if len(tokens) <= 1:
+                # some files have whitespace between header and records - skip this here tb 2018-09-21
+                continue
+
             record = []
             for token in tokens:
                 if self._is_number(token):
