@@ -1,1 +1,7 @@
-databases: []
+databases:
+  default:
+    type: eocdb.db.mongod_db_driver.MongoDbDriver
+    read: true
+    write: true
+    parameters:
+      url: mongodb://10.3.14.146:27017/sb_extract
