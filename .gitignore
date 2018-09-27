@@ -1,3 +1,7 @@
+# Config files
+eocdb-server.yml
+
+
 # JetBrains
 .idea/
 *.iml

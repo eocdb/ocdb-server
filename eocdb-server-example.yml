@@ -1,0 +1,5 @@
+
+databases:
+  test:
+    type: eocdb.db.sqlite_test_db_driver.SQLiteTestDbDriver
+    parameters: {}
