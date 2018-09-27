@@ -42,11 +42,26 @@ class TestMongoQueryGenerator(unittest.TestCase):
 
         self.assertEqual({'south_latitude' : {'$gte' : -25.6, '$lte' : -22.5}}, self.mongo_gen.query)
 
+    def test_query_field_value_single_char_wildcard(self):
+        q = QueryParser.parse('investigators:Steven_?_Effler')
+        q.accept(self.mongo_gen)
 
-    # less than
-    # less than equal
-    # greater
-    # greater than equal
-    # multi character wildcards
-    # single character wildcard
-    # dates (and relations)
+        self.assertEqual({'investigators' : {'$regex' : 'Steven_._Effler'}}, self.mongo_gen.query)
+
+    def test_query_field_value_multiple_single_char_wildcard(self):
+        q = QueryParser.parse('investigators:St?ven_?_Ef?ler')
+        q.accept(self.mongo_gen)
+
+        self.assertEqual({'investigators' : {'$regex' : 'St.ven_._Ef.ler'}}, self.mongo_gen.query)
+
+    def test_query_field_value_multiple_char_wildcard(self):
+        q = QueryParser.parse('investigators:Steven*Effler')
+        q.accept(self.mongo_gen)
+
+        self.assertEqual({'investigators' : {'$regex' : 'Steven.*Effler'}}, self.mongo_gen.query)
+
+    def test_query_field_value_multiple_multiple_char_wildcard(self):
+        q = QueryParser.parse('investigators:S*n*Effler')
+        q.accept(self.mongo_gen)
+
+        self.assertEqual({'investigators' : {'$regex' : 'S.*n.*Effler'}}, self.mongo_gen.query)

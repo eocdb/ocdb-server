@@ -43,4 +43,12 @@ class MongoQueryGenerator(QueryVisitor[str]):
         return self.query_dict
 
     def visit_field_wildcard(self, q: FieldWildcardQuery) -> Optional[T]:
-        raise NotImplementedError()
+        if '?' in q.value:
+            reg_exp = q.value.replace('?', '.')
+        elif '*' in q.value:
+            reg_exp = q.value.replace('*', '.*')
+        else:
+            raise NotImplementedError
+
+        self.query_dict.update({q.name: {'$regex': reg_exp}})
+        return self.query_dict
