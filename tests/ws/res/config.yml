@@ -3,3 +3,5 @@ databases:
     type: eocdb.core.db.mock_db_driver.MockDbDriver
     read: true
     write: true
+    parameters:
+      url: mongodb://10.3.14.146:27017/sb_extract

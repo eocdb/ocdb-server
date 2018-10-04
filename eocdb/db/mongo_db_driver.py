@@ -1,4 +1,5 @@
 from typing import List
+from urllib.parse import urlparse
 
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure
@@ -14,22 +15,26 @@ class MongoDbDriver(DbDriver):
     def __init__(self):
         self.client = None
         self.collection = None
+        self.host_name = None
+        self.port = None
 
     def init(self, **config):
-        pass
+        self._extract_param_values(config)
+        self.connect()
 
     def update(self, **config):
-        pass
+        self._extract_param_values(config)
+        self.close()
+        self.connect()
 
     def dispose(self):
-        pass
+        self.close()
 
     def connect(self):
         if self.client is not None:
             raise OperationalError("Database already connected, do not call this twice!")
 
-        #self.client = MongoClient("10.3.14.146", 27017, username="eocdb", password="bdcoe")
-        self.client = MongoClient("localhost", 27017)
+        self.client = MongoClient(self.host_name, self.port)
 
         try:
             # @trello: Resolve call hanging when requesting MongoDb server up
@@ -75,3 +80,9 @@ class MongoDbDriver(DbDriver):
             results.append(dataset)
 
         return results
+
+    def _extract_param_values(self, config):
+        url = config.get('url')
+        url_result = urlparse(url)
+        self.host_name = url_result.hostname
+        self.port = url_result.port

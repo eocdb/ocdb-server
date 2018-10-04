@@ -8,10 +8,9 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def setUp(self):
         self.driver = MongoDbDriver()
-        self.driver.connect()
+        self.driver.init(**{'url' : 'mongodb://10.3.14.146:27017/sb_extract'})
 
     def tearDown(self):
-        # @todo 1 tb/tb this hangs!!! check why and resolve 2018-08-31
         self.driver.clear()
         self.driver.close()
 
