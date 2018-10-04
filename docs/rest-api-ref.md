@@ -18,4 +18,4 @@ Parameters
   - `excel` - binary Excel file. Mime type is `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`.
               Download location JSON-formatted.
 * `index`: 1-based index of the first record to be retrieved.
-* `results`: Maximum number of records.
+* `count`: Maximum number of records.
