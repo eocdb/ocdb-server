@@ -1,3 +1,5 @@
+[![swagger-api validator-badge]({https://github.com/bcdev/eocdb-server/tree/master/openapi/eocdb-server-0.1.0.yaml}task-list-api-swagger-definition.yaml)](./openapi/eocdb-server-0.1.0.yaml)
+
 # eocdb-server
 EUMETSAT Ocean Colour Database (OCDB) Server
 
@@ -38,3 +40,6 @@ To run the server with the default config in a docker container using docker-com
     $ docker build -t eocdb-server:0.1.0 .
     $ docker run -d -p 4000:4000 eocdb-server:0.1.0
 
+## Web Service API
+
+The web service API can be found [here](https://app.swaggerhub.com/apis-docs/forman/eocdb-server/0.1.0-dev.1).
