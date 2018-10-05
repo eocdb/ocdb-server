@@ -303,17 +303,17 @@ def url_pattern(pattern: str):
     reg_expr = ''
     pos = 0
     while True:
-        pos1 = pattern.find('{{', pos)
+        pos1 = pattern.find('{', pos)
         if pos1 >= 0:
-            pos2 = pattern.find('}}', pos1 + 2)
+            pos2 = pattern.find('}', pos1 + 1)
             if pos2 > pos1:
-                name = pattern[pos1 + 2:pos2]
+                name = pattern[pos1 + 1:pos2]
                 if not name.isidentifier():
-                    raise ValueError('name in {{name}} must be a valid identifier, but got "%s"' % name)
+                    raise ValueError('name in {name} must be a valid identifier, but got "%s"' % name)
                 reg_expr += pattern[pos:pos1] + (name_pattern % name)
-                pos = pos2 + 2
+                pos = pos2 + 1
             else:
-                raise ValueError('no matching "}}" after "{{" in "%s"' % pattern)
+                raise ValueError('no matching "}" after "{" in "%s"' % pattern)
 
         else:
             reg_expr += pattern[pos:]
