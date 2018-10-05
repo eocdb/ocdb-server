@@ -96,6 +96,7 @@ paths:
           required: false
           schema:
             type: boolean
+            default: false
       responses:
         '200':
           description: ZIP download stream.
@@ -133,12 +134,17 @@ paths:
           required: false
           schema:
             type: integer
+            minimum: 1
+            default: 1
         - name: count
           in: query
           description: Maximum number of datasets in response. Defaults to 1000.
           required: false
           schema:
             type: integer
+            minimum: 0
+            maximum: 1000000
+            default: 1000
       responses:
         '200':
           description: successful operation
@@ -192,7 +198,7 @@ paths:
         - eocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
-  '/datasets/{datasetId}':
+  '/datasets/{id}':
     get:
       tags:
         - Datasets
@@ -200,13 +206,12 @@ paths:
       description: Returns a single dataset
       operationId: getDatasetById
       parameters:
-        - name: datasetId
+        - name: id
           in: path
           description: ID of dataset to return
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
       responses:
         '200':
           description: successful operation
@@ -234,7 +239,7 @@ paths:
           required: false
           schema:
             type: string
-        - name: datasetId
+        - name: id
           in: path
           description: Dataset id to delete
           required: true
@@ -590,20 +595,19 @@ paths:
       responses:
         default:
           description: successful operation
-  '/users/{userId}':
+  '/users/{id}':
     get:
       tags:
         - Users
       summary: Get user by user ID.
       operationId: getUserByID
       parameters:
-        - name: userId
+        - name: id
           in: path
           description: The ID of the user that needs to be fetched.
           required: true
           schema:
             type: integer
-            format: int32
       responses:
         '200':
           description: successful operation
@@ -622,13 +626,12 @@ paths:
       description: This can only be done by the logged in user.
       operationId: updateUser
       parameters:
-        - name: userId
+        - name: id
           in: path
           description: The ID of the user that needs to be fetched.
           required: true
           schema:
             type: integer
-            format: int32
       responses:
         '400':
           description: Invalid user supplied
@@ -648,13 +651,12 @@ paths:
       description: This can only be done by the logged in user.
       operationId: deleteUser
       parameters:
-        - name: userId
+        - name: id
           in: path
           description: The ID of the user that needs to be fetched.
           required: true
           schema:
             type: integer
-            format: int32
       responses:
         '400':
           description: Invalid user ID supplied.
@@ -680,6 +682,7 @@ components:
         items:
           type: number
           format: double
+          default: [null, null, null, null]
     timeParam:
       name: time
       in: query
@@ -690,6 +693,7 @@ components:
         items:
           type: string
           format: date
+          default: [null, null]
     wdepthParam:
       name: wdepth
       in: query
@@ -701,6 +705,7 @@ components:
         items:
           type: number
           format: double
+          default: [null, null]
     mtypeParam:
       name: mtype
       in: query
