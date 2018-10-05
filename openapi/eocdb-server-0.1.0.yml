@@ -3,7 +3,7 @@ servers:
   - url: 'http://eocdb.io/api/v01'
 info:
   title: eocdb-server
-  version: "0.1.0-dev1"
+  version: "0.1.0-dev.1"
   description: |
     Web Service API for the EUMETSAT Ocean Colour In-Situ Database
   contact:
@@ -25,7 +25,7 @@ paths:
     get:
       tags:
         - Store
-      summary: Returns context information about the store
+      summary: Get context information about the store.
       description: Returns a map of context property names to context information
       operationId: getStoreInfo
       responses:
@@ -77,32 +77,23 @@ paths:
       summary: Download datasets and optionally files.
       operationId: downloadStoreFiles
       parameters:
-        - name: expr
+        # Important: keep following parameters in sync with findDatasets() operation
+        # {{{
+        - $ref: "#/components/parameters/exprParam"
+        - $ref: "#/components/parameters/regionParam"
+        - $ref: "#/components/parameters/timeParam"
+        - $ref: "#/components/parameters/wdepthParam"
+        - $ref: "#/components/parameters/mtypeParam"
+        - $ref: "#/components/parameters/wlmodeParam"
+        - $ref: "#/components/parameters/shallowParam"
+        - $ref: "#/components/parameters/pmodeParam"
+        - $ref: "#/components/parameters/pgroupParam"
+        - $ref: "#/components/parameters/pnameParam"
+        # }}}
+        - name: docs
           in: query
-          description: Query string expression using Lucene syntax
+          description: Weather to include documentation files. Defaults to docs=0 (do not include files).
           required: false
-          explode: false
-          schema:
-            type: string
-        - name: region
-          in: query
-          description: Bounding box in decimal degree given as lon_min,lat_min,lon_max,lat_max or WKT string
-          required: false
-          explode: false
-          schema:
-            type: string
-        - name: time
-          in: query
-          description: Date/time range given as start_date,end_date. Date/time must have ISO format.
-          required: false
-          explode: false
-          schema:
-            type: string
-        - name: files
-          in: query
-          description: Whether to include associated documentation files.
-          required: false
-          explode: false
           schema:
             type: boolean
       responses:
@@ -120,39 +111,41 @@ paths:
       tags:
         - Datasets
       summary: Find datasets
-      description: Query datasets by search string, bounding box, time range, etc.
+      description: Querys datasets by search expression, bounding box, time range, etc.
       operationId: findDatasets
       parameters:
-        - name: expr
+        # Important: keep following parameters in sync with downloadStoreFiles() operation
+        # {{{
+        - $ref: "#/components/parameters/exprParam"
+        - $ref: "#/components/parameters/regionParam"
+        - $ref: "#/components/parameters/timeParam"
+        - $ref: "#/components/parameters/wdepthParam"
+        - $ref: "#/components/parameters/mtypeParam"
+        - $ref: "#/components/parameters/wlmodeParam"
+        - $ref: "#/components/parameters/shallowParam"
+        - $ref: "#/components/parameters/pmodeParam"
+        - $ref: "#/components/parameters/pgroupParam"
+        - $ref: "#/components/parameters/pnameParam"
+        # }}}
+        - name: offset
           in: query
-          description: Query string expression using Lucene syntax
+          description: Dataset start offset. First dataset is at offset=1. Defaults to 1.
           required: false
-          explode: false
           schema:
-            type: string
-        - name: region
+            type: integer
+        - name: count
           in: query
-          description: Bounding box in decimal degree given as lon_min,lat_min,lon_max,lat_max or WKT string
+          description: Maximum number of datasets in response. Defaults to 1000.
           required: false
-          explode: false
           schema:
-            type: string
-        - name: time
-          in: query
-          description: Date/time range given as start_date,end_date. Date/time must have ISO format.
-          required: false
-          explode: false
-          schema:
-            type: string
+            type: integer
       responses:
         '200':
           description: successful operation
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DatasetRef'
+                $ref: '#/components/schemas/DatasetQueryResult'
         '400':
           description: Invalid query value(s)
       security:
@@ -165,10 +158,6 @@ paths:
       responses:
         '405':
           description: Invalid input
-      security:
-        - eocdb_auth:
-            - 'write:datasets'
-            - 'read:datasets'
       requestBody:
         content:
           application/json:
@@ -176,6 +165,10 @@ paths:
               $ref: '#/components/schemas/Dataset'
         description: Dataset object that needs to be added to the store
         required: true
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
     put:
       tags:
         - Datasets
@@ -188,10 +181,6 @@ paths:
           description: Dataset not found
         '405':
           description: Validation exception
-      security:
-        - eocdb_auth:
-            - 'write:datasets'
-            - 'read:datasets'
       requestBody:
         content:
           application/json:
@@ -199,6 +188,10 @@ paths:
               $ref: '#/components/schemas/Dataset'
         description: Dataset object that needs to be added to the store
         required: true
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
   '/datasets/{datasetId}':
     get:
       tags:
@@ -257,14 +250,14 @@ paths:
         - eocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
-  '/datasets/{affiliation}/{project}/{cruise}':
+  '/datasets/{affil}/{project}/{cruise}':
     get:
       tags:
         - Datasets
-      summary: Get dataset references for given affiliation, project, and cruise.
+      summary: Get dataset references for given affil, project, and cruise.
       operationId: getDatasetsInBucket
       parameters:
-        - name: affiliation
+        - name: affil
           in: path
           description: Affiliation name.
           required: true
@@ -295,16 +288,15 @@ paths:
           description: Invalid path.
       security:
         - eocdb_auth:
-            - 'write:datasets'
             - 'read:datasets'
-  '/datasets/{affiliation}/{project}/{cruise}/{name}':
+  '/datasets/{affil}/{project}/{cruise}/{name}':
     get:
       tags:
         - Datasets
-      summary: Get dataset for given affiliation, project, cruise, and name.
+      summary: Get dataset for given affil, project, cruise, and name.
       operationId: getDatasetByBucketAndName
       parameters:
-        - name: affiliation
+        - name: affil
           in: path
           description: Affiliation name.
           required: true
@@ -359,7 +351,7 @@ paths:
                 userName:
                   type: string
                 # Bucket info
-                affiliation:
+                affil:
                   type: string
                 project:
                   type: string
@@ -408,14 +400,14 @@ paths:
         - eocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
-  '/docfiles/{affiliation}/{project}/{cruise}':
+  '/docfiles/{affil}/{project}/{cruise}':
     get:
       tags:
         - DocFiles
-      summary: Get documentation file references for given affiliation, project, and cruise.
+      summary: Get documentation file references for given affil, project, and cruise.
       operationId: getDocFilesInBucket
       parameters:
-        - name: affiliation
+        - name: affil
           in: path
           description: Affiliation name.
           required: true
@@ -444,18 +436,56 @@ paths:
                   $ref: '#/components/schemas/DocFileRef'
         '400':
           description: Invalid path.
-      security:
-        - eocdb_auth:
-            - 'write:datasets'
-            - 'read:datasets'
-  '/docfiles/{affiliation}/{project}/{cruise}/{name}':
+  '/docfiles/{affil}/{project}/{cruise}/{name}':
     get:
       tags:
         - DocFiles
-      summary: Download documentation file for given affiliation, project, cruise, and file name.
+      summary: Download documentation file for given affil, project, cruise, and file name.
       operationId: downloadDocFile
       parameters:
-        - name: affiliation
+        - name: affil
+          in: path
+          description: Affiliation name.
+          required: true
+          schema:
+            type: string
+        - name: project
+          in: path
+          description: Project name.
+          required: true
+          schema:
+            type: string
+        - name: cruise
+          in: path
+          description: Cruise name.
+          required: true
+          schema:
+            type: string
+        - name: name
+          in: path
+          description: Documentaion file name.
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: successful operation
+          content:
+            application/octet-stream:
+              schema:
+                type: string
+                format: binary
+        '400':
+          description: Invalid path.
+        '404':
+          description: Documentation file not found.
+    delete:
+      tags:
+        - DocFiles
+      summary: Delete documentation file.
+      operationId: deleteDocFile
+      parameters:
+        - name: affil
           in: path
           description: Affiliation name.
           required: true
@@ -493,8 +523,8 @@ paths:
           description: Documentation file not found.
       security:
         - eocdb_auth:
-            - 'write:datasets'
-            - 'read:datasets'
+            - 'write:docFiles'
+            - 'read:docFiles'
   '/users':
     post:
       tags:
@@ -560,14 +590,14 @@ paths:
       responses:
         default:
           description: successful operation
-  '/users/{id}':
+  '/users/{userId}':
     get:
       tags:
         - Users
       summary: Get user by user ID.
       operationId: getUserByID
       parameters:
-        - name: id
+        - name: userId
           in: path
           description: The ID of the user that needs to be fetched.
           required: true
@@ -592,7 +622,7 @@ paths:
       description: This can only be done by the logged in user.
       operationId: updateUser
       parameters:
-        - name: id
+        - name: userId
           in: path
           description: The ID of the user that needs to be fetched.
           required: true
@@ -618,7 +648,7 @@ paths:
       description: This can only be done by the logged in user.
       operationId: deleteUser
       parameters:
-        - name: id
+        - name: userId
           in: path
           description: The ID of the user that needs to be fetched.
           required: true
@@ -632,7 +662,154 @@ paths:
           description: User not found with given ID.
 
 components:
+  parameters:
+    exprParam:
+      name: expr
+      in: query
+      description: Query string expression using Lucene syntax
+      required: false
+      schema:
+        type: string
+    regionParam:
+      name: region
+      in: query
+      description: Bounding box in decimal degree given as lon_min,lat_min,lon_max,lat_max or WKT string
+      required: false
+      schema:
+        type: array
+        items:
+          type: number
+          format: double
+    timeParam:
+      name: time
+      in: query
+      description: Date/time range given as start_date,end_date. Date/time must have ISO format.
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: date
+    wdepthParam:
+      name: wdepth
+      in: query
+      description: Water depth range. First value is minimum, second is maximum.
+      required: false
+      explode: true
+      schema:
+        type: array
+        items:
+          type: number
+          format: double
+    mtypeParam:
+      name: mtype
+      in: query
+      description: Measurement type. Defaults to "all".
+      required: false
+      schema:
+        type: string
+        default: "all"
+    wlmodeParam:
+      name: wlmode
+      in: query
+      description: How to search for wavelength measurements. Defaults to "all".
+      required: false
+      schema:
+        type: string
+        enum: ["all", "multispectral", "hyperspectral"]
+        default: "all"
+    shallowParam:
+      name: shallow
+      in: query
+      description: How to deal with datasets with optically shallow water measurements. Defaults to "no".
+      required: false
+      schema:
+        type: string
+        enum: ["no", "yes", "exclusively"]
+        default: "no"
+    pmodeParam:
+      name: pmode
+      in: query
+      description: Product find mode. Applies only, if "pgroup" or "pname" are given. Defaults to "contains".
+      required: false
+      schema:
+        type: string
+        enum: ["contains", "same_cruise", "dont_apply"]
+        default: "contains"
+    pgroupParam:
+      name: pgroup
+      in: query
+      description: Product group(s).
+      required: false
+      explode: true
+      schema:
+        type: array
+        items:
+          type: string
+    pnameParam:
+      name: pname
+      in: query
+      description: Product names(s).
+      required: false
+      explode: true
+      schema:
+        type: array
+        items:
+          type: string
   schemas:
+    DatasetQuery:
+      type: object
+      properties:
+        expr:
+          type: string
+        region:
+          type: array
+          items:
+            type: number
+            format: double
+        time:
+          type: array
+          items:
+            type: string
+            format: date
+        wdepth:
+          type: array
+          items:
+            type: number
+            format: double
+        mtype:
+          type: string
+        shallow:
+          type: string
+        pmode:
+          type: string
+        pgroup:
+          type: array
+          items:
+            type: string
+        pname:
+          type: array
+          items:
+            type: string
+        offset:
+          type: integer
+        count:
+          type: integer
+    DatasetQueryResult:
+      type: object
+      required:
+        - totalCount
+        - datasets
+        - query
+      properties:
+        totalCount:
+          type: integer
+        datasets:
+          type: array
+          items:
+            $ref: '#/components/schemas/DatasetRef'
+        query:
+          $ref: '#/components/schemas/DatasetQuery'
     User:
       type: object
       properties:
@@ -701,7 +878,7 @@ components:
     Bucket:
       type: object
       properties:
-        affiliation:
+        affil:
           type: string
         project:
           type: string
@@ -726,6 +903,10 @@ components:
           scopes:
             'write:datasets': modify datasets in your account
             'read:datasets': read your datasets
+            'write:docFiles': modify documentation files in your account
+            'read:docFiles': read your documentation files
+            'write:users': modify users
+            'read:users': read users
     api_key:
       type: apiKey
       name: api_key
