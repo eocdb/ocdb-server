@@ -44,3 +44,9 @@ To run the server with the default config in a docker container using docker-com
 ## Web Service API
 
 The web service API can be found [here](https://app.swaggerhub.com/apis-docs/forman/eocdb-server/0.1.0-dev.1).
+
+## Development Guide
+
+Our development guide can be found [here](https://github.com/bcdev/eocdb-server/tree/master/docs/devguide.md).
+
+
