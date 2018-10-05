@@ -1,6 +1,7 @@
-[![swagger-api validator-badge]({https://github.com/bcdev/eocdb-server/tree/master/openapi/eocdb-server-0.1.0.yaml}task-list-api-swagger-definition.yaml)](./openapi/eocdb-server-0.1.0.yaml)
+[![swagger-api validator-badge]({https://github.com/bcdev/eocdb-server/tree/master/eocdb/ws/res/openapi.yml}task-list-api-swagger-definition.yaml)](./eocdb/ws/res/openapi.yml)
 
 # eocdb-server
+
 EUMETSAT Ocean Colour Database (OCDB) Server
 
 ## Setup
