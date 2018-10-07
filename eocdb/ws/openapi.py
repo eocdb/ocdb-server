@@ -6,6 +6,7 @@ import yaml
 
 from eocdb.ws.webservice import url_pattern
 
+
 _MODEL_CODE = '''
 import pprint
 from typing import Any, Dict, Type, TypeVar
@@ -70,6 +71,7 @@ class Model(object):
         return not self == other
 '''
 
+TAB = "    "
 
 class OpenApi:
 
@@ -239,21 +241,34 @@ class OpenApi:
 
                 path_params_str_parts = []
                 for path_param in path_params:
-                    name, _, data_type, _ = _get_name_type_default(path_param, default_type="str")
+                    name, _, data_type, _ = _get_name_type_default(path_param)
                     path_params_str_parts.append(f"{name}: {data_type}")
                 path_params_str = ", ".join(path_params_str_parts)
 
                 code.append("\n")
                 if path_params_str:
-                    code.append(f"    def {op.method}(self, {path_params_str}):\n")
+                    code.append(f"{TAB}def {op.method}(self, {path_params_str}):\n")
                 else:
-                    code.append(f"    def {op.method}(self):\n")
+                    code.append(f"{TAB}def {op.method}(self):\n")
 
-                code.append(f'        """Provide API operation {op.operation_id}()."""\n')
+                code.append(f'{TAB}{TAB}"""Provide API operation {op.operation_id}()."""\n')
 
                 for query_param in query_params:
-                    name, py_name, data_type, default_value = _get_name_type_default(query_param, default_type="str")
-                    code.append(f"        {py_name} = self.params.get_query_argument('{name}', {default_value})\n")
+                    name, py_name, data_type, default_value = _get_name_type_default(query_param)
+                    if data_type == "str":
+                        type_suffix = ""
+                    elif data_type == "List[str]":
+                        type_suffix = "_list"
+                    elif data_type == "List[bool]":
+                        type_suffix = "_bool_list"
+                    elif data_type == "List[int]":
+                        type_suffix = "_int_list"
+                    elif data_type == "List[float]":
+                        type_suffix = "_float_list"
+                    else:
+                        type_suffix = "_" + data_type
+                    code.append(f"{TAB}{TAB}{py_name} = self.params.get_query_argument{type_suffix}('{name}', "
+                                f"default={repr(default_value)})\n")
 
                 call_args_parts = []
                 for param in path_params:
@@ -264,11 +279,11 @@ class OpenApi:
                     call_args_parts.append(f"{py_name}={py_name}")
                 call_args = ", ".join(call_args_parts)
 
-                code.append(f"        self.set_header('Content-Type', 'text/json')\n")
+                code.append(f"{TAB}{TAB}self.set_header('Content-Type', 'text/json')\n")
                 if call_args:
-                    code.append(f"        return {func_name}(self.ws_context, {call_args})\n")
+                    code.append(f"{TAB}{TAB}return {func_name}(self.ws_context, {call_args})\n")
                 else:
-                    code.append(f"        return {func_name}(self.ws_context)\n")
+                    code.append(f"{TAB}{TAB}return {func_name}(self.ws_context)\n")
         return code
 
     def _gen_mappings_code(self) -> List[str]:
@@ -280,7 +295,7 @@ class OpenApi:
         code.append("MAPPINGS = (\n")
         for path, ops in self.operations.items():
             class_name = _path_to_handler_name(path)
-            code.append(f"    (url_pattern('{path}'), {class_name}),\n")
+            code.append(f"{TAB}(url_pattern('{path}'), {class_name}),\n")
         code.append(")\n")
         return code
 
@@ -338,11 +353,11 @@ class Operation:
 
         param_decl_parts = []
         for path_param in required_params:
-            _, name, data_type, _ = _get_name_type_default(path_param, default_type="str")
+            _, name, data_type, _ = _get_name_type_default(path_param)
             param_decl_parts.append(f"{name}: {data_type}")
         for path_param in optional_params:
-            _, name, data_type, default_value = _get_name_type_default(path_param, default_type="str")
-            param_decl_parts.append(f"{name}: {data_type} = {default_value}")
+            _, name, data_type, default_value = _get_name_type_default(path_param)
+            param_decl_parts.append(f"{name}: {data_type} = {repr(default_value)}")
         param_decl = ", ".join(param_decl_parts)
 
         code.append("\n")
@@ -383,25 +398,25 @@ class Schema:
         code.append(f"class {class_name}(Model):\n")
 
         code.append("\n")
-        code.append(f"    def __init__(self):\n")
+        code.append(f"{TAB}def __init__(self):\n")
         if self.properties:
             for prop_name in self.properties:
                 prop_name = _to_py_lower(prop_name)
-                code.append(f"        self._{prop_name} = None\n")
+                code.append(f"{TAB}{TAB}self._{prop_name} = None\n")
         else:
-            code.append(f"        pass\n")
+            code.append(f"{TAB}{TAB}pass\n")
 
         for prop_name in self.properties:
             prop = self.properties[prop_name]
             _, prop_name, prop_type, _ = _get_name_type_default(prop, default_name=prop_name)
             code.append("\n")
-            code.append(f"    @property\n")
-            code.append(f"    def {prop_name}(self) -> {prop_type}:\n")
-            code.append(f"        return self._{prop_name}\n")
+            code.append(f"{TAB}@property\n")
+            code.append(f"{TAB}def {prop_name}(self) -> {prop_type}:\n")
+            code.append(f"{TAB}{TAB}return self._{prop_name}\n")
             code.append("\n")
-            code.append(f"    @{prop_name}.setter\n")
-            code.append(f"    def {prop_name}(self, value: {prop_type}):\n")
-            code.append(f"        self._{prop_name} = value\n")
+            code.append(f"{TAB}@{prop_name}.setter\n")
+            code.append(f"{TAB}def {prop_name}(self, value: {prop_type}):\n")
+            code.append(f"{TAB}{TAB}self._{prop_name} = value\n")
 
 
 _TYPE_MAPPING = dict(string="str", number="float", boolean="bool", integer="int", array='List')
@@ -446,16 +461,16 @@ def _path_to_handler_name(path: str) -> str:
 
 def _get_name_type_default(param: Dict[str, Any],
                            default_name=None,
-                           default_type=None,
-                           default_value=None) -> Tuple[str, str, str, Any]:
+                           default_type="str") -> Tuple[str, str, str, Any]:
     name = param.get("name", default_name)
     py_name = _to_py_lower(name)
     schema = param.get("schema")
-    data_type = schema.get("type") if schema else param.get("type")
-    data_type = _to_py_type(data_type, default=default_type)
-    default_value = schema.get("default", default_value) if schema else param.get("default", default_value)
-    if default_value is not None and data_type == "str":
-        default_value = f"'{default_value}'"
+    data_type = _to_py_type(schema.get("type") if schema else param.get("type"), default=default_type)
+    if data_type == 'List':
+        items = schema.get("items") if schema else param.get("items")
+        data_type = _to_py_type(items.get("type") if items else default_type, default=default_type)
+        data_type = f"List[{data_type}]"
+    default_value = schema.get("default") if schema else param.get("default")
     return name, py_name, data_type, default_value
 
 

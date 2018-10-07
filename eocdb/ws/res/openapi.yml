@@ -683,6 +683,8 @@ components:
           type: number
           format: double
           default: [null, null, null, null]
+        minItems: 4
+        maxItems: 4
     timeParam:
       name: time
       in: query
@@ -694,6 +696,8 @@ components:
           type: string
           format: date
           default: [null, null]
+        minItems: 2
+        maxItems: 2
     wdepthParam:
       name: wdepth
       in: query
@@ -706,6 +710,8 @@ components:
           type: number
           format: double
           default: [null, null]
+        minItems: 2
+        maxItems: 2
     mtypeParam:
       name: mtype
       in: query
@@ -772,16 +778,25 @@ components:
           items:
             type: number
             format: double
+            default: [null, null, null, null]
+          minItems: 4
+          maxItems: 4
         time:
           type: array
           items:
             type: string
             format: date
+            default: [null, null]
+          minItems: 2
+          maxItems: 2
         wdepth:
           type: array
           items:
             type: number
             format: double
+            default: [null, null]
+          minItems: 2
+          maxItems: 2
         mtype:
           type: string
         shallow:
