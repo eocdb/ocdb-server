@@ -6,7 +6,6 @@ import yaml
 
 from eocdb.ws.webservice import url_pattern
 
-
 _MODEL_CODE = '''
 import pprint
 from typing import Any, Dict, Type, TypeVar
@@ -72,6 +71,7 @@ class Model(object):
 '''
 
 TAB = "    "
+
 
 class OpenApi:
 
@@ -217,7 +217,8 @@ class OpenApi:
         self._write_code(base_dir, package, module_code)
 
     def _gen_handler_code(self) -> List[str]:
-        code = [f"from ..webservice import WsRequestHandler\n"]
+        code = ["from ..webservice import WsRequestHandler\n",
+                "from ..reqparams import RequestParams\n"]
 
         module_names = set()
         for path, ops in self._operations.items():
@@ -236,6 +237,7 @@ class OpenApi:
             code.append(f"class {class_name}(WsRequestHandler):\n")
             for op in ops:
                 func_name = _to_py_lower(op.operation_id)
+                header_params = op.header_parameters
                 path_params = op.path_parameters
                 query_params = op.query_parameters
 
@@ -253,8 +255,8 @@ class OpenApi:
 
                 code.append(f'{TAB}{TAB}"""Provide API operation {op.operation_id}()."""\n')
 
-                for query_param in query_params:
-                    name, py_name, data_type, default_value = _get_name_type_default(query_param)
+                for param in op.parameters:
+                    name, py_name, data_type, default_value = _get_name_type_default(param)
                     if data_type == "str":
                         type_suffix = ""
                     elif data_type == "List[str]":
@@ -267,15 +269,20 @@ class OpenApi:
                         type_suffix = "_float_list"
                     else:
                         type_suffix = "_" + data_type
-                    code.append(f"{TAB}{TAB}{py_name} = self.params.get_query_argument{type_suffix}('{name}', "
-                                f"default={repr(default_value)})\n")
+                    source = param.get("in")
+                    if source == "path":
+                        if data_type == "str":
+                            if py_name != name:
+                                code.append(f"{TAB}{TAB}{py_name} = {name}\n")
+                        else:
+                            code.append(f"{TAB}{TAB}{py_name} = RequestParams.to{type_suffix}({name})\n")
+                    else:
+                        code.append(f"{TAB}{TAB}{py_name} = self.{source}.get_param{type_suffix}('{name}', "
+                                    f"default={repr(default_value)})\n")
 
                 call_args_parts = []
-                for param in path_params:
+                for param in op.parameters:
                     name, py_name, _, _ = _get_name_type_default(param)
-                    call_args_parts.append(f"{py_name}={name}")
-                for param in query_params:
-                    _, py_name, _, _ = _get_name_type_default(param)
                     call_args_parts.append(f"{py_name}={py_name}")
                 call_args = ", ".join(call_args_parts)
 
@@ -318,6 +325,10 @@ class Operation:
         self.parameters = parameters
 
     @property
+    def header_parameters(self) -> List[Dict]:
+        return [p for p in self.parameters if p['in'] == 'header']
+
+    @property
     def path_parameters(self) -> List[Dict]:
         return [p for p in self.parameters if p['in'] == 'path']
 
@@ -328,7 +339,7 @@ class Operation:
     @property
     def split_parameters(self) -> Tuple[List, List]:
         required_params = list(self.path_parameters)
-        optional_params = []
+        optional_params = list(self.header_parameters)
         for p in self.query_parameters:
             required = p.get("required", False)
             if required:
@@ -371,8 +382,8 @@ class Operation:
         code.append(f"    return dict(code=200, status='OK')\n")
 
     def __str__(self):
-        query_params = ', '.join(p['name'] for p in self.parameters if p.get('in', '') == 'query')
-        return f"{self.path} => {self.tag}.{self.operation_id}.{self.method}({query_params})"
+        params = ', '.join(p['name'] for p in self.parameters)
+        return f"{self.path} => {self.tag}.{self.operation_id}.{self.method}({params})"
 
 
 class Schema:

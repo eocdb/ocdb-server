@@ -244,8 +244,7 @@ paths:
           description: Dataset id to delete
           required: true
           schema:
-            type: integer
-            format: int64
+            type: string
       responses:
         '400':
           description: Invalid dataset ID.
@@ -933,5 +932,5 @@ components:
       in: header
 
 externalDocs:
-  description: Find out more about EUMETSAT Ocen Colour In-Situ Database
+  description: Find out more about EUMETSAT Ocean Colour In-Situ Database
   url: 'http://eocdb.io'

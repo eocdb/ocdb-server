@@ -80,26 +80,26 @@ class RequestParamsTest(unittest.TestCase):
         with self.assertRaises(WsBadRequestError):
             RequestParams.to_float('x', '2.5', maximum=2.0)
 
-    def test_get_query_argument(self):
+    def test_get_param(self):
         rp = RequestParamsMock()
-        self.assertEqual('bert', rp.get_query_argument('s', 'bert'))
-        self.assertEqual(234, rp.get_query_argument_int('i', 234))
-        self.assertEqual(0.2, rp.get_query_argument_float('f', 0.2))
+        self.assertEqual('bert', rp.get_param('s', 'bert'))
+        self.assertEqual(234, rp.get_param_int('i', 234))
+        self.assertEqual(0.2, rp.get_param_float('f', 0.2))
 
         rp = RequestParamsMock(s='bibo', b='1', i='465', f='0.1')
-        self.assertEqual('bibo', rp.get_query_argument('s', None))
-        self.assertEqual(True, rp.get_query_argument_bool('b', None))
-        self.assertEqual(465, rp.get_query_argument_int('i', None))
-        self.assertEqual(465., rp.get_query_argument_float('i', None))
-        self.assertEqual(0.1, rp.get_query_argument_float('f', None))
+        self.assertEqual('bibo', rp.get_param('s', None))
+        self.assertEqual(True, rp.get_param_bool('b', None))
+        self.assertEqual(465, rp.get_param_int('i', None))
+        self.assertEqual(465., rp.get_param_float('i', None))
+        self.assertEqual(0.1, rp.get_param_float('f', None))
 
-    def test_get_query_argument_list(self):
+    def test_get_param_list(self):
         rp = RequestParamsMock()
-        self.assertEqual(['ernie', 'bert'], rp.get_query_argument_list('s', ['ernie', 'bert']))
-        self.assertEqual([123, 234], rp.get_query_argument_int_list('i', [123, 234]))
-        self.assertEqual([0.3, 0.2], rp.get_query_argument_float_list('f', [0.3, 0.2]))
+        self.assertEqual(['ernie', 'bert'], rp.get_param_list('s', ['ernie', 'bert']))
+        self.assertEqual([123, 234], rp.get_param_int_list('i', [123, 234]))
+        self.assertEqual([0.3, 0.2], rp.get_param_float_list('f', [0.3, 0.2]))
 
         rp = RequestParamsMock(s='ernie,bert', i='123,234', f='0.3,0.2')
-        self.assertEqual(['ernie', 'bert'], rp.get_query_argument_list('s', None))
-        self.assertEqual([123, 234], rp.get_query_argument_int_list('i', None))
-        self.assertEqual([0.3, 0.2], rp.get_query_argument_float_list('f', None))
+        self.assertEqual(['ernie', 'bert'], rp.get_param_list('s', None))
+        self.assertEqual([123, 234], rp.get_param_int_list('i', None))
+        self.assertEqual([0.3, 0.2], rp.get_param_float_list('f', None))

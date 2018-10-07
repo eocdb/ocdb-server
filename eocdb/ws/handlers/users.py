@@ -12,8 +12,8 @@ class CreateUser(WsRequestHandler):
 # noinspection PyAbstractClass
 class LoginUser(WsRequestHandler):
     def get(self):
-        username = self.params.get_query_argument('username', None)
-        password = self.params.get_query_argument('password', None)
+        username = self.query.get_param('username', None)
+        password = self.query.get_param('password', None)
         self.set_header('Content-Type', 'text/json')
         return login_user(self.ws_context, username=username, password=password)
 

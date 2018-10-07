@@ -23,7 +23,7 @@ class RequestParamsMock(RequestParams):
     def __init__(self, **kvp):
         self.kvp = kvp
 
-    def get_query_argument(self, name: str, default: Optional[str]) -> Optional[str]:
+    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
         return self.kvp.get(name, default)
 
 

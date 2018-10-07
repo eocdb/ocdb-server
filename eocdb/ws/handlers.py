@@ -38,5 +38,5 @@ class MeasurementsQueryHandler(WsRequestHandler):
 
     def get(self):
         self.set_header('Content-Type', 'text/json')
-        query_string = self.params.get_query_argument('query', self.params.get_query_argument('q', ''))
+        query_string = self.query.get_param('query', self.query.get_param('q', ''))
         self.write(self.to_json(self.ws_context.query_measurements(query_string)))

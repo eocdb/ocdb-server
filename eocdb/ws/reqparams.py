@@ -178,7 +178,7 @@ class RequestParams(metaclass=ABCMeta):
                 f'"value for parameter {name!r}" must be an number list, but was {value!r}') from e
 
     @abstractmethod
-    def get_query_argument(self, name: str, default: Optional[str]) -> Optional[str]:
+    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
         """
         Get query argument.
         :param name: Query argument name
@@ -187,7 +187,7 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
 
-    def get_query_argument_bool(self, name: str, default: int = None) -> Optional[bool]:
+    def get_param_bool(self, name: str, default: int = None) -> Optional[bool]:
         """
         Get query argument of type int.
         :param name: Query argument name
@@ -195,14 +195,14 @@ class RequestParams(metaclass=ABCMeta):
         :return: boolean value
         :raise: WsBadRequestError
         """
-        value = self.get_query_argument(name, default=None)
+        value = self.get_param(name, default=None)
         return self.to_bool(name, value) if value else default
 
-    def get_query_argument_int(self,
-                               name: str,
-                               default: int = None,
-                               minimum: int = None,
-                               maximum: int = None) -> Optional[int]:
+    def get_param_int(self,
+                      name: str,
+                      default: int = None,
+                      minimum: int = None,
+                      maximum: int = None) -> Optional[int]:
         """
         Get query argument of type int.
         :param name: Query argument name
@@ -212,14 +212,14 @@ class RequestParams(metaclass=ABCMeta):
         :return: integer value
         :raise: WsBadRequestError
         """
-        value = self.get_query_argument(name, default=None)
+        value = self.get_param(name, default=None)
         return self.to_int(name, value, minimum=minimum, maximum=maximum) if value else default
 
-    def get_query_argument_float(self,
-                                 name: str,
-                                 default: float = None,
-                                 minimum: float = None,
-                                 maximum: float = None) -> Optional[float]:
+    def get_param_float(self,
+                        name: str,
+                        default: float = None,
+                        minimum: float = None,
+                        maximum: float = None) -> Optional[float]:
         """
         Get query argument of type float.
         :param name: Query argument name
@@ -229,12 +229,12 @@ class RequestParams(metaclass=ABCMeta):
         :return: float value
         :raise: WsBadRequestError
         """
-        value = self.get_query_argument(name, default=None)
+        value = self.get_param(name, default=None)
         return self.to_float(name, value, minimum=minimum, maximum=maximum) if value else default
 
-    def get_query_argument_list(self,
-                                name: str,
-                                default: List[str] = None) -> Optional[List[str]]:
+    def get_param_list(self,
+                       name: str,
+                       default: List[str] = None) -> Optional[List[str]]:
         """
         Get query argument of type float.
         :param name: Query argument name
@@ -242,14 +242,14 @@ class RequestParams(metaclass=ABCMeta):
         :return: string list value
         :raise: WsBadRequestError
         """
-        value = self.get_query_argument(name, default=None)
+        value = self.get_param(name, default=None)
         return self.to_list(name, value) if value else default
 
-    def get_query_argument_int_list(self,
-                                    name: str,
-                                    default: List[int] = None,
-                                    minimum: int = None,
-                                    maximum: int = None) -> Optional[List[float]]:
+    def get_param_int_list(self,
+                           name: str,
+                           default: List[int] = None,
+                           minimum: int = None,
+                           maximum: int = None) -> Optional[List[float]]:
         """
         Get query argument of type int.
         :param name: Query argument name
@@ -259,14 +259,14 @@ class RequestParams(metaclass=ABCMeta):
         :return: int list value
         :raise: WsBadRequestError
         """
-        value = self.get_query_argument(name, default=None)
+        value = self.get_param(name, default=None)
         return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
 
-    def get_query_argument_float_list(self,
-                                      name: str,
-                                      default: List[float] = None,
-                                      minimum: float = None,
-                                      maximum: float = None) -> Optional[List[float]]:
+    def get_param_float_list(self,
+                             name: str,
+                             default: List[float] = None,
+                             minimum: float = None,
+                             maximum: float = None) -> Optional[List[float]]:
         """
         Get query argument of type float.
         :param name: Query argument name
@@ -276,5 +276,5 @@ class RequestParams(metaclass=ABCMeta):
         :return: float value
         :raise: WsBadRequestError
         """
-        value = self.get_query_argument(name, default=None)
+        value = self.get_param(name, default=None)
         return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
