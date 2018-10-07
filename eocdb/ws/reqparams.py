@@ -20,13 +20,12 @@
 # SOFTWARE.
 
 from abc import abstractmethod, ABCMeta
-from typing import Optional
+from typing import Optional, List
 
 from .errors import WsBadRequestError
 
 
 class RequestParams(metaclass=ABCMeta):
-
     @classmethod
     def to_bool(cls, name: str, value: str) -> bool:
         """
@@ -103,6 +102,81 @@ class RequestParams(metaclass=ABCMeta):
         except ValueError as e:
             raise WsBadRequestError(f'value for parameter "{name!r}" must be a number, but was {value!r}') from e
 
+    @classmethod
+    def to_list(cls,
+                name: str,
+                value: str) -> List[str]:
+        """
+        Convert str value to int array.
+        :param name: Name of the value
+        :param value: The string value
+        :return: The int value
+        :raise: WsBadRequestError
+        """
+        if value is not None:
+            value = list(value.split(','))
+        if value is None or value == ['']:
+            raise WsBadRequestError(f'value for parameter "{name!r}" must be a list, but none was given')
+        return value
+
+    @classmethod
+    def to_int_list(cls,
+                    name: str,
+                    value: str,
+                    minimum: int = None,
+                    maximum: int = None) -> List[int]:
+        """
+        Convert str value to int array.
+        :param name: Name of the value
+        :param value: The string value
+        :param minimum: Optional minimum value
+        :param maximum: Optional maximum value
+        :return: The int value
+        :raise: WsBadRequestError
+        """
+        if value is None:
+            raise WsBadRequestError(f'value for parameter "{name!r}" must be an integer list, but none was given')
+        try:
+            arr = list(map(int, value.split(',')))
+            for value in arr:
+                if minimum is not None and value < minimum:
+                    raise WsBadRequestError(f'value of "{name!r}" list must not be < {minimum}, but was {value!r}')
+                if maximum is not None and value > maximum:
+                    raise WsBadRequestError(f'value of "{name!r}" list must not be > {maximum}, but was {value!r}')
+            return arr
+        except ValueError as e:
+            raise WsBadRequestError(
+                f'"value for parameter {name!r}" must be an integer list, but was {value!r}') from e
+
+    @classmethod
+    def to_float_list(cls,
+                      name: str,
+                      value: str,
+                      minimum: float = None,
+                      maximum: float = None) -> List[float]:
+        """
+        Convert str value to int array.
+        :param name: Name of the value
+        :param value: The string value
+        :param minimum: Optional minimum value
+        :param maximum: Optional maximum value
+        :return: The int value
+        :raise: WsBadRequestError
+        """
+        if value is None:
+            raise WsBadRequestError(f'value for parameter "{name!r}" must be an number list, but none was given')
+        try:
+            arr = list(map(float, value.split(',')))
+            for value in arr:
+                if minimum is not None and value < minimum:
+                    raise WsBadRequestError(f'value of "{name!r}" list must not be < {minimum}, but was {value!r}')
+                if maximum is not None and value > maximum:
+                    raise WsBadRequestError(f'value of "{name!r}" list must not be > {maximum}, but was {value!r}')
+            return arr
+        except ValueError as e:
+            raise WsBadRequestError(
+                f'"value for parameter {name!r}" must be an number list, but was {value!r}') from e
+
     @abstractmethod
     def get_query_argument(self, name: str, default: Optional[str]) -> Optional[str]:
         """
@@ -122,7 +196,7 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         value = self.get_query_argument(name, default=None)
-        return self.to_bool(name, value) if value is not None else default
+        return self.to_bool(name, value) if value else default
 
     def get_query_argument_int(self,
                                name: str,
@@ -139,7 +213,7 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         value = self.get_query_argument(name, default=None)
-        return self.to_int(name, value, minimum=minimum, maximum=maximum) if value is not None else default
+        return self.to_int(name, value, minimum=minimum, maximum=maximum) if value else default
 
     def get_query_argument_float(self,
                                  name: str,
@@ -156,4 +230,51 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         value = self.get_query_argument(name, default=None)
-        return self.to_float(name, value, minimum=minimum, maximum=maximum) if value is not None else default
+        return self.to_float(name, value, minimum=minimum, maximum=maximum) if value else default
+
+    def get_query_argument_list(self,
+                                name: str,
+                                default: List[str] = None) -> Optional[List[str]]:
+        """
+        Get query argument of type float.
+        :param name: Query argument name
+        :param default: Default value.
+        :return: string list value
+        :raise: WsBadRequestError
+        """
+        value = self.get_query_argument(name, default=None)
+        return self.to_list(name, value) if value else default
+
+    def get_query_argument_int_list(self,
+                                    name: str,
+                                    default: List[int] = None,
+                                    minimum: int = None,
+                                    maximum: int = None) -> Optional[List[float]]:
+        """
+        Get query argument of type int.
+        :param name: Query argument name
+        :param default: Default value.
+        :param minimum: Optional minimum value
+        :param maximum: Optional maximum value
+        :return: int list value
+        :raise: WsBadRequestError
+        """
+        value = self.get_query_argument(name, default=None)
+        return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
+
+    def get_query_argument_float_list(self,
+                                      name: str,
+                                      default: List[float] = None,
+                                      minimum: float = None,
+                                      maximum: float = None) -> Optional[List[float]]:
+        """
+        Get query argument of type float.
+        :param name: Query argument name
+        :param default: Default value.
+        :param minimum: Optional minimum value
+        :param maximum: Optional maximum value
+        :return: float value
+        :raise: WsBadRequestError
+        """
+        value = self.get_query_argument(name, default=None)
+        return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
