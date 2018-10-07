@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 from abc import abstractmethod, ABCMeta
-from typing import Optional, Tuple
+from typing import Optional
 
 from .errors import WsBadRequestError
 
@@ -28,7 +28,7 @@ from .errors import WsBadRequestError
 class RequestParams(metaclass=ABCMeta):
 
     @classmethod
-    def to_int(cls, name: str, value: str) -> int:
+    def to_bool(cls, name: str, value: str) -> bool:
         """
         Convert str value to int.
         :param name: Name of the value
@@ -37,27 +37,71 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         if value is None:
-            raise WsBadRequestError(f'{name!r} must be an integer, but none was given')
+            raise WsBadRequestError(f'value for parameter "{name!r}" must be a boolean, but none was given')
         try:
-            return int(value)
+            value = value.lower()
+            if value == 'true':
+                return True
+            if value == 'false':
+                return False
+            return bool(int(value))
         except ValueError as e:
-            raise WsBadRequestError(f'{name!r} must be an integer, but was {value!r}') from e
+            raise WsBadRequestError(f'value for parameter "{name!r}" must be a boolean, but was {value!r}') from e
 
     @classmethod
-    def to_float(cls, name: str, value: str) -> float:
+    def to_int(cls,
+               name: str,
+               value: str,
+               minimum: int = None,
+               maximum: int = None) -> int:
+        """
+        Convert str value to int.
+        :param name: Name of the value
+        :param value: The string value
+        :param minimum: Optional minimum value
+        :param maximum: Optional maximum value
+        :return: The int value
+        :raise: WsBadRequestError
+        """
+        if value is None:
+            raise WsBadRequestError(f'value for parameter "{name!r}" must be an integer, but none was given')
+        try:
+            value = int(value)
+            if minimum is not None and value < minimum:
+                raise WsBadRequestError(f'value of "{name!r}" must not be < {minimum}, but was {value!r}')
+            if maximum is not None and value > maximum:
+                raise WsBadRequestError(f'value of "{name!r}" must not be > {maximum}, but was {value!r}')
+            return value
+        except ValueError as e:
+            raise WsBadRequestError(f'"value for parameter {name!r}" must be an integer, but was {value!r}') from e
+
+    @classmethod
+    def to_float(cls,
+                 name: str,
+                 value: str,
+                 minimum: float = None,
+                 maximum: float = None) -> float:
         """
         Convert str value to float.
         :param name: Name of the value
+        :param value: The string value
+        :param minimum: Optional minimum value
+        :param maximum: Optional maximum value
         :param value: The string value
         :return: The float value
         :raise: WsBadRequestError
         """
         if value is None:
-            raise WsBadRequestError(f'{name!r} must be a number, but none was given')
+            raise WsBadRequestError(f'value for parameter "{name!r}" must be a number, but none was given')
         try:
-            return float(value)
+            value = float(value)
+            if minimum is not None and value < minimum:
+                raise WsBadRequestError(f'value for parameter "{name!r}" must not be < {minimum}, but was {value!r}')
+            if maximum is not None and value > maximum:
+                raise WsBadRequestError(f'value for parameter "{name!r}" must not be > {maximum}, but was {value!r}')
+            return value
         except ValueError as e:
-            raise WsBadRequestError(f'{name!r} must be a number, but was {value!r}') from e
+            raise WsBadRequestError(f'value for parameter "{name!r}" must be a number, but was {value!r}') from e
 
     @abstractmethod
     def get_query_argument(self, name: str, default: Optional[str]) -> Optional[str]:
@@ -69,24 +113,47 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
 
-    def get_query_argument_int(self, name: str, default: Optional[int]) -> Optional[int]:
+    def get_query_argument_bool(self, name: str, default: int = None) -> Optional[bool]:
         """
         Get query argument of type int.
         :param name: Query argument name
         :param default: Default value.
-        :return: int value
+        :return: boolean value
         :raise: WsBadRequestError
         """
         value = self.get_query_argument(name, default=None)
-        return self.to_int(name, value) if value is not None else default
+        return self.to_bool(name, value) if value is not None else default
 
-    def get_query_argument_float(self, name: str, default: Optional[float]) -> Optional[float]:
+    def get_query_argument_int(self,
+                               name: str,
+                               default: int = None,
+                               minimum: int = None,
+                               maximum: int = None) -> Optional[int]:
+        """
+        Get query argument of type int.
+        :param name: Query argument name
+        :param default: Default value.
+        :param minimum: Optional minimum value
+        :param maximum: Optional maximum value
+        :return: integer value
+        :raise: WsBadRequestError
+        """
+        value = self.get_query_argument(name, default=None)
+        return self.to_int(name, value, minimum=minimum, maximum=maximum) if value is not None else default
+
+    def get_query_argument_float(self,
+                                 name: str,
+                                 default: float = None,
+                                 minimum: float = None,
+                                 maximum: float = None) -> Optional[float]:
         """
         Get query argument of type float.
         :param name: Query argument name
         :param default: Default value.
+        :param minimum: Optional minimum value
+        :param maximum: Optional maximum value
         :return: float value
         :raise: WsBadRequestError
         """
         value = self.get_query_argument(name, default=None)
-        return self.to_float(name, value) if value is not None else default
+        return self.to_float(name, value, minimum=minimum, maximum=maximum) if value is not None else default
