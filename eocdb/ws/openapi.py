@@ -1,6 +1,6 @@
 import importlib
 import os
-from typing import List, Any, Dict, Tuple
+from typing import List, Any, Dict, Tuple, Type
 
 import yaml
 
@@ -82,7 +82,7 @@ class OpenApi:
             raise ValueError(f"Unsupported OpenAPI version {spec_version}, must be 3.0.0")
         self._spec = spec
         self._package = package
-        self._operations = []
+        self._operations = {}
         self._schemas = []
         self._resolve_operations()
         self._resolve_schemas()
@@ -92,7 +92,7 @@ class OpenApi:
         return self._spec
 
     @property
-    def operations(self) -> List["Operation"]:
+    def operations(self) -> Dict[str, List["Operation"]]:
         return self._operations
 
     @property
@@ -100,53 +100,19 @@ class OpenApi:
         return self._schemas
 
     @property
-    def path_mappings(self):
-        package = self._package + ".handlers"
+    def path_mappings(self) -> List[Tuple[str, Type]]:
         path_mappings = []
-        for op in self._operations:
-            path_mappings.append(op.new_path_mapping(package))
-
+        for path, ops in self._operations:
+            class_name = _path_to_handler_name(path)
+            module = importlib.import_module(self._package + ".handlers")
+            handler_class = getattr(module, class_name)
+            path_mappings.append((url_pattern(path), handler_class))
         return path_mappings
 
     def gen_code(self, base_dir: str):
         self._gen_handlers(base_dir)
         self._gen_controllers(base_dir)
         self._gen_models(base_dir)
-
-    def _gen_handlers(self, base_dir: str):
-        package = self._package + ".handlers"
-        module_code = dict()
-        for op in self._operations:
-            op.gen_handler_code(module_code)
-        module_code["_mappings"] = self._gen_paths_code()
-        module_code["__init__"] = ["from ._mappings import MAPPINGS\n"]
-        self._write_code(base_dir, package, module_code)
-
-    def _gen_controllers(self, base_dir: str):
-        package = self._package + ".controllers"
-        module_code = dict()
-        for op in self._operations:
-            op.gen_controller_code(module_code)
-        module_code["__init__"] = ["\n"]
-        self._write_code(base_dir, package, module_code)
-
-    def _gen_models(self, base_dir: str):
-        package = self._package + ".models"
-        module_code = dict()
-        for schema in self._schemas:
-            schema.gen_code(module_code)
-        module_code["__init__"] = ["\n"]
-        module_code['_model'] = [line + "\n" for line in _MODEL_CODE.split("\n")]
-        self._write_code(base_dir, package, module_code)
-
-    @classmethod
-    def _write_code(cls, base_dir: str, package: str, module_code: Dict[str, List[str]]):
-        package_dir = os.path.join(base_dir, *package.split("."))
-        os.makedirs(package_dir, exist_ok=True)
-        for module_name in module_code:
-            code = module_code[module_name]
-            with open(os.path.join(package_dir, module_name + ".py"), "w") as fp:
-                fp.writelines(code)
 
     def _resolve_operations(self):
         paths = self._spec.get("paths")
@@ -182,7 +148,10 @@ class OpenApi:
                 raise ValueError(f"paths/'{path}'/{method}/parameters/{i}/type or schema is required")
             parameter_spec = dict(parameter)
             parameter_specs.append(parameter_spec)
-        self._operations.append(Operation(path, tags[0], operation_id, method, parameter_specs))
+        if path not in self._operations:
+            self._operations[path] = []
+        ops = self._operations[path]
+        ops.append(Operation(path, tags[0], operation_id, method, parameter_specs))
 
     def _resolve_schemas(self):
         components = self._spec.get("components")
@@ -219,22 +188,110 @@ class OpenApi:
                 d = dict(type=keys[2])
         return d
 
-    def _gen_paths_code(self):
-        code = list()
+    def _gen_controllers(self, base_dir: str):
+        package = self._package + ".controllers"
+        module_code = dict()
+        for _, ops in self._operations.items():
+            for op in ops:
+                op.gen_controller_code(module_code)
+        module_code["__init__"] = ["\n"]
+        self._write_code(base_dir, package, module_code)
+
+    def _gen_models(self, base_dir: str):
+        package = self._package + ".models"
+        module_code = dict()
+        for schema in self._schemas:
+            schema.gen_code(module_code)
+        module_code["__init__"] = ["\n"]
+        module_code['_model'] = [line + "\n" for line in _MODEL_CODE.split("\n")]
+        self._write_code(base_dir, package, module_code)
+
+    def _gen_handlers(self, base_dir: str):
+        package = self._package + ".handlers"
+        module_code = dict()
+        module_code["_handlers"] = self._gen_handler_code()
+        module_code["_mappings"] = self._gen_mappings_code()
+        module_code["__init__"] = ["from ._mappings import MAPPINGS\n"]
+        self._write_code(base_dir, package, module_code)
+
+    def _gen_handler_code(self) -> List[str]:
+        code = [f"from ..webservice import WsRequestHandler\n"]
+
         module_names = set()
-        for op in self.operations:
-            module_names.add(op.tag.lower())
+        for path, ops in self._operations.items():
+            for op in ops:
+                module_name = op.tag.lower()
+                module_names.add(module_name)
         for module_name in sorted(module_names):
-            code.append(f"from ..handlers.{module_name} import *\n")
+            code.append(f"from ..controllers.{module_name} import *\n")
+
+        for path, ops in self._operations.items():
+            class_name = _path_to_handler_name(path)
+
+            code.append("\n")
+            code.append("\n")
+            code.append("# noinspection PyAbstractClass\n")
+            code.append(f"class {class_name}(WsRequestHandler):\n")
+            for op in ops:
+                func_name = _to_py_lower(op.operation_id)
+                path_params = op.path_parameters
+                query_params = op.query_parameters
+
+                path_params_str_parts = []
+                for path_param in path_params:
+                    name, _, data_type, _ = _get_name_type_default(path_param, default_type="str")
+                    path_params_str_parts.append(f"{name}: {data_type}")
+                path_params_str = ", ".join(path_params_str_parts)
+
+                code.append("\n")
+                if path_params_str:
+                    code.append(f"    def {op.method}(self, {path_params_str}):\n")
+                else:
+                    code.append(f"    def {op.method}(self):\n")
+
+                code.append(f'        """Provide API operation {op.operation_id}()."""\n')
+
+                for query_param in query_params:
+                    name, py_name, data_type, default_value = _get_name_type_default(query_param, default_type="str")
+                    code.append(f"        {py_name} = self.params.get_query_argument('{name}', {default_value})\n")
+
+                call_args_parts = []
+                for param in path_params:
+                    name, py_name, _, _ = _get_name_type_default(param)
+                    call_args_parts.append(f"{py_name}={name}")
+                for param in query_params:
+                    _, py_name, _, _ = _get_name_type_default(param)
+                    call_args_parts.append(f"{py_name}={py_name}")
+                call_args = ", ".join(call_args_parts)
+
+                code.append(f"        self.set_header('Content-Type', 'text/json')\n")
+                if call_args:
+                    code.append(f"        return {func_name}(self.ws_context, {call_args})\n")
+                else:
+                    code.append(f"        return {func_name}(self.ws_context)\n")
+        return code
+
+    def _gen_mappings_code(self) -> List[str]:
+        code = list()
+        code.append("from ._handlers import *\n")
         code.append("from ..webservice import url_pattern\n")
         code.append("\n")
         code.append("\n")
         code.append("MAPPINGS = (\n")
-        for op in self.operations:
-            class_name = _to_py_camel(op.operation_id)
-            code.append(f"    (url_pattern('{op.path}'), {class_name}),\n")
+        for path, ops in self.operations.items():
+            class_name = _path_to_handler_name(path)
+            code.append(f"    (url_pattern('{path}'), {class_name}),\n")
         code.append(")\n")
         return code
+
+    @classmethod
+    def _write_code(cls, base_dir: str, package: str, module_code: Dict[str, List[str]]):
+        package_dir = os.path.join(base_dir, *package.split("."))
+        os.makedirs(package_dir, exist_ok=True)
+        for module_name in module_code:
+            code = module_code[module_name]
+            with open(os.path.join(package_dir, module_name + ".py"), "w") as fp:
+                fp.writelines(code)
 
 
 class Operation:
@@ -246,11 +303,11 @@ class Operation:
         self.parameters = parameters
 
     @property
-    def path_parameters(self):
+    def path_parameters(self) -> List[Dict]:
         return [p for p in self.parameters if p['in'] == 'path']
 
     @property
-    def query_parameters(self):
+    def query_parameters(self) -> List[Dict]:
         return [p for p in self.parameters if p['in'] == 'query']
 
     @property
@@ -264,64 +321,6 @@ class Operation:
             else:
                 optional_params.append(p)
         return required_params, optional_params
-
-    def new_path_mapping(self, package: str):
-        module_name = self.tag.lower()
-        class_name = _to_py_camel(self.operation_id)
-
-        module = importlib.import_module(package + "." + module_name)
-        handler_class = getattr(module, class_name)
-
-        return url_pattern(self.path), handler_class
-
-    def gen_handler_code(self, module_code: Dict[str, List[str]]):
-        module_name = self.tag.lower()
-        class_name = _to_py_camel(self.operation_id)
-        func_name = _to_py_lower(self.operation_id)
-
-        if module_name in module_code:
-            code = module_code[module_name]
-        else:
-            code = [f"from ..webservice import WsRequestHandler\n",
-                    f"from ..controllers.{module_name} import *\n"]
-            module_code[module_name] = code
-
-        path_params = self.path_parameters
-        query_params = self.query_parameters
-
-        path_params_str_parts = []
-        for path_param in path_params:
-            name, _, data_type, _ = _get_name_type_default(path_param, default_type="str")
-            path_params_str_parts.append(f"{name}: {data_type}")
-        path_params_str = ", ".join(path_params_str_parts)
-
-        code.append("\n")
-        code.append("\n")
-        code.append("# noinspection PyAbstractClass\n")
-        code.append(f"class {class_name}(WsRequestHandler):\n")
-        if path_params_str:
-            code.append(f"    def {self.method}(self, {path_params_str}):\n")
-        else:
-            code.append(f"    def {self.method}(self):\n")
-
-        for query_param in query_params:
-            name, py_name, data_type, default_value = _get_name_type_default(query_param, default_type="str")
-            code.append(f"        {py_name} = self.params.get_query_argument('{name}', {default_value})\n")
-
-        call_args_parts = []
-        for param in path_params:
-            name, py_name, _, _ = _get_name_type_default(param)
-            call_args_parts.append(f"{py_name}={name}")
-        for param in query_params:
-            _, py_name, _, _ = _get_name_type_default(param)
-            call_args_parts.append(f"{py_name}={py_name}")
-        call_args = ", ".join(call_args_parts)
-
-        code.append(f"        self.set_header('Content-Type', 'text/json')\n")
-        if call_args:
-            code.append(f"        return {func_name}(self.ws_context, {call_args})\n")
-        else:
-            code.append(f"        return {func_name}(self.ws_context)\n")
 
     def gen_controller_code(self, module_code: Dict[str, List[str]]):
         module_name = self.tag.lower()
@@ -434,9 +433,15 @@ def _to_py_camel(s: str):
         c = s[i]
         if s[i - 1] == "_":
             s2 += c.upper()
-        else:
+        elif c != '_':
             s2 += c
     return s2
+
+
+def _path_to_handler_name(path: str) -> str:
+    if path.startswith('/'):
+        path = path[1:]
+    return _to_py_camel(path.replace('/', '_').replace('{', '').replace('}', '').lower())
 
 
 def _get_name_type_default(param: Dict[str, Any],
