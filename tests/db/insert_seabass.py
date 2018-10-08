@@ -9,18 +9,19 @@ class InsertSeabass():
 
     @staticmethod
     def main():
-        input_dir = sys.argv[1]
+        db_url = sys.argv[1]
+        db_collection = sys.argv[2]
+
+        input_dir = sys.argv[3]
         if not os.path.isdir(input_dir):
             raise IOError("input directory does not exist: " + input_dir)
 
         reader = SbFileReader()
         db_driver = MongoDbDriver()
+        db_driver.init(**{'url' : db_url + '/' + db_collection})
 
         document_count = 0
         record_count = 0
-
-        #try:
-        db_driver.connect()
 
         for root, dirs, files in os.walk(input_dir):
             if not 'archive' in root:
@@ -48,7 +49,6 @@ class InsertSeabass():
                     record_count += document.record_count
 
                     db_driver.insert(document.to_dict())
-        #except:
 
         print("Number of docs: " + str(document_count))
         print("Number of recs: " + str(record_count))
