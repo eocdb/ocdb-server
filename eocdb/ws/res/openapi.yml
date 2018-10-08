@@ -30,14 +30,11 @@ paths:
       operationId: getStoreInfo
       responses:
         '200':
-          description: successful operation
+          description: Successful operation.
           content:
             application/json:
               schema:
                 type: object
-                additionalProperties:
-                  type: integer
-                  format: int32
       security:
         - api_key: []
   '/store/upload':
@@ -46,30 +43,17 @@ paths:
         - Store
       summary: Batch mode upload of datasets and documentaion files.
       operationId: uploadStoreFiles
-      parameters:
-        - name: filePath
-          in: query
-          description: Filepath of the ZIP archive containing the datasets and files.
-          required: true
-          schema:
-            type: string
+      requestBody:
+        $ref: '#/components/requestBodies/FileUpload'
       responses:
         '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/ApiResponse'
+        '400':
+          description: Invalid request.
       security:
         - eocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
-      requestBody:
-        content:
-          application/octet-stream:
-            schema:
-              type: string
-              format: binary
   '/store/download':
     get:
       tags:
@@ -99,14 +83,9 @@ paths:
             default: false
       responses:
         '200':
-          description: ZIP download stream.
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
+          $ref: '#/components/responses/FileDownload'
         '400':
-          description: Invalid query value(s)
+          description: Invalid query value(s).
   '/datasets':
     get:
       tags:
@@ -147,7 +126,7 @@ paths:
             default: 1000
       responses:
         '200':
-          description: successful operation
+          description: Successful operation.
           content:
             application/json:
               schema:
@@ -161,9 +140,6 @@ paths:
         - Datasets
       summary: Add a new dataset to the store
       operationId: addDataset
-      responses:
-        '405':
-          description: Invalid input
       requestBody:
         content:
           application/json:
@@ -171,6 +147,11 @@ paths:
               $ref: '#/components/schemas/Dataset'
         description: Dataset object that needs to be added to the store
         required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse'
+        '400':
+          description: Invalid request.
       security:
         - eocdb_auth:
             - 'write:datasets'
@@ -181,19 +162,19 @@ paths:
       summary: Update an existing dataset
       operationId: updateDataset
       responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse'
         '400':
-          description: Invalid ID supplied
+          description: Invalid ID supplied.
         '404':
-          description: Dataset not found
-        '405':
-          description: Validation exception
+          description: Dataset not found.
       requestBody:
+        description: Dataset object that needs to be added to the store.
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Dataset'
-        description: Dataset object that needs to be added to the store
-        required: true
       security:
         - eocdb_auth:
             - 'write:datasets'
@@ -214,12 +195,9 @@ paths:
             type: string
       responses:
         '200':
-          description: successful operation
+          description: Successful operation.
           content:
             application/json:
-              schema:
-                $ref: '#/components/schemas/Dataset'
-            application/xml:
               schema:
                 $ref: '#/components/schemas/Dataset'
         '400':
@@ -231,7 +209,7 @@ paths:
     delete:
       tags:
         - Datasets
-      summary: Deletes a dataset.
+      summary: Delete a dataset.
       operationId: deleteDataset
       parameters:
         - name: api_key
@@ -246,6 +224,8 @@ paths:
           schema:
             type: string
       responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse'
         '400':
           description: Invalid dataset ID.
         '404':
@@ -281,7 +261,7 @@ paths:
             type: string
       responses:
         '200':
-          description: successful operation
+          description: Successful operation.
           content:
             application/json:
               schema:
@@ -326,12 +306,7 @@ paths:
             type: string
       responses:
         '200':
-          description: successful operation
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
+          $ref: '#/components/responses/FileDownload'
         '400':
           description: Invalid path.
         '404':
@@ -347,30 +322,10 @@ paths:
       summary: Add new documentation file.
       operationId: addDocFile
       requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                userName:
-                  type: string
-                # Bucket info
-                affil:
-                  type: string
-                project:
-                  type: string
-                cruise:
-                  type: string
-                fileName:
-                  type: string
-                  format: binary
+        $ref: '#/components/requestBodies/FileUpload'
       responses:
         '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/ApiResponse'
       security:
         - eocdb_auth:
             - 'write:datasets'
@@ -381,25 +336,10 @@ paths:
       summary: Update/relace existing documentation file
       operationId: updateDocFile
       requestBody:
-        content:
-          multipart/form-data:
-            schema:
-              type: object
-              properties:
-                userName:
-                  type: string
-                bucket:
-                  $ref: '#/components/schemas/Bucket'
-                fileName:
-                  type: string
-                  format: binary
+        $ref: '#/components/requestBodies/FileUpload'
       responses:
         '200':
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ApiResponse'
+          $ref: '#/components/responses/ApiResponse'
       security:
         - eocdb_auth:
             - 'write:datasets'
@@ -431,7 +371,7 @@ paths:
             type: string
       responses:
         '200':
-          description: successful operation
+          description: Successful operation.
           content:
             application/json:
               schema:
@@ -440,6 +380,8 @@ paths:
                   $ref: '#/components/schemas/DocFileRef'
         '400':
           description: Invalid path.
+        '404':
+          description: Documentation file not found.
   '/docfiles/{affil}/{project}/{cruise}/{name}':
     get:
       tags:
@@ -473,12 +415,7 @@ paths:
             type: string
       responses:
         '200':
-          description: successful operation
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
+          $ref: '#/components/responses/FileDownload'
         '400':
           description: Invalid path.
         '404':
@@ -515,12 +452,7 @@ paths:
             type: string
       responses:
         '200':
-          description: successful operation
-          content:
-            application/octet-stream:
-              schema:
-                type: string
-                format: binary
+          $ref: '#/components/responses/ApiResponse'
         '400':
           description: Invalid path.
         '404':
@@ -536,16 +468,18 @@ paths:
       summary: Create user
       description: This can only be done by the logged in user.
       operationId: createUser
-      responses:
-        default:
-          description: successful operation
       requestBody:
+        description: User data.
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
-        description: Created user object
-        required: true
+      responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse'
+        '400':
+          description: Invalid request.
   '/users/login':
     get:
       tags:
@@ -567,7 +501,7 @@ paths:
             type: string
       responses:
         '200':
-          description: successful operation
+          description: Successful operation.
           headers:
             X-Rate-Limit:
               description: calls per hour allowed by the user
@@ -592,8 +526,8 @@ paths:
       summary: Logs out current logged in user session
       operationId: logoutUser
       responses:
-        default:
-          description: successful operation
+        '200':
+          $ref: '#/components/responses/ApiResponse'
   '/users/{id}':
     get:
       tags:
@@ -609,7 +543,7 @@ paths:
             type: integer
       responses:
         '200':
-          description: successful operation
+          description: Successful operation.
           content:
             application/json:
               schema:
@@ -632,10 +566,12 @@ paths:
           schema:
             type: integer
       responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse'
         '400':
-          description: Invalid user supplied
+          description: Invalid user ID supplied.
         '404':
-          description: User not found
+          description: User not found with given ID.
       requestBody:
         content:
           application/json:
@@ -657,6 +593,8 @@ paths:
           schema:
             type: integer
       responses:
+        '200':
+          $ref: '#/components/responses/ApiResponse'
         '400':
           description: Invalid user ID supplied.
         '404':
@@ -913,6 +851,45 @@ components:
           type: string
         message:
           type: string
+  requestBodies:
+    FileUpload:
+      description: 'File upload.'
+      required: true
+      content:
+        # see https://swagger.io/docs/specification/describing-request-body/file-upload/
+        # see https://stackoverflow.com/questions/4526273/what-does-enctype-multipart-form-data-mean
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              # Current user
+              userName:
+                type: string
+              # Bucket info
+              affil:
+                type: string
+              project:
+                type: string
+              cruise:
+                type: string
+              # The file to be uploaded
+              fileName:
+                type: string
+                format: binary
+  responses:
+    ApiResponse:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiResponse'
+    FileDownload:
+      description: Successful operation.
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
   securitySchemes:
     eocdb_auth:
       type: oauth2
