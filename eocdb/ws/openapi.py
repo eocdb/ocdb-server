@@ -141,7 +141,7 @@ class OpenApi:
         parameter_specs = []
         for i in range(len(parameters)):
             parameter = parameters[i]
-            parameter = self._resolve_ref(parameter, f"paths/'{path}'/{method}/parameters/{i}", expand=True)
+            parameter = self._resolve_ref(parameter, expand=True)
             if "name" not in parameter:
                 raise ValueError(f"paths/'{path}'/{method}/parameters/{i}/name is required")
             if "in" not in parameter:
@@ -150,10 +150,42 @@ class OpenApi:
                 raise ValueError(f"paths/'{path}'/{method}/parameters/{i}/type or schema is required")
             parameter_spec = dict(parameter)
             parameter_specs.append(parameter_spec)
+
+        request_body_props = method_props.get("requestBody")
+        request_body = None
+        if request_body_props:
+            request_body_props = self._resolve_ref(request_body_props, expand=True)
+            content = request_body_props.get("content")
+            if content:
+                content = request_body_props.get("application/json")
+                if content:
+                    content = self._resolve_ref(content, expand=False)
+                    # TODO: create RequestBody with params
+                    request_body = RequestBody()
+                content = request_body_props.get("multipart/form-data")
+                if content:
+                    content = self._resolve_ref(content, expand=False)
+                    # TODO: create RequestBody with params
+                    request_body = RequestBody()
+
+        responses_dict = method_props.get("responses")
+        responses = {}
+        if responses_dict:
+            responses_props = responses_dict.get("200") or responses_dict.get("default")
+            if responses_props:
+                content_dict = responses_props.get("content", {})
+                for mime_type, mime_props in content_dict.items():
+                    if mime_props:
+                        mime_schema = mime_props.get('schema')
+                        if mime_schema:
+                            mime_schema = self._resolve_ref(mime_schema, expand=False)
+                            # TODO: create Response with params
+                            responses[mime_type] = Response()
+
         if path not in self._operations:
             self._operations[path] = []
         ops = self._operations[path]
-        ops.append(Operation(path, tags[0], operation_id, method, parameter_specs))
+        ops.append(Operation(path, method, tags[0], operation_id, parameter_specs, request_body, responses))
 
     def _resolve_schemas(self):
         components = self._spec.get("components")
@@ -173,16 +205,16 @@ class OpenApi:
             resolved_schema_props = dict()
             for prop_name in schema_props:
                 prop = schema_props[prop_name]
-                prop = self._resolve_ref(prop, f"components/schemas/{schema_name}", expand=False)
+                prop = self._resolve_ref(prop, expand=False)
                 resolved_schema_props[prop_name] = prop
             self._schemas.append(Schema(schema_name, schema_required, resolved_schema_props))
 
-    def _resolve_ref(self, d: dict, d_path: str, expand: bool = False):
+    def _resolve_ref(self, d: dict, expand: bool = False):
         ref = d.get("$ref")
         if ref:
             keys = ref.split('/')
             if len(keys) != 4 or keys[0] != '#':
-                raise ValueError(f"invalid {d_path}/$ref: {ref}")
+                raise ValueError(f"invalid $ref: {ref}")
             keys = keys[1:]
             if expand:
                 d = self._spec[keys[0]][keys[1]][keys[2]]
@@ -316,13 +348,30 @@ class OpenApi:
                 fp.writelines(code)
 
 
+class RequestBody:
+    pass
+
+
+class Response:
+    pass
+
+
 class Operation:
-    def __init__(self, path: str, tag: str, operation_id: str, method: str, parameters: List[Dict[str, Any]]):
+    def __init__(self,
+                 path: str,
+                 method: str,
+                 tag: str,
+                 operation_id: str,
+                 parameters: List[Dict[str, Any]],
+                 request_body: RequestBody,
+                 responses: Dict[str, Response]):
         self.path = path
+        self.method = method
         self.tag = tag
         self.operation_id = operation_id
-        self.method = method
         self.parameters = parameters
+        self.request_body = request_body
+        self.responses = responses
 
     @property
     def header_parameters(self) -> List[Dict]:
