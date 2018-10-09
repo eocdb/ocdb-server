@@ -1,6 +1,8 @@
 from typing import List
 
-from ._model import Model
+from .dataset_query import DatasetQuery
+from .dataset_ref import DatasetRef
+from ..model import Model
 
 
 class DatasetQueryResult(Model):
@@ -19,11 +21,11 @@ class DatasetQueryResult(Model):
         self._total_count = value
 
     @property
-    def datasets(self) -> List:
+    def datasets(self) -> List[DatasetRef]:
         return self._datasets
 
     @datasets.setter
-    def datasets(self, value: List):
+    def datasets(self, value: List[DatasetRef]):
         self._datasets = value
 
     @property

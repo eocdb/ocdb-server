@@ -1,6 +1,7 @@
-from typing import List
+from typing import Dict
 
-from ._model import Model
+from .bucket import Bucket
+from ..model import Model
 
 
 class Dataset(Model):
@@ -46,17 +47,17 @@ class Dataset(Model):
         self._status = value
 
     @property
-    def header(self) -> object:
+    def header(self) -> Dict:
         return self._header
 
     @header.setter
-    def header(self, value: object):
+    def header(self, value: Dict):
         self._header = value
 
     @property
-    def records(self) -> object:
+    def records(self) -> Dict:
         return self._records
 
     @records.setter
-    def records(self, value: object):
+    def records(self, value: Dict):
         self._records = value

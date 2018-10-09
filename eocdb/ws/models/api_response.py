@@ -1,6 +1,4 @@
-from typing import List
-
-from ._model import Model
+from ..model import Model
 
 
 class ApiResponse(Model):

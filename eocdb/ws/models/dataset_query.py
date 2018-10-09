@@ -1,6 +1,6 @@
 from typing import List
 
-from ._model import Model
+from ..model import Model
 
 
 class DatasetQuery(Model):
@@ -27,27 +27,27 @@ class DatasetQuery(Model):
         self._expr = value
 
     @property
-    def region(self) -> List:
+    def region(self) -> List[float]:
         return self._region
 
     @region.setter
-    def region(self, value: List):
+    def region(self, value: List[float]):
         self._region = value
 
     @property
-    def time(self) -> List:
+    def time(self) -> List[str]:
         return self._time
 
     @time.setter
-    def time(self, value: List):
+    def time(self, value: List[str]):
         self._time = value
 
     @property
-    def wdepth(self) -> List:
+    def wdepth(self) -> List[float]:
         return self._wdepth
 
     @wdepth.setter
-    def wdepth(self, value: List):
+    def wdepth(self, value: List[float]):
         self._wdepth = value
 
     @property
@@ -75,19 +75,19 @@ class DatasetQuery(Model):
         self._pmode = value
 
     @property
-    def pgroup(self) -> List:
+    def pgroup(self) -> List[str]:
         return self._pgroup
 
     @pgroup.setter
-    def pgroup(self, value: List):
+    def pgroup(self, value: List[str]):
         self._pgroup = value
 
     @property
-    def pname(self) -> List:
+    def pname(self) -> List[str]:
         return self._pname
 
     @pname.setter
-    def pname(self, value: List):
+    def pname(self, value: List[str]):
         self._pname = value
 
     @property

@@ -1,6 +1,5 @@
-from typing import List
-
-from ._model import Model
+from .bucket import Bucket
+from ..model import Model
 
 
 class DatasetRef(Model):

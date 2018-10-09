@@ -27,29 +27,17 @@ import sys
 from tornado.web import Application, StaticFileHandler
 
 # noinspection PyPep8Naming
-from eocdb.ws import __version__ as VERSION
-# noinspection PyPep8Naming
 from eocdb.ws import __description__ as DESCRIPTION
-from eocdb.ws.handlers import InfoHandler, MeasurementsQueryHandler
-from eocdb.ws.webservice import url_pattern, WebService
+# noinspection PyPep8Naming
+from eocdb.ws import __version__ as VERSION
 from eocdb.ws.defaults import DEFAULT_PORT, DEFAULT_ADDRESS, DEFAULT_UPDATE_PERIOD, DEFAULT_CONFIG_FILE
+from eocdb.ws.handlers import MAPPINGS
+from eocdb.ws.webservice import WebService
 
 
 def new_application():
-    application = Application([
-        ('/res/(.*)', StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), 'res')}),
-        (url_pattern('/'), InfoHandler),
-        (url_pattern('/eocdb/api/measurements'), MeasurementsQueryHandler),
-        # (url_pattern('/xcube/tile/{{ds_name}}/{{var_name}}/{{z}}/{{x}}/{{y}}.png'), GetTileDatasetHandler),
-        # (url_pattern('/xcube/tile/ne2/{{z}}/{{x}}/{{y}}.jpg'), GetTileNE2Handler),
-        # (url_pattern('/xcube/tilegrid/{{ds_name}}/{{var_name}}/{{format_name}}'), GetTileGridDatasetHandler),
-        # (url_pattern('/xcube/tilegrid/ne2/{{format_name}}'), GetTileGridNE2Handler),
-        # (url_pattern('/xcube/datasets.json'), GetDatasetsJsonHandler),
-        # (url_pattern('/xcube/variables/{{ds_name}}.json'), GetVariablesJsonHandler),
-        # (url_pattern('/xcube/coords/{{ds_name}}/{{dim_name}}.json'), GetCoordinatesJsonHandler),
-        # (url_pattern('/xcube/colorbars.json'), GetColorBarsHandler, dict(format_name='text/json')),
-        # (url_pattern('/xcube/colorbars.html'), GetColorBarsHandler, dict(format_name='text/html')),
-    ])
+    mappings = [('/res/(.*)', StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), 'res')})] + MAPPINGS
+    application = Application(mappings)
     return application
 
 

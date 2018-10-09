@@ -126,11 +126,7 @@ paths:
             default: 1000
       responses:
         '200':
-          description: Successful operation.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/DatasetQueryResult'
+          $ref: '#/components/responses/DatasetQueryResult'
         '400':
           description: Invalid query value(s)
       security:
@@ -141,12 +137,7 @@ paths:
       summary: Add a new dataset to the store
       operationId: addDataset
       requestBody:
-        description: Dataset object that needs to be added to the store.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Dataset'
+        $ref: '#/components/requestBodies/Dataset'
       responses:
         '200':
           $ref: '#/components/responses/ApiResponse'
@@ -161,6 +152,8 @@ paths:
         - Datasets
       summary: Update an existing dataset
       operationId: updateDataset
+      requestBody:
+        $ref: '#/components/requestBodies/Dataset'
       responses:
         '200':
           $ref: '#/components/responses/ApiResponse'
@@ -168,13 +161,6 @@ paths:
           description: Invalid ID supplied.
         '404':
           description: Dataset not found.
-      requestBody:
-        description: Dataset object that needs to be added to the store.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Dataset'
       security:
         - eocdb_auth:
             - 'write:datasets'
@@ -195,11 +181,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Successful operation.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Dataset'
+          $ref: '#/components/responses/Dataset'
         '400':
           description: Invalid dataset ID.
         '404':
@@ -261,13 +243,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Successful operation.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DatasetRef'
+          $ref: '#/components/responses/DatasetRefs'
         '400':
           description: Invalid path.
       security:
@@ -371,13 +347,7 @@ paths:
             type: string
       responses:
         '200':
-          description: Successful operation.
-          content:
-            application/json:
-              schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/DocFileRef'
+          $ref: '#/components/responses/DocFileRefs'
         '400':
           description: Invalid path.
         '404':
@@ -469,12 +439,7 @@ paths:
       description: This can only be done by the logged in user.
       operationId: createUser
       requestBody:
-        description: User object.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
+        $ref: '#/components/requestBodies/User'
       responses:
         '200':
           $ref: '#/components/responses/ApiResponse'
@@ -535,19 +500,10 @@ paths:
       summary: Get user by user ID.
       operationId: getUserByID
       parameters:
-        - name: id
-          in: path
-          description: The ID of the user that needs to be fetched.
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/userIdParam'
       responses:
         '200':
-          description: Successful operation.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/User'
+          $ref: '#/components/responses/User'
         '400':
           description: Invalid user ID supplied.
         '404':
@@ -559,12 +515,9 @@ paths:
       description: This can only be done by the logged in user.
       operationId: updateUser
       parameters:
-        - name: id
-          in: path
-          description: The ID of the user that needs to be fetched.
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/userIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/User'
       responses:
         '200':
           $ref: '#/components/responses/ApiResponse'
@@ -572,13 +525,6 @@ paths:
           description: Invalid user ID supplied.
         '404':
           description: User not found with given ID.
-      requestBody:
-        description: User object.
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/User'
     delete:
       tags:
         - Users
@@ -586,12 +532,7 @@ paths:
       description: This can only be done by the logged in user.
       operationId: deleteUser
       parameters:
-        - name: id
-          in: path
-          description: The ID of the user that needs to be fetched.
-          required: true
-          schema:
-            type: integer
+        - $ref: '#/components/parameters/userIdParam'
       responses:
         '200':
           $ref: '#/components/responses/ApiResponse'
@@ -704,6 +645,13 @@ components:
         type: array
         items:
           type: string
+    userIdParam:
+      name: id
+      in: path
+      description: The ID of the user.
+      required: true
+      schema:
+        type: integer
   schemas:
     DatasetQuery:
       type: object
@@ -852,6 +800,20 @@ components:
         message:
           type: string
   requestBodies:
+    Dataset:
+      description: Dataset object.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Dataset'
+    User:
+      description: User object.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
     FileUpload:
       description: 'File upload.'
       required: true
@@ -877,6 +839,40 @@ components:
                 type: string
                 format: binary
   responses:
+    DatasetQueryResult:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetQueryResult'
+    Dataset:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Dataset'
+    DatasetRefs:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/DatasetRef'
+    DocFileRefs:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/DocFileRef'
+    User:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
     ApiResponse:
       description: Successful operation.
       content:
