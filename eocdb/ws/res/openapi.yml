@@ -141,12 +141,12 @@ paths:
       summary: Add a new dataset to the store
       operationId: addDataset
       requestBody:
+        description: Dataset object that needs to be added to the store.
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Dataset'
-        description: Dataset object that needs to be added to the store
-        required: true
       responses:
         '200':
           $ref: '#/components/responses/ApiResponse'
@@ -469,7 +469,7 @@ paths:
       description: This can only be done by the logged in user.
       operationId: createUser
       requestBody:
-        description: User data.
+        description: User object.
         required: true
         content:
           application/json:
@@ -573,12 +573,12 @@ paths:
         '404':
           description: User not found with given ID.
       requestBody:
+        description: User object.
+        required: true
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/User'
-        description: Updated user object
-        required: true
     delete:
       tags:
         - Users
