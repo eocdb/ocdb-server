@@ -82,8 +82,8 @@ class OpenApi:
                 raise ValueError(f"paths/'{path}'/{method}/parameters/{i}/name is required")
             if "in" not in parameter:
                 raise ValueError(f"paths/'{path}'/{method}/parameters/{i}/in is required")
-            if "type" not in parameter and "schema" not in parameter:
-                raise ValueError(f"paths/'{path}'/{method}/parameters/{i}/type or schema is required")
+            if "schema" not in parameter:
+                raise ValueError(f"paths/'{path}'/{method}/parameters/{i}/schema is required")
             parameter_spec = dict(parameter)
             parameter_specs.append(parameter_spec)
 
@@ -96,13 +96,19 @@ class OpenApi:
                 content = request_body_props.get("application/json")
                 if content:
                     content = self._resolve_ref(content, expand=False)
-                    # TODO: create RequestBody with params
-                    request_body = RequestBody()
+                    if "schema" not in content:
+                        raise ValueError(f"paths/'{path}'/{method}/requestBody/.../schema is required")
+                    request_body = RequestBody(content["schema"],
+                                               request_body_props.get("description"),
+                                               request_body_props.get("required", False))
                 content = request_body_props.get("multipart/form-data")
                 if content:
                     content = self._resolve_ref(content, expand=False)
-                    # TODO: create RequestBody with params
-                    request_body = RequestBody()
+                    if "schema" not in content:
+                        raise ValueError(f"paths/'{path}'/{method}/requestBody/.../schema is required")
+                    request_body = RequestBody(content["schema"],
+                                               request_body_props.get("description"),
+                                               request_body_props.get("required", False))
 
         responses_dict = method_props.get("responses")
         responses = {}
@@ -282,7 +288,11 @@ class OpenApi:
 
 
 class RequestBody:
-    pass
+    def __init__(self, schema: Dict[str, Any], description: str, required: bool):
+        self.schema = schema
+        self.description = description
+        self.required = required
+
 
 
 class Response:
