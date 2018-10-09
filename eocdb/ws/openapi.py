@@ -1,9 +1,10 @@
+import builtins
+import os
+from abc import ABCMeta, abstractmethod
 from io import IOBase
 from typing import List, Dict, Union, Tuple
 
-import os
 import yaml
-import builtins
 
 from eocdb.core.asserts import *
 
@@ -29,7 +30,60 @@ class Property:
         return self._schema
 
 
-class Schema:
+class Schema(metaclass=ABCMeta):
+
+    @property
+    @abstractmethod
+    def type(self) -> str:
+        pass
+
+    @property
+    @abstractmethod
+    def format(self) -> Optional[str]:
+        pass
+
+    @property
+    @abstractmethod
+    def items(self) -> Optional["Schema"]:
+        pass
+
+    @property
+    @abstractmethod
+    def properties(self) -> Optional[List[Property]]:
+        pass
+
+    @property
+    @abstractmethod
+    def ref_name(self) -> Optional[str]:
+        pass
+
+    @property
+    @abstractmethod
+    def enum(self) -> Optional[Enum]:
+        pass
+
+    @property
+    @abstractmethod
+    def minimum(self) -> Optional[Number]:
+        pass
+
+    @property
+    @abstractmethod
+    def maximum(self) -> Optional[Number]:
+        pass
+
+    @property
+    @abstractmethod
+    def nullable(self) -> bool:
+        pass
+
+    @property
+    @abstractmethod
+    def default(self) -> Any:
+        pass
+
+
+class SchemaImpl(Schema):
     def __init__(self,
                  type_: str,
                  format_: str = None,
@@ -96,8 +150,7 @@ class Schema:
 
 
 class SchemaProxy(Schema):
-    def __init__(self, type_: str):
-        super().__init__(type_)
+    def __init__(self):
         self._delegate = None
 
     @property
@@ -143,6 +196,10 @@ class SchemaProxy(Schema):
     @property
     def nullable(self) -> bool:
         return self.delegate.nullable
+
+    @property
+    def default(self) -> Any:
+        return self.delegate.default
 
 
 class Component:
@@ -337,7 +394,7 @@ class Components:
         self._schemas = dict()
 
     @property
-    def schemas(self) -> Dict[str, Schema]:
+    def schemas(self) -> Dict[str, SchemaProxy]:
         return self._schemas
 
     @property
@@ -382,7 +439,7 @@ class OpenAPI:
         schemas_dict = comp_dict.get("schemas", {})
         # Predefine all schemas by a proxy so object properties and array items can use schema references
         for ref_name, schema_dict in schemas_dict.items():
-            components.schemas[ref_name] = SchemaProxy(schema_dict.get("type", "?"))
+            components.schemas[ref_name] = SchemaProxy()
         # Then define each proxy
         for ref_name, schema_dict in schemas_dict.items():
             schema = cls._parse_schema(schema_dict, components, ref_name=ref_name)
@@ -518,15 +575,15 @@ class OpenAPI:
                 property_schema = cls._parse_schema(property_dict, components)
                 properties.append(Property(property_name, property_schema))
 
-        return Schema(type_,
-                      format_,
-                      items=items,
-                      properties=properties,
-                      ref_name=ref_name,
-                      enum=schema_dict.get("enum"),
-                      minimum=schema_dict.get("minimum"),
-                      maximum=schema_dict.get("maximum"),
-                      nullable=schema_dict.get("nullable", False))
+        return SchemaImpl(type_,
+                          format_,
+                          items=items,
+                          properties=properties,
+                          ref_name=ref_name,
+                          enum=schema_dict.get("enum"),
+                          minimum=schema_dict.get("minimum"),
+                          maximum=schema_dict.get("maximum"),
+                          nullable=schema_dict.get("nullable", False))
 
     @classmethod
     def _parse_request_body(cls,
