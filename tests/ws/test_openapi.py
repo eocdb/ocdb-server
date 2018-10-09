@@ -1,19 +1,27 @@
 import unittest
+import os
 
-from eocdb.ws.openapi import OpenApi
+from eocdb.ws.openapi import OpenAPI
 
 
 class OpenApiTest(unittest.TestCase):
     def test_init(self):
-        api = OpenApi("res/openapi.yml", "eocdb.ws")
-        self.assertIsNotNone(api.spec)
-        self.assertEqual(api.spec.get("openapi"), "3.0.0")
+        file = os.path.join(os.path.dirname(__file__), "..", "..", "eocdb", "ws", "res", "openapi.yml")
 
-        self.assertIsNotNone(api.schemas)
-        self.assertEqual(8, len(api.schemas))
+        openapi = OpenAPI.from_yaml(file)
+        self.assertIsNotNone(openapi)
+        self.assertEqual(openapi.version, "3.0.0")
 
-        self.assertIsNotNone(api.operations)
-        self.assertEqual(14, len(api.operations))
+        self.assertIsNotNone(openapi.components)
+        self.assertIsNotNone(openapi.components.schemas)
+        self.assertEqual(8, len(openapi.components.schemas))
+        self.assertIsNotNone(openapi.components.parameters)
+        self.assertEqual(10, len(openapi.components.parameters))
+        self.assertIsNotNone(openapi.components.request_bodies)
+        self.assertEqual(1, len(openapi.components.request_bodies))
+        self.assertIsNotNone(openapi.components.responses)
+        self.assertEqual(2, len(openapi.components.responses))
 
-        # self.assertIsNotNone(api.path_mappings)
-        # self.assertEqual(21, len(api.path_mappings))
+        self.assertIsNotNone(openapi.path_items)
+        self.assertEqual(14, len(openapi.path_items))
+
