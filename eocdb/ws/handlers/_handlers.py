@@ -1,3 +1,25 @@
+# The MIT License (MIT)
+# Copyright (c) 2018 by EUMETSAT
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+# of the Software, and to permit persons to whom the Software is furnished to do
+# so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
+
 import tornado.escape
 
 from ..webservice import WsRequestHandler
@@ -6,9 +28,17 @@ from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.store import *
 from ..controllers.users import *
+from ..models.api_response import ApiResponse
+from ..models.bucket import Bucket
+from ..models.dataset import Dataset
+from ..models.dataset_query import DatasetQuery
+from ..models.dataset_query_result import DatasetQueryResult
+from ..models.dataset_ref import DatasetRef
+from ..models.doc_file_ref import DocFileRef
+from ..models.user import User
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class StoreInfo(WsRequestHandler):
 
     def get(self):
@@ -29,7 +59,7 @@ class StoreInfo(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class StoreUpload(WsRequestHandler):
 
     def post(self):
@@ -54,7 +84,7 @@ class StoreUpload(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class StoreDownload(WsRequestHandler):
 
     def get(self):
@@ -72,9 +102,7 @@ class StoreDownload(WsRequestHandler):
             pgroup = self.query.get_param_list('pgroup', default=None)
             pname = self.query.get_param_list('pname', default=None)
             docs = self.query.get_param_bool('docs', default=None)
-            result = download_store_files(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth,
-                                          mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
-                                          pname=pname, docs=docs)
+            result = download_store_files(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname, docs=docs)
 
             # transform result of type str into response with mime-type application/octet-stream
             # TODO: transform result first
@@ -88,7 +116,7 @@ class StoreDownload(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class Datasets(WsRequestHandler):
 
     def get(self):
@@ -107,9 +135,7 @@ class Datasets(WsRequestHandler):
             pname = self.query.get_param_list('pname', default=None)
             offset = self.query.get_param_int('offset', default=None)
             count = self.query.get_param_int('count', default=None)
-            result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
-                                   wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
-                                   offset=offset, count=count)
+            result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname, offset=offset, count=count)
 
             # transform result of type DatasetQueryResult into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
@@ -206,7 +232,7 @@ class DatasetsId(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class DatasetsAffilProjectCruise(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str):
@@ -227,15 +253,14 @@ class DatasetsAffilProjectCruise(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class DatasetsAffilProjectCruiseName(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str, name: str):
         """Provide API operation getDatasetByBucketAndName()."""
         # noinspection PyBroadException,PyUnusedLocal
         try:
-            result = get_dataset_by_bucket_and_name(self.ws_context, affil=affil, project=project, cruise=cruise,
-                                                    name=name)
+            result = get_dataset_by_bucket_and_name(self.ws_context, affil=affil, project=project, cruise=cruise, name=name)
 
             # transform result of type str into response with mime-type application/octet-stream
             # TODO: transform result first
@@ -249,7 +274,7 @@ class DatasetsAffilProjectCruiseName(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class Docfiles(WsRequestHandler):
 
     def put(self):
@@ -295,7 +320,7 @@ class Docfiles(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class DocfilesAffilProjectCruise(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str):
@@ -316,7 +341,7 @@ class DocfilesAffilProjectCruise(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class DocfilesAffilProjectCruiseName(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str, name: str):
@@ -354,7 +379,7 @@ class DocfilesAffilProjectCruiseName(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class Users(WsRequestHandler):
 
     def post(self):
@@ -379,7 +404,7 @@ class Users(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class UsersLogin(WsRequestHandler):
 
     def get(self):
@@ -402,7 +427,7 @@ class UsersLogin(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class UsersLogout(WsRequestHandler):
 
     def get(self):
@@ -423,7 +448,7 @@ class UsersLogout(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class UsersId(WsRequestHandler):
 
     def get(self, id: str):

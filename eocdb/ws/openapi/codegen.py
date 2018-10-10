@@ -2,7 +2,6 @@ import builtins
 import os
 from contextlib import contextmanager
 from typing import List, Dict, Union, Tuple
-
 from .model import OpenAPI, Operation, Schema, Parameter
 
 TAB = "    "
@@ -29,7 +28,7 @@ class Code:
     def dec_indent(self):
         self._indent -= 1
 
-    def append(self, part: Union[str, list, "Code"] = None):
+    def append(self, part: Union[str, list, "Code"] = None) -> "Code":
         if isinstance(part, Code):
             self.append(part.lines)
         elif isinstance(part, list):
@@ -42,6 +41,7 @@ class Code:
             self._lines.append("")
         else:
             raise TypeError(f'part of unsupported type {type(part)}')
+        return self
 
     @property
     def lines(self) -> List[str]:
@@ -82,31 +82,64 @@ class CodeGen:
         self._gen_models(package, packages)
         return packages
 
+    def gen_test_code(self, package: str) -> Packages:
+        packages = dict()
+        self._gen_handlers_tests(package, packages)
+        self._gen_controllers_tests(package, packages)
+        self._gen_models_tests(package, packages)
+        return packages
+
     def _gen_handlers(self, package: str, packages: Packages):
         modules = dict()
-        modules["_handlers"] = self._gen_handler_code()
+        modules["__init__"] = self._gen_new_code_module().append("from ._mappings import MAPPINGS")
+        modules["_handlers"] = self._gen_handlers_code()
         modules["_mappings"] = self._gen_mappings_code()
-        modules["__init__"] = Code("from ._mappings import MAPPINGS")
         packages[package + ".handlers"] = modules
 
     def _gen_controllers(self, package: str, packages: Packages):
         modules = dict()
+        modules["__init__"] = self._gen_new_code_module()
         for path_item in self._openapi.path_items:
             for op in path_item.operations:
                 self._gen_controller_code(op, path_item.path, modules)
-        modules["__init__"] = Code()
         packages[package + ".controllers"] = modules
 
     def _gen_models(self, package: str, packages: Packages):
         modules = dict()
+        modules["__init__"] = self._gen_new_code_module()
         for schema_name, schema in self._openapi.components.schemas.items():
             self._gen_model_code(schema_name, schema, modules)
-        modules["__init__"] = Code()
         packages[package + ".models"] = modules
 
-    def _gen_handler_code(self) -> Code:
-        code = Code()
+    def _gen_handlers_tests(self, package: str, packages: Packages):
+        modules = dict()
+        modules["__init__"] = self._gen_new_code_module()
+        modules["test_handlers"] = self._gen_handlers_tests_code()
+        # TODO:
+        # modules["test_mappings"] = self._gen_mappings_tests_code()
+        packages[package + ".handlers"] = modules
 
+    def _gen_controllers_tests(self, package: str, packages: Packages):
+        modules = dict()
+        modules["__init__"] = self._gen_new_code_module()
+        for path_item in self._openapi.path_items:
+            for op in path_item.operations:
+                # TODO:
+                # self._gen_controller_tests_code(op, path_item.path, modules)
+                pass
+        packages[package + ".controllers"] = modules
+
+    def _gen_models_tests(self, package: str, packages: Packages):
+        modules = dict()
+        modules["__init__"] = self._gen_new_code_module()
+        for schema_name, schema in self._openapi.components.schemas.items():
+            # TODO:
+            # self._gen_model_tests_code(schema_name, schema, modules)
+            pass
+        packages[package + ".models"] = modules
+
+    def _gen_handlers_code(self) -> Code:
+        code = self._gen_new_code_module()
         code.append("import tornado.escape")
         code.append()
         code.append("from ..webservice import WsRequestHandler")
@@ -231,6 +264,114 @@ class CodeGen:
 
         return code
 
+    def _gen_handlers_tests_code(self) -> Code:
+        code = self._gen_new_code_module()
+        code.append("import urllib.parse")
+        code.append()
+        code.append("import tornado.escape")
+        code.append("import tornado.testing")
+        code.append()
+
+        code.append("from eocdb.ws.app import new_application")
+        code.append("from tests.ws.helpers import new_test_service_context")
+
+        for path_item in self._openapi.path_items:
+
+            # Request class definition
+            #
+            class_name = _get_py_handler_class_name(path_item.path)
+            code.append()
+            code.append()
+            code.append(f"class {class_name}Test(tornado.testing.AsyncHTTPTestCase):")
+            with code.indent():
+
+                code.append()
+                code.append("def get_app(self):")
+                with code.indent():
+                    code.append("return _get_app(self)")
+
+                for op in path_item.operations:
+
+                    # HTTP method declaration
+                    #
+                    code.append()
+                    code.append(f"def test_{op.method}(self):")
+
+                    with code.indent():
+                        path_params = [p for p in op.parameters if p.in_ == "path"]
+                        if path_params:
+                            code.append()
+                            code.append("# TODO: set path parameter(s) to reasonable value(s)")
+                            for param in path_params:
+                                code.append(f"{param.name} = None")
+
+                        query_params = [p for p in op.parameters if p.in_ == "query"]
+                        if query_params:
+                            code.append()
+                            code.append("# TODO: set query parameter(s) to reasonable value(s)")
+                            for param in query_params:
+                                code.append(f"{param.name} = None")
+
+                        req_mime_type, req_schema = _select_handled_mime_type_and_schema_from_request_body(op)
+                        if req_schema:
+                            code.append()
+                            code.append("# TODO: set data for request body to reasonable value")
+                            if req_schema.type == "array" and req_mime_type == "application/json":
+                                code.append("data = []")
+                                code.append("body = tornado.escape.json_encode(data)")
+                            elif req_schema.type == "object" and req_mime_type == "application/json":
+                                code.append("data = {}")
+                                code.append("body = tornado.escape.json_encode(data)")
+                            else:
+                                code.append("data = None")
+                                code.append("body = data")
+
+                        method_part = f', method={repr(op.method.upper())}'
+                        body_part = ', body=body' if req_schema else ''
+                        if query_params:
+                            dict_items = ", ".join([f"{p.name}={p.name}" for p in query_params])
+                            code.append(f"query = urllib.parse.urlencode(dict({dict_items}))")
+                            query_part = "?{query}"
+                            url_part = f'f\"{path_item.path}{query_part}\"'
+                        else:
+                            url_part = f'f\"{path_item.path}\"'
+
+                        code.append()
+                        code.append(f"response = self.fetch({url_part}{method_part}{body_part})")
+                        code.append("self.assertEqual(200, response.code)")
+                        code.append("self.assertEqual('OK', response.reason)")
+
+                        res_mime_type, res_schema = _select_handled_mime_type_and_schema_from_response(op)
+                        code.append()
+                        code.append("# TODO: set expected_response correctly")
+                        if res_schema:
+                            if res_schema.type == "array" and res_mime_type == "application/json":
+                                code.append("expected_response_data = []")
+                                code.append("actual_response_data = []")
+                                code.append(f"actual_response_data = tornado.escape.json_decode(response.body)")
+                            elif res_schema.type == "object" and res_mime_type == "application/json":
+                                code.append("expected_response_data = {}")
+                                code.append(f"actual_response_data = tornado.escape.json_decode(response.body)")
+                            else:
+                                code.append(f"expected_response_data = None")
+                                code.append(f"actual_response_data = response.body")
+                        else:
+                            code.append(f"expected_response_data = None")
+                            code.append(f"actual_response_data = None")
+
+                        code.append("self.assertEqual(expected_response_data, actual_response_data)")
+
+        code.append()
+        code.append()
+        code.append("# noinspection PyUnusedLocal")
+        code.append("def _get_app(test: tornado.testing.AsyncHTTPTestCase):")
+        with code.indent():
+            code.append("application = new_application()")
+            code.append("application.ws_context = new_test_service_context()")
+            code.append("return application")
+
+        return code
+
     def _gen_controller_code(self, op: Operation, path: str, module_code: Dict[str, Code]):
 
         module_name = _get_py_module_name(op)
@@ -240,7 +381,7 @@ class CodeGen:
         if module_name in module_code:
             code = module_code[module_name]
         else:
-            code = Code()
+            code = self._gen_new_code_module()
             module_code[module_name] = code
             code.append("from typing import Dict, List")
             code.append()
@@ -292,11 +433,12 @@ class CodeGen:
             code.append(f"from ..controllers.{module_name} import *")
         return code
 
-    def _gen_model_imports(self) -> Code:
-        schema_names = set(schema_name for schema_name in self._openapi.components.schemas)
+    def _gen_model_imports(self, package: str = "..models", excluded_schema_name: str = None) -> Code:
+        schema_names = set(schema_name for schema_name in self._openapi.components.schemas
+                           if not excluded_schema_name or excluded_schema_name != schema_name)
         code = Code()
         for schema_name in sorted(schema_names):
-            code.append(f"from ..models.{_get_py_lower_name(schema_name)} import {schema_name}")
+            code.append(f"from {package}.{_get_py_lower_name(schema_name)} import {schema_name}")
         return code
 
     @classmethod
@@ -328,19 +470,19 @@ class CodeGen:
             return Code(f"{py_name} = self.{source}.get_param{type_suffix}('{param.name}', "
                         f"default={repr(param.schema.default)})")
 
-    @classmethod
-    def _gen_model_code(cls, schema_name: str, schema: Schema, module_code: Dict[str, Code]):
+    def _gen_model_code(self, schema_name: str, schema: Schema, module_code: Dict[str, Code]):
         module_name = _get_py_lower_name(schema_name, esc_builtins=True)
         class_name = _get_py_camel_name(schema_name)
 
         if module_name in module_code:
             code = module_code[module_name]
         else:
-            code = Code()
+            code = self._gen_new_code_module()
             module_code[module_name] = code
             code.append("from typing import Dict, List")
             code.append()
             code.append("from ..model import Model")
+            code.append(self._gen_model_imports(package="", excluded_schema_name=schema_name))
 
         code.append()
         code.append()
@@ -379,7 +521,7 @@ class CodeGen:
                     code.append(f"self._{py_name} = value")
 
     def _gen_mappings_code(self) -> Code:
-        code = Code()
+        code = self._gen_new_code_module()
         code.append("from ._handlers import *")
         code.append("from ..webservice import url_pattern")
         code.append()
@@ -390,6 +532,13 @@ class CodeGen:
                 class_name = _get_py_handler_class_name(path_item.path)
                 code.append(f"(url_pattern('{path_item.path}'), {class_name}),")
         code.append(")")
+        return code
+
+    @classmethod
+    def _gen_new_code_module(cls) -> Code:
+        code = Code(_LICENSE_AND_COPYRIGHT)
+        code.append()
+        code.append()
         return code
 
 
@@ -498,3 +647,25 @@ def _split_req_and_opt_parameters(op: Operation) -> Tuple[List[Parameter], List[
         else:
             optional_params.append(parameter)
     return required_params, optional_params
+
+
+_LICENSE_AND_COPYRIGHT = """# The MIT License (MIT)
+# Copyright (c) 2018 by EUMETSAT
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+# of the Software, and to permit persons to whom the Software is furnished to do
+# so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE."""

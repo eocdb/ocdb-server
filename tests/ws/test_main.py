@@ -1,6 +1,6 @@
 import unittest
 
-from eocdb.ws.app import main  # , new_web_service
+from eocdb.ws.main import main  # , new_web_service
 
 
 # from tornado.ioloop import IOLoop
