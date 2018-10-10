@@ -1,14 +1,16 @@
+import os
 import unittest
 
-from eocdb.db.mongo_db_driver import MongoDbDriver
 from eocdb.core.query.parser import QueryParser
+from eocdb.db.mongo_db_driver import MongoDbDriver
 
 
+@unittest.skipIf(os.getenv("DISABLE_MONGO_DB_DRIVER_TEST"), "DISABLE_MONGO_DB_DRIVER_TEST=1")
 class TestMongoDbDriver(unittest.TestCase):
 
     def setUp(self):
         self.driver = MongoDbDriver()
-        self.driver.init(**{'url' : 'mongodb://10.3.14.146:27017/sb_extract'})
+        self.driver.init(**{'url': 'mongodb://10.3.14.146:27017/sb_extract'})
 
     def tearDown(self):
         self.driver.clear()
@@ -22,11 +24,11 @@ class TestMongoDbDriver(unittest.TestCase):
             pass
 
     def test_insert_one_and_get(self):
-        doc = {"affiliations" : "UCSB",
-               "received" : 20160829,
+        doc = {"affiliations": "UCSB",
+               "received": 20160829,
                "investigators": "Norm_Nelson",
-               "records" : [{"lon" : 109.8, "lat" : -38.4, "station" : 998, "depth" : 20, "sample" : 36},
-                            {"lon": 109.8, "lat": -38.4, "station": 998, "depth": 20, "sample": 35}]}
+               "records": [{"lon": 109.8, "lat": -38.4, "station": 998, "depth": 20, "sample": 36},
+                           {"lon": 109.8, "lat": -38.4, "station": 998, "depth": 20, "sample": 35}]}
 
         self.driver.insert(doc)
 
@@ -34,13 +36,12 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(1, len(dataset_list))
         self.assertEqual("UCSB", dataset_list[0].metadata["affiliations"])
 
-
     def test_insert_two_and_get_by_location(self):
-        doc = {"affiliations" : "UCSB",
-               "received" : 20160829,
+        doc = {"affiliations": "UCSB",
+               "received": 20160829,
                "investigators": "Norm_Nelson",
-               "records" : [{"lon" : 109.7, "lat" : -38.3, "station" : 998, "depth" : 20, "sample" : 36},
-                            {"lon": 109.9, "lat": -38.5, "station": 998, "depth": 20, "sample": 35}]}
+               "records": [{"lon": 109.7, "lat": -38.3, "station": 998, "depth": 20, "sample": 36},
+                           {"lon": 109.9, "lat": -38.5, "station": 998, "depth": 20, "sample": 35}]}
 
         self.driver.insert(doc)
 
@@ -66,4 +67,3 @@ class TestMongoDbDriver(unittest.TestCase):
         dataset_list = self.driver.get(expression)
         self.assertEqual(1, len(dataset_list))
         self.assertEqual("Laboratoire_Optique_Atmospherique", dataset_list[0].metadata["affiliations"])
-
