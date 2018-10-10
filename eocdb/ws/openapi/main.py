@@ -7,13 +7,8 @@ from eocdb.ws.openapi.parser import Parser
 def main():
     file = os.path.join(os.path.dirname(__file__), "..", "res", "openapi.yml")
     open_api = Parser.from_yaml(file)
-    code_gen = CodeGen(open_api)
-
-    packages = code_gen.gen_code("eocdb.ws")
+    packages = CodeGen.gen_code(open_api, "eocdb.ws", "test.ws")
     CodeWriter.write_packages("_openapi_stubs", packages)
-
-    test_packages = code_gen.gen_test_code("test.ws")
-    CodeWriter.write_packages("_openapi_stubs", test_packages)
 
 
 if __name__ == "__main__":

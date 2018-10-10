@@ -2,6 +2,7 @@ import builtins
 import os
 from contextlib import contextmanager
 from typing import List, Dict, Union, Tuple
+
 from .model import OpenAPI, Operation, Schema, Parameter
 
 TAB = "    "
@@ -72,71 +73,66 @@ class CodeWriter:
 
 
 class CodeGen:
-    def __init__(self, openapi: OpenAPI):
+    def __init__(self, openapi: OpenAPI, prod_package: str, test_package: str = None):
         self._openapi = openapi
+        self._prod_package = prod_package
+        self._test_package = test_package
 
-    def gen_code(self, package: str) -> Packages:
+    @classmethod
+    def gen_code(cls, openapi: OpenAPI, prod_package: str, test_package: str = None) -> Packages:
+        code_gen = CodeGen(openapi, prod_package, test_package=test_package)
         packages = dict()
-        self._gen_handlers(package, packages)
-        self._gen_controllers(package, packages)
-        self._gen_models(package, packages)
+        code_gen._gen_handlers(packages)
+        code_gen._gen_controllers(packages)
+        code_gen._gen_models(packages)
+        if test_package:
+            code_gen._gen_handlers_tests(packages)
+            code_gen._gen_controllers_tests(packages)
+            code_gen._gen_models_tests(packages)
         return packages
 
-    def gen_test_code(self, package: str) -> Packages:
-        packages = dict()
-        self._gen_handlers_tests(package, packages)
-        self._gen_controllers_tests(package, packages)
-        self._gen_models_tests(package, packages)
-        return packages
-
-    def _gen_handlers(self, package: str, packages: Packages):
+    def _gen_handlers(self, packages: Packages):
         modules = dict()
         modules["__init__"] = self._gen_new_code_module().append("from ._mappings import MAPPINGS")
         modules["_handlers"] = self._gen_handlers_code()
         modules["_mappings"] = self._gen_mappings_code()
-        packages[package + ".handlers"] = modules
+        packages[self._prod_package + ".handlers"] = modules
 
-    def _gen_controllers(self, package: str, packages: Packages):
+    def _gen_handlers_tests(self, packages: Packages):
+        modules = dict()
+        modules["__init__"] = self._gen_new_code_module()
+        modules["test_handlers"] = self._gen_handlers_tests_code()
+        packages[self._test_package + ".handlers"] = modules
+
+    def _gen_controllers(self, packages: Packages):
         modules = dict()
         modules["__init__"] = self._gen_new_code_module()
         for path_item in self._openapi.path_items:
             for op in path_item.operations:
                 self._gen_controller_code(op, path_item.path, modules)
-        packages[package + ".controllers"] = modules
+        packages[self._prod_package + ".controllers"] = modules
 
-    def _gen_models(self, package: str, packages: Packages):
-        modules = dict()
-        modules["__init__"] = self._gen_new_code_module()
-        for schema_name, schema in self._openapi.components.schemas.items():
-            self._gen_model_code(schema_name, schema, modules)
-        packages[package + ".models"] = modules
-
-    def _gen_handlers_tests(self, package: str, packages: Packages):
-        modules = dict()
-        modules["__init__"] = self._gen_new_code_module()
-        modules["test_handlers"] = self._gen_handlers_tests_code()
-        # TODO:
-        # modules["test_mappings"] = self._gen_mappings_tests_code()
-        packages[package + ".handlers"] = modules
-
-    def _gen_controllers_tests(self, package: str, packages: Packages):
+    def _gen_controllers_tests(self, packages: Packages):
         modules = dict()
         modules["__init__"] = self._gen_new_code_module()
         for path_item in self._openapi.path_items:
             for op in path_item.operations:
-                # TODO:
-                # self._gen_controller_tests_code(op, path_item.path, modules)
-                pass
-        packages[package + ".controllers"] = modules
+                self._gen_controller_test_code(op, path_item.path, modules)
+        packages[self._test_package + ".controllers"] = modules
 
-    def _gen_models_tests(self, package: str, packages: Packages):
+    def _gen_models(self, packages: Packages):
         modules = dict()
         modules["__init__"] = self._gen_new_code_module()
         for schema_name, schema in self._openapi.components.schemas.items():
-            # TODO:
-            # self._gen_model_tests_code(schema_name, schema, modules)
-            pass
-        packages[package + ".models"] = modules
+            self._gen_model_code(schema_name, schema, modules)
+        packages[self._prod_package + ".models"] = modules
+
+    def _gen_models_tests(self, packages: Packages):
+        modules = dict()
+        modules["__init__"] = self._gen_new_code_module()
+        for schema_name, schema in self._openapi.components.schemas.items():
+            self._gen_model_tests_code(schema_name, schema, modules)
+        packages[self._test_package + ".models"] = modules
 
     def _gen_handlers_code(self) -> Code:
         code = self._gen_new_code_module()
@@ -216,7 +212,7 @@ class CodeGen:
 
                             # Call controller operation
                             #
-                            func_name = _get_py_controller_func_name(op, class_name)
+                            func_name = _get_py_op_func_name(op, class_name)
                             call_args_parts = []
                             for param in req_params:
                                 py_name = _get_py_lower_name(param.name, esc_builtins=True)
@@ -266,14 +262,15 @@ class CodeGen:
 
     def _gen_handlers_tests_code(self) -> Code:
         code = self._gen_new_code_module()
+        code.append("import unittest")
         code.append("import urllib.parse")
         code.append()
         code.append("import tornado.escape")
         code.append("import tornado.testing")
         code.append()
 
-        code.append("from eocdb.ws.app import new_application")
-        code.append("from tests.ws.helpers import new_test_service_context")
+        code.append(f"from {self._prod_package}.app import new_application")
+        code.append(f"from {self._test_package}.helpers import new_test_service_context")
 
         for path_item in self._openapi.path_items:
 
@@ -295,6 +292,7 @@ class CodeGen:
                     # HTTP method declaration
                     #
                     code.append()
+                    code.append("@unittest.skip('not implemented yet')")
                     code.append(f"def test_{op.method}(self):")
 
                     with code.indent():
@@ -374,9 +372,9 @@ class CodeGen:
 
     def _gen_controller_code(self, op: Operation, path: str, module_code: Dict[str, Code]):
 
-        module_name = _get_py_module_name(op)
+        module_name = _get_py_op_module_name(op)
         class_name = _get_py_handler_class_name(path)
-        func_name = _get_py_controller_func_name(op, class_name)
+        func_name = _get_py_op_func_name(op, class_name)
 
         if module_name in module_code:
             code = module_code[module_name]
@@ -422,15 +420,121 @@ class CodeGen:
             code.append(f"# return dict(code=200, status='OK')")
             code.append(f"raise NotImplementedError('operation {func_name}() not yet implemented')")
 
-    def _gen_controller_imports(self) -> Code:
+    def _gen_controller_test_code(self, op: Operation, path: str, module_code: Dict[str, Code]):
+
+        module_name = "test_" + _get_py_op_module_name(op)
+        test_class_name = _get_py_op_test_class_name(op)
+        handler_class_name = _get_py_handler_class_name(path)
+        func_name = _get_py_op_func_name(op, handler_class_name)
+
+        if module_name in module_code:
+            code = module_code[module_name]
+        else:
+            code = self._gen_new_code_module()
+            module_code[module_name] = code
+            code.append("import unittest")
+            code.append()
+            code.append(self._gen_controller_imports(package=self._prod_package + ".controllers"))
+            code.append(self._gen_model_imports(package=self._prod_package + ".models"))
+            code.append(f"from {self._test_package}.helpers import new_test_service_context")
+            code.append()
+            code.append()
+            code.append(f"class {test_class_name}(unittest.TestCase):")
+            code.append()
+            with code.indent():
+                code.append("def setUp(self):")
+                with code.indent():
+                    code.append("self.ctx = new_test_service_context()")
+
+        with code.indent():
+            code.append()
+            code.append("@unittest.skip('not implemented yet')")
+            code.append(f"def test_{func_name}(self):")
+            with code.indent():
+                req_params, opt_params = _split_req_and_opt_parameters(op)
+
+                if req_params:
+                    code.append("# TODO: set required parameters")
+                    for param in req_params:
+                        py_name = _get_py_lower_name(param.name, esc_builtins=True)
+                        code.append(f"{py_name} = None")
+
+                req_mime_type, req_schema = _select_handled_mime_type_and_schema_from_request_body(op)
+                if req_schema:
+                    if req_schema.type == "array":
+                        code.append("# TODO: set data list items")
+                        code.append(f"data = []")
+                    elif req_schema.type == "object":
+                        if req_schema.ref_name:
+                            code.append(f"data = {req_schema.ref_name}()")
+                            code.append("# TODO: set data properties")
+                        else:
+                            code.append("# TODO: set data dict items")
+                            code.append("data = {}")
+                    else:
+                        code.append("# TODO: set data")
+                        code.append("data = None")
+
+                if opt_params:
+                    code.append("# TODO: set optional parameters")
+                    for param in opt_params:
+                        py_name = _get_py_lower_name(param.name, esc_builtins=True)
+                        code.append(f"{py_name} = None")
+
+                call_param_parts = []
+                for param in req_params:
+                    py_name = _get_py_lower_name(param.name, esc_builtins=True)
+                    call_param_parts.append(f"{py_name}")
+
+                if req_schema:
+                    call_param_parts.append(f"data=data")
+
+                for param in opt_params:
+                    py_name = _get_py_lower_name(param.name, esc_builtins=True)
+                    call_param_parts.append(f"{py_name}={py_name}")
+
+                call_params = ", ".join(call_param_parts)
+
+                code.append()
+                if call_params:
+                    code.append(f"result = {func_name}(self.ctx, {call_params})")
+                else:
+                    code.append(f"result = {func_name}(self.ctx)")
+
+                res_mime_type, res_schema = _select_handled_mime_type_and_schema_from_response(op)
+                if res_schema:
+                    if res_schema.type == "array":
+                        code.append("self.assertIsInstance(result, list)")
+                        code.append("# TODO: set expected result")
+                        code.append("expected_result = []")
+                        code.append("self.assertEqual(expected_result, result)")
+                    elif res_schema.type == "object":
+                        if res_schema.ref_name:
+                            code.append(f"self.assertIsInstance(result, {res_schema.ref_name})")
+                            code.append(f"expected_result = {res_schema.ref_name}()")
+                            code.append("# TODO: set expected result properties")
+                            code.append("self.assertEqual(expected_result, result)")
+                        else:
+                            code.append(f"self.assertIsInstance(result, dict)")
+                            code.append("# TODO: set expected result")
+                            code.append("expected_result = {}")
+                            code.append("self.assertEqual(expected_result, result)")
+                    else:
+                        code.append("# TODO: set expected result")
+                        code.append("expected_result = None")
+                        code.append("self.assertEqual(expected_result, result)")
+                else:
+                    code.append("self.assertIsNone(result)")
+
+    def _gen_controller_imports(self, package: str = "..controllers") -> Code:
         module_names = set()
         for path_item in self._openapi.path_items:
             for op in path_item.operations:
-                module_name = _get_py_module_name(op)
+                module_name = _get_py_op_module_name(op)
                 module_names.add(module_name)
         code = Code()
         for module_name in sorted(module_names):
-            code.append(f"from ..controllers.{module_name} import *")
+            code.append(f"from {package}.{module_name} import *")
         return code
 
     def _gen_model_imports(self, package: str = "..models", excluded_schema_name: str = None) -> Code:
@@ -520,6 +624,10 @@ class CodeGen:
                 with code.indent():
                     code.append(f"self._{py_name} = value")
 
+    def _gen_model_tests_code(self, schema_name: str, schema: Schema, modules: Dict[str, Code]):
+        # Should generate test code here, but models are actually just stupid object structures
+        pass
+
     def _gen_mappings_code(self) -> Code:
         code = self._gen_new_code_module()
         code.append("from ._handlers import *")
@@ -545,8 +653,12 @@ class CodeGen:
 _TYPE_TO_PY_TYPE_MAP = dict(string="str", number="float", boolean="bool", integer="int", array='List', object="Dict")
 
 
-def _get_py_module_name(op: Operation):
+def _get_py_op_module_name(op: Operation):
     return op.tags[0].lower() if op.tags and len(op.tags) else "default"
+
+
+def _get_py_op_test_class_name(op: Operation):
+    return _get_py_camel_name(op.tags[0]) + "Test" if op.tags and len(op.tags) else "Test"
 
 
 def _get_py_type_name(schema: Schema) -> str:
@@ -634,7 +746,7 @@ def _get_py_handler_class_name(path: str) -> str:
     return _get_py_camel_name(path.replace('/', '_').replace('{', '').replace('}', '').lower())
 
 
-def _get_py_controller_func_name(op: Operation, class_name: str):
+def _get_py_op_func_name(op: Operation, class_name: str):
     return _get_py_lower_name(op.operation_id if op.operation_id else op.method + class_name, esc_builtins=True)
 
 
