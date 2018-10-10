@@ -75,6 +75,11 @@ class Schema(metaclass=ABCMeta):
     def default(self) -> Any:
         pass
 
+    @property
+    @abstractmethod
+    def description(self) -> Optional[str]:
+        pass
+
 
 class SchemaImpl(Schema):
     def __init__(self,
@@ -87,7 +92,8 @@ class SchemaImpl(Schema):
                  minimum: Number = None,
                  maximum: Number = None,
                  nullable: bool = False,
-                 default: Any = None):
+                 default: Any = None,
+                 description: str = None):
         assert_one_of(type_, "type", {"string", "number", "integer", "boolean", "array", "object"})
         assert_not_empty(ref_name, "ref_name")
         self._type = type_
@@ -100,6 +106,7 @@ class SchemaImpl(Schema):
         self._maximum = maximum
         self._nullable = nullable
         self._default = default
+        self._description = description
 
     @property
     def type(self) -> str:
@@ -140,6 +147,10 @@ class SchemaImpl(Schema):
     @property
     def default(self) -> Any:
         return self._default
+
+    @property
+    def description(self) -> Optional[str]:
+        return self._description
 
 
 class SchemaProxy(Schema):
@@ -194,6 +205,9 @@ class SchemaProxy(Schema):
     def default(self) -> Any:
         return self.delegate.default
 
+    @property
+    def description(self) -> Optional[str]:
+        return self.delegate.description
 
 class Component:
     def __init__(self, ref_name: str = None):
