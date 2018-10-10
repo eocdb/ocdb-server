@@ -700,6 +700,17 @@ class Code:
     def lines(self) -> List[str]:
         return self._lines
 
+    def write_module(self, package_dir: str, module_name: str):
+        with open(os.path.join(package_dir, module_name + ".py"), "w") as fp:
+            fp.writelines(line + "\n" for line in self.lines)
+
+    @classmethod
+    def write_modules(cls, base_dir: str, package: str, module_code: Dict[str, "Code"]):
+        package_dir = os.path.join(base_dir, *package.split("."))
+        os.makedirs(package_dir, exist_ok=True)
+        for module_name in module_code:
+            module_code[module_name].write_module(package_dir, module_name)
+
 
 class CodeGen:
     def __init__(self, openapi: OpenAPI, package: str):
@@ -718,7 +729,7 @@ class CodeGen:
             for op in path_item.operations:
                 self._gen_controller_code(op, path_item.path, module_code)
         module_code["__init__"] = Code()
-        self._write_code(base_dir, package, module_code)
+        Code.write_modules(base_dir, package, module_code)
 
     def _gen_models(self, base_dir: str):
         package = self._package + ".models"
@@ -726,7 +737,7 @@ class CodeGen:
         for schema_name, schema in self._openapi.components.schemas.items():
             self._gen_model_code(schema_name, schema, module_code)
         module_code["__init__"] = Code()
-        self._write_code(base_dir, package, module_code)
+        Code.write_modules(base_dir, package, module_code)
 
     def _gen_handlers(self, base_dir: str):
         package = self._package + ".handlers"
@@ -734,7 +745,7 @@ class CodeGen:
         module_code["_handlers"] = self._gen_handler_code()
         module_code["_mappings"] = self._gen_mappings_code()
         module_code["__init__"] = Code("from ._mappings import MAPPINGS")
-        self._write_code(base_dir, package, module_code)
+        Code.write_modules(base_dir, package, module_code)
 
     def _gen_handler_code(self) -> Code:
         code = Code()
@@ -1009,15 +1020,6 @@ class CodeGen:
         code.append(")")
         return code
 
-    @classmethod
-    def _write_code(cls, base_dir: str, package: str, module_code: Dict[str, Code]):
-        package_dir = os.path.join(base_dir, *package.split("."))
-        os.makedirs(package_dir, exist_ok=True)
-        for module_name in module_code:
-            code = module_code[module_name]
-            with open(os.path.join(package_dir, module_name + ".py"), "w") as fp:
-                fp.writelines(line + "\n" for line in code.lines)
-
 
 _TYPE_TO_PY_TYPE_MAP = dict(string="str", number="float", boolean="bool", integer="int", array='List', object="Dict")
 
@@ -1045,6 +1047,7 @@ def _select_handled_mime_type_and_schema_from_request_body(op: Operation):
         req_mime_type, req_schema = _select_handled_mime_type_and_schema(op.request_body.content)
     return req_mime_type, req_schema
 
+
 def _select_handled_mime_type_and_schema_from_response(op: Operation):
     res_mime_type = res_schema = None
     if op.responses:
@@ -1052,6 +1055,7 @@ def _select_handled_mime_type_and_schema_from_response(op: Operation):
         if response and response.content:
             res_mime_type, res_schema = _select_handled_mime_type_and_schema(response.content)
     return res_mime_type, res_schema
+
 
 def _select_handled_mime_type_and_schema(content: Dict[str, Schema]) -> Tuple[str, Schema]:
     if not content:
@@ -1107,7 +1111,6 @@ def _get_py_handler_class_name(path: str) -> str:
     if path.startswith('/'):
         path = path[1:]
     return _get_py_camel_name(path.replace('/', '_').replace('{', '').replace('}', '').lower())
-
 
 
 def _get_py_controller_func_name(op: Operation, class_name: str):
