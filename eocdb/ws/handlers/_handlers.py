@@ -22,20 +22,14 @@
 
 import tornado.escape
 
-from ..webservice import WsRequestHandler
-from ..reqparams import RequestParams
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.store import *
 from ..controllers.users import *
-from ..models.api_response import ApiResponse
-from ..models.bucket import Bucket
 from ..models.dataset import Dataset
-from ..models.dataset_query import DatasetQuery
-from ..models.dataset_query_result import DatasetQueryResult
-from ..models.dataset_ref import DatasetRef
-from ..models.doc_file_ref import DocFileRef
 from ..models.user import User
+from ..reqparams import RequestParams
+from ..webservice import WsRequestHandler
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -102,7 +96,9 @@ class StoreDownload(WsRequestHandler):
             pgroup = self.query.get_param_list('pgroup', default=None)
             pname = self.query.get_param_list('pname', default=None)
             docs = self.query.get_param_bool('docs', default=None)
-            result = download_store_files(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname, docs=docs)
+            result = download_store_files(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth,
+                                          mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
+                                          pname=pname, docs=docs)
 
             # transform result of type str into response with mime-type application/octet-stream
             # TODO: transform result first
@@ -135,7 +131,9 @@ class Datasets(WsRequestHandler):
             pname = self.query.get_param_list('pname', default=None)
             offset = self.query.get_param_int('offset', default=None)
             count = self.query.get_param_int('count', default=None)
-            result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname, offset=offset, count=count)
+            result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
+                                   wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
+                                   offset=offset, count=count)
 
             # transform result of type DatasetQueryResult into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
@@ -260,7 +258,8 @@ class DatasetsAffilProjectCruiseName(WsRequestHandler):
         """Provide API operation getDatasetByBucketAndName()."""
         # noinspection PyBroadException,PyUnusedLocal
         try:
-            result = get_dataset_by_bucket_and_name(self.ws_context, affil=affil, project=project, cruise=cruise, name=name)
+            result = get_dataset_by_bucket_and_name(self.ws_context, affil=affil, project=project, cruise=cruise,
+                                                    name=name)
 
             # transform result of type str into response with mime-type application/octet-stream
             # TODO: transform result first

@@ -20,13 +20,14 @@
 # SOFTWARE.
 
 
+import unittest
 import urllib.parse
 
 import tornado.escape
 import tornado.testing
 
 from eocdb.ws.app import new_application
-from tests.ws.helpers import new_test_service_context
+from ..helpers import new_test_service_context
 
 
 class StoreInfoTest(tornado.testing.AsyncHTTPTestCase):
@@ -34,8 +35,8 @@ class StoreInfoTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         response = self.fetch(f"/store/info", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
@@ -51,8 +52,8 @@ class StoreUploadTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_post(self):
-
         # TODO: set data for request body to reasonable value
         data = None
         body = data
@@ -72,8 +73,8 @@ class StoreDownloadTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         # TODO: set query parameter(s) to reasonable value(s)
         expr = None
         region = None
@@ -86,7 +87,9 @@ class StoreDownloadTest(tornado.testing.AsyncHTTPTestCase):
         pgroup = None
         pname = None
         docs = None
-        query = urllib.parse.urlencode(dict(expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname, docs=docs))
+        query = urllib.parse.urlencode(
+            dict(expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow,
+                 pmode=pmode, pgroup=pgroup, pname=pname, docs=docs))
 
         response = self.fetch(f"/store/download?{query}", method='GET')
         self.assertEqual(200, response.code)
@@ -103,8 +106,8 @@ class DatasetsTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         # TODO: set query parameter(s) to reasonable value(s)
         expr = None
         region = None
@@ -118,7 +121,9 @@ class DatasetsTest(tornado.testing.AsyncHTTPTestCase):
         pname = None
         offset = None
         count = None
-        query = urllib.parse.urlencode(dict(expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname, offset=offset, count=count))
+        query = urllib.parse.urlencode(
+            dict(expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow,
+                 pmode=pmode, pgroup=pgroup, pname=pname, offset=offset, count=count))
 
         response = self.fetch(f"/datasets?{query}", method='GET')
         self.assertEqual(200, response.code)
@@ -129,8 +134,8 @@ class DatasetsTest(tornado.testing.AsyncHTTPTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
+    @unittest.skip('not implemented yet')
     def test_put(self):
-
         # TODO: set data for request body to reasonable value
         data = {}
         body = tornado.escape.json_encode(data)
@@ -144,8 +149,8 @@ class DatasetsTest(tornado.testing.AsyncHTTPTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
+    @unittest.skip('not implemented yet')
     def test_post(self):
-
         # TODO: set data for request body to reasonable value
         data = {}
         body = tornado.escape.json_encode(data)
@@ -165,8 +170,8 @@ class DatasetsIdTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         # TODO: set path parameter(s) to reasonable value(s)
         id = None
 
@@ -179,8 +184,8 @@ class DatasetsIdTest(tornado.testing.AsyncHTTPTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
+    @unittest.skip('not implemented yet')
     def test_delete(self):
-
         # TODO: set path parameter(s) to reasonable value(s)
         id = None
 
@@ -199,8 +204,8 @@ class DatasetsAffilProjectCruiseTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         # TODO: set path parameter(s) to reasonable value(s)
         affil = None
         project = None
@@ -222,8 +227,8 @@ class DatasetsAffilProjectCruiseNameTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         # TODO: set path parameter(s) to reasonable value(s)
         affil = None
         project = None
@@ -245,8 +250,8 @@ class DocfilesTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_put(self):
-
         # TODO: set data for request body to reasonable value
         data = None
         body = data
@@ -260,8 +265,8 @@ class DocfilesTest(tornado.testing.AsyncHTTPTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
+    @unittest.skip('not implemented yet')
     def test_post(self):
-
         # TODO: set data for request body to reasonable value
         data = None
         body = data
@@ -281,8 +286,8 @@ class DocfilesAffilProjectCruiseTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         # TODO: set path parameter(s) to reasonable value(s)
         affil = None
         project = None
@@ -304,8 +309,8 @@ class DocfilesAffilProjectCruiseNameTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         # TODO: set path parameter(s) to reasonable value(s)
         affil = None
         project = None
@@ -321,8 +326,8 @@ class DocfilesAffilProjectCruiseNameTest(tornado.testing.AsyncHTTPTestCase):
         actual_response_data = response.body
         self.assertEqual(expected_response_data, actual_response_data)
 
+    @unittest.skip('not implemented yet')
     def test_delete(self):
-
         # TODO: set path parameter(s) to reasonable value(s)
         affil = None
         project = None
@@ -344,8 +349,8 @@ class UsersTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_post(self):
-
         # TODO: set data for request body to reasonable value
         data = {}
         body = tornado.escape.json_encode(data)
@@ -365,8 +370,8 @@ class UsersLoginTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         # TODO: set query parameter(s) to reasonable value(s)
         username = None
         password = None
@@ -387,8 +392,8 @@ class UsersLogoutTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         response = self.fetch(f"/users/logout", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
@@ -404,8 +409,8 @@ class UsersIdTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
+    @unittest.skip('not implemented yet')
     def test_get(self):
-
         # TODO: set path parameter(s) to reasonable value(s)
         id = None
 
@@ -418,8 +423,8 @@ class UsersIdTest(tornado.testing.AsyncHTTPTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
+    @unittest.skip('not implemented yet')
     def test_put(self):
-
         # TODO: set path parameter(s) to reasonable value(s)
         id = None
 
@@ -436,8 +441,8 @@ class UsersIdTest(tornado.testing.AsyncHTTPTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
+    @unittest.skip('not implemented yet')
     def test_delete(self):
-
         # TODO: set path parameter(s) to reasonable value(s)
         id = None
 

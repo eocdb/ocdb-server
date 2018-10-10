@@ -20,16 +20,8 @@
 # SOFTWARE.
 
 
-from typing import Dict, List
-
 from ..context import WsContext
 from ..models.api_response import ApiResponse
-from ..models.bucket import Bucket
-from ..models.dataset import Dataset
-from ..models.dataset_query import DatasetQuery
-from ..models.dataset_query_result import DatasetQueryResult
-from ..models.dataset_ref import DatasetRef
-from ..models.doc_file_ref import DocFileRef
 from ..models.user import User
 
 

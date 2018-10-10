@@ -23,8 +23,7 @@
 from ._handlers import *
 from ..webservice import url_pattern
 
-
-MAPPINGS = (
+MAPPINGS = [
     (url_pattern('/store/info'), StoreInfo),
     (url_pattern('/store/upload'), StoreUpload),
     (url_pattern('/store/download'), StoreDownload),
@@ -39,4 +38,4 @@ MAPPINGS = (
     (url_pattern('/users/login'), UsersLogin),
     (url_pattern('/users/logout'), UsersLogout),
     (url_pattern('/users/{id}'), UsersId),
-)
+]
