@@ -82,6 +82,13 @@ class CodeGen:
         self._gen_models(package, packages)
         return packages
 
+    def _gen_handlers(self, package: str, packages: Packages):
+        modules = dict()
+        modules["_handlers"] = self._gen_handler_code()
+        modules["_mappings"] = self._gen_mappings_code()
+        modules["__init__"] = Code("from ._mappings import MAPPINGS")
+        packages[package + ".handlers"] = modules
+
     def _gen_controllers(self, package: str, packages: Packages):
         modules = dict()
         for path_item in self._openapi.path_items:
@@ -97,13 +104,6 @@ class CodeGen:
         modules["__init__"] = Code()
         packages[package + ".models"] = modules
 
-    def _gen_handlers(self, package: str, packages: Packages):
-        modules = dict()
-        modules["_handlers"] = self._gen_handler_code()
-        modules["_mappings"] = self._gen_mappings_code()
-        modules["__init__"] = Code("from ._mappings import MAPPINGS")
-        packages[package + ".handlers"] = modules
-
     def _gen_handler_code(self) -> Code:
         code = Code()
 
@@ -111,14 +111,8 @@ class CodeGen:
         code.append()
         code.append("from ..webservice import WsRequestHandler")
         code.append("from ..reqparams import RequestParams")
-
-        module_names = set()
-        for path_item in self._openapi.path_items:
-            for op in path_item.operations:
-                module_name = _get_py_module_name(op)
-                module_names.add(module_name)
-        for module_name in sorted(module_names):
-            code.append(f"from ..controllers.{module_name} import *")
+        code.append(self._gen_controller_imports())
+        code.append(self._gen_model_imports())
 
         for path_item in self._openapi.path_items:
 
@@ -172,7 +166,8 @@ class CodeGen:
                             # Get request body data
                             #
                             if req_py_type_name:
-                                code.append(f"# transform body with mime-type {req_mime_type} into a {req_py_type_name}")
+                                code.append(
+                                    f"# transform body with mime-type {req_mime_type} into a {req_py_type_name}")
                                 if req_mime_type == "application/json":
                                     if req_py_type_name == "Dict":
                                         code.append(f"data = tornado.escape.json_decode(self.request.body)")
@@ -208,8 +203,8 @@ class CodeGen:
                             #
                             if res_py_type_name:
                                 code.append()
-                                code.append(
-                                    f"# transform result of type {res_py_type_name} into response with mime-type {res_mime_type}")
+                                code.append(f"# transform result of type {res_py_type_name}"
+                                            f" into response with mime-type {res_mime_type}")
                                 if res_mime_type == "application/json":
                                     code.append(f"self.set_header('Content-Type', '{res_mime_type}')")
                                     if res_py_type_name in {"bool", "str", "int", "float", "List", "Dict"}:
@@ -234,40 +229,9 @@ class CodeGen:
                         with code.indent():
                             code.append("self.finish()")
 
-
         return code
 
-    @classmethod
-    def _gen_fetch_param_code(cls, param) -> Code:
-        py_name = _get_py_lower_name(param.name, esc_builtins=True)
-        py_type = _get_py_type_name(param.schema)
-        if py_type == "str":
-            type_suffix = ""
-        elif py_type == "List[str]":
-            type_suffix = "_list"
-        elif py_type == "List[bool]":
-            type_suffix = "_bool_list"
-        elif py_type == "List[int]":
-            type_suffix = "_int_list"
-        elif py_type == "List[float]":
-            type_suffix = "_float_list"
-        else:
-            type_suffix = "_" + py_type
-        source = param.in_
-        if source == "path":
-            if py_type == "str":
-                if py_name != param.name:
-                    return Code(f"{py_name} = {param.name}")
-                else:
-                    return Code()
-            else:
-                return Code(f"{py_name} = RequestParams.to{type_suffix}('{param.name}', {param.name})")
-        else:
-            return Code(f"{py_name} = self.{source}.get_param{type_suffix}('{param.name}', "
-                        f"default={repr(param.schema.default)})")
-
-    @classmethod
-    def _gen_controller_code(cls, op: Operation, path: str, module_code: Dict[str, Code]):
+    def _gen_controller_code(self, op: Operation, path: str, module_code: Dict[str, Code]):
 
         module_name = _get_py_module_name(op)
         class_name = _get_py_handler_class_name(path)
@@ -276,10 +240,12 @@ class CodeGen:
         if module_name in module_code:
             code = module_code[module_name]
         else:
-            code = Code(["from typing import List",
-                         "",
-                         "from ..context import WsContext"])
+            code = Code()
             module_code[module_name] = code
+            code.append("from typing import Dict, List")
+            code.append()
+            code.append("from ..context import WsContext")
+            code.append(self._gen_model_imports())
 
         req_params, opt_params = _split_req_and_opt_parameters(op)
 
@@ -315,6 +281,53 @@ class CodeGen:
             code.append(f"# return dict(code=200, status='OK')")
             code.append(f"raise NotImplementedError('operation {func_name}() not yet implemented')")
 
+    def _gen_controller_imports(self) -> Code:
+        module_names = set()
+        for path_item in self._openapi.path_items:
+            for op in path_item.operations:
+                module_name = _get_py_module_name(op)
+                module_names.add(module_name)
+        code = Code()
+        for module_name in sorted(module_names):
+            code.append(f"from ..controllers.{module_name} import *")
+        return code
+
+    def _gen_model_imports(self) -> Code:
+        schema_names = set(schema_name for schema_name in self._openapi.components.schemas)
+        code = Code()
+        for schema_name in sorted(schema_names):
+            code.append(f"from ..models.{_get_py_lower_name(schema_name)} import {schema_name}")
+        return code
+
+    @classmethod
+    def _gen_fetch_param_code(cls, param) -> Code:
+        py_name = _get_py_lower_name(param.name, esc_builtins=True)
+        py_type = _get_py_type_name(param.schema)
+        if py_type == "str":
+            type_suffix = ""
+        elif py_type == "List[str]":
+            type_suffix = "_list"
+        elif py_type == "List[bool]":
+            type_suffix = "_bool_list"
+        elif py_type == "List[int]":
+            type_suffix = "_int_list"
+        elif py_type == "List[float]":
+            type_suffix = "_float_list"
+        else:
+            type_suffix = "_" + py_type
+        source = param.in_
+        if source == "path":
+            if py_type == "str":
+                if py_name != param.name:
+                    return Code(f"{py_name} = {param.name}")
+                else:
+                    return Code()
+            else:
+                return Code(f"{py_name} = RequestParams.to{type_suffix}('{param.name}', {param.name})")
+        else:
+            return Code(f"{py_name} = self.{source}.get_param{type_suffix}('{param.name}', "
+                        f"default={repr(param.schema.default)})")
+
     @classmethod
     def _gen_model_code(cls, schema_name: str, schema: Schema, module_code: Dict[str, Code]):
         module_name = _get_py_lower_name(schema_name, esc_builtins=True)
@@ -323,15 +336,22 @@ class CodeGen:
         if module_name in module_code:
             code = module_code[module_name]
         else:
-            code = Code(["from typing import List",
-                         "",
-                         "from ..model import Model"])
+            code = Code()
             module_code[module_name] = code
+            code.append("from typing import Dict, List")
+            code.append()
+            code.append("from ..model import Model")
 
         code.append()
         code.append()
         code.append(f"class {class_name}(Model):")
         with code.indent():
+            code.append('"""')
+            if schema.description:
+                code.append(schema.description)
+            else:
+                code.append(f'The {class_name} model.')
+            code.append('"""')
 
             code.append()
             code.append(f"def __init__(self):")
@@ -357,7 +377,6 @@ class CodeGen:
                 code.append(f"def {py_name}(self, value: {py_type}):")
                 with code.indent():
                     code.append(f"self._{py_name} = value")
-
 
     def _gen_mappings_code(self) -> Code:
         code = Code()
