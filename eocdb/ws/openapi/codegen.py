@@ -38,52 +38,62 @@ class Code:
     def lines(self) -> List[str]:
         return self._lines
 
-    def write_module(self, package_dir: str, module_name: str):
-        with open(os.path.join(package_dir, module_name + ".py"), "w") as fp:
-            fp.writelines(line + "\n" for line in self.lines)
+
+Modules = Dict[str, Code]
+Packages = Dict[str, Modules]
+
+
+class CodeWriter:
+    @classmethod
+    def write_packages(cls, base_dir: str, packages: Packages):
+        for package, modules in packages.items():
+            cls.write_modules(base_dir, package, modules)
 
     @classmethod
-    def write_modules(cls, base_dir: str, package: str, module_code: Dict[str, "Code"]):
+    def write_modules(cls, base_dir: str, package: str, modules: Modules):
         package_dir = os.path.join(base_dir, *package.split("."))
         os.makedirs(package_dir, exist_ok=True)
-        for module_name in module_code:
-            module_code[module_name].write_module(package_dir, module_name)
+        for module_name, module_code in modules.items():
+            cls.write_module(package_dir, module_name, module_code)
+
+    @classmethod
+    def write_module(cls, package_dir: str, module_name: str, code: Code):
+        with open(os.path.join(package_dir, module_name + ".py"), "w") as fp:
+            fp.writelines(line + "\n" for line in code.lines)
 
 
 class CodeGen:
-    def __init__(self, openapi: OpenAPI, package: str):
+    def __init__(self, openapi: OpenAPI):
         self._openapi = openapi
-        self._package = package
 
-    def gen_code(self, base_dir: str):
-        self._gen_handlers(base_dir)
-        self._gen_controllers(base_dir)
-        self._gen_models(base_dir)
+    def gen_code(self, package: str) -> Packages:
+        packages = dict()
+        self._gen_handlers(package, packages)
+        self._gen_controllers(package, packages)
+        self._gen_models(package, packages)
+        return packages
 
-    def _gen_controllers(self, base_dir: str):
-        package = self._package + ".controllers"
-        module_code = dict()
+    def _gen_controllers(self, package: str, packages: Packages):
+        modules = dict()
         for path_item in self._openapi.path_items:
             for op in path_item.operations:
-                self._gen_controller_code(op, path_item.path, module_code)
-        module_code["__init__"] = Code()
-        Code.write_modules(base_dir, package, module_code)
+                self._gen_controller_code(op, path_item.path, modules)
+        modules["__init__"] = Code()
+        packages[package + ".controllers"] = modules
 
-    def _gen_models(self, base_dir: str):
-        package = self._package + ".models"
-        module_code = dict()
+    def _gen_models(self, package: str, packages: Packages):
+        modules = dict()
         for schema_name, schema in self._openapi.components.schemas.items():
-            self._gen_model_code(schema_name, schema, module_code)
-        module_code["__init__"] = Code()
-        Code.write_modules(base_dir, package, module_code)
+            self._gen_model_code(schema_name, schema, modules)
+        modules["__init__"] = Code()
+        packages[package + ".models"] = modules
 
-    def _gen_handlers(self, base_dir: str):
-        package = self._package + ".handlers"
-        module_code = dict()
-        module_code["_handlers"] = self._gen_handler_code()
-        module_code["_mappings"] = self._gen_mappings_code()
-        module_code["__init__"] = Code("from ._mappings import MAPPINGS")
-        Code.write_modules(base_dir, package, module_code)
+    def _gen_handlers(self, package: str, packages: Packages):
+        modules = dict()
+        modules["_handlers"] = self._gen_handler_code()
+        modules["_mappings"] = self._gen_mappings_code()
+        modules["__init__"] = Code("from ._mappings import MAPPINGS")
+        packages[package + ".handlers"] = modules
 
     def _gen_handler_code(self) -> Code:
         code = Code()
