@@ -270,7 +270,7 @@ class CodeGen:
         code.append()
 
         code.append(f"from {self._prod_package}.app import new_application")
-        code.append(f"from {self._test_package}.helpers import new_test_service_context")
+        code.append(f"from ..helpers import new_test_service_context")
 
         for path_item in self._openapi.path_items:
 
@@ -436,7 +436,7 @@ class CodeGen:
             code.append()
             code.append(self._gen_controller_imports(package=self._prod_package + ".controllers"))
             code.append(self._gen_model_imports(package=self._prod_package + ".models"))
-            code.append(f"from {self._test_package}.helpers import new_test_service_context")
+            code.append(f"from ..helpers import new_test_service_context")
             code.append()
             code.append()
             code.append(f"class {test_class_name}(unittest.TestCase):")
@@ -633,13 +633,12 @@ class CodeGen:
         code.append("from ._handlers import *")
         code.append("from ..webservice import url_pattern")
         code.append()
-        code.append()
-        code.append("MAPPINGS = (")
+        code.append("MAPPINGS = [")
         with code.indent():
             for path_item in self._openapi.path_items:
                 class_name = _get_py_handler_class_name(path_item.path)
                 code.append(f"(url_pattern('{path_item.path}'), {class_name}),")
-        code.append(")")
+        code.append("]")
         return code
 
     @classmethod

@@ -12,11 +12,13 @@ class CodeGenTest(unittest.TestCase):
         open_api = Parser.from_yaml(file)
         self.assertIsNotNone(open_api)
 
-        code_gen = CodeGen(open_api)
-        packages = code_gen.gen_code("ws.impl")
-
+        packages = CodeGen.gen_code(open_api, "eocdb.ws")
         self.assertIsNotNone(packages)
         self.assertEqual(3, len(packages))
+
+        packages = CodeGen.gen_code(open_api, "eocdb.ws", "test.ws")
+        self.assertIsNotNone(packages)
+        self.assertEqual(6, len(packages))
 
 
 class CodeTest(unittest.TestCase):
