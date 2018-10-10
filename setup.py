@@ -27,6 +27,7 @@ from setuptools import setup, find_packages
 # in alphabetical oder
 requirements = [
     'numpy',
+    'pymongo',
     'pyyaml',
     'tornado',
 ]
