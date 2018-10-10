@@ -1,5 +1,6 @@
 import builtins
 import os
+from contextlib import contextmanager
 from typing import List, Dict, Union, Tuple
 
 from .model import OpenAPI, Operation, Schema, Parameter
@@ -13,6 +14,14 @@ class Code:
         self._lines = []
         if part is not None:
             self.append(part)
+
+    @contextmanager
+    def indent(self):
+        try:
+            self.inc_indent()
+            yield self._indent
+        finally:
+            self.dec_indent()
 
     def inc_indent(self):
         self._indent += 1
@@ -118,113 +127,114 @@ class CodeGen:
             class_name = _get_py_handler_class_name(path_item.path)
             code.append()
             code.append()
-            code.append("# noinspection PyAbstractClass")
+            code.append("# noinspection PyAbstractClass,PyShadowingBuiltins")
             code.append(f"class {class_name}(WsRequestHandler):")
-            code.inc_indent()
-            for op in path_item.operations:
+            with code.indent():
+                for op in path_item.operations:
 
-                # HTTP method declaration
-                #
-                path_params = [p for p in op.parameters if p.in_ == "path"]
-                path_params_str_parts = []
-                for path_param in path_params:
-                    py_type = _get_py_type_name(path_param.schema)
-                    path_params_str_parts.append(f"{path_param.name}: {py_type}")
-                path_params_str = ", ".join(path_params_str_parts)
-                code.append()
-                if path_params_str:
-                    code.append(f"def {op.method}(self, {path_params_str}):")
-                else:
-                    code.append(f"def {op.method}(self):")
-
-                code.inc_indent()
-
-                # HTTP method docs
-                #
-                if op.operation_id:
-                    code.append(f'"""Provide API operation {op.operation_id}()."""')
-
-                req_mime_type, req_schema = _select_handled_mime_type_and_schema_from_request_body(op)
-                req_py_type_name = _get_py_type_name(req_schema) if req_schema else None
-
-                res_mime_type, res_schema = _select_handled_mime_type_and_schema_from_response(op)
-                res_py_type_name = _get_py_type_name(res_schema) if res_schema else None
-
-                code.append("try:")
-                code.inc_indent()
-
-                # Get and convert parameters
-                #
-                req_params, opt_params = _split_req_and_opt_parameters(op)
-                for param in req_params:
-                    code.append(self._gen_fetch_param_code(param))
-                for param in opt_params:
-                    code.append(self._gen_fetch_param_code(param))
-
-                # Get request body data
-                #
-                if req_py_type_name:
-                    code.append(f"# transform body with mime-type {req_mime_type} into a {req_py_type_name}")
-                    if req_mime_type == "application/json":
-                        if req_py_type_name == "Dict":
-                            code.append(f"data = tornado.escape.json_decode(self.request.body)")
-                        else:
-                            code.append(f"data_dict = tornado.escape.json_decode(self.request.body)")
-                            code.append(f"data = {req_py_type_name}.from_dict(data_dict)")
-                    elif req_mime_type == "text/plain":
-                        code.append(f"data = self.request.body")
-                    elif req_mime_type is not None:
-                        code.append(f"# TODO: transform self.request.body first")
-                        code.append(f"data = self.request.body")
+                    # HTTP method declaration
+                    #
+                    path_params = [p for p in op.parameters if p.in_ == "path"]
+                    path_params_str_parts = []
+                    for path_param in path_params:
+                        path_params_str_parts.append(f"{path_param.name}: str")
+                    path_params_str = ", ".join(path_params_str_parts)
                     code.append()
+                    if path_params_str:
+                        code.append(f"def {op.method}(self, {path_params_str}):")
+                    else:
+                        code.append(f"def {op.method}(self):")
 
-                # Call controller operation
-                #
-                func_name = _get_py_controller_func_name(op, class_name)
-                call_args_parts = []
-                for param in req_params:
-                    py_name = _get_py_lower_name(param.name, esc_builtins=True)
-                    call_args_parts.append(f"{py_name}={py_name}")
-                if req_py_type_name is not None:
-                    call_args_parts.append(f"data=data")
-                for param in opt_params:
-                    py_name = _get_py_lower_name(param.name, esc_builtins=True)
-                    call_args_parts.append(f"{py_name}={py_name}")
-                call_args = ", ".join(call_args_parts)
-                if call_args:
-                    code.append(f"result = {func_name}(self.ws_context, {call_args})")
-                else:
-                    code.append(f"result = {func_name}(self.ws_context)")
+                    with code.indent():
+                        # HTTP method docs
+                        #
+                        if op.operation_id:
+                            code.append(f'"""Provide API operation {op.operation_id}()."""')
 
-                # Convert controller operation's return value
-                #
-                if res_py_type_name:
-                    code.append()
-                    code.append(
-                        f"# transform result of type {res_py_type_name} into response with mime-type {res_mime_type}")
-                    if res_mime_type == "application/json":
-                        code.append(f"self.set_header('Content-Type', '{res_mime_type}')")
-                        if res_py_type_name in {"bool", "str", "int", "float", "List", "Dict"}:
-                            code.append(f"self.write(tornado.escape.json_encode(result))")
-                        else:
-                            code.append(f"self.write(tornado.escape.json_encode(result.to_dict()))")
-                    elif res_mime_type == "text/plain":
-                        code.append(f"self.set_header('Content-Type', '{res_mime_type}')")
-                        code.append(f"self.write(result)")
-                    elif res_mime_type is not None:
-                        code.append(f"# TODO: transform result first")
-                        code.append(f"self.write(result)")
-                    code.append()
+                        req_mime_type, req_schema = _select_handled_mime_type_and_schema_from_request_body(op)
+                        req_py_type_name = _get_py_type_name(req_schema) if req_schema else None
 
-                code.dec_indent()
-                code.append(f"finally:")
-                code.inc_indent()
-                code.append(f"self.finish()")
-                code.dec_indent()
+                        res_mime_type, res_schema = _select_handled_mime_type_and_schema_from_response(op)
+                        res_py_type_name = _get_py_type_name(res_schema) if res_schema else None
 
-                code.dec_indent()
+                        code.append("# noinspection PyBroadException,PyUnusedLocal")
+                        code.append("try:")
+                        with code.indent():
 
-            code.dec_indent()
+                            # Get and convert parameters
+                            #
+                            req_params, opt_params = _split_req_and_opt_parameters(op)
+                            for param in req_params:
+                                code.append(self._gen_fetch_param_code(param))
+                            for param in opt_params:
+                                code.append(self._gen_fetch_param_code(param))
+
+                            # Get request body data
+                            #
+                            if req_py_type_name:
+                                code.append(f"# transform body with mime-type {req_mime_type} into a {req_py_type_name}")
+                                if req_mime_type == "application/json":
+                                    if req_py_type_name == "Dict":
+                                        code.append(f"data = tornado.escape.json_decode(self.request.body)")
+                                    else:
+                                        code.append(f"data_dict = tornado.escape.json_decode(self.request.body)")
+                                        code.append(f"data = {req_py_type_name}.from_dict(data_dict)")
+                                elif req_mime_type == "text/plain":
+                                    code.append(f"data = self.request.body")
+                                elif req_mime_type is not None:
+                                    code.append(f"# TODO: transform self.request.body first")
+                                    code.append(f"data = self.request.body")
+                                code.append()
+
+                            # Call controller operation
+                            #
+                            func_name = _get_py_controller_func_name(op, class_name)
+                            call_args_parts = []
+                            for param in req_params:
+                                py_name = _get_py_lower_name(param.name, esc_builtins=True)
+                                call_args_parts.append(f"{py_name}={py_name}")
+                            if req_py_type_name is not None:
+                                call_args_parts.append(f"data=data")
+                            for param in opt_params:
+                                py_name = _get_py_lower_name(param.name, esc_builtins=True)
+                                call_args_parts.append(f"{py_name}={py_name}")
+                            call_args = ", ".join(call_args_parts)
+                            if call_args:
+                                code.append(f"result = {func_name}(self.ws_context, {call_args})")
+                            else:
+                                code.append(f"result = {func_name}(self.ws_context)")
+
+                            # Convert controller operation's return value
+                            #
+                            if res_py_type_name:
+                                code.append()
+                                code.append(
+                                    f"# transform result of type {res_py_type_name} into response with mime-type {res_mime_type}")
+                                if res_mime_type == "application/json":
+                                    code.append(f"self.set_header('Content-Type', '{res_mime_type}')")
+                                    if res_py_type_name in {"bool", "str", "int", "float", "List", "Dict"}:
+                                        code.append(f"self.write(tornado.escape.json_encode(result))")
+                                    else:
+                                        code.append(f"self.write(tornado.escape.json_encode(result.to_dict()))")
+                                elif res_mime_type == "text/plain":
+                                    code.append(f"self.set_header('Content-Type', '{res_mime_type}')")
+                                    code.append(f"self.write(result)")
+                                elif res_mime_type is not None:
+                                    code.append(f"# TODO: transform result first")
+                                    code.append(f"self.write(result)")
+                                code.append()
+
+                        code.append("except BaseException as e:")
+                        with code.indent():
+                            code.append("# TODO: handle error")
+                            code.append("pass")
+                            code.append()
+
+                        code.append("finally:")
+                        with code.indent():
+                            code.append("self.finish()")
+
+
         return code
 
     @classmethod
@@ -251,7 +261,7 @@ class CodeGen:
                 else:
                     return Code()
             else:
-                return Code(f"{py_name} = RequestParams.to{type_suffix}({param.name})")
+                return Code(f"{py_name} = RequestParams.to{type_suffix}('{param.name}', {param.name})")
         else:
             return Code(f"{py_name} = self.{source}.get_param{type_suffix}('{param.name}', "
                         f"default={repr(param.schema.default)})")
@@ -301,10 +311,9 @@ class CodeGen:
         else:
             code.append(f"def {func_name}(ctx: WsContext){py_return_type_code}:")
 
-        code.inc_indent()
-        code.append(f"# return dict(code=200, status='OK')")
-        code.append(f"raise NotImplementedError('operation {func_name}() not yet implemented')")
-        code.dec_indent()
+        with code.indent():
+            code.append(f"# return dict(code=200, status='OK')")
+            code.append(f"raise NotImplementedError('operation {func_name}() not yet implemented')")
 
     @classmethod
     def _gen_model_code(cls, schema_name: str, schema: Schema, module_code: Dict[str, Code]):
@@ -322,36 +331,33 @@ class CodeGen:
         code.append()
         code.append()
         code.append(f"class {class_name}(Model):")
-        code.inc_indent()
+        with code.indent():
 
-        code.append()
-        code.append(f"def __init__(self):")
-        code.inc_indent()
-        if schema.properties:
+            code.append()
+            code.append(f"def __init__(self):")
+            with code.indent():
+                if schema.properties:
+                    for prop in schema.properties:
+                        py_name = _get_py_lower_name(prop.name, esc_builtins=False)
+                        code.append(f"self._{py_name} = None")
+                else:
+                    code.append(f"pass")
+
             for prop in schema.properties:
                 py_name = _get_py_lower_name(prop.name, esc_builtins=False)
-                code.append(f"self._{py_name} = None")
-        else:
-            code.append(f"pass")
-        code.dec_indent()
+                py_type = _get_py_type_name(prop.schema)
+                code.append()
+                code.append(f"@property")
+                code.append(f"def {py_name}(self) -> {py_type}:")
+                with code.indent():
+                    code.append(f"return self._{py_name}")
 
-        for prop in schema.properties:
-            py_name = _get_py_lower_name(prop.name, esc_builtins=False)
-            py_type = _get_py_type_name(prop.schema)
-            code.append()
-            code.append(f"@property")
-            code.append(f"def {py_name}(self) -> {py_type}:")
-            code.inc_indent()
-            code.append(f"return self._{py_name}")
-            code.dec_indent()
-            code.append()
-            code.append(f"@{py_name}.setter")
-            code.append(f"def {py_name}(self, value: {py_type}):")
-            code.inc_indent()
-            code.append(f"self._{py_name} = value")
-            code.dec_indent()
+                code.append()
+                code.append(f"@{py_name}.setter")
+                code.append(f"def {py_name}(self, value: {py_type}):")
+                with code.indent():
+                    code.append(f"self._{py_name} = value")
 
-        code.inc_indent()
 
     def _gen_mappings_code(self) -> Code:
         code = Code()
@@ -360,11 +366,10 @@ class CodeGen:
         code.append()
         code.append()
         code.append("MAPPINGS = (")
-        code.inc_indent()
-        for path_item in self._openapi.path_items:
-            class_name = _get_py_handler_class_name(path_item.path)
-            code.append(f"(url_pattern('{path_item.path}'), {class_name}),")
-        code.dec_indent()
+        with code.indent():
+            for path_item in self._openapi.path_items:
+                class_name = _get_py_handler_class_name(path_item.path)
+                code.append(f"(url_pattern('{path_item.path}'), {class_name}),")
         code.append(")")
         return code
 

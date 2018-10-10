@@ -23,14 +23,12 @@ class CodeTest(unittest.TestCase):
     def test_append_code_str(self):
         code = Code()
         code.append("line1")
-        code.inc_indent()
-        code.append("line2")
-        code.inc_indent()
-        code.append("line3")
-        code.append("line4")
-        code.dec_indent()
-        code.append("line5")
-        code.dec_indent()
+        with code.indent():
+            code.append("line2")
+            with code.indent():
+                code.append("line3")
+                code.append("line4")
+            code.append("line5")
         code.append("line6")
 
         self.assertEqual(['line1',
@@ -44,22 +42,19 @@ class CodeTest(unittest.TestCase):
     def test_append_code_code(self):
         inner_code = Code()
         inner_code.append("iline1")
-        inner_code.inc_indent()
-        inner_code.append("iline2")
-        inner_code.inc_indent()
-        inner_code.append("iline3")
-        inner_code.append("iline4")
-        inner_code.dec_indent()
-        inner_code.append("iline5")
-        inner_code.dec_indent()
+        with inner_code.indent():
+            inner_code.append("iline2")
+            with inner_code.indent():
+                inner_code.append("iline3")
+                inner_code.append("iline4")
+            inner_code.append("iline5")
         inner_code.append("iline6")
 
         outer_code = Code()
         outer_code.append(["# outer"])
-        outer_code.inc_indent()
-        outer_code.append(["# inner"])
-        outer_code.append(inner_code)
-        outer_code.dec_indent()
+        with outer_code.indent():
+            outer_code.append(["# inner"])
+            outer_code.append(inner_code)
 
         self.assertEqual(['# outer',
                           '    # inner',
