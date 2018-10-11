@@ -1,16 +1,14 @@
-import os
 import unittest
 
 from eocdb.core.query.parser import QueryParser
 from eocdb.db.mongo_db_driver import MongoDbDriver
 
 
-@unittest.skipIf(os.getenv("DISABLE_MONGO_DB_DRIVER_TEST"), "DISABLE_MONGO_DB_DRIVER_TEST=1")
 class TestMongoDbDriver(unittest.TestCase):
 
     def setUp(self):
         self.driver = MongoDbDriver()
-        self.driver.init(**{'url': 'mongodb://10.3.14.146:27017/sb_extract'})
+        self.driver.init(mock=True)
 
     def tearDown(self):
         self.driver.clear()
