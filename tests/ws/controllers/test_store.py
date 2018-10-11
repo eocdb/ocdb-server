@@ -32,12 +32,11 @@ class StoreTest(unittest.TestCase):
     def setUp(self):
         self.ctx = new_test_service_context()
 
-    @unittest.skip('not implemented yet')
     def test_get_store_info(self):
         result = get_store_info(self.ctx)
         self.assertIsInstance(result, dict)
         # TODO: set expected result
-        expected_result = {}
+        expected_result = {"products": ["ernie", "bert", "bibo"]}
         self.assertEqual(expected_result, result)
 
     @unittest.skip('not implemented yet')

@@ -45,10 +45,6 @@ class StoreInfo(WsRequestHandler):
             self.set_header('Content-Type', 'application/json')
             self.write(tornado.escape.json_encode(result))
 
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
         finally:
             self.finish()
 

@@ -27,8 +27,7 @@ from ..models.api_response import ApiResponse
 
 
 def get_store_info(ctx: WsContext) -> Dict:
-    # return dict(code=200, status='OK')
-    raise NotImplementedError('operation get_store_info() not yet implemented')
+    return dict(products=["ernie", "bert", "bibo"])
 
 
 def upload_store_files(ctx: WsContext, data: Dict) -> ApiResponse:
