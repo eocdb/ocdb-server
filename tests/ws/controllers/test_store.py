@@ -32,13 +32,15 @@ class StoreTest(unittest.TestCase):
     def setUp(self):
         self.ctx = new_test_service_context()
 
-    @unittest.skip('not implemented yet')
     def test_get_store_info(self):
         result = get_store_info(self.ctx)
         self.assertIsInstance(result, dict)
-        # TODO: set expected result
-        expected_result = {}
-        self.assertEqual(expected_result, result)
+        self.assertIn("products", result)
+        self.assertIsInstance(result["products"], list)
+        self.assertEqual(361, len(result["products"]))
+        self.assertIn("productGroups", result)
+        self.assertIsInstance(result["productGroups"], list)
+        self.assertEqual(17, len(result["productGroups"]))
 
     @unittest.skip('not implemented yet')
     def test_upload_store_files(self):

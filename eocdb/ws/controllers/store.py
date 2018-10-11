@@ -24,11 +24,30 @@ from typing import Dict, List
 
 from ..context import WsContext
 from ..models.api_response import ApiResponse
+from ...db.fields import get_fields
+
+# Put as file into eocdb.db.res
+_PRODUCT_GROUPS = [{"name": "AOP", "description": "...", "products": []},
+                   {"name": "PAR", "description": "...", "products": []},
+                   {"name": "Kd", "description": "...", "products": []},
+                   {"name": "a", "description": "...", "products": []},
+                   {"name": "b", "description": "...", "products": []},
+                   {"name": "bb", "description": "...", "products": []},
+                   {"name": "c", "description": "...", "products": []},
+                   {"name": "DC", "description": "...", "products": []},
+                   {"name": "PC", "description": "...", "products": []},
+                   {"name": "SPM", "description": "...", "products": []},
+                   {"name": "AOT", "description": "...", "products": []},
+                   {"name": "nutrients", "description": "...", "products": []},
+                   {"name": "CTD", "description": "...", "products": []},
+                   {"name": "fluorescence", "description": "...", "products": []},
+                   {"name": "productivity", "description": "...", "products": []},
+                   {"name": "Chl", "description": "...", "products": []},
+                   {"name": "HPLC", "description": "...", "products": []}]
 
 
 def get_store_info(ctx: WsContext) -> Dict:
-    # return dict(code=200, status='OK')
-    raise NotImplementedError('operation get_store_info() not yet implemented')
+    raise dict(products=get_fields(), productGroups=_PRODUCT_GROUPS)
 
 
 def upload_store_files(ctx: WsContext, data: Dict) -> ApiResponse:
