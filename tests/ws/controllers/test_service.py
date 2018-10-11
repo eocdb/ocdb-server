@@ -31,10 +31,16 @@ class ServiceTest(unittest.TestCase):
     def setUp(self):
         self.ctx = new_test_service_context()
 
-    @unittest.skip('not implemented yet')
     def test_get_service_info(self):
         result = get_service_info(self.ctx)
         self.assertIsInstance(result, dict)
-        # TODO: set expected result
-        expected_result = {}
-        self.assertEqual(expected_result, result)
+        self.assertIn("openapi", result)
+        self.assertEqual("3.0.0", result["openapi"])
+        self.assertIn("info", result)
+        self.assertEqual(dict(title="eocdb-server",
+                              version="0.1.0-dev.1",
+                              description="Web Service API for the EUMETSAT Ocean Colour In-Situ Database\n",
+                              contact=dict(email="eocdb@eumetsat.eu"),
+                              license=dict(name="MIT",
+                                           url="https://opensource.org/licenses/MIT")),
+                         result["info"])

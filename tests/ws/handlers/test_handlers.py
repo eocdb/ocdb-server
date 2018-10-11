@@ -35,16 +35,22 @@ class ServiceInfoTest(tornado.testing.AsyncHTTPTestCase):
     def get_app(self):
         return _get_app(self)
 
-    @unittest.skip('not implemented yet')
     def test_get(self):
         response = self.fetch(f"/service/info", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        # TODO: set expected_response correctly
-        expected_response_data = {}
         actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual(expected_response_data, actual_response_data)
+        self.assertIn("openapi", actual_response_data)
+        self.assertEqual("3.0.0", actual_response_data["openapi"])
+        self.assertIn("info", actual_response_data)
+        self.assertEqual(dict(title="eocdb-server",
+                              version="0.1.0-dev.1",
+                              description="Web Service API for the EUMETSAT Ocean Colour In-Situ Database\n",
+                              contact=dict(email="eocdb@eumetsat.eu"),
+                              license=dict(name="MIT",
+                                           url="https://opensource.org/licenses/MIT")),
+                         actual_response_data["info"])
 
 
 class StoreInfoTest(tornado.testing.AsyncHTTPTestCase):

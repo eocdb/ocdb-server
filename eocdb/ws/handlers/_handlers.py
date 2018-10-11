@@ -38,18 +38,10 @@ class ServiceInfo(WsRequestHandler):
 
     def get(self):
         """Provide API operation getServiceInfo()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             result = get_service_info(self.ws_context)
-
-            # transform result of type Dict into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
             self.write(tornado.escape.json_encode(result))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
         finally:
             self.finish()
 

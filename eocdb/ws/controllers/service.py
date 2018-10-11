@@ -20,11 +20,15 @@
 # SOFTWARE.
 
 
+import os
 from typing import Dict
+
+import yaml
 
 from ..context import WsContext
 
 
 def get_service_info(ctx: WsContext) -> Dict:
-    # return dict(code=200, status='OK')
-    raise NotImplementedError('operation get_service_info() not yet implemented')
+    file = os.path.join(os.path.dirname(__file__), "..", "res", "openapi.yml")
+    with open(file) as fp:
+        return yaml.load(fp)
