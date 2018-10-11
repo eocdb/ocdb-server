@@ -12,21 +12,39 @@ info:
     name: MIT
     url: 'https://opensource.org/licenses/MIT'
 tags:
+  - name: Service
+    description: Access to service info.
   - name: Store
-    description: Access to the store
+    description: Access to the store.
   - name: Datasets
-    description: Access to measurement datasets
+    description: Access to measurement datasets.
   - name: DocFiles
-    description: Access to documentation files
+    description: Access to documentation files.
   - name: Users
-    description: Access to users
+    description: Access to users.
 paths:
+  '/service/info':
+    get:
+      tags:
+        - Service
+      summary: Get information about the service.
+      description: Returns service information as a dictionary of key-value pairs.
+      operationId: getServiceInfo
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - api_key: []
   '/store/info':
     get:
       tags:
         - Store
-      summary: Get context information about the store.
-      description: Returns a map of context property names to context information
+      summary: Get information about the store.
+      description: Returns store information as a dictionary of key-value pairs.
       operationId: getStoreInfo
       responses:
         '200':
@@ -131,27 +149,31 @@ paths:
           description: Invalid query value(s)
       security:
         - api_key: []
-    post:
+    put:
       tags:
         - Datasets
-      summary: Add a new dataset to the store
+      summary: Add a new dataset
+      description: "Adds a new dataset to the store and returns the validation result."
       operationId: addDataset
+      parameters:
+        - $ref: "#/components/parameters/dryParam"
       requestBody:
         $ref: '#/components/requestBodies/Dataset'
       responses:
-        '200':
-          $ref: '#/components/responses/ApiResponse'
-        '400':
-          description: Invalid request.
+        'default':
+          $ref: '#/components/responses/DatasetValidationResult'
       security:
         - eocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
-    put:
+    post:
       tags:
         - Datasets
       summary: Update an existing dataset
+      description: "Updates an existing dataset to the store and returns the validation result."
       operationId: updateDataset
+      parameters:
+        - $ref: "#/components/parameters/dryParam"
       requestBody:
         $ref: '#/components/requestBodies/Dataset'
       responses:
@@ -170,15 +192,10 @@ paths:
       tags:
         - Datasets
       summary: Get dataset by ID
-      description: Returns a single dataset
+      description: Returns a single dataset by ID.
       operationId: getDatasetById
       parameters:
-        - name: id
-          in: path
-          description: ID of dataset to return
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/datasetIdParam"
       responses:
         '200':
           $ref: '#/components/responses/Dataset'
@@ -194,17 +211,8 @@ paths:
       summary: Delete a dataset.
       operationId: deleteDataset
       parameters:
-        - name: api_key
-          in: header
-          required: false
-          schema:
-            type: string
-        - name: id
-          in: path
-          description: Dataset id to delete
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/apiKeyParam"
+        - $ref: "#/components/parameters/datasetIdParam"
       responses:
         '200':
           $ref: '#/components/responses/ApiResponse'
@@ -223,24 +231,9 @@ paths:
       summary: Get dataset references for given affil, project, and cruise.
       operationId: getDatasetsInBucket
       parameters:
-        - name: affil
-          in: path
-          description: Affiliation name.
-          required: true
-          schema:
-            type: string
-        - name: project
-          in: path
-          description: Project name.
-          required: true
-          schema:
-            type: string
-        - name: cruise
-          in: path
-          description: Cruise name.
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/affilParam"
+        - $ref: "#/components/parameters/projectParam"
+        - $ref: "#/components/parameters/cruiseParam"
       responses:
         '200':
           $ref: '#/components/responses/DatasetRefs'
@@ -256,30 +249,10 @@ paths:
       summary: Get dataset for given affil, project, cruise, and name.
       operationId: getDatasetByBucketAndName
       parameters:
-        - name: affil
-          in: path
-          description: Affiliation name.
-          required: true
-          schema:
-            type: string
-        - name: project
-          in: path
-          description: Project name.
-          required: true
-          schema:
-            type: string
-        - name: cruise
-          in: path
-          description: Cruise name.
-          required: true
-          schema:
-            type: string
-        - name: name
-          in: path
-          description: Dataset name.
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/affilParam"
+        - $ref: "#/components/parameters/projectParam"
+        - $ref: "#/components/parameters/cruiseParam"
+        - $ref: "#/components/parameters/datasetNameParam"
       responses:
         '200':
           $ref: '#/components/responses/FileDownload'
@@ -327,24 +300,9 @@ paths:
       summary: Get documentation file references for given affil, project, and cruise.
       operationId: getDocFilesInBucket
       parameters:
-        - name: affil
-          in: path
-          description: Affiliation name.
-          required: true
-          schema:
-            type: string
-        - name: project
-          in: path
-          description: Project name.
-          required: true
-          schema:
-            type: string
-        - name: cruise
-          in: path
-          description: Cruise name.
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/affilParam"
+        - $ref: "#/components/parameters/projectParam"
+        - $ref: "#/components/parameters/cruiseParam"
       responses:
         '200':
           $ref: '#/components/responses/DocFileRefs'
@@ -359,30 +317,10 @@ paths:
       summary: Download documentation file for given affil, project, cruise, and file name.
       operationId: downloadDocFile
       parameters:
-        - name: affil
-          in: path
-          description: Affiliation name.
-          required: true
-          schema:
-            type: string
-        - name: project
-          in: path
-          description: Project name.
-          required: true
-          schema:
-            type: string
-        - name: cruise
-          in: path
-          description: Cruise name.
-          required: true
-          schema:
-            type: string
-        - name: name
-          in: path
-          description: Documentaion file name.
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/affilParam"
+        - $ref: "#/components/parameters/projectParam"
+        - $ref: "#/components/parameters/cruiseParam"
+        - $ref: "#/components/parameters/docFileNameParam"
       responses:
         '200':
           $ref: '#/components/responses/FileDownload'
@@ -396,30 +334,10 @@ paths:
       summary: Delete documentation file.
       operationId: deleteDocFile
       parameters:
-        - name: affil
-          in: path
-          description: Affiliation name.
-          required: true
-          schema:
-            type: string
-        - name: project
-          in: path
-          description: Project name.
-          required: true
-          schema:
-            type: string
-        - name: cruise
-          in: path
-          description: Cruise name.
-          required: true
-          schema:
-            type: string
-        - name: name
-          in: path
-          description: Documentaion file name.
-          required: true
-          schema:
-            type: string
+        - $ref: "#/components/parameters/affilParam"
+        - $ref: "#/components/parameters/projectParam"
+        - $ref: "#/components/parameters/cruiseParam"
+        - $ref: "#/components/parameters/docFileNameParam"
       responses:
         '200':
           $ref: '#/components/responses/ApiResponse'
@@ -543,17 +461,73 @@ paths:
 
 components:
   parameters:
+    apiKeyParam:
+      name: api_key
+      in: header
+      required: false
+      schema:
+        type: string
+    affilParam:
+      name: affil
+      in: path
+      description: Affiliation name.
+      required: true
+      schema:
+        type: string
+    projectParam:
+      name: project
+      in: path
+      description: Project name.
+      required: true
+      schema:
+        type: string
+    cruiseParam:
+      name: cruise
+      in: path
+      description: Cruise name.
+      required: true
+      schema:
+        type: string
+    docFileNameParam:
+      name: name
+      in: path
+      description: Documentaion file name.
+      required: true
+      schema:
+        type: string
+    datasetNameParam:
+      name: name
+      in: path
+      description: Dataset name.
+      required: true
+      schema:
+        type: string
+    datasetIdParam:
+      name: id
+      in: path
+      description: ID of dataset.
+      required: true
+      schema:
+        type: string
+    dryParam:
+      name: dry
+      in: query
+      description: If set, the dataset will not be added but just validated.
+      required: false
+      schema:
+        type: boolean
+        default: False
     exprParam:
       name: expr
       in: query
-      description: Query string expression using Lucene syntax
+      description: Query string expression using Lucene syntax.
       required: false
       schema:
         type: string
     regionParam:
       name: region
       in: query
-      description: Bounding box in decimal degree given as lon_min,lat_min,lon_max,lat_max or WKT string
+      description: Bounding box in decimal degree given as lon_min,lat_min,lon_max,lat_max or WKT string.
       required: false
       schema:
         type: array
@@ -715,6 +689,33 @@ components:
             $ref: '#/components/schemas/DatasetRef'
         query:
           $ref: '#/components/schemas/DatasetQuery'
+    DatasetValidationResult:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: ["OK", "WARNING", "ERROR"]
+          description: Result of validation.
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+          description: Validation issues. Will be empty if status is OK.
+    Issue:
+      type: object
+      required:
+        - type
+        - description
+      properties:
+        type:
+          type: string
+          enum: ["WARNING", "ERROR"]
+          description: Type of issue.
+        description:
+          type: string
+          description: Type of issue.
     User:
       type: object
       properties:
@@ -741,6 +742,8 @@ components:
       required:
         - bucket
         - name
+        - header
+        - records
       properties:
         id:
           type: string
@@ -845,6 +848,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DatasetQueryResult'
+    DatasetValidationResult:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetValidationResult'
     Dataset:
       description: Successful operation.
       content:
