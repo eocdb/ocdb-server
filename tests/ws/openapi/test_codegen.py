@@ -16,7 +16,7 @@ class CodeGenTest(unittest.TestCase):
         self.assertIsNotNone(packages)
         self.assertEqual(3, len(packages))
 
-        packages = CodeGen.gen_code(open_api, "eocdb.ws", "test.ws")
+        packages = CodeGen.gen_code(open_api, "eocdb.ws", "tests.ws")
         self.assertIsNotNone(packages)
         self.assertEqual(6, len(packages))
 
