@@ -24,12 +24,34 @@ import tornado.escape
 
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
+from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
 from ..models.dataset import Dataset
 from ..models.user import User
 from ..reqparams import RequestParams
 from ..webservice import WsRequestHandler
+
+
+# noinspection PyAbstractClass,PyShadowingBuiltins
+class ServiceInfo(WsRequestHandler):
+
+    def get(self):
+        """Provide API operation getServiceInfo()."""
+        # noinspection PyBroadException,PyUnusedLocal
+        try:
+            result = get_service_info(self.ws_context)
+
+            # transform result of type Dict into response with mime-type application/json
+            self.set_header('Content-Type', 'application/json')
+            self.write(tornado.escape.json_encode(result))
+
+        except BaseException as e:
+            # TODO: handle error
+            pass
+
+        finally:
+            self.finish()
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -44,6 +66,10 @@ class StoreInfo(WsRequestHandler):
             # transform result of type Dict into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
             self.write(tornado.escape.json_encode(result))
+
+        except BaseException as e:
+            # TODO: handle error
+            pass
 
         finally:
             self.finish()
@@ -143,16 +169,17 @@ class Datasets(WsRequestHandler):
             self.finish()
 
     def put(self):
-        """Provide API operation updateDataset()."""
+        """Provide API operation addDataset()."""
         # noinspection PyBroadException,PyUnusedLocal
         try:
+            dry = self.query.get_param_bool('dry', default=None)
             # transform body with mime-type application/json into a Dataset
             data_dict = tornado.escape.json_decode(self.request.body)
             data = Dataset.from_dict(data_dict)
 
-            result = update_dataset(self.ws_context, data=data)
+            result = add_dataset(self.ws_context, data=data, dry=dry)
 
-            # transform result of type ApiResponse into response with mime-type application/json
+            # transform result of type DatasetValidationResult into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
             self.write(tornado.escape.json_encode(result.to_dict()))
 
@@ -164,14 +191,15 @@ class Datasets(WsRequestHandler):
             self.finish()
 
     def post(self):
-        """Provide API operation addDataset()."""
+        """Provide API operation updateDataset()."""
         # noinspection PyBroadException,PyUnusedLocal
         try:
+            dry = self.query.get_param_bool('dry', default=None)
             # transform body with mime-type application/json into a Dataset
             data_dict = tornado.escape.json_decode(self.request.body)
             data = Dataset.from_dict(data_dict)
 
-            result = add_dataset(self.ws_context, data=data)
+            result = update_dataset(self.ws_context, data=data, dry=dry)
 
             # transform result of type ApiResponse into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')

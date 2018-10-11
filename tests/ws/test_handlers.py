@@ -1,5 +1,5 @@
 import json
-
+import unittest
 from tornado.testing import AsyncHTTPTestCase
 
 from eocdb.ws.app import new_application
@@ -14,6 +14,7 @@ class HandlersTest(AsyncHTTPTestCase):
         application.ws_context = new_test_service_context()
         return application
 
+    @unittest.skip('superseded by eocdb.ws.handlers')
     def test_fetch_base(self):
         response = self.fetch('/')
         self.assertEqual(200, response.code)
@@ -23,6 +24,7 @@ class HandlersTest(AsyncHTTPTestCase):
                               description='EUMETSAT Ocean Colour In-Situ Database Server'),
                          json.loads(response.body))
 
+    @unittest.skip('superseded by eocdb.ws.handlers')
     def test_fetch_query_succeeds(self):
         response = self.fetch('/eocdb/api/measurements?query=ernie')
         self.assertEqual(200, response.code)
@@ -45,12 +47,14 @@ class HandlersTest(AsyncHTTPTestCase):
                                      '2017-05-22T08:33:00']}],
                          json.loads(response.body))
 
+    @unittest.skip('superseded by eocdb.ws.handlers')
     def test_fetch_query_succeeds_no_results(self):
         response = self.fetch('/eocdb/api/measurements?query=bert')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
         self.assertEqual([], json.loads(response.body))
 
+    @unittest.skip('superseded by eocdb.ws.handlers')
     def test_fetch_query_fails(self):
         response = self.fetch('/eocdb/api/measurements?query=trigger_error')
         self.assertEqual(500, response.code)

@@ -30,6 +30,23 @@ from eocdb.ws.app import new_application
 from ..helpers import new_test_service_context
 
 
+class ServiceInfoTest(tornado.testing.AsyncHTTPTestCase):
+
+    def get_app(self):
+        return _get_app(self)
+
+    @unittest.skip('not implemented yet')
+    def test_get(self):
+        response = self.fetch(f"/service/info", method='GET')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        # TODO: set expected_response correctly
+        expected_response_data = {}
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertEqual(expected_response_data, actual_response_data)
+
+
 class StoreInfoTest(tornado.testing.AsyncHTTPTestCase):
 
     def get_app(self):
@@ -136,11 +153,15 @@ class DatasetsTest(tornado.testing.AsyncHTTPTestCase):
 
     @unittest.skip('not implemented yet')
     def test_put(self):
+        # TODO: set query parameter(s) to reasonable value(s)
+        dry = None
+
         # TODO: set data for request body to reasonable value
         data = {}
         body = tornado.escape.json_encode(data)
+        query = urllib.parse.urlencode(dict(dry=dry))
 
-        response = self.fetch(f"/datasets", method='PUT', body=body)
+        response = self.fetch(f"/datasets?{query}", method='PUT', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -151,11 +172,15 @@ class DatasetsTest(tornado.testing.AsyncHTTPTestCase):
 
     @unittest.skip('not implemented yet')
     def test_post(self):
+        # TODO: set query parameter(s) to reasonable value(s)
+        dry = None
+
         # TODO: set data for request body to reasonable value
         data = {}
         body = tornado.escape.json_encode(data)
+        query = urllib.parse.urlencode(dict(dry=dry))
 
-        response = self.fetch(f"/datasets", method='POST', body=body)
+        response = self.fetch(f"/datasets?{query}", method='POST', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 

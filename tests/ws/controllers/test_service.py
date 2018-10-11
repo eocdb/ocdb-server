@@ -22,53 +22,19 @@
 
 import unittest
 
-from eocdb.ws.controllers.store import *
-from eocdb.ws.models.api_response import ApiResponse
+from eocdb.ws.controllers.service import *
 from ..helpers import new_test_service_context
 
 
-class StoreTest(unittest.TestCase):
+class ServiceTest(unittest.TestCase):
 
     def setUp(self):
         self.ctx = new_test_service_context()
 
     @unittest.skip('not implemented yet')
-    def test_get_store_info(self):
-        result = get_store_info(self.ctx)
+    def test_get_service_info(self):
+        result = get_service_info(self.ctx)
         self.assertIsInstance(result, dict)
         # TODO: set expected result
         expected_result = {}
-        self.assertEqual(expected_result, result)
-
-    @unittest.skip('not implemented yet')
-    def test_upload_store_files(self):
-        # TODO: set data dict items
-        data = {}
-
-        result = upload_store_files(self.ctx, data=data)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
-
-    @unittest.skip('not implemented yet')
-    def test_download_store_files(self):
-        # TODO: set optional parameters
-        expr = None
-        region = None
-        time = None
-        wdepth = None
-        mtype = None
-        wlmode = None
-        shallow = None
-        pmode = None
-        pgroup = None
-        pname = None
-        docs = None
-
-        result = download_store_files(self.ctx, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
-                                      wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
-                                      docs=docs)
-        # TODO: set expected result
-        expected_result = None
         self.assertEqual(expected_result, result)

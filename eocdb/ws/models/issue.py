@@ -20,23 +20,30 @@
 # SOFTWARE.
 
 
-from ._handlers import *
-from ..webservice import url_pattern
+from ..model import Model
 
-MAPPINGS = [
-    (url_pattern('/service/info'), ServiceInfo),
-    (url_pattern('/store/info'), StoreInfo),
-    (url_pattern('/store/upload'), StoreUpload),
-    (url_pattern('/store/download'), StoreDownload),
-    (url_pattern('/datasets'), Datasets),
-    (url_pattern('/datasets/{id}'), DatasetsId),
-    (url_pattern('/datasets/{affil}/{project}/{cruise}'), DatasetsAffilProjectCruise),
-    (url_pattern('/datasets/{affil}/{project}/{cruise}/{name}'), DatasetsAffilProjectCruiseName),
-    (url_pattern('/docfiles'), Docfiles),
-    (url_pattern('/docfiles/{affil}/{project}/{cruise}'), DocfilesAffilProjectCruise),
-    (url_pattern('/docfiles/{affil}/{project}/{cruise}/{name}'), DocfilesAffilProjectCruiseName),
-    (url_pattern('/users'), Users),
-    (url_pattern('/users/login'), UsersLogin),
-    (url_pattern('/users/logout'), UsersLogout),
-    (url_pattern('/users/{id}'), UsersId),
-]
+
+class Issue(Model):
+    """
+    The Issue model.
+    """
+
+    def __init__(self):
+        self._type = None
+        self._description = None
+
+    @property
+    def type(self) -> str:
+        return self._type
+
+    @type.setter
+    def type(self, value: str):
+        self._type = value
+
+    @property
+    def description(self) -> str:
+        return self._description
+
+    @description.setter
+    def description(self, value: str):
+        self._description = value

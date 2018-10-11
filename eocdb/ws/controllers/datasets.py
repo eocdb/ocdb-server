@@ -27,6 +27,7 @@ from ..models.api_response import ApiResponse
 from ..models.dataset import Dataset
 from ..models.dataset_query_result import DatasetQueryResult
 from ..models.dataset_ref import DatasetRef
+from ..models.dataset_validation_result import DatasetValidationResult
 
 
 def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, time: List[str] = None,
@@ -37,14 +38,14 @@ def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, 
     raise NotImplementedError('operation find_datasets() not yet implemented')
 
 
-def update_dataset(ctx: WsContext, data: Dataset) -> ApiResponse:
-    # return dict(code=200, status='OK')
-    raise NotImplementedError('operation update_dataset() not yet implemented')
-
-
-def add_dataset(ctx: WsContext, data: Dataset) -> ApiResponse:
+def add_dataset(ctx: WsContext, data: Dataset, dry: bool = None) -> DatasetValidationResult:
     # return dict(code=200, status='OK')
     raise NotImplementedError('operation add_dataset() not yet implemented')
+
+
+def update_dataset(ctx: WsContext, data: Dataset, dry: bool = None) -> ApiResponse:
+    # return dict(code=200, status='OK')
+    raise NotImplementedError('operation update_dataset() not yet implemented')
 
 
 def get_dataset_by_id(ctx: WsContext, id_: str) -> Dataset:

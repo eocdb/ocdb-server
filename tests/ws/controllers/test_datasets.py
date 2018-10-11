@@ -26,6 +26,7 @@ from eocdb.ws.controllers.datasets import *
 from eocdb.ws.models.api_response import ApiResponse
 from eocdb.ws.models.dataset import Dataset
 from eocdb.ws.models.dataset_query_result import DatasetQueryResult
+from eocdb.ws.models.dataset_validation_result import DatasetValidationResult
 from ..helpers import new_test_service_context
 
 
@@ -58,22 +59,26 @@ class DatasetsTest(unittest.TestCase):
         self.assertEqual(expected_result, result)
 
     @unittest.skip('not implemented yet')
-    def test_update_dataset(self):
+    def test_add_dataset(self):
         data = Dataset()
         # TODO: set data properties
+        # TODO: set optional parameters
+        dry = None
 
-        result = update_dataset(self.ctx, data=data)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
+        result = add_dataset(self.ctx, data=data, dry=dry)
+        self.assertIsInstance(result, DatasetValidationResult)
+        expected_result = DatasetValidationResult()
         # TODO: set expected result properties
         self.assertEqual(expected_result, result)
 
     @unittest.skip('not implemented yet')
-    def test_add_dataset(self):
+    def test_update_dataset(self):
         data = Dataset()
         # TODO: set data properties
+        # TODO: set optional parameters
+        dry = None
 
-        result = add_dataset(self.ctx, data=data)
+        result = update_dataset(self.ctx, data=data, dry=dry)
         self.assertIsInstance(result, ApiResponse)
         expected_result = ApiResponse()
         # TODO: set expected result properties
