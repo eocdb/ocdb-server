@@ -27,8 +27,8 @@ paths:
     get:
       tags:
         - Service
-      summary: Get information about the service.
-      description: Returns service information as a dictionary of key-value pairs.
+      summary: Get service information
+      description: Returns information about the service as a dictionary of key-value pairs.
       operationId: getServiceInfo
       responses:
         '200':
@@ -43,8 +43,8 @@ paths:
     get:
       tags:
         - Store
-      summary: Get information about the store.
-      description: Returns store information as a dictionary of key-value pairs.
+      summary: Get store information
+      description: Returns information about the store as a dictionary of key-value pairs.
       operationId: getStoreInfo
       responses:
         '200':
@@ -59,7 +59,8 @@ paths:
     post:
       tags:
         - Store
-      summary: Batch mode upload of datasets and documentaion files.
+      summary: Batch mode upload of files
+      description: Upload a ZIP file of datasets and optionally documentaion files and insert them into the store.
       operationId: uploadStoreFiles
       requestBody:
         $ref: '#/components/requestBodies/FileUpload'
@@ -76,7 +77,8 @@ paths:
     get:
       tags:
         - Store
-      summary: Download datasets and optionally files.
+      summary: Batch mode download of files
+      description: Download a ZIP file of datasets and optionally documentaion files for the given query from the store.
       operationId: downloadStoreFiles
       parameters:
         # Important: keep following parameters in sync with findDatasets() operation
@@ -153,7 +155,7 @@ paths:
       tags:
         - Datasets
       summary: Add a new dataset
-      description: "Adds a new dataset to the store and returns the validation result."
+      description: Adds a new dataset to the store and returns the validation result.
       operationId: addDataset
       parameters:
         - $ref: "#/components/parameters/dryParam"
@@ -170,7 +172,7 @@ paths:
       tags:
         - Datasets
       summary: Update an existing dataset
-      description: "Updates an existing dataset to the store and returns the validation result."
+      description: Updates an existing dataset to the store and returns the validation result.
       operationId: updateDataset
       parameters:
         - $ref: "#/components/parameters/dryParam"
@@ -208,7 +210,8 @@ paths:
     delete:
       tags:
         - Datasets
-      summary: Delete a dataset.
+      summary: Delete a dataset
+      description: Deletes an existing dataset by ID.
       operationId: deleteDataset
       parameters:
         - $ref: "#/components/parameters/apiKeyParam"
@@ -228,7 +231,8 @@ paths:
     get:
       tags:
         - Datasets
-      summary: Get dataset references for given affil, project, and cruise.
+      summary: Get all datasets for bucket
+      description: Returns all dataset references for given affil, project, and cruise.
       operationId: getDatasetsInBucket
       parameters:
         - $ref: "#/components/parameters/affilParam"
@@ -246,7 +250,8 @@ paths:
     get:
       tags:
         - Datasets
-      summary: Get dataset for given affil, project, cruise, and name.
+      summary: Get dataset file from bucket
+      description: Gets a dataset file for given affil, project, cruise, and dataset name.
       operationId: getDatasetByBucketAndName
       parameters:
         - $ref: "#/components/parameters/affilParam"
@@ -268,7 +273,8 @@ paths:
     put:
       tags:
         - DocFiles
-      summary: Add new documentation file.
+      summary: Add documentation file
+      description: Adds a new documentation file for given affil, project, cruise, and file name.
       operationId: addDocFile
       requestBody:
         $ref: '#/components/requestBodies/FileUpload'
@@ -282,7 +288,8 @@ paths:
     post:
       tags:
         - DocFiles
-      summary: Update/relace existing documentation file
+      summary: Update documentation file
+      description: Updates an existing documentation file.
       operationId: updateDocFile
       requestBody:
         $ref: '#/components/requestBodies/FileUpload'
@@ -297,7 +304,8 @@ paths:
     get:
       tags:
         - DocFiles
-      summary: Get documentation file references for given affil, project, and cruise.
+      summary: Get documentation files for bucket
+      description: Get documentation file references for given affil, project, and cruise.
       operationId: getDocFilesInBucket
       parameters:
         - $ref: "#/components/parameters/affilParam"
@@ -314,7 +322,8 @@ paths:
     get:
       tags:
         - DocFiles
-      summary: Download documentation file for given affil, project, cruise, and file name.
+      summary: Get documentation file for bucket
+      description: Downloads documentation file for given affil, project, cruise, and file name.
       operationId: downloadDocFile
       parameters:
         - $ref: "#/components/parameters/affilParam"
@@ -331,7 +340,8 @@ paths:
     delete:
       tags:
         - DocFiles
-      summary: Delete documentation file.
+      summary: Delete documentation file from bucket
+      description: Deletes a documentation file for given affil, project, cruise, and file name.
       operationId: deleteDocFile
       parameters:
         - $ref: "#/components/parameters/affilParam"
@@ -353,8 +363,8 @@ paths:
     post:
       tags:
         - Users
-      summary: Create user
-      description: This can only be done by the logged in user.
+      summary: Add user
+      description: Registers a new user. This can only be done by the logged in user.
       operationId: createUser
       requestBody:
         $ref: '#/components/requestBodies/User'
@@ -367,7 +377,8 @@ paths:
     get:
       tags:
         - Users
-      summary: Logs user into the system
+      summary: Login user
+      description: Logs a user into the system using given credentials.
       operationId: loginUser
       parameters:
         - name: username
@@ -406,7 +417,8 @@ paths:
     get:
       tags:
         - Users
-      summary: Logs out current logged in user session
+      summary: Logout user
+      description: Logs out current logged-in user.
       operationId: logoutUser
       responses:
         '200':
@@ -415,7 +427,8 @@ paths:
     get:
       tags:
         - Users
-      summary: Get user by user ID.
+      summary: Get user information
+      description: Gets user information by user ID.
       operationId: getUserByID
       parameters:
         - $ref: '#/components/parameters/userIdParam'
@@ -429,8 +442,8 @@ paths:
     put:
       tags:
         - Users
-      summary: Update user.
-      description: This can only be done by the logged in user.
+      summary: Update user information
+      description: Uopdates user information by user ID. This can only be done by the logged in user.
       operationId: updateUser
       parameters:
         - $ref: '#/components/parameters/userIdParam'
@@ -446,8 +459,8 @@ paths:
     delete:
       tags:
         - Users
-      summary: Delete user.
-      description: This can only be done by the logged in user.
+      summary: Remove user
+      description: Removes the user with the given user ID. This can only be done by the logged in user.
       operationId: deleteUser
       parameters:
         - $ref: '#/components/parameters/userIdParam'
@@ -458,7 +471,6 @@ paths:
           description: Invalid user ID supplied.
         '404':
           description: User not found with given ID.
-
 components:
   parameters:
     apiKeyParam:
