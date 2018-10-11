@@ -26,10 +26,13 @@ from setuptools import setup, find_packages
 
 # in alphabetical oder
 requirements = [
+    # Production
     'numpy',
     'pymongo',
     'pyyaml',
     'tornado',
+    # Development
+    'mongomock',
 ]
 
 packages = find_packages(exclude=["tests", "tests.*"])
