@@ -23,11 +23,7 @@
 import unittest
 
 from eocdb.ws.controllers.datasets import *
-from eocdb.core.models.api_response import ApiResponse
-from eocdb.core.models.dataset import Dataset
-from eocdb.core.models.dataset_query_result import DatasetQueryResult
-from eocdb.core.models.dataset_validation_result import DatasetValidationResult
-from ..helpers import new_test_service_context
+from ..helpers import new_test_service_context, new_dataset
 
 
 class DatasetsTest(unittest.TestCase):
@@ -35,9 +31,26 @@ class DatasetsTest(unittest.TestCase):
     def setUp(self):
         self.ctx = new_test_service_context()
 
-    @unittest.skip('not implemented yet')
+    def test_add_dataset(self):
+        result = add_dataset(self.ctx, dataset=new_dataset(1), dry=False)
+        self.assertIsInstance(result, DatasetValidationResult)
+        expected_result = DatasetValidationResult()
+        expected_result.status = "OK"
+        expected_result.issues = []
+        self.assertEqual(expected_result, result)
+
+        result = add_dataset(self.ctx, dataset=new_dataset(2), dry=False)
+        self.assertIsInstance(result, DatasetValidationResult)
+        expected_result = DatasetValidationResult()
+        expected_result.status = "OK"
+        expected_result.issues = []
+        self.assertEqual(expected_result, result)
+
     def test_find_datasets(self):
-        # TODO: set optional parameters
+        add_dataset(self.ctx, dataset=new_dataset(1), dry=False)
+        add_dataset(self.ctx, dataset=new_dataset(2), dry=False)
+        add_dataset(self.ctx, dataset=new_dataset(3), dry=False)
+
         expr = None
         region = None
         time = None
@@ -53,83 +66,73 @@ class DatasetsTest(unittest.TestCase):
 
         result = find_datasets(self.ctx, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode,
                                shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname, offset=offset, count=count)
+
         self.assertIsInstance(result, DatasetQueryResult)
-        expected_result = DatasetQueryResult()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        self.assertEqual(3, result.total_count)
 
-    @unittest.skip('not implemented yet')
-    def test_add_dataset(self):
-        data = Dataset()
-        # TODO: set data properties
-        # TODO: set optional parameters
-        dry = None
-
-        result = add_dataset(self.ctx, data=data, dry=dry)
-        self.assertIsInstance(result, DatasetValidationResult)
-        expected_result = DatasetValidationResult()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+    def test_get_dataset_by_id(self):
+        add_dataset(self.ctx, dataset=new_dataset(1), dry=False)
+        add_dataset(self.ctx, dataset=new_dataset(2), dry=False)
+        add_dataset(self.ctx, dataset=new_dataset(3), dry=False)
+        result = find_datasets(self.ctx)
+        dataset_id_1 = result.datasets[0].id
+        dataset_id_2 = result.datasets[1].id
+        dataset_id_3 = result.datasets[2].id
+        dataset_1 = get_dataset_by_id(self.ctx, dataset_id_1)
+        self.assertIsNotNone(dataset_1)
+        self.assertEqual(dataset_id_1, dataset_1.id)
+        dataset_2 = get_dataset_by_id(self.ctx, dataset_id_2)
+        self.assertIsNotNone(dataset_2)
+        self.assertEqual(dataset_id_2, dataset_2.id)
+        dataset_3 = get_dataset_by_id(self.ctx, dataset_id_3)
+        self.assertIsNotNone(dataset_3)
+        self.assertEqual(dataset_id_3, dataset_3.id)
+        with self.assertRaises(WsResourceNotFoundError):
+            get_dataset_by_id(self.ctx, "gnarz")
 
     @unittest.skip('not implemented yet')
     def test_update_dataset(self):
         data = Dataset()
-        # TODO: set data properties
-        # TODO: set optional parameters
+        # TODO (generated): set data properties
+        # TODO (generated): set optional parameters
         dry = None
 
         result = update_dataset(self.ctx, data=data, dry=dry)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
-
-    @unittest.skip('not implemented yet')
-    def test_get_dataset_by_id(self):
-        # TODO: set required parameters
-        id_ = None
-
-        result = get_dataset_by_id(self.ctx, id_)
-        self.assertIsInstance(result, Dataset)
-        expected_result = Dataset()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        self.assertIsNone(result)
 
     @unittest.skip('not implemented yet')
     def test_delete_dataset(self):
-        # TODO: set required parameters
+        # TODO (generated): set required parameters
         id_ = None
-        # TODO: set optional parameters
+        # TODO (generated): set optional parameters
         api_key = None
 
         result = delete_dataset(self.ctx, id_, api_key=api_key)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        self.assertIsNone(result)
 
     @unittest.skip('not implemented yet')
     def test_get_datasets_in_bucket(self):
-        # TODO: set required parameters
+        # TODO (generated): set required parameters
         affil = None
         project = None
         cruise = None
 
         result = get_datasets_in_bucket(self.ctx, affil, project, cruise)
         self.assertIsInstance(result, list)
-        # TODO: set expected result
+        # TODO (generated): set expected result
         expected_result = []
         self.assertEqual(expected_result, result)
 
     @unittest.skip('not implemented yet')
     def test_get_dataset_by_bucket_and_name(self):
-        # TODO: set required parameters
+        # TODO (generated): set required parameters
         affil = None
         project = None
         cruise = None
         name = None
 
         result = get_dataset_by_bucket_and_name(self.ctx, affil, project, cruise, name)
-        # TODO: set expected result
+        # TODO (generated): set expected result
         expected_result = None
         self.assertEqual(expected_result, result)
+

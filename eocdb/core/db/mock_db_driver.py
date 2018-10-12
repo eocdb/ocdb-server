@@ -9,26 +9,26 @@ from ..deprecated import deprecated
 from ..models.dataset import Dataset
 from ..models.dataset_query import DatasetQuery
 from ..models.dataset_ref import DatasetRef
-from ..models.dataset_validation_result import DatasetValidationResult
 
-# TODO by forman: decide to get rid of this class, its maintenance will be very expensive, better use mongomock
+
+# TODO by forman: decide if we should get rid of this class, its maintenance will become very expensive,
+#                 better use MongoDbDriver.init(mock=True), which is at zero dev cost.
 
 class MockDbDriver(DbDriver):
 
+    def add_dataset(self, dataset: Dataset):
+        raise NotImplementedError()
+
+    def update_dataset(self, dataset: Dataset) -> bool:
+        raise NotImplementedError()
+
+    def delete_dataset(self, dataset_id) -> bool:
+        raise NotImplementedError()
+
     def get_dataset(self, dataset_id) -> Optional[Dataset]:
-        """Get dataset by ID."""
-        raise NotImplementedError()
-
-    def add_dataset(self, dataset: Dataset) -> DatasetValidationResult:
-        """Add dataset."""
-        raise NotImplementedError()
-
-    def remove_dataset(self, dataset_id):
-        """Remove dataset by ID."""
         raise NotImplementedError()
 
     def find_datasets(self, query: DatasetQuery) -> List[DatasetRef]:
-        """Find datasets for given query and return list of dataset references."""
         raise NotImplementedError()
 
     @deprecated

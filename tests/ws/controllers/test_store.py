@@ -23,7 +23,6 @@
 import unittest
 
 from eocdb.ws.controllers.store import *
-from eocdb.core.models.api_response import ApiResponse
 from ..helpers import new_test_service_context
 
 
@@ -44,18 +43,14 @@ class StoreTest(unittest.TestCase):
 
     @unittest.skip('not implemented yet')
     def test_upload_store_files(self):
-        # TODO: set data dict items
+        # TODO (generated): set data dict items
         data = {}
-
         result = upload_store_files(self.ctx, data=data)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        self.assertIsNone(result)
 
     @unittest.skip('not implemented yet')
     def test_download_store_files(self):
-        # TODO: set optional parameters
+        # TODO (generated): set optional parameters
         expr = None
         region = None
         time = None
@@ -71,6 +66,6 @@ class StoreTest(unittest.TestCase):
         result = download_store_files(self.ctx, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
                                       wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
                                       docs=docs)
-        # TODO: set expected result
+        # TODO (generated): set expected result
         expected_result = None
         self.assertEqual(expected_result, result)

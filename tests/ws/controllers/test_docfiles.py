@@ -23,7 +23,6 @@
 import unittest
 
 from eocdb.ws.controllers.docfiles import *
-from eocdb.core.models.api_response import ApiResponse
 from ..helpers import new_test_service_context
 
 
@@ -34,62 +33,56 @@ class DocFilesTest(unittest.TestCase):
 
     @unittest.skip('not implemented yet')
     def test_add_doc_file(self):
-        # TODO: set data dict items
+        # TODO (generated): set data dict items
         data = {}
 
         result = add_doc_file(self.ctx, data=data)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        self.assertIsNone(result)
+
 
     @unittest.skip('not implemented yet')
     def test_update_doc_file(self):
-        # TODO: set data dict items
+        # TODO (generated): set data dict items
         data = {}
 
         result = update_doc_file(self.ctx, data=data)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        self.assertIsNone(result)
+
 
     @unittest.skip('not implemented yet')
     def test_get_doc_files_in_bucket(self):
-        # TODO: set required parameters
+        # TODO (generated): set required parameters
         affil = None
         project = None
         cruise = None
 
         result = get_doc_files_in_bucket(self.ctx, affil, project, cruise)
         self.assertIsInstance(result, list)
-        # TODO: set expected result
+        # TODO (generated): set expected result
         expected_result = []
         self.assertEqual(expected_result, result)
 
     @unittest.skip('not implemented yet')
     def test_download_doc_file(self):
-        # TODO: set required parameters
+        # TODO (generated): set required parameters
         affil = None
         project = None
         cruise = None
         name = None
 
         result = download_doc_file(self.ctx, affil, project, cruise, name)
-        # TODO: set expected result
+        # TODO (generated): set expected result
         expected_result = None
         self.assertEqual(expected_result, result)
 
     @unittest.skip('not implemented yet')
     def test_delete_doc_file(self):
-        # TODO: set required parameters
+        # TODO (generated): set required parameters
         affil = None
         project = None
         cruise = None
         name = None
 
         result = delete_doc_file(self.ctx, affil, project, cruise, name)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        self.assertIsNone(result)
+

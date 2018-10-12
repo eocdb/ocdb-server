@@ -23,8 +23,6 @@
 import unittest
 
 from eocdb.ws.controllers.users import *
-from eocdb.core.models.api_response import ApiResponse
-from eocdb.core.models.user import User
 from ..helpers import new_test_service_context
 
 
@@ -35,65 +33,49 @@ class UsersTest(unittest.TestCase):
 
     @unittest.skip('not implemented yet')
     def test_create_user(self):
-        data = User()
-        # TODO: set data properties
-
-        result = create_user(self.ctx, data=data)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        user = User()
+        # TODO (generated):  data properties
+        result = create_user(self.ctx, user=user)
+        self.assertIsNone(result)
 
     @unittest.skip('not implemented yet')
     def test_login_user(self):
-        # TODO: set optional parameters
+        # TODO (generated): set optional parameters
         username = None
         password = None
-
         result = login_user(self.ctx, username=username, password=password)
-        # TODO: set expected result
+        # TODO (generated): set expected result
         expected_result = None
         self.assertEqual(expected_result, result)
 
     @unittest.skip('not implemented yet')
     def test_logout_user(self):
         result = logout_user(self.ctx)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        self.assertIsNone(result)
 
     @unittest.skip('not implemented yet')
     def test_get_user_by_id(self):
-        # TODO: set required parameters
-        id_ = None
-
-        result = get_user_by_id(self.ctx, id_)
+        # TODO (generated): set required parameters
+        user_id = -1
+        result = get_user_by_id(self.ctx, user_id)
         self.assertIsInstance(result, User)
         expected_result = User()
-        # TODO: set expected result properties
+        # TODO (generated): set expected result properties
         self.assertEqual(expected_result, result)
 
     @unittest.skip('not implemented yet')
     def test_update_user(self):
-        # TODO: set required parameters
-        id_ = None
+        # TODO (generated): set required parameters
+        user_id = -1
         data = User()
-        # TODO: set data properties
+        # TODO (generated): set data properties
 
-        result = update_user(self.ctx, id_, data=data)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        result = update_user(self.ctx, user_id, data=data)
+        self.assertIsNone(result)
 
     @unittest.skip('not implemented yet')
     def test_delete_user(self):
-        # TODO: set required parameters
-        id_ = None
-
-        result = delete_user(self.ctx, id_)
-        self.assertIsInstance(result, ApiResponse)
-        expected_result = ApiResponse()
-        # TODO: set expected result properties
-        self.assertEqual(expected_result, result)
+        # TODO (generated): set required parameters
+        user_id = -1
+        result = delete_user(self.ctx, user_id)
+        self.assertIsNone(result)

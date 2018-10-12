@@ -6,24 +6,25 @@ from .. import Service, Dataset
 from ..deprecated import deprecated
 from ..models.dataset_query import DatasetQuery
 from ..models.dataset_ref import DatasetRef
-from ..models.dataset_validation_result import DatasetValidationResult
 
 
 class DbDriver(Service):
 
     @abstractmethod
+    def add_dataset(self, dataset: Dataset):
+        """Add dataset."""
+
+    @abstractmethod
+    def update_dataset(self, dataset: Dataset) -> bool:
+        """Update dataset."""
+
+    @abstractmethod
+    def delete_dataset(self, dataset_id) -> bool:
+        """Delete dataset by ID."""
+
+    @abstractmethod
     def get_dataset(self, dataset_id) -> Optional[Dataset]:
         """Get dataset by ID."""
-
-    @abstractmethod
-    def add_dataset(self, dataset: Dataset) -> DatasetValidationResult:
-        """Add dataset."""
-        # TODO by forman: Decide if the dataset validation go into the DbDriver interface or
-        #                 shall it have its own, DB-independent package "val"?
-
-    @abstractmethod
-    def remove_dataset(self, dataset_id):
-        """Remove dataset by ID."""
 
     @abstractmethod
     def find_datasets(self, query: DatasetQuery) -> List[DatasetRef]:

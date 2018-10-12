@@ -21,35 +21,35 @@
 
 
 from ..context import WsContext
-from ...core.models.api_response import ApiResponse
 from ...core.models.user import User
 
 
-def create_user(ctx: WsContext, data: User) -> ApiResponse:
-    # return dict(code=200, status='OK')
-    raise NotImplementedError('operation create_user() not yet implemented')
+# noinspection PyUnusedLocal
+def create_user(ctx: WsContext, user: User):
+    raise NotImplementedError('TODO: operation create_user() not yet implemented')
 
 
-def login_user(ctx: WsContext, username: str = None, password: str = None) -> str:
-    # return dict(code=200, status='OK')
+# noinspection PyUnusedLocal
+def login_user(ctx: WsContext, username: str = None, password: str = None):
     raise NotImplementedError('operation login_user() not yet implemented')
 
 
-def logout_user(ctx: WsContext) -> ApiResponse:
-    # return dict(code=200, status='OK')
+# noinspection PyUnusedLocal
+def logout_user(ctx: WsContext):
     raise NotImplementedError('operation logout_user() not yet implemented')
 
 
-def get_user_by_id(ctx: WsContext, id_: int) -> User:
-    # return dict(code=200, status='OK')
+# noinspection PyUnusedLocal
+def get_user_by_id(ctx: WsContext, user_id: int) -> User:
     raise NotImplementedError('operation get_user_by_id() not yet implemented')
 
 
-def update_user(ctx: WsContext, id_: int, data: User) -> ApiResponse:
-    # return dict(code=200, status='OK')
+# noinspection PyUnusedLocal
+def update_user(ctx: WsContext, user_id: int, data: User):
     raise NotImplementedError('operation update_user() not yet implemented')
 
 
-def delete_user(ctx: WsContext, id_: int) -> ApiResponse:
+# noinspection PyUnusedLocal
+def delete_user(ctx: WsContext, user_id: int):
     # return dict(code=200, status='OK')
     raise NotImplementedError('operation delete_user() not yet implemented')

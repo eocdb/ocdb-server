@@ -67,17 +67,13 @@ class StoreUpload(WsRequestHandler):
         # noinspection PyBroadException,PyUnusedLocal
         try:
             # transform body with mime-type multipart/form-data into a Dict
-            # TODO: transform self.request.body first
+            # TODO (generated): transform self.request.body first
             data = self.request.body
 
-            result = upload_store_files(self.ws_context, data=data)
-
-            # transform result of type ApiResponse into response with mime-type application/json
-            self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
+            upload_store_files(self.ws_context, data=data)
 
         except BaseException as e:
-            # TODO: handle error
+            # TODO (generated): handle error
             pass
 
         finally:
@@ -107,11 +103,11 @@ class StoreDownload(WsRequestHandler):
                                           pname=pname, docs=docs)
 
             # transform result of type str into response with mime-type application/octet-stream
-            # TODO: transform result first
+            # TODO (generated): transform result first
             self.write(result)
 
         except BaseException as e:
-            # TODO: handle error
+            # TODO (generated): handle error
             pass
 
         finally:
@@ -140,15 +136,9 @@ class Datasets(WsRequestHandler):
             result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
                                    wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
                                    offset=offset, count=count)
-
             # transform result of type DatasetQueryResult into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
             self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
         finally:
             self.finish()
 
@@ -159,40 +149,25 @@ class Datasets(WsRequestHandler):
             dry = self.query.get_param_bool('dry', default=None)
             # transform body with mime-type application/json into a Dataset
             data_dict = tornado.escape.json_decode(self.request.body)
-            data = Dataset.from_dict(data_dict)
-
-            result = add_dataset(self.ws_context, data=data, dry=dry)
-
+            dataset = Dataset.from_dict(data_dict)
+            result = add_dataset(self.ws_context, dataset=dataset, dry=dry)
             # transform result of type DatasetValidationResult into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
             self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
         finally:
             self.finish()
 
     def post(self):
         """Provide API operation updateDataset()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             dry = self.query.get_param_bool('dry', default=None)
             # transform body with mime-type application/json into a Dataset
             data_dict = tornado.escape.json_decode(self.request.body)
             data = Dataset.from_dict(data_dict)
-
-            result = update_dataset(self.ws_context, data=data, dry=dry)
-
-            # transform result of type ApiResponse into response with mime-type application/json
+            result = update_dataset(self.ws_context, dataset=data, dry=dry)
+            # transform result of type DatasetValidationResult into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
             self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
         finally:
             self.finish()
 
@@ -202,38 +177,22 @@ class DatasetsId(WsRequestHandler):
 
     def get(self, id: str):
         """Provide API operation getDatasetById()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
-            id_ = id
-            result = get_dataset_by_id(self.ws_context, id_=id_)
-
+            dataset_id = id
+            result = get_dataset_by_id(self.ws_context, dataset_id=dataset_id)
             # transform result of type Dataset into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
             self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            self.write_error()
         finally:
             self.finish()
 
     def delete(self, id: str):
         """Provide API operation deleteDataset()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
-            id_ = id
+            dataset_id = id
             api_key = self.header.get_param('api_key', default=None)
-            result = delete_dataset(self.ws_context, id_=id_, api_key=api_key)
-
-            # transform result of type ApiResponse into response with mime-type application/json
-            self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            delete_dataset(self.ws_context, dataset_id=dataset_id, api_key=api_key)
         finally:
             self.finish()
 
@@ -243,18 +202,11 @@ class DatasetsAffilProjectCruise(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str):
         """Provide API operation getDatasetsInBucket()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             result = get_datasets_in_bucket(self.ws_context, affil=affil, project=project, cruise=cruise)
-
             # transform result of type List[DatasetRef] into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            self.write(tornado.escape.json_encode([item.to_dict() for item in result]))
         finally:
             self.finish()
 
@@ -264,19 +216,12 @@ class DatasetsAffilProjectCruiseName(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str, name: str):
         """Provide API operation getDatasetByBucketAndName()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             result = get_dataset_by_bucket_and_name(self.ws_context, affil=affil, project=project, cruise=cruise,
                                                     name=name)
-
             # transform result of type str into response with mime-type application/octet-stream
-            # TODO: transform result first
+            # TODO (generated): transform result first
             self.write(result)
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
         finally:
             self.finish()
 
@@ -286,43 +231,21 @@ class Docfiles(WsRequestHandler):
 
     def put(self):
         """Provide API operation addDocFile()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             # transform body with mime-type multipart/form-data into a Dict
-            # TODO: transform self.request.body first
+            # TODO (generated): transform self.request.body first
             data = self.request.body
-
-            result = add_doc_file(self.ws_context, data=data)
-
-            # transform result of type ApiResponse into response with mime-type application/json
-            self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            add_doc_file(self.ws_context, data=data)
         finally:
             self.finish()
 
     def post(self):
         """Provide API operation updateDocFile()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             # transform body with mime-type multipart/form-data into a Dict
-            # TODO: transform self.request.body first
+            # TODO (generated): transform self.request.body first
             data = self.request.body
-
-            result = update_doc_file(self.ws_context, data=data)
-
-            # transform result of type ApiResponse into response with mime-type application/json
-            self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            update_doc_file(self.ws_context, data=data)
         finally:
             self.finish()
 
@@ -332,18 +255,11 @@ class DocfilesAffilProjectCruise(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str):
         """Provide API operation getDocFilesInBucket()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             result = get_doc_files_in_bucket(self.ws_context, affil=affil, project=project, cruise=cruise)
-
             # transform result of type List[DocFileRef] into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            self.write(tornado.escape.json_encode([item.to_dict() for item in result]))
         finally:
             self.finish()
 
@@ -353,35 +269,18 @@ class DocfilesAffilProjectCruiseName(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str, name: str):
         """Provide API operation downloadDocFile()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             result = download_doc_file(self.ws_context, affil=affil, project=project, cruise=cruise, name=name)
-
             # transform result of type str into response with mime-type application/octet-stream
-            # TODO: transform result first
+            # TODO (generated): transform result first
             self.write(result)
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
         finally:
             self.finish()
 
     def delete(self, affil: str, project: str, cruise: str, name: str):
         """Provide API operation deleteDocFile()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
-            result = delete_doc_file(self.ws_context, affil=affil, project=project, cruise=cruise, name=name)
-
-            # transform result of type ApiResponse into response with mime-type application/json
-            self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            delete_doc_file(self.ws_context, affil=affil, project=project, cruise=cruise, name=name)
         finally:
             self.finish()
 
@@ -391,22 +290,11 @@ class Users(WsRequestHandler):
 
     def post(self):
         """Provide API operation createUser()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             # transform body with mime-type application/json into a User
             data_dict = tornado.escape.json_decode(self.request.body)
-            data = User.from_dict(data_dict)
-
-            result = create_user(self.ws_context, data=data)
-
-            # transform result of type ApiResponse into response with mime-type application/json
-            self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            user = User.from_dict(data_dict)
+            create_user(self.ws_context, user=user)
         finally:
             self.finish()
 
@@ -416,20 +304,10 @@ class UsersLogin(WsRequestHandler):
 
     def get(self):
         """Provide API operation loginUser()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             username = self.query.get_param('username', default=None)
             password = self.query.get_param('password', default=None)
-            result = login_user(self.ws_context, username=username, password=password)
-
-            # transform result of type str into response with mime-type application/json
-            self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            login_user(self.ws_context, username=username, password=password)
         finally:
             self.finish()
 
@@ -439,18 +317,8 @@ class UsersLogout(WsRequestHandler):
 
     def get(self):
         """Provide API operation logoutUser()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
-            result = logout_user(self.ws_context)
-
-            # transform result of type ApiResponse into response with mime-type application/json
-            self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            logout_user(self.ws_context)
         finally:
             self.finish()
 
@@ -460,58 +328,30 @@ class UsersId(WsRequestHandler):
 
     def get(self, id: str):
         """Provide API operation getUserByID()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
-            id_ = RequestParams.to_int('id', id)
-            result = get_user_by_id(self.ws_context, id_=id_)
-
+            user_id = RequestParams.to_int('id', id)
+            result = get_user_by_id(self.ws_context, user_id=user_id)
             # transform result of type User into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
             self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
         finally:
             self.finish()
 
     def put(self, id: str):
         """Provide API operation updateUser()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
-            id_ = RequestParams.to_int('id', id)
+            user_id = RequestParams.to_int('id', id)
             # transform body with mime-type application/json into a User
             data_dict = tornado.escape.json_decode(self.request.body)
             data = User.from_dict(data_dict)
-
-            result = update_user(self.ws_context, id_=id_, data=data)
-
-            # transform result of type ApiResponse into response with mime-type application/json
-            self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            update_user(self.ws_context, user_id=user_id, data=data)
         finally:
             self.finish()
 
     def delete(self, id: str):
         """Provide API operation deleteUser()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
-            id_ = RequestParams.to_int('id', id)
-            result = delete_user(self.ws_context, id_=id_)
-
-            # transform result of type ApiResponse into response with mime-type application/json
-            self.set_header('Content-Type', 'application/json')
-            self.write(tornado.escape.json_encode(result.to_dict()))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
+            user_id = RequestParams.to_int('id', id)
+            delete_user(self.ws_context, user_id=user_id)
         finally:
             self.finish()

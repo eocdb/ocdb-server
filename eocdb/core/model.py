@@ -12,8 +12,12 @@ class Model(object):
     @classmethod
     def from_dict(cls: Type[T], dictionary: Dict[str, Any]) -> T:
         """Get the dictionary ``d`` as a model."""
+        if dictionary is None:
+            return None
         obj = cls()
         for name, value in dictionary.items():
+            if not hasattr(cls, name):
+                raise ValueError(f'property "{name}" is not an attribute of {cls}')
             prop = getattr(cls, name)
             if not isinstance(prop, property):
                 raise ValueError(f'property "{name}" is not a property of {cls}')

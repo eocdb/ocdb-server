@@ -23,12 +23,13 @@
 from typing import List
 
 from ..context import WsContext
-from ...core.models.api_response import ApiResponse
 from ...core.models.dataset import Dataset
 from ...core.models.dataset_query import DatasetQuery
 from ...core.models.dataset_query_result import DatasetQueryResult
 from ...core.models.dataset_ref import DatasetRef
 from ...core.models.dataset_validation_result import DatasetValidationResult
+from ...core.val.validator import validate_dataset
+from ...ws.errors import WsResourceNotFoundError
 
 
 def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, time: List[str] = None,
@@ -51,43 +52,56 @@ def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, 
 
     result = DatasetQueryResult()
     result.query = query
+    result.total_count = 0
     result.datasets = []
 
     for driver in ctx.get_db_drivers(mode="r"):
-        datasets = driver.instance().find_datasets(query)
-        if len(datasets) > 0:
-            for dataset in datasets:
-                dataset_ref = DatasetRef()
-                result.datasets.append(dataset_ref)
-                result.append(dataset.to_dict())
+        result_part = driver.instance().find_datasets(query)
+        result.total_count += result_part.total_count
+        result.datasets += result_part.datasets
+
     return result
 
 
-def add_dataset(ctx: WsContext, data: Dataset, dry: bool = None) -> DatasetValidationResult:
-    # return dict(code=200, status='OK')
-    raise NotImplementedError('operation add_dataset() not yet implemented')
+def add_dataset(ctx: WsContext, dataset: Dataset, dry: bool = None) -> DatasetValidationResult:
+    validation_result = validate_dataset(dataset)
+    if validation_result.status == "OK" and not dry:
+        for driver in ctx.get_db_drivers(mode="w"):
+            driver.instance().add_dataset(dataset)
+    return validation_result
 
 
-def update_dataset(ctx: WsContext, data: Dataset, dry: bool = None) -> ApiResponse:
-    # return dict(code=200, status='OK')
-    raise NotImplementedError('operation update_dataset() not yet implemented')
+def update_dataset(ctx: WsContext, dataset: Dataset, dry: bool = None) -> DatasetValidationResult:
+    validation_result = validate_dataset(dataset)
+    if validation_result.status == "OK" and not dry:
+        for driver in ctx.get_db_drivers(mode="w"):
+            driver.instance().update_dataset(dataset)
+    return validation_result
 
 
-def get_dataset_by_id(ctx: WsContext, id_: str) -> Dataset:
-    # return dict(code=200, status='OK')
-    raise NotImplementedError('operation get_dataset_by_id() not yet implemented')
+# noinspection PyUnusedLocal
+def delete_dataset(ctx: WsContext, dataset_id: str, api_key: str = None):
+    deleted = False
+    for driver in ctx.get_db_drivers(mode="w"):
+        if driver.instance().delete_dataset(dataset_id):
+            deleted = True
+    if not deleted:
+        raise WsResourceNotFoundError(f"dataset with ID {dataset_id} not found")
 
 
-def delete_dataset(ctx: WsContext, id_: str, api_key: str = None) -> ApiResponse:
-    # return dict(code=200, status='OK')
-    raise NotImplementedError('operation delete_dataset() not yet implemented')
+def get_dataset_by_id(ctx: WsContext, dataset_id: str) -> Dataset:
+    for driver in ctx.get_db_drivers(mode="r"):
+        dataset = driver.instance().get_dataset(dataset_id)
+        if dataset is not None:
+            return dataset
+    raise WsResourceNotFoundError(f"dataset with ID {dataset_id} not found")
 
 
+# noinspection PyUnusedLocal
 def get_datasets_in_bucket(ctx: WsContext, affil: str, project: str, cruise: str) -> List[DatasetRef]:
-    # return dict(code=200, status='OK')
     raise NotImplementedError('operation get_datasets_in_bucket() not yet implemented')
 
 
+# noinspection PyUnusedLocal
 def get_dataset_by_bucket_and_name(ctx: WsContext, affil: str, project: str, cruise: str, name: str) -> str:
-    # return dict(code=200, status='OK')
     raise NotImplementedError('operation get_dataset_by_bucket_and_name() not yet implemented')

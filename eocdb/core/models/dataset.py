@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 
-from typing import Dict
+from typing import Dict, List
 
 from .bucket import Bucket
 from ..model import Model
@@ -36,7 +36,7 @@ class Dataset(Model):
         self._bucket = None
         self._name = None
         self._status = None
-        self._header = None
+        self._metadata = None
         self._records = None
 
     @property
@@ -72,17 +72,18 @@ class Dataset(Model):
         self._status = value
 
     @property
-    def header(self) -> Dict:
-        return self._header
+    def metadata(self) -> Dict:
+        return self._metadata
 
-    @header.setter
-    def header(self, value: Dict):
-        self._header = value
+    @metadata.setter
+    def metadata(self, value: Dict):
+        self._metadata = value
 
     @property
-    def records(self) -> Dict:
+    def records(self) -> List[List[float]]:
         return self._records
 
     @records.setter
-    def records(self, value: Dict):
+    def records(self, value: List[List[float]]):
         self._records = value
+

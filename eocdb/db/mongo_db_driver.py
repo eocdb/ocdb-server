@@ -14,40 +14,42 @@ from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
-from ..core.models.dataset_validation_result import DatasetValidationResult
 
 
 class MongoDbDriver(DbDriver):
 
-    def add_dataset(self, dataset: Dataset) -> DatasetValidationResult:
-        """Add dataset."""
-        # TODO by forman: validate dataset here or do it outside? If latter,
-        #                 return type "DatasetValidationResult" should be replaced by "List[DatasetRef]"
-        validation_result = DatasetValidationResult()
-        validation_result.status = "OK"
-        validation_result.issues = []
-        # TODO by forman: is there a MongoDB specific way to gen IDs?
+    def add_dataset(self, dataset: Dataset):
+        # TODO by forman: Also MongoDB (or mongomock?) assigns an "_id" property to newly added documents.
+        #                 Can we exploit that?
         dataset.id = str(uuid.uuid4())
+        # TODO by forman: raise or return bool?
         self._collection.insert_one(dataset.to_dict())
-        return validation_result
+
+    def update_dataset(self, dataset: Dataset) -> bool:
+        # TODO by forman: remove dataset here
+        # TODO by forman: raise or return bool? Note we must later be able to return HTTP 404.
+        raise NotImplementedError()
+
+    def delete_dataset(self, dataset_id) -> bool:
+        # TODO by forman: remove dataset here
+        # TODO by forman: raise or return bool? Note we must later be able to return HTTP 404.
+        raise NotImplementedError()
 
     def get_dataset(self, dataset_id) -> Optional[Dataset]:
         # TODO by forman: use find() with query filter here to find docs by "id"
         cursor = self._collection.find()
         for dataset_dict in cursor:
             if dataset_dict.get("id") == dataset_id:
+                if "_id" in dataset_dict:
+                    # "_id" is assigned automatically by MongoDB or mongomock
+                    del dataset_dict["_id"]
                 return Dataset.from_dict(dataset_dict)
+        # TODO by forman: raise or return None? Note we must later be able to return HTTP 404.
         return None
 
-    def remove_dataset(self, dataset_id):
-        # TODO by forman: remove dataset here
-        return
-
     def find_datasets(self, query: DatasetQuery) -> DatasetQueryResult:
-        """Find datasets for given query and return list of dataset references."""
-
         if query.offset is None:
-            start_index = 1
+            start_index = 0
         else:
             start_index = query.offset - 1
 

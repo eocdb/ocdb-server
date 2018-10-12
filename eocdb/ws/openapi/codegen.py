@@ -180,7 +180,7 @@ class CodeGen:
                         res_mime_type, res_schema = _select_handled_mime_type_and_schema_from_response(op)
                         res_py_type_name = _get_py_type_name(res_schema) if res_schema else None
 
-                        code.append("# noinspection PyBroadException,PyUnusedLocal")
+                        code.append("# noinspection PyUnusedLocal")
                         code.append("try:")
                         with code.indent():
 
@@ -206,7 +206,7 @@ class CodeGen:
                                 elif req_mime_type == "text/plain":
                                     code.append(f"data = self.request.body")
                                 elif req_mime_type is not None:
-                                    code.append(f"# TODO: transform self.request.body first")
+                                    code.append(f"# TODO (generated): transform self.request.body first")
                                     code.append(f"data = self.request.body")
                                 code.append()
 
@@ -244,15 +244,15 @@ class CodeGen:
                                     code.append(f"self.set_header('Content-Type', '{res_mime_type}')")
                                     code.append(f"self.write(result)")
                                 elif res_mime_type is not None:
-                                    code.append(f"# TODO: transform result first")
+                                    code.append(f"# TODO (generated): transform result first")
                                     code.append(f"self.write(result)")
                                 code.append()
 
-                        code.append("except BaseException as e:")
-                        with code.indent():
-                            code.append("# TODO: handle error")
-                            code.append("pass")
-                            code.append()
+                        # code.append("except BaseException as e:")
+                        # with code.indent():
+                        #     code.append("# TODO (generated): handle error")
+                        #     code.append("pass")
+                        #     code.append()
 
                         code.append("finally:")
                         with code.indent():
@@ -272,6 +272,22 @@ class CodeGen:
         code.append(f"from {self._prod_package}.app import new_application")
         code.append(f"from ..helpers import new_test_service_context")
 
+        code.append()
+        code.append()
+        code.append("class WsTestCase(tornado.testing.AsyncHTTPTestCase):")
+        with code.indent():
+            code.append("def get_app(self):")
+            with code.indent():
+                code.append('"""Implements AsyncHTTPTestCase.get_app()."""')
+                code.append("application = new_application()")
+                code.append("application.ws_context = new_test_service_context()")
+                code.append("return application")
+            code.append()
+            code.append("@property")
+            code.append("def ctx(self):")
+            with code.indent():
+                code.append("return self._app.ws_context")
+
         for path_item in self._openapi.path_items:
 
             # Request class definition
@@ -279,13 +295,8 @@ class CodeGen:
             class_name = _get_py_handler_class_name(path_item.path)
             code.append()
             code.append()
-            code.append(f"class {class_name}Test(tornado.testing.AsyncHTTPTestCase):")
+            code.append(f"class {class_name}Test(WsTestCase):")
             with code.indent():
-
-                code.append()
-                code.append("def get_app(self):")
-                with code.indent():
-                    code.append("return _get_app(self)")
 
                 for op in path_item.operations:
 
@@ -299,21 +310,21 @@ class CodeGen:
                         path_params = [p for p in op.parameters if p.in_ == "path"]
                         if path_params:
                             code.append()
-                            code.append("# TODO: set path parameter(s) to reasonable value(s)")
+                            code.append("# TODO (generated): set path parameter(s) to reasonable value(s)")
                             for param in path_params:
                                 code.append(f"{param.name} = None")
 
                         query_params = [p for p in op.parameters if p.in_ == "query"]
                         if query_params:
                             code.append()
-                            code.append("# TODO: set query parameter(s) to reasonable value(s)")
+                            code.append("# TODO (generated): set query parameter(s) to reasonable value(s)")
                             for param in query_params:
                                 code.append(f"{param.name} = None")
 
                         req_mime_type, req_schema = _select_handled_mime_type_and_schema_from_request_body(op)
                         if req_schema:
                             code.append()
-                            code.append("# TODO: set data for request body to reasonable value")
+                            code.append("# TODO (generated): set data for request body to reasonable value")
                             if req_schema.type == "array" and req_mime_type == "application/json":
                                 code.append("data = []")
                                 code.append("body = tornado.escape.json_encode(data)")
@@ -341,7 +352,7 @@ class CodeGen:
 
                         res_mime_type, res_schema = _select_handled_mime_type_and_schema_from_response(op)
                         code.append()
-                        code.append("# TODO: set expected_response correctly")
+                        code.append("# TODO (generated): set expected_response correctly")
                         if res_schema:
                             if res_schema.type == "array" and res_mime_type == "application/json":
                                 code.append("expected_response_data = []")
@@ -355,18 +366,9 @@ class CodeGen:
                                 code.append(f"actual_response_data = response.body")
                         else:
                             code.append(f"expected_response_data = None")
-                            code.append(f"actual_response_data = None")
+                            code.append(f"actual_response_data = response.body")
 
                         code.append("self.assertEqual(expected_response_data, actual_response_data)")
-
-        code.append()
-        code.append()
-        code.append("# noinspection PyUnusedLocal")
-        code.append("def _get_app(test: tornado.testing.AsyncHTTPTestCase):")
-        with code.indent():
-            code.append("application = new_application()")
-            code.append("application.ws_context = new_test_service_context()")
-            code.append("return application")
 
         return code
 
@@ -410,6 +412,7 @@ class CodeGen:
         code.append()
         code.append()
 
+        code.append("# noinspection PyUnusedLocal")
         py_return_type_code = f" -> {res_py_type_name}" if res_py_type_name else ""
         if param_decl:
             code.append(f"def {func_name}(ctx: WsContext, {param_decl}){py_return_type_code}:")
@@ -417,7 +420,7 @@ class CodeGen:
             code.append(f"def {func_name}(ctx: WsContext){py_return_type_code}:")
 
         with code.indent():
-            code.append(f"# return dict(code=200, status='OK')")
+            code.append(f"# TODO (generated): implement operation {func_name}()")
             code.append(f"raise NotImplementedError('operation {func_name}() not yet implemented')")
 
     def _gen_controller_test_code(self, op: Operation, path: str, module_code: Dict[str, Code]):
@@ -454,7 +457,7 @@ class CodeGen:
                 req_params, opt_params = _split_req_and_opt_parameters(op)
 
                 if req_params:
-                    code.append("# TODO: set required parameters")
+                    code.append("# TODO (generated): set required parameters")
                     for param in req_params:
                         py_name = _get_py_lower_name(param.name, esc_builtins=True)
                         code.append(f"{py_name} = None")
@@ -462,21 +465,21 @@ class CodeGen:
                 req_mime_type, req_schema = _select_handled_mime_type_and_schema_from_request_body(op)
                 if req_schema:
                     if req_schema.type == "array":
-                        code.append("# TODO: set data list items")
+                        code.append("# TODO (generated): set request data list items")
                         code.append(f"data = []")
                     elif req_schema.type == "object":
                         if req_schema.ref_name:
                             code.append(f"data = {req_schema.ref_name}()")
-                            code.append("# TODO: set data properties")
+                            code.append("# TODO (generated): set request data properties")
                         else:
-                            code.append("# TODO: set data dict items")
+                            code.append("# TODO (generated): set request data dict items")
                             code.append("data = {}")
                     else:
-                        code.append("# TODO: set data")
+                        code.append("# TODO (generated): set data")
                         code.append("data = None")
 
                 if opt_params:
-                    code.append("# TODO: set optional parameters")
+                    code.append("# TODO (generated): set optional parameters")
                     for param in opt_params:
                         py_name = _get_py_lower_name(param.name, esc_builtins=True)
                         code.append(f"{py_name} = None")
@@ -505,22 +508,22 @@ class CodeGen:
                 if res_schema:
                     if res_schema.type == "array":
                         code.append("self.assertIsInstance(result, list)")
-                        code.append("# TODO: set expected result")
+                        code.append("# TODO (generated): set expected result")
                         code.append("expected_result = []")
                         code.append("self.assertEqual(expected_result, result)")
                     elif res_schema.type == "object":
                         if res_schema.ref_name:
                             code.append(f"self.assertIsInstance(result, {res_schema.ref_name})")
                             code.append(f"expected_result = {res_schema.ref_name}()")
-                            code.append("# TODO: set expected result properties")
+                            code.append("# TODO (generated): set expected result properties")
                             code.append("self.assertEqual(expected_result, result)")
                         else:
                             code.append(f"self.assertIsInstance(result, dict)")
-                            code.append("# TODO: set expected result")
+                            code.append("# TODO (generated): set expected result")
                             code.append("expected_result = {}")
                             code.append("self.assertEqual(expected_result, result)")
                     else:
-                        code.append("# TODO: set expected result")
+                        code.append("# TODO (generated): set expected result")
                         code.append("expected_result = None")
                         code.append("self.assertEqual(expected_result, result)")
                 else:
