@@ -1,0 +1,122 @@
+[
+  {
+    "name": "AOP",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "PAR",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "Kd",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "a",
+    "description": "...",
+    "products": [
+      "a",
+      "a*ph",
+      "a*srfa",
+      "adg",
+      "ag",
+      "agb"
+    ]
+  },
+  {
+    "name": "b",
+    "description": "...",
+    "products": [
+      "b"
+    ]
+  },
+  {
+    "name": "bb",
+    "description": "...",
+    "products": [
+      "bb",
+      "bbp",
+      "bbw"
+    ]
+  },
+  {
+    "name": "c",
+    "description": "...",
+    "products": [
+      "c"
+    ]
+  },
+  {
+    "name": "DC",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "PC",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "SPM",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "AOT",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "nutrients",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "CTD",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "fluorescence",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "productivity",
+    "description": "...",
+    "products": []
+  },
+  {
+    "name": "Chl",
+    "description": "...",
+    "products": [
+      "Chl",
+      "Chl_a",
+      "Chl_a_allom",
+      "Chl_a_prime",
+      "Chl_b",
+      "Chl_c",
+      "Chl_c1",
+      "Chl_c1c2",
+      "Chl_c2",
+      "Chl_c3",
+      "Chl_ex",
+      "Chl_stimf",
+      "Tchl",
+      "Tot_Chl_a",
+      "Tot_Chl_b",
+      "Tot_Chl_c"
+    ]
+  },
+  {
+    "name": "HPLC",
+    "description": "...",
+    "products": [
+      "DV_Chl_a",
+      "DV_Chl_b"
+    ]
+  }
+]
