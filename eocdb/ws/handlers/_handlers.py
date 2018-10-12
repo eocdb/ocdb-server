@@ -33,7 +33,7 @@ from ..reqparams import RequestParams
 from ..webservice import WsRequestHandler
 
 
-# noinspection PyAbstractClass,PyShadowingBuiltins
+# noinspection PyAbstractClass
 class ServiceInfo(WsRequestHandler):
 
     def get(self):
@@ -46,23 +46,15 @@ class ServiceInfo(WsRequestHandler):
             self.finish()
 
 
-# noinspection PyAbstractClass,PyShadowingBuiltins
+# noinspection PyAbstractClass
 class StoreInfo(WsRequestHandler):
 
     def get(self):
         """Provide API operation getStoreInfo()."""
-        # noinspection PyBroadException,PyUnusedLocal
         try:
             result = get_store_info(self.ws_context)
-
-            # transform result of type Dict into response with mime-type application/json
             self.set_header('Content-Type', 'application/json')
             self.write(tornado.escape.json_encode(result))
-
-        except BaseException as e:
-            # TODO: handle error
-            pass
-
         finally:
             self.finish()
 

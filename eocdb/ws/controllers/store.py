@@ -24,30 +24,11 @@ from typing import Dict, List
 
 from ..context import WsContext
 from ..models.api_response import ApiResponse
-from ...db.fields import get_fields
-
-# Put as file into eocdb.db.res
-_PRODUCT_GROUPS = [{"name": "AOP", "description": "...", "products": []},
-                   {"name": "PAR", "description": "...", "products": []},
-                   {"name": "Kd", "description": "...", "products": []},
-                   {"name": "a", "description": "...", "products": []},
-                   {"name": "b", "description": "...", "products": []},
-                   {"name": "bb", "description": "...", "products": []},
-                   {"name": "c", "description": "...", "products": []},
-                   {"name": "DC", "description": "...", "products": []},
-                   {"name": "PC", "description": "...", "products": []},
-                   {"name": "SPM", "description": "...", "products": []},
-                   {"name": "AOT", "description": "...", "products": []},
-                   {"name": "nutrients", "description": "...", "products": []},
-                   {"name": "CTD", "description": "...", "products": []},
-                   {"name": "fluorescence", "description": "...", "products": []},
-                   {"name": "productivity", "description": "...", "products": []},
-                   {"name": "Chl", "description": "...", "products": []},
-                   {"name": "HPLC", "description": "...", "products": []}]
+from ...db.static_data import get_product_groups, get_products
 
 
 def get_store_info(ctx: WsContext) -> Dict:
-    raise dict(products=get_fields(), productGroups=_PRODUCT_GROUPS)
+    return dict(products=get_products(), productGroups=get_product_groups())
 
 
 def upload_store_files(ctx: WsContext, data: Dict) -> ApiResponse:

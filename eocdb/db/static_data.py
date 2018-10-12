@@ -31,7 +31,7 @@ def get_product_groups() -> List[ProductGroup]:
     global _PRODUCT_GROUPS
     if _PRODUCT_GROUPS is None:
         file = os.path.join(os.path.dirname(__file__), "res", "product-groups.json")
-        with open(file) as fp:
+        with open(file, encoding="utf8") as fp:
             _PRODUCT_GROUPS = json.load(fp)
     return _PRODUCT_GROUPS
 
@@ -39,7 +39,8 @@ def get_product_groups() -> List[ProductGroup]:
 def get_products() -> List[Field]:
     """
     Return a list of allowed and valid product names of the form
-    ``[<product-wildcard>, <units>, <description>]``.
+    ``dict(name=<product-group-name>, description=<description>, products=<products>)``, where
+    <products> is a list of the form ``[<field-wildcard>, <field-wildcard>, <field-wildcard>, ...]``.
 
     This is a filtered version of the list returned by func::get_fields.
     """
@@ -57,8 +58,8 @@ def get_fields() -> List[Field]:
     if _FIELDS is None:
         _FIELDS = []
         file = os.path.join(os.path.dirname(__file__), "res", "fields.csv")
-        with open(file) as fp:
-            reader = csv.reader(fp, delimiter=';', )
+        with open(file, encoding="utf8") as fp:
+            reader = csv.reader(fp, delimiter=';')
             for row in reader:
                 if len(row) != 3:
                     raise ValueError(f"malformed file {file}, rows must have 3 columns")

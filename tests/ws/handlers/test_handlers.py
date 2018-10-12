@@ -62,15 +62,10 @@ class StoreInfoTest(tornado.testing.AsyncHTTPTestCase):
         response = self.fetch(f"/store/info", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-
         result = tornado.escape.json_decode(response.body)
         self.assertIsInstance(result, dict)
         self.assertIn("products", result)
-        self.assertIsInstance(result["products"], list)
-        self.assertEqual(361, len(result["products"]))
         self.assertIn("productGroups", result)
-        self.assertIsInstance(result["productGroups"], list)
-        self.assertEqual(17, len(result["productGroups"]))
 
 
 class StoreUploadTest(tornado.testing.AsyncHTTPTestCase):
