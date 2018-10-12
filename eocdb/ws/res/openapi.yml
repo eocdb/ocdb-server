@@ -66,7 +66,7 @@ paths:
         $ref: '#/components/requestBodies/FileUpload'
       responses:
         '200':
-          $ref: '#/components/responses/ApiResponse'
+          description: Successful operation.
         '400':
           description: Invalid request.
       security:
@@ -180,7 +180,7 @@ paths:
         $ref: '#/components/requestBodies/Dataset'
       responses:
         '200':
-          $ref: '#/components/responses/ApiResponse'
+          description: Sucessful operation.
         '400':
           description: Invalid ID supplied.
         '404':
@@ -218,7 +218,7 @@ paths:
         - $ref: "#/components/parameters/datasetIdParam"
       responses:
         '200':
-          $ref: '#/components/responses/ApiResponse'
+          description: Successful operation.
         '400':
           description: Invalid dataset ID.
         '404':
@@ -280,7 +280,7 @@ paths:
         $ref: '#/components/requestBodies/FileUpload'
       responses:
         '200':
-          $ref: '#/components/responses/ApiResponse'
+          description: Successful operation.
       security:
         - eocdb_auth:
             - 'write:datasets'
@@ -295,7 +295,7 @@ paths:
         $ref: '#/components/requestBodies/FileUpload'
       responses:
         '200':
-          $ref: '#/components/responses/ApiResponse'
+          description: Successful operation.
       security:
         - eocdb_auth:
             - 'write:datasets'
@@ -350,7 +350,7 @@ paths:
         - $ref: "#/components/parameters/docFileNameParam"
       responses:
         '200':
-          $ref: '#/components/responses/ApiResponse'
+          description: Successful operation.
         '400':
           description: Invalid path.
         '404':
@@ -370,7 +370,7 @@ paths:
         $ref: '#/components/requestBodies/User'
       responses:
         '200':
-          $ref: '#/components/responses/ApiResponse'
+          description: Successful operation.
         '400':
           description: Invalid request.
   '/users/login':
@@ -422,7 +422,7 @@ paths:
       operationId: logoutUser
       responses:
         '200':
-          $ref: '#/components/responses/ApiResponse'
+          description: Successful operation.
   '/users/{id}':
     get:
       tags:
@@ -451,7 +451,7 @@ paths:
         $ref: '#/components/requestBodies/User'
       responses:
         '200':
-          $ref: '#/components/responses/ApiResponse'
+          description: Successful operation.
         '400':
           description: Invalid user ID supplied.
         '404':
@@ -466,7 +466,7 @@ paths:
         - $ref: '#/components/parameters/userIdParam'
       responses:
         '200':
-          $ref: '#/components/responses/ApiResponse'
+          description: Successful operation.
         '400':
           description: Invalid user ID supplied.
         '404':
@@ -804,16 +804,6 @@ components:
           type: string
         cruise:
           type: string
-    ApiResponse:
-      type: object
-      properties:
-        code:
-          type: integer
-          format: int32
-        type:
-          type: string
-        message:
-          type: string
   requestBodies:
     Dataset:
       description: Dataset object.
@@ -894,12 +884,6 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/User'
-    ApiResponse:
-      description: Successful operation.
-      content:
-        application/json:
-          schema:
-            $ref: '#/components/schemas/ApiResponse'
     FileDownload:
       description: Successful operation.
       content:
