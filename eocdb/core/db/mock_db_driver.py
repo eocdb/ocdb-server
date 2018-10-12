@@ -1,28 +1,42 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
-from eocdb.core import Dataset
-from eocdb.core.db.errors import DatabaseError
-from eocdb.core.db.db_dataset import DbDataset
-from eocdb.core.db.db_driver import DbDriver
+from .. import Dataset as _Dataset
+from ..db.db_dataset import DbDataset
+from ..db.db_driver import DbDriver
+from ..db.errors import DatabaseError
+from ..deprecated import deprecated
+from ..models.dataset import Dataset
+from ..models.dataset_query import DatasetQuery
+from ..models.dataset_ref import DatasetRef
+from ..models.dataset_validation_result import DatasetValidationResult
 
+# TODO by forman: decide to get rid of this class, its maintenance will be very expensive, better use mongomock
 
 class MockDbDriver(DbDriver):
 
-    def init(self, **config):
-        pass
+    def get_dataset(self, dataset_id) -> Optional[Dataset]:
+        """Get dataset by ID."""
+        raise NotImplementedError()
 
-    def update(self, **config):
-        pass
+    def add_dataset(self, dataset: Dataset) -> DatasetValidationResult:
+        """Add dataset."""
+        raise NotImplementedError()
 
-    def dispose(self):
-        pass
+    def remove_dataset(self, dataset_id):
+        """Remove dataset by ID."""
+        raise NotImplementedError()
 
-    def get(self, query_expression=None) -> List[Dataset]:
+    def find_datasets(self, query: DatasetQuery) -> List[DatasetRef]:
+        """Find datasets for given query and return list of dataset references."""
+        raise NotImplementedError()
+
+    @deprecated
+    def get(self, query_expression=None) -> List[_Dataset]:
         if "trigger_error" == query_expression:
             raise DatabaseError("Triggering a test error")
 
-        if not "ernie" in query_expression:
+        if "ernie" not in query_expression:
             return []
 
         dataset = DbDataset()
@@ -44,5 +58,15 @@ class MockDbDriver(DbDriver):
 
         return [dataset]
 
+    @deprecated
     def insert(self, document):
+        raise NotImplementedError()
+
+    def init(self, **config):
+        pass
+
+    def update(self, **config):
+        pass
+
+    def dispose(self):
         pass

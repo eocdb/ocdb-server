@@ -20,3 +20,10 @@
 # SOFTWARE.
 
 
+# TODO by forman: "Dataset", "DatasetRef", "DocFileRef" must have new required "service_id" property
+#                 so we know from which data base driver they came from.
+
+# TODO by forman: Check if the "Bucket" path "affil/project/cruise" is really correct and what is needed.
+#                 Where does "project" come from? There may be many affiliations in a project.
+
+

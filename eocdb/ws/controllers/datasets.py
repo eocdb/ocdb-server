@@ -22,20 +22,45 @@
 
 from typing import List
 
-from eocdb.core.models.api_response import ApiResponse
-from eocdb.core.models.dataset import Dataset
-from eocdb.core.models.dataset_query_result import DatasetQueryResult
-from eocdb.core.models.dataset_ref import DatasetRef
-from eocdb.core.models.dataset_validation_result import DatasetValidationResult
 from ..context import WsContext
+from ...core.models.api_response import ApiResponse
+from ...core.models.dataset import Dataset
+from ...core.models.dataset_query import DatasetQuery
+from ...core.models.dataset_query_result import DatasetQueryResult
+from ...core.models.dataset_ref import DatasetRef
+from ...core.models.dataset_validation_result import DatasetValidationResult
 
 
 def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, time: List[str] = None,
                   wdepth: List[float] = None, mtype: str = None, wlmode: str = None, shallow: str = None,
                   pmode: str = None, pgroup: List[str] = None, pname: List[str] = None, offset: int = None,
                   count: int = None) -> DatasetQueryResult:
-    # return dict(code=200, status='OK')
-    raise NotImplementedError('operation find_datasets() not yet implemented')
+    query = DatasetQuery()
+    query.expr = expr
+    query.region = region
+    query.time = time
+    query.wdepth = wdepth
+    query.mtype = mtype
+    query.wlmode = wlmode
+    query.shallow = shallow
+    query.pmode = pmode
+    query.pgroup = pgroup
+    query.pname = pname
+    query.offset = offset
+    query.count = count
+
+    result = DatasetQueryResult()
+    result.query = query
+    result.datasets = []
+
+    for driver in ctx.get_db_drivers(mode="r"):
+        datasets = driver.instance().find_datasets(query)
+        if len(datasets) > 0:
+            for dataset in datasets:
+                dataset_ref = DatasetRef()
+                result.datasets.append(dataset_ref)
+                result.append(dataset.to_dict())
+    return result
 
 
 def add_dataset(ctx: WsContext, data: Dataset, dry: bool = None) -> DatasetValidationResult:
