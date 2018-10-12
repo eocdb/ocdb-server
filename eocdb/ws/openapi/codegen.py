@@ -180,83 +180,72 @@ class CodeGen:
                         res_mime_type, res_schema = _select_handled_mime_type_and_schema_from_response(op)
                         res_py_type_name = _get_py_type_name(res_schema) if res_schema else None
 
-                        code.append("# noinspection PyUnusedLocal")
-                        code.append("try:")
-                        with code.indent():
+                        # Get and convert parameters
+                        #
+                        req_params, opt_params = _split_req_and_opt_parameters(op)
+                        for param in req_params:
+                            code.append(self._gen_fetch_param_code(param))
+                        for param in opt_params:
+                            code.append(self._gen_fetch_param_code(param))
 
-                            # Get and convert parameters
-                            #
-                            req_params, opt_params = _split_req_and_opt_parameters(op)
-                            for param in req_params:
-                                code.append(self._gen_fetch_param_code(param))
-                            for param in opt_params:
-                                code.append(self._gen_fetch_param_code(param))
+                        # Get request body data
+                        #
+                        if req_py_type_name:
+                            code.append(
+                                f"# transform body with mime-type {req_mime_type} into a {req_py_type_name}")
+                            if req_mime_type == "application/json":
+                                if req_py_type_name == "Dict":
+                                    code.append(f"data = tornado.escape.json_decode(self.request.body)")
+                                else:
+                                    code.append(f"data_dict = tornado.escape.json_decode(self.request.body)")
+                                    code.append(f"data = {req_py_type_name}.from_dict(data_dict)")
+                            elif req_mime_type == "text/plain":
+                                code.append(f"data = self.request.body")
+                            elif req_mime_type is not None:
+                                code.append(f"# TODO (generated): transform self.request.body first")
+                                code.append(f"data = self.request.body")
+                            code.append()
 
-                            # Get request body data
-                            #
-                            if req_py_type_name:
-                                code.append(
-                                    f"# transform body with mime-type {req_mime_type} into a {req_py_type_name}")
-                                if req_mime_type == "application/json":
-                                    if req_py_type_name == "Dict":
-                                        code.append(f"data = tornado.escape.json_decode(self.request.body)")
-                                    else:
-                                        code.append(f"data_dict = tornado.escape.json_decode(self.request.body)")
-                                        code.append(f"data = {req_py_type_name}.from_dict(data_dict)")
-                                elif req_mime_type == "text/plain":
-                                    code.append(f"data = self.request.body")
-                                elif req_mime_type is not None:
-                                    code.append(f"# TODO (generated): transform self.request.body first")
-                                    code.append(f"data = self.request.body")
-                                code.append()
+                        # Call controller operation
+                        #
+                        func_name = _get_py_op_func_name(op, class_name)
+                        call_args_parts = []
+                        for param in req_params:
+                            py_name = _get_py_lower_name(param.name, esc_builtins=True)
+                            call_args_parts.append(f"{py_name}={py_name}")
+                        if req_py_type_name is not None:
+                            call_args_parts.append(f"data=data")
+                        for param in opt_params:
+                            py_name = _get_py_lower_name(param.name, esc_builtins=True)
+                            call_args_parts.append(f"{py_name}={py_name}")
+                        call_args = ", ".join(call_args_parts)
+                        if call_args:
+                            code.append(f"result = {func_name}(self.ws_context, {call_args})")
+                        else:
+                            code.append(f"result = {func_name}(self.ws_context)")
 
-                            # Call controller operation
-                            #
-                            func_name = _get_py_op_func_name(op, class_name)
-                            call_args_parts = []
-                            for param in req_params:
-                                py_name = _get_py_lower_name(param.name, esc_builtins=True)
-                                call_args_parts.append(f"{py_name}={py_name}")
-                            if req_py_type_name is not None:
-                                call_args_parts.append(f"data=data")
-                            for param in opt_params:
-                                py_name = _get_py_lower_name(param.name, esc_builtins=True)
-                                call_args_parts.append(f"{py_name}={py_name}")
-                            call_args = ", ".join(call_args_parts)
-                            if call_args:
-                                code.append(f"result = {func_name}(self.ws_context, {call_args})")
+                        # Convert controller operation's return value
+                        #
+                        if res_py_type_name:
+                            code.append()
+                            code.append(f"# transform result of type {res_py_type_name}"
+                                        f" into response with mime-type {res_mime_type}")
+                            if res_mime_type == "application/json":
+                                code.append(f"self.set_header('Content-Type', '{res_mime_type}')")
+                                if res_py_type_name in {"bool", "str", "int", "float", "List", "Dict"}:
+                                    code.append(f"self.finish(tornado.escape.json_encode(result))")
+                                else:
+                                    code.append(f"self.finish(tornado.escape.json_encode(result.to_dict()))")
+                            elif res_mime_type == "text/plain":
+                                code.append(f"self.set_header('Content-Type', '{res_mime_type}')")
+                                code.append(f"self.finish(result)")
+                            elif res_mime_type is not None:
+                                code.append(f"# TODO (generated): transform result first")
+                                code.append(f"self.finish(result)")
                             else:
-                                code.append(f"result = {func_name}(self.ws_context)")
-
-                            # Convert controller operation's return value
-                            #
-                            if res_py_type_name:
-                                code.append()
-                                code.append(f"# transform result of type {res_py_type_name}"
-                                            f" into response with mime-type {res_mime_type}")
-                                if res_mime_type == "application/json":
-                                    code.append(f"self.set_header('Content-Type', '{res_mime_type}')")
-                                    if res_py_type_name in {"bool", "str", "int", "float", "List", "Dict"}:
-                                        code.append(f"self.write(tornado.escape.json_encode(result))")
-                                    else:
-                                        code.append(f"self.write(tornado.escape.json_encode(result.to_dict()))")
-                                elif res_mime_type == "text/plain":
-                                    code.append(f"self.set_header('Content-Type', '{res_mime_type}')")
-                                    code.append(f"self.write(result)")
-                                elif res_mime_type is not None:
-                                    code.append(f"# TODO (generated): transform result first")
-                                    code.append(f"self.write(result)")
-                                code.append()
-
-                        # code.append("except BaseException as e:")
-                        # with code.indent():
-                        #     code.append("# TODO (generated): handle error")
-                        #     code.append("pass")
-                        #     code.append()
-
-                        code.append("finally:")
-                        with code.indent():
-                            code.append("self.finish()")
+                                code.append(f"self.finish()")
+                        else:
+                            code.append(f"self.finish()")
 
         return code
 
