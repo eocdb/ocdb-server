@@ -23,7 +23,7 @@
 from typing import Dict, List
 
 from ..context import WsContext
-from ..models.api_response import ApiResponse
+from eocdb.core.models.api_response import ApiResponse
 from ...db.static_data import get_product_groups, get_products
 
 

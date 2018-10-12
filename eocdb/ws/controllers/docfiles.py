@@ -23,8 +23,8 @@
 from typing import Dict, List
 
 from ..context import WsContext
-from ..models.api_response import ApiResponse
-from ..models.doc_file_ref import DocFileRef
+from ...core.models.api_response import ApiResponse
+from ...core.models.doc_file_ref import DocFileRef
 
 
 def add_doc_file(ctx: WsContext, data: Dict) -> ApiResponse:

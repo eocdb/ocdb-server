@@ -7,7 +7,7 @@ from eocdb.ws.main import main  # , new_web_service
 # from eocdb.ws.service import WebService
 
 
-class AppSmokeTest(unittest.TestCase):
+class MainSmokeTest(unittest.TestCase):
 
     def test_cli(self):
         try:

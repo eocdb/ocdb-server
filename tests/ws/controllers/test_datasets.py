@@ -23,10 +23,10 @@
 import unittest
 
 from eocdb.ws.controllers.datasets import *
-from eocdb.ws.models.api_response import ApiResponse
-from eocdb.ws.models.dataset import Dataset
-from eocdb.ws.models.dataset_query_result import DatasetQueryResult
-from eocdb.ws.models.dataset_validation_result import DatasetValidationResult
+from eocdb.core.models.api_response import ApiResponse
+from eocdb.core.models.dataset import Dataset
+from eocdb.core.models.dataset_query_result import DatasetQueryResult
+from eocdb.core.models.dataset_validation_result import DatasetValidationResult
 from ..helpers import new_test_service_context
 
 

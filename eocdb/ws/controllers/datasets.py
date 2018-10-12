@@ -22,12 +22,12 @@
 
 from typing import List
 
+from eocdb.core.models.api_response import ApiResponse
+from eocdb.core.models.dataset import Dataset
+from eocdb.core.models.dataset_query_result import DatasetQueryResult
+from eocdb.core.models.dataset_ref import DatasetRef
+from eocdb.core.models.dataset_validation_result import DatasetValidationResult
 from ..context import WsContext
-from ..models.api_response import ApiResponse
-from ..models.dataset import Dataset
-from ..models.dataset_query_result import DatasetQueryResult
-from ..models.dataset_ref import DatasetRef
-from ..models.dataset_validation_result import DatasetValidationResult
 
 
 def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, time: List[str] = None,

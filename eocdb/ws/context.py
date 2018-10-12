@@ -24,7 +24,6 @@ import logging
 import os
 from typing import Any, Dict
 
-from eocdb.ws.errors import WsBadRequestError
 from . import __version__, __description__
 from .defaults import DEFAULT_SERVER_NAME, DEFAULT_MAX_THREAD_COUNT
 from ..core.service import ServiceRegistry
@@ -73,17 +72,19 @@ class WsContext:
                     description=__description__,
                     version=__version__)
 
-    def get_database_drivers_read_only(self):
-        return self._database_drivers.find_by_filter(lambda sid, driver, config: config.get('read', False))
+    def get_db_drivers(self, mode: str = None):
+        if mode not in ("r", "w", "rw", "wr"):
+            raise ValueError(f"illegal mode {repr(mode)}")
 
-    # noinspection PyMethodMayBeStatic
-    def query_measurements(self, query_string: str):
-        result_datasets = []
-        for driver in self.get_database_drivers_read_only():
-            datasets = driver.instance().get(query_string)
-            if len(datasets) > 0:
-                for dataset in datasets:
-                    result_datasets.append(dataset.to_dict())
-        return result_datasets
+        def filter(driver_id, driver, config):
+            if not mode:
+                return True
+            can_read = config.get('read', False)
+            can_write = config.get('write', False)
+            if mode == "r":
+                return can_read
+            if mode == "w":
+                return can_write
+            return can_read and can_write
 
-    # Here: add service methods, use thread_pool for concurrent requests
+        return self._database_drivers.find_by_filter(filter)

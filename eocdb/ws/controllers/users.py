@@ -21,8 +21,8 @@
 
 
 from ..context import WsContext
-from ..models.api_response import ApiResponse
-from ..models.user import User
+from ...core.models.api_response import ApiResponse
+from ...core.models.user import User
 
 
 def create_user(ctx: WsContext, data: User) -> ApiResponse:

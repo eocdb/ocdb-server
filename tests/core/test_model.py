@@ -1,7 +1,7 @@
 import unittest
 from typing import List
 
-from eocdb.ws.model import Model
+from eocdb.core.model import Model
 
 
 class ModelTest(unittest.TestCase):

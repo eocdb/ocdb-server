@@ -27,10 +27,10 @@ from ..controllers.docfiles import *
 from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
-from ..models.dataset import Dataset
-from ..models.user import User
 from ..reqparams import RequestParams
 from ..webservice import WsRequestHandler
+from ...core.models.dataset import Dataset
+from ...core.models.user import User
 
 
 # noinspection PyAbstractClass
