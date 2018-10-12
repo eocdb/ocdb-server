@@ -754,7 +754,8 @@ components:
       required:
         - bucket
         - name
-        - header
+        - status
+        - metadata
         - records
       properties:
         id:
@@ -771,10 +772,14 @@ components:
             - validating
             - available
             - hidden
-        header:
+        metadata:
           type: object
         records:
-          type: object
+          type: array
+          items:
+            type: array
+            items:
+              type: number
     DatasetRef:
       type: object
       required:
