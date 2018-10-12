@@ -22,6 +22,9 @@
 
 from ..model import Model
 
+ISSUE_TYPE_ERROR = "ERROR"
+ISSUE_TYPE_WARNING = "WARNING"
+
 
 class Issue(Model):
     """
