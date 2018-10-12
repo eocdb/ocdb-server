@@ -211,7 +211,7 @@ class DatasetsIdTest(WsTestCase):
         id = "gnarz-foop"
         response = self.fetch(f"/datasets/{id}", method='GET')
         self.assertEqual(404, response.code)
-        # self.assertEqual('OK', response.reason)
+        self.assertEqual('dataset with ID gnarz-foop not found', response.reason)
 
     @unittest.skip('not implemented yet')
     def test_delete(self):
