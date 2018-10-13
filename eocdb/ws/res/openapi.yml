@@ -147,6 +147,7 @@ paths:
             type: integer
             minimum: 1
             default: 1
+            nullable: true
         - name: count
           in: query
           description: Maximum number of datasets in response. Defaults to 1000.
@@ -154,8 +155,8 @@ paths:
           schema:
             type: integer
             minimum: 0
-            maximum: 1000000
             default: 1000
+            nullable: true
       responses:
         '200':
           $ref: '#/components/responses/DatasetQueryResult'
@@ -710,10 +711,12 @@ components:
           default: null
         offset:
           type: integer
+          minimum: 1
           nullable: true
           default: 1
         count:
           type: integer
+          minimum: 0
           nullable: true
           default: 1000
     DatasetQueryResult:
