@@ -20,10 +20,16 @@
 # SOFTWARE.
 
 
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from .bucket import Bucket
+from ..asserts import assert_not_none, assert_one_of
 from ..model import Model
+
+DATASET_STATUS_NEW = 'new'
+DATASET_STATUS_VALIDATING = 'validating'
+DATASET_STATUS_AVAILABLE = 'available'
+DATASET_STATUS_HIDDEN = 'hidden'
 
 
 class Dataset(Model):
@@ -31,20 +37,32 @@ class Dataset(Model):
     The Dataset model.
     """
 
-    def __init__(self):
-        self._id = None
-        self._bucket = None
-        self._name = None
-        self._status = None
-        self._metadata = None
-        self._records = None
+    def __init__(self,
+                 bucket: Bucket,
+                 name: str,
+                 status: str,
+                 metadata: Dict,
+                 records: List[List[float]],
+                 id_: str = None):
+        assert_not_none(bucket, name='bucket')
+        assert_not_none(name, name='name')
+        assert_not_none(status, name='status')
+        assert_one_of(status, ['new', 'validating', 'available', 'hidden'], name='status')
+        assert_not_none(metadata, name='metadata')
+        assert_not_none(records, name='records')
+        self._id = id_
+        self._bucket = bucket
+        self._name = name
+        self._status = status
+        self._metadata = metadata
+        self._records = records
 
     @property
-    def id(self) -> str:
+    def id(self) -> Optional[str]:
         return self._id
 
     @id.setter
-    def id(self, value: str):
+    def id(self, value: Optional[str]):
         self._id = value
 
     @property
@@ -53,6 +71,7 @@ class Dataset(Model):
 
     @bucket.setter
     def bucket(self, value: Bucket):
+        assert_not_none(value, name='value')
         self._bucket = value
 
     @property
@@ -61,6 +80,7 @@ class Dataset(Model):
 
     @name.setter
     def name(self, value: str):
+        assert_not_none(value, name='value')
         self._name = value
 
     @property
@@ -69,6 +89,8 @@ class Dataset(Model):
 
     @status.setter
     def status(self, value: str):
+        assert_not_none(value, name='value')
+        assert_one_of(value, ['new', 'validating', 'available', 'hidden'], name='value')
         self._status = value
 
     @property
@@ -77,6 +99,7 @@ class Dataset(Model):
 
     @metadata.setter
     def metadata(self, value: Dict):
+        assert_not_none(value, name='value')
         self._metadata = value
 
     @property
@@ -85,5 +108,5 @@ class Dataset(Model):
 
     @records.setter
     def records(self, value: List[List[float]]):
+        assert_not_none(value, name='value')
         self._records = value
-

@@ -20,6 +20,7 @@
 # SOFTWARE.
 
 
+from ..asserts import assert_not_none
 from ..model import Model
 
 
@@ -28,10 +29,16 @@ class Bucket(Model):
     The Bucket model.
     """
 
-    def __init__(self):
-        self._affil = None
-        self._project = None
-        self._cruise = None
+    def __init__(self,
+                 affil: str,
+                 project: str,
+                 cruise: str):
+        assert_not_none(affil, name='affil')
+        assert_not_none(project, name='project')
+        assert_not_none(cruise, name='cruise')
+        self._affil = affil
+        self._project = project
+        self._cruise = cruise
 
     @property
     def affil(self) -> str:
@@ -39,6 +46,7 @@ class Bucket(Model):
 
     @affil.setter
     def affil(self, value: str):
+        assert_not_none(value, name='value')
         self._affil = value
 
     @property
@@ -47,6 +55,7 @@ class Bucket(Model):
 
     @project.setter
     def project(self, value: str):
+        assert_not_none(value, name='value')
         self._project = value
 
     @property
@@ -55,4 +64,5 @@ class Bucket(Model):
 
     @cruise.setter
     def cruise(self, value: str):
+        assert_not_none(value, name='value')
         self._cruise = value

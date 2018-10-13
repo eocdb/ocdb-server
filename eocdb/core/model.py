@@ -14,7 +14,7 @@ class Model(object):
         """Get the dictionary ``d`` as a model."""
         if dictionary is None:
             return None
-        obj = cls()
+        obj = cls.__new__(cls)
         for name, value in dictionary.items():
             if not hasattr(cls, name):
                 raise ValueError(f'property "{name}" is not an attribute of {cls}')

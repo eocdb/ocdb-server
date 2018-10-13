@@ -21,35 +21,52 @@
 
 
 from ..context import WsContext
+from ...core.asserts import assert_not_none
 from ...core.models.user import User
 
 
 # noinspection PyUnusedLocal
-def create_user(ctx: WsContext, user: User):
-    raise NotImplementedError('TODO: operation create_user() not yet implemented')
+def create_user(ctx: WsContext):
+    # TODO (generated): implement operation create_user()
+    raise NotImplementedError('operation create_user() not yet implemented')
 
 
-# noinspection PyUnusedLocal
-def login_user(ctx: WsContext, username: str = None, password: str = None):
+# noinspection PyUnusedLocal,PyTypeChecker
+def login_user(ctx: WsContext,
+               username: str,
+               password: str) -> str:
+    assert_not_none(username, name='username')
+    assert_not_none(password, name='password')
+    # TODO (generated): implement operation login_user()
     raise NotImplementedError('operation login_user() not yet implemented')
 
 
 # noinspection PyUnusedLocal
 def logout_user(ctx: WsContext):
+    # TODO (generated): implement operation logout_user()
     raise NotImplementedError('operation logout_user() not yet implemented')
 
 
-# noinspection PyUnusedLocal
-def get_user_by_id(ctx: WsContext, user_id: int) -> User:
+# noinspection PyUnusedLocal,PyTypeChecker
+def get_user_by_id(ctx: WsContext,
+                   id_: int) -> User:
+    assert_not_none(id_, name='id_')
+    # TODO (generated): implement operation get_user_by_id()
     raise NotImplementedError('operation get_user_by_id() not yet implemented')
 
 
 # noinspection PyUnusedLocal
-def update_user(ctx: WsContext, user_id: int, data: User):
+def update_user(ctx: WsContext,
+                id_: int,
+                data: User):
+    assert_not_none(id_, name='id_')
+    # TODO (generated): implement operation update_user()
     raise NotImplementedError('operation update_user() not yet implemented')
 
 
 # noinspection PyUnusedLocal
-def delete_user(ctx: WsContext, user_id: int):
-    # return dict(code=200, status='OK')
+def delete_user(ctx: WsContext,
+                id_: int):
+    assert_not_none(id_, name='id_')
+    # TODO (generated): implement operation delete_user()
     raise NotImplementedError('operation delete_user() not yet implemented')

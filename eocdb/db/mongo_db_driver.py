@@ -75,18 +75,11 @@ class MongoDbDriver(DbDriver):
                 dataset_id = str(dataset_dict.get("_id"))
                 bucket_dict = dataset_dict.get("bucket")
                 name = dataset_dict.get("name")
-                dataset_ref = DatasetRef()
-                dataset_ref.id = dataset_id
-                dataset_ref.bucket = Bucket.from_dict(bucket_dict) if bucket_dict else None
-                dataset_ref.name = name
+                dataset_ref = DatasetRef(dataset_id, Bucket.from_dict(bucket_dict), name)
                 dataset_refs.append(dataset_ref)
             index += 1
 
-        result = DatasetQueryResult()
-        result.query = query
-        result.total_count = index
-        result.datasets = dataset_refs
-        return result
+        return DatasetQueryResult(index, dataset_refs, query)
 
     @classmethod
     def _obj_id(cls, id_: str) -> Optional[bson.objectid.ObjectId]:

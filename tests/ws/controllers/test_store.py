@@ -63,6 +63,7 @@ class StoreTest(unittest.TestCase):
         pname = None
         docs = None
 
+        # noinspection PyTypeChecker
         result = download_store_files(self.ctx, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
                                       wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
                                       docs=docs)

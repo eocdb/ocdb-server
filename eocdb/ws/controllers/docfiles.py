@@ -20,32 +20,64 @@
 # SOFTWARE.
 
 
-from typing import Dict, List
+from typing import List, Dict
 
 from ..context import WsContext
+from ...core.asserts import assert_not_none
 from ...core.models.doc_file_ref import DocFileRef
 
 
 # noinspection PyUnusedLocal
-def add_doc_file(ctx: WsContext, data: Dict):
+def add_doc_file(ctx: WsContext,
+                 data: Dict):
+    assert_not_none(data)
+    # TODO (generated): implement operation add_doc_file()
     raise NotImplementedError('operation add_doc_file() not yet implemented')
 
 
 # noinspection PyUnusedLocal
-def update_doc_file(ctx: WsContext, data: Dict):
+def update_doc_file(ctx: WsContext,
+                    data: Dict):
+    assert_not_none(data)
+    # TODO (generated): implement operation update_doc_file()
     raise NotImplementedError('operation update_doc_file() not yet implemented')
 
 
-# noinspection PyUnusedLocal
-def get_doc_files_in_bucket(ctx: WsContext, affil: str, project: str, cruise: str) -> List[DocFileRef]:
+# noinspection PyUnusedLocal,PyTypeChecker
+def get_doc_files_in_bucket(ctx: WsContext,
+                            affil: str,
+                            project: str,
+                            cruise: str) -> List[DocFileRef]:
+    assert_not_none(affil, name='affil')
+    assert_not_none(project, name='project')
+    assert_not_none(cruise, name='cruise')
+    # TODO (generated): implement operation get_doc_files_in_bucket()
     raise NotImplementedError('operation get_doc_files_in_bucket() not yet implemented')
 
 
-# noinspection PyUnusedLocal
-def download_doc_file(ctx: WsContext, affil: str, project: str, cruise: str, name: str) -> str:
+# noinspection PyUnusedLocal,PyTypeChecker
+def download_doc_file(ctx: WsContext,
+                      affil: str,
+                      project: str,
+                      cruise: str,
+                      name: str) -> str:
+    assert_not_none(affil, name='affil')
+    assert_not_none(project, name='project')
+    assert_not_none(cruise, name='cruise')
+    assert_not_none(name, name='name')
+    # TODO (generated): implement operation download_doc_file()
     raise NotImplementedError('operation download_doc_file() not yet implemented')
 
 
 # noinspection PyUnusedLocal
-def delete_doc_file(ctx: WsContext, affil: str, project: str, cruise: str, name: str):
+def delete_doc_file(ctx: WsContext,
+                    affil: str,
+                    project: str,
+                    cruise: str,
+                    name: str):
+    assert_not_none(affil, name='affil')
+    assert_not_none(project, name='project')
+    assert_not_none(cruise, name='cruise')
+    assert_not_none(name, name='name')
+    # TODO (generated): implement operation delete_doc_file()
     raise NotImplementedError('operation delete_doc_file() not yet implemented')

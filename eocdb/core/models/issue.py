@@ -20,10 +20,11 @@
 # SOFTWARE.
 
 
+from ..asserts import assert_not_none, assert_one_of
 from ..model import Model
 
-ISSUE_TYPE_ERROR = "ERROR"
-ISSUE_TYPE_WARNING = "WARNING"
+ISSUE_TYPE_WARNING = 'WARNING'
+ISSUE_TYPE_ERROR = 'ERROR'
 
 
 class Issue(Model):
@@ -31,9 +32,14 @@ class Issue(Model):
     The Issue model.
     """
 
-    def __init__(self):
-        self._type = None
-        self._description = None
+    def __init__(self,
+                 type_: str,
+                 description: str):
+        assert_not_none(type_, name='type_')
+        assert_one_of(type_, ['WARNING', 'ERROR'], name='type_')
+        assert_not_none(description, name='description')
+        self._type = type_
+        self._description = description
 
     @property
     def type(self) -> str:
@@ -41,6 +47,8 @@ class Issue(Model):
 
     @type.setter
     def type(self, value: str):
+        assert_not_none(value, name='value')
+        assert_one_of(value, ['WARNING', 'ERROR'], name='value')
         self._type = value
 
     @property
@@ -49,4 +57,5 @@ class Issue(Model):
 
     @description.setter
     def description(self, value: str):
+        assert_not_none(value, name='value')
         self._description = value

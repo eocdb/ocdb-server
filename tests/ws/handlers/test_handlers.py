@@ -162,10 +162,10 @@ class DatasetsTest(WsTestCase):
         region = None
         time = None
         wdepth = None
-        mtype = None
-        wlmode = None
-        shallow = None
-        pmode = None
+        mtype = "all"
+        wlmode = "all"
+        shallow = "no"
+        pmode = 'contains'
         pgroup = None
         pname = None
         offset = None

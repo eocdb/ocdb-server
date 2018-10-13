@@ -39,7 +39,6 @@ class DocFilesTest(unittest.TestCase):
         result = add_doc_file(self.ctx, data=data)
         self.assertIsNone(result)
 
-
     @unittest.skip('not implemented yet')
     def test_update_doc_file(self):
         # TODO (generated): set data dict items
@@ -48,7 +47,6 @@ class DocFilesTest(unittest.TestCase):
         result = update_doc_file(self.ctx, data=data)
         self.assertIsNone(result)
 
-
     @unittest.skip('not implemented yet')
     def test_get_doc_files_in_bucket(self):
         # TODO (generated): set required parameters
@@ -56,6 +54,7 @@ class DocFilesTest(unittest.TestCase):
         project = None
         cruise = None
 
+        # noinspection PyTypeChecker
         result = get_doc_files_in_bucket(self.ctx, affil, project, cruise)
         self.assertIsInstance(result, list)
         # TODO (generated): set expected result
@@ -70,6 +69,7 @@ class DocFilesTest(unittest.TestCase):
         cruise = None
         name = None
 
+        # noinspection PyTypeChecker
         result = download_doc_file(self.ctx, affil, project, cruise, name)
         # TODO (generated): set expected result
         expected_result = None
@@ -83,6 +83,6 @@ class DocFilesTest(unittest.TestCase):
         cruise = None
         name = None
 
+        # noinspection PyTypeChecker
         result = delete_doc_file(self.ctx, affil, project, cruise, name)
         self.assertIsNone(result)
-

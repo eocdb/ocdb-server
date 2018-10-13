@@ -23,6 +23,7 @@
 from typing import List
 
 from ..context import WsContext
+from ...core.asserts import assert_not_none, assert_one_of
 from ...core.models.dataset import Dataset
 from ...core.models.dataset_query import DatasetQuery
 from ...core.models.dataset_query_result import DatasetQueryResult
@@ -37,10 +38,26 @@ def validate_dataset(ctx: WsContext, dataset: Dataset) -> DatasetValidationResul
     return validator.validate_dataset(dataset)
 
 
-def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, time: List[str] = None,
-                  wdepth: List[float] = None, mtype: str = None, wlmode: str = None, shallow: str = None,
-                  pmode: str = None, pgroup: List[str] = None, pname: List[str] = None, offset: int = None,
-                  count: int = None) -> DatasetQueryResult:
+def find_datasets(ctx: WsContext,
+                  expr: str = None,
+                  region: List[float] = None,
+                  time: List[str] = None,
+                  wdepth: List[float] = None,
+                  mtype: str = 'all',
+                  wlmode: str = 'all',
+                  shallow: str = 'no',
+                  pmode: str = 'contains',
+                  pgroup: List[str] = None,
+                  pname: List[str] = None,
+                  offset: int = 1,
+                  count: int = 1000) -> DatasetQueryResult:
+    assert_not_none(mtype, name='mtype')
+    assert_not_none(wlmode, name='wlmode')
+    assert_one_of(wlmode, ['all', 'multispectral', 'hyperspectral'], name='wlmode')
+    assert_not_none(shallow, name='shallow')
+    assert_one_of(shallow, ['no', 'yes', 'exclusively'], name='shallow')
+    assert_not_none(pmode, name='pmode')
+    assert_one_of(pmode, ['contains', 'same_cruise', 'dont_apply'], name='pmode')
     query = DatasetQuery()
     query.expr = expr
     query.region = region
@@ -55,11 +72,7 @@ def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, 
     query.offset = offset
     query.count = count
 
-    result = DatasetQueryResult()
-    result.query = query
-    result.total_count = 0
-    result.datasets = []
-
+    result = DatasetQueryResult(0, [], query)
     for driver in ctx.get_db_drivers(mode="r"):
         result_part = driver.instance().find_datasets(query)
         result.total_count += result_part.total_count
@@ -68,7 +81,9 @@ def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, 
     return result
 
 
-def add_dataset(ctx: WsContext, dataset: Dataset):
+def add_dataset(ctx: WsContext,
+                dataset: Dataset):
+    assert_not_none(dataset)
     validation_result = validator.validate_dataset(dataset)
     if validation_result.status == "ERROR":
         raise WsBadRequestError(f"Invalid dataset.")
@@ -80,7 +95,9 @@ def add_dataset(ctx: WsContext, dataset: Dataset):
         raise WsBadRequestError(f"Could not add dataset {dataset.name}")
 
 
-def update_dataset(ctx: WsContext, dataset: Dataset):
+def update_dataset(ctx: WsContext,
+                   dataset: Dataset):
+    assert_not_none(dataset)
     validation_result = validator.validate_dataset(dataset)
     if validation_result.status == "ERROR":
         raise WsBadRequestError(f"Invalid dataset.")
@@ -92,8 +109,11 @@ def update_dataset(ctx: WsContext, dataset: Dataset):
         raise WsResourceNotFoundError(f"Dataset with ID {dataset.id} not found")
 
 
-# noinspection PyUnusedLocal
-def delete_dataset(ctx: WsContext, dataset_id: str, api_key: str = None):
+def delete_dataset(ctx: WsContext,
+                   api_key: str,
+                   dataset_id: str):
+    assert_not_none(api_key, name='api_key')
+    assert_not_none(dataset_id, name='dataset_id')
     deleted = False
     for driver in ctx.get_db_drivers(mode="w"):
         if driver.instance().delete_dataset(dataset_id):
@@ -102,7 +122,9 @@ def delete_dataset(ctx: WsContext, dataset_id: str, api_key: str = None):
         raise WsResourceNotFoundError(f"Dataset with ID {dataset_id} not found")
 
 
-def get_dataset_by_id(ctx: WsContext, dataset_id: str) -> Dataset:
+def get_dataset_by_id(ctx: WsContext,
+                      dataset_id: str) -> Dataset:
+    assert_not_none(dataset_id, name='dataset_id')
     for driver in ctx.get_db_drivers(mode="r"):
         dataset = driver.instance().get_dataset(dataset_id)
         if dataset is not None:
@@ -110,11 +132,27 @@ def get_dataset_by_id(ctx: WsContext, dataset_id: str) -> Dataset:
     raise WsResourceNotFoundError(f"Dataset with ID {dataset_id} not found")
 
 
-# noinspection PyUnusedLocal
-def get_datasets_in_bucket(ctx: WsContext, affil: str, project: str, cruise: str) -> List[DatasetRef]:
+# noinspection PyUnusedLocal,PyTypeChecker
+def get_datasets_in_bucket(ctx: WsContext,
+                           affil: str,
+                           project: str,
+                           cruise: str) -> List[DatasetRef]:
+    assert_not_none(affil, name='affil')
+    assert_not_none(project, name='project')
+    assert_not_none(cruise, name='cruise')
+    # TODO (generated): implement operation get_datasets_in_bucket()
     raise WsNotImplementedError('Operation get_datasets_in_bucket() not yet implemented')
 
 
-# noinspection PyUnusedLocal
-def get_dataset_by_bucket_and_name(ctx: WsContext, affil: str, project: str, cruise: str, name: str) -> str:
+# noinspection PyUnusedLocal,PyTypeChecker
+def get_dataset_by_bucket_and_name(ctx: WsContext,
+                                   affil: str,
+                                   project: str,
+                                   cruise: str,
+                                   name: str) -> str:
+    assert_not_none(affil, name='affil')
+    assert_not_none(project, name='project')
+    assert_not_none(cruise, name='cruise')
+    assert_not_none(name, name='name')
+    # TODO (generated): implement operation get_dataset_by_bucket_and_name()
     raise WsNotImplementedError('Operation get_dataset_by_bucket_and_name() not yet implemented')

@@ -21,6 +21,7 @@
 
 
 from .bucket import Bucket
+from ..asserts import assert_not_none
 from ..model import Model
 
 
@@ -29,9 +30,13 @@ class DocFileRef(Model):
     The DocFileRef model.
     """
 
-    def __init__(self):
-        self._bucket = None
-        self._name = None
+    def __init__(self,
+                 bucket: Bucket,
+                 name: str):
+        assert_not_none(bucket, name='bucket')
+        assert_not_none(name, name='name')
+        self._bucket = bucket
+        self._name = name
 
     @property
     def bucket(self) -> Bucket:
@@ -39,6 +44,7 @@ class DocFileRef(Model):
 
     @bucket.setter
     def bucket(self, value: Bucket):
+        assert_not_none(value, name='value')
         self._bucket = value
 
     @property
@@ -47,4 +53,5 @@ class DocFileRef(Model):
 
     @name.setter
     def name(self, value: str):
+        assert_not_none(value, name='value')
         self._name = value

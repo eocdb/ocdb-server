@@ -24,6 +24,7 @@ from typing import List
 
 from .dataset_query import DatasetQuery
 from .dataset_ref import DatasetRef
+from ..asserts import assert_not_none
 from ..model import Model
 
 
@@ -32,10 +33,16 @@ class DatasetQueryResult(Model):
     The DatasetQueryResult model.
     """
 
-    def __init__(self):
-        self._total_count = None
-        self._datasets = None
-        self._query = None
+    def __init__(self,
+                 total_count: int,
+                 datasets: List[DatasetRef],
+                 query: DatasetQuery):
+        assert_not_none(total_count, name='total_count')
+        assert_not_none(datasets, name='datasets')
+        assert_not_none(query, name='query')
+        self._total_count = total_count
+        self._datasets = datasets
+        self._query = query
 
     @property
     def total_count(self) -> int:
@@ -43,6 +50,7 @@ class DatasetQueryResult(Model):
 
     @total_count.setter
     def total_count(self, value: int):
+        assert_not_none(value, name='value')
         self._total_count = value
 
     @property
@@ -51,6 +59,7 @@ class DatasetQueryResult(Model):
 
     @datasets.setter
     def datasets(self, value: List[DatasetRef]):
+        assert_not_none(value, name='value')
         self._datasets = value
 
     @property
@@ -59,4 +68,5 @@ class DatasetQueryResult(Model):
 
     @query.setter
     def query(self, value: DatasetQuery):
+        assert_not_none(value, name='value')
         self._query = value

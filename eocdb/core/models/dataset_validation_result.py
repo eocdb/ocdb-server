@@ -20,10 +20,15 @@
 # SOFTWARE.
 
 
-from typing import List
+from typing import List, Optional
 
 from .issue import Issue
+from ..asserts import assert_not_none, assert_one_of
 from ..model import Model
+
+DATASET_VALIDATION_RESULT_STATUS_OK = 'OK'
+DATASET_VALIDATION_RESULT_STATUS_WARNING = 'WARNING'
+DATASET_VALIDATION_RESULT_STATUS_ERROR = 'ERROR'
 
 
 class DatasetValidationResult(Model):
@@ -31,9 +36,14 @@ class DatasetValidationResult(Model):
     The DatasetValidationResult model.
     """
 
-    def __init__(self):
-        self._status = None
-        self._issues = None
+    def __init__(self,
+                 status: str,
+                 issues: List[Issue]):
+        assert_not_none(status, name='status')
+        assert_one_of(status, ['OK', 'WARNING', 'ERROR'], name='status')
+        assert_not_none(issues, name='issues')
+        self._status = status
+        self._issues = issues
 
     @property
     def status(self) -> str:
@@ -41,12 +51,15 @@ class DatasetValidationResult(Model):
 
     @status.setter
     def status(self, value: str):
+        assert_not_none(value, name='value')
+        assert_one_of(value, ['OK', 'WARNING', 'ERROR'], name='value')
         self._status = value
 
     @property
-    def issues(self) -> List[Issue]:
+    def issues(self) -> Optional[List[Issue]]:
         return self._issues
 
     @issues.setter
-    def issues(self, value: List[Issue]):
+    def issues(self, value: Optional[List[Issue]]):
+        assert_not_none(value, name='value')
         self._issues = value

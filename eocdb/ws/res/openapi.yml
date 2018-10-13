@@ -592,6 +592,7 @@ components:
       schema:
         type: string
         default: "all"
+        nullable: true
     wlmodeParam:
       name: wlmode
       in: query
@@ -601,6 +602,7 @@ components:
         type: string
         enum: ["all", "multispectral", "hyperspectral"]
         default: "all"
+        nullable: true
     shallowParam:
       name: shallow
       in: query
@@ -610,6 +612,7 @@ components:
         type: string
         enum: ["no", "yes", "exclusively"]
         default: "no"
+        nullable: true
     pmodeParam:
       name: pmode
       in: query
@@ -619,6 +622,7 @@ components:
         type: string
         enum: ["contains", "same_cruise", "dont_apply"]
         default: "contains"
+        nullable: true
     pgroupParam:
       name: pgroup
       in: query

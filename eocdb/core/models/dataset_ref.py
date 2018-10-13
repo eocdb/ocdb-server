@@ -21,6 +21,7 @@
 
 
 from .bucket import Bucket
+from ..asserts import assert_not_none
 from ..model import Model
 
 
@@ -29,10 +30,16 @@ class DatasetRef(Model):
     The DatasetRef model.
     """
 
-    def __init__(self):
-        self._id = None
-        self._bucket = None
-        self._name = None
+    def __init__(self,
+                 id_: str,
+                 bucket: Bucket,
+                 name: str):
+        assert_not_none(id_, name='id_')
+        assert_not_none(bucket, name='bucket')
+        assert_not_none(name, name='name')
+        self._id = id_
+        self._bucket = bucket
+        self._name = name
 
     @property
     def id(self) -> str:
@@ -40,6 +47,7 @@ class DatasetRef(Model):
 
     @id.setter
     def id(self, value: str):
+        assert_not_none(value, name='value')
         self._id = value
 
     @property
@@ -48,6 +56,7 @@ class DatasetRef(Model):
 
     @bucket.setter
     def bucket(self, value: Bucket):
+        assert_not_none(value, name='value')
         self._bucket = value
 
     @property
@@ -56,4 +65,5 @@ class DatasetRef(Model):
 
     @name.setter
     def name(self, value: str):
+        assert_not_none(value, name='value')
         self._name = value

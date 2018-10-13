@@ -28,6 +28,7 @@ import yaml
 from ..context import WsContext
 
 
+# noinspection PyUnusedLocal
 def get_service_info(ctx: WsContext) -> Dict:
     file = os.path.join(os.path.dirname(__file__), "..", "res", "openapi.yml")
     with open(file) as fp:

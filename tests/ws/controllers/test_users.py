@@ -33,8 +33,10 @@ class UsersTest(unittest.TestCase):
 
     @unittest.skip('not implemented yet')
     def test_create_user(self):
+        # noinspection PyArgumentList
         user = User()
         # TODO (generated):  data properties
+        # noinspection PyArgumentList
         result = create_user(self.ctx, user=user)
         self.assertIsNone(result)
 
@@ -43,6 +45,7 @@ class UsersTest(unittest.TestCase):
         # TODO (generated): set optional parameters
         username = None
         password = None
+        # noinspection PyTypeChecker
         result = login_user(self.ctx, username=username, password=password)
         # TODO (generated): set expected result
         expected_result = None
@@ -59,6 +62,7 @@ class UsersTest(unittest.TestCase):
         user_id = -1
         result = get_user_by_id(self.ctx, user_id)
         self.assertIsInstance(result, User)
+        # noinspection PyArgumentList
         expected_result = User()
         # TODO (generated): set expected result properties
         self.assertEqual(expected_result, result)
@@ -67,6 +71,7 @@ class UsersTest(unittest.TestCase):
     def test_update_user(self):
         # TODO (generated): set required parameters
         user_id = -1
+        # noinspection PyArgumentList
         data = User()
         # TODO (generated): set data properties
 

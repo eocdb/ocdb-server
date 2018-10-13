@@ -22,16 +22,11 @@ def get_test_res_dir() -> str:
 
 
 def new_dataset(n: int):
-    dataset = Dataset()
-    dataset.id = None
-    dataset.name = f"dataset-{n}"
-    bucket = Bucket()
-    bucket.affil = f"affil_{n}"
-    bucket.project = f"project_{n}"
-    bucket.cruise = f"cruise_{n}"
-    dataset.header = dict(fields=["a", "b", "c"])
-    dataset.records = [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]]
-    return dataset
+    return Dataset(Bucket(f"affil_{n}", f"project_{n}", f"cruise_{n}"),
+                   f"dataset-{n}",
+                   "new",
+                   dict(fields=["a", "b", "c"]),
+                   [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]])
 
 
 class RequestParamsMock(RequestParams):

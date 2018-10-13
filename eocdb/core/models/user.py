@@ -20,6 +20,9 @@
 # SOFTWARE.
 
 
+from typing import Optional
+
+from ..asserts import assert_not_none
 from ..model import Model
 
 
@@ -28,22 +31,39 @@ class User(Model):
     The User model.
     """
 
-    def __init__(self):
-        self._id = None
-        self._name = None
-        self._first_name = None
-        self._last_name = None
-        self._email = None
-        self._password = None
-        self._phone = None
-        self._permissions = None
+    def __init__(self,
+                 name: str,
+                 password: str,
+                 id_: int,
+                 first_name: str,
+                 last_name: str,
+                 email: str,
+                 phone: str,
+                 permissions: int):
+        assert_not_none(id_, name='id_')
+        assert_not_none(name, name='name')
+        assert_not_none(first_name, name='first_name')
+        assert_not_none(last_name, name='last_name')
+        assert_not_none(email, name='email')
+        assert_not_none(password, name='password')
+        assert_not_none(phone, name='phone')
+        assert_not_none(permissions, name='permissions')
+        self._id = id_
+        self._name = name
+        self._first_name = first_name
+        self._last_name = last_name
+        self._email = email
+        self._password = password
+        self._phone = phone
+        self._permissions = permissions
 
     @property
-    def id(self) -> int:
+    def id(self) -> Optional[int]:
         return self._id
 
     @id.setter
-    def id(self, value: int):
+    def id(self, value: Optional[int]):
+        assert_not_none(value, name='value')
         self._id = value
 
     @property
@@ -52,30 +72,34 @@ class User(Model):
 
     @name.setter
     def name(self, value: str):
+        assert_not_none(value, name='value')
         self._name = value
 
     @property
-    def first_name(self) -> str:
+    def first_name(self) -> Optional[str]:
         return self._first_name
 
     @first_name.setter
-    def first_name(self, value: str):
+    def first_name(self, value: Optional[str]):
+        assert_not_none(value, name='value')
         self._first_name = value
 
     @property
-    def last_name(self) -> str:
+    def last_name(self) -> Optional[str]:
         return self._last_name
 
     @last_name.setter
-    def last_name(self, value: str):
+    def last_name(self, value: Optional[str]):
+        assert_not_none(value, name='value')
         self._last_name = value
 
     @property
-    def email(self) -> str:
+    def email(self) -> Optional[str]:
         return self._email
 
     @email.setter
-    def email(self, value: str):
+    def email(self, value: Optional[str]):
+        assert_not_none(value, name='value')
         self._email = value
 
     @property
@@ -84,20 +108,23 @@ class User(Model):
 
     @password.setter
     def password(self, value: str):
+        assert_not_none(value, name='value')
         self._password = value
 
     @property
-    def phone(self) -> str:
+    def phone(self) -> Optional[str]:
         return self._phone
 
     @phone.setter
-    def phone(self, value: str):
+    def phone(self, value: Optional[str]):
+        assert_not_none(value, name='value')
         self._phone = value
 
     @property
-    def permissions(self) -> int:
+    def permissions(self) -> Optional[int]:
         return self._permissions
 
     @permissions.setter
-    def permissions(self, value: int):
+    def permissions(self, value: Optional[int]):
+        assert_not_none(value, name='value')
         self._permissions = value

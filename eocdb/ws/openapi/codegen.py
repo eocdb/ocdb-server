@@ -402,19 +402,20 @@ class CodeGen:
         code.append()
         code.append()
         code.append("# noinspection PyUnusedLocal")
-        if req_params or opt_params:
-            params_decls = []
-            for p in req_params:
-                py_name = _get_py_lower_name(p.name, esc_builtins=True)
-                py_type = _get_py_type_name(p.schema)
-                params_decls.append((py_name, py_type, UNDEFINED))
-            if req_py_type_name:
-                params_decls.append(("data", req_py_type_name, UNDEFINED))
-            for p in opt_params:
-                py_name = _get_py_lower_name(p.name, esc_builtins=True)
-                py_type = _get_py_type_name(p.schema)
-                params_decls.append((py_name, py_type, p.schema.default))
+        params_decls = []
+        for p in req_params:
+            py_name = _get_py_lower_name(p.name, esc_builtins=True)
+            py_type = _get_py_type_name(p.schema)
+            params_decls.append((py_name, py_type, UNDEFINED))
+        if req_py_type_name:
+            params_decls.append(("data", req_py_type_name, UNDEFINED))
+        for p in opt_params:
+            py_name = _get_py_lower_name(p.name, esc_builtins=True)
+            py_type = _get_py_type_name(p.schema)
+            py_default = p.schema.default if p.schema.default is not UNDEFINED else None
+            params_decls.append((py_name, py_type, py_default))
 
+        if params_decls:
             code.append(f"def {func_name}(ctx: WsContext,")
             prefix = " " * (len(func_name) + 5)
             for i in range(len(params_decls)):
@@ -634,7 +635,8 @@ class CodeGen:
                 for p in _opt_props:
                     py_name = _get_py_lower_name(p.name, esc_builtins=True)
                     py_type = _get_py_type_name(p.schema)
-                    param_decls.append((py_name, py_type, p.schema.default))
+                    py_default = p.schema.default if p.schema.default is not UNDEFINED else None
+                    param_decls.append((py_name, py_type, py_default))
                 code.append(f"def __init__(self,")
                 prefix = 13 * " "
                 for i in range(len(param_decls)):
@@ -648,9 +650,7 @@ class CodeGen:
             with code.indent():
                 if schema.properties:
                     for p in schema.properties:
-                        code.append(self._gen_param_validation_code(Parameter(name=p.name,
-                                                                              schema=p.schema,
-                                                                              in_="query")))
+                        code.append(self._gen_param_validation_code(self._prop_to_param(p, schema)))
                     for p in schema.properties:
                         py_param_name = _get_py_lower_name(p.name, esc_builtins=True)
                         py_prop_name = _get_py_lower_name(p.name, esc_builtins=False)
@@ -674,10 +674,16 @@ class CodeGen:
                 code.append(f"@{py_name}.setter")
                 code.append(f"def {py_name}(self, value: {py_type}):")
                 with code.indent():
-                    code.append(self._gen_param_validation_code(Parameter(name="value",
-                                                                          schema=p.schema,
-                                                                          in_="query")))
+                    code.append(self._gen_param_validation_code(self._prop_to_param(p, schema, name="value")))
                     code.append(f"self._{py_name} = value")
+
+    @classmethod
+    def _prop_to_param(cls, prop: Property, schema: Schema, name: str = None) -> Parameter:
+        return Parameter(name=name if name else prop.name,
+                         schema=prop.schema,
+                         in_="query",
+                         required=schema.required
+                                  and prop.name in schema.required)
 
     def _gen_model_tests_code(self, schema_name: str, schema: Schema, modules: Dict[str, Code]):
         # Should generate test code here, but models are actually just stupid object structures
@@ -696,12 +702,14 @@ class CodeGen:
         code.append("]")
         return code
 
-    def _gen_param_validation_code(self, param: Parameter) -> Code:
+    @classmethod
+    def _gen_param_validation_code(cls, param: Parameter) -> Code:
         code = Code()
+        nullable = not param.required or param.schema.nullable
         py_param_name = _get_py_lower_name(param.name, esc_builtins=True)
-        if not param.schema.nullable and not param.allow_empty_value:
+        if not nullable and not param.allow_empty_value:
             code.append(f"assert_not_none_not_empty({py_param_name}, name='{py_param_name}')")
-        elif not param.schema.nullable:
+        elif not nullable:
             code.append(f"assert_not_none({py_param_name}, name='{py_param_name}')")
         elif not param.allow_empty_value:
             code.append(f"assert_not_empty({py_param_name}, name='{py_param_name}')")

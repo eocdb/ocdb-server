@@ -36,20 +36,14 @@ class DatasetsTest(unittest.TestCase):
         dataset = new_dataset(11)
         dataset.id = None
         result = validate_dataset(self.ctx, dataset=dataset)
-        expected_result = DatasetValidationResult()
-        expected_result.status = "OK"
-        expected_result.issues = []
+        expected_result = DatasetValidationResult("OK", [])
         self.assertEqual(expected_result, result)
 
         dataset = new_dataset(11)
         dataset.id = "Grunz"
         result = validate_dataset(self.ctx, dataset=dataset)
-        issue = Issue()
-        issue.type = "WARNING"
-        issue.description = "Datasets should have no ID before insert or update"
-        expected_result = DatasetValidationResult()
-        expected_result.status = "WARNING"
-        expected_result.issues = [issue]
+        issue = Issue("WARNING", "Datasets should have no ID before insert or update")
+        expected_result = DatasetValidationResult("WARNING", [issue])
         self.assertEqual(expected_result, result)
 
     def test_add_dataset(self):
@@ -65,17 +59,29 @@ class DatasetsTest(unittest.TestCase):
         region = None
         time = None
         wdepth = None
-        mtype = None
-        wlmode = None
-        shallow = None
-        pmode = None
+        mtype = "all"
+        wlmode = "all"
+        shallow = "no"
+        pmode = 'contains'
         pgroup = None
         pname = None
         offset = None
         count = None
 
-        result = find_datasets(self.ctx, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode,
-                               shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname, offset=offset, count=count)
+        # noinspection PyTypeChecker
+        result = find_datasets(self.ctx,
+                               expr=expr,
+                               region=region,
+                               time=time,
+                               wdepth=wdepth,
+                               mtype=mtype,
+                               wlmode=wlmode,
+                               shallow=shallow,
+                               pmode=pmode,
+                               pgroup=pgroup,
+                               pname=pname,
+                               offset=offset,
+                               count=count)
 
         self.assertIsInstance(result, DatasetQueryResult)
         self.assertEqual(3, result.total_count)
@@ -102,6 +108,7 @@ class DatasetsTest(unittest.TestCase):
 
     @unittest.skip('not implemented yet')
     def test_update_dataset(self):
+        # noinspection PyArgumentList
         dataset = Dataset()
         # TODO (generated): set data properties
         result = update_dataset(self.ctx, dataset=dataset)
@@ -113,7 +120,8 @@ class DatasetsTest(unittest.TestCase):
         dataset_id = None
         # TODO (generated): set optional parameters
         api_key = None
-        result = delete_dataset(self.ctx, id_, api_key=api_key)
+        # noinspection PyArgumentList
+        result = delete_dataset(self.ctx, dataset_id, api_key=api_key)
         self.assertIsNone(result)
 
     @unittest.skip('not implemented yet')
@@ -122,7 +130,7 @@ class DatasetsTest(unittest.TestCase):
         affil = None
         project = None
         cruise = None
-
+        # noinspection PyTypeChecker
         result = get_datasets_in_bucket(self.ctx, affil, project, cruise)
         self.assertIsInstance(result, list)
         # TODO (generated): set expected result
@@ -136,9 +144,8 @@ class DatasetsTest(unittest.TestCase):
         project = None
         cruise = None
         name = None
-
+        # noinspection PyTypeChecker
         result = get_dataset_by_bucket_and_name(self.ctx, affil, project, cruise, name)
         # TODO (generated): set expected result
         expected_result = None
         self.assertEqual(expected_result, result)
-

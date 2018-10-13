@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 
-from typing import List
+from typing import List, Optional
 
 from ..model import Model
 
@@ -30,103 +30,114 @@ class DatasetQuery(Model):
     The DatasetQuery model.
     """
 
-    def __init__(self):
-        self._expr = None
-        self._region = None
-        self._time = None
-        self._wdepth = None
-        self._mtype = None
-        self._shallow = None
-        self._pmode = None
-        self._pgroup = None
-        self._pname = None
-        self._offset = None
-        self._count = None
+    def __init__(self,
+                 expr: str = None,
+                 region: List[float] = None,
+                 time: List[str] = None,
+                 wdepth: List[float] = None,
+                 mtype: str = 'all',
+                 shallow: str = None,
+                 pmode: str = 'all',
+                 pgroup: List[str] = None,
+                 pname: List[str] = None,
+                 offset: int = 1,
+                 count: int = 1000):
+        self._expr = expr
+        self._region = region
+        self._time = time
+        self._wdepth = wdepth
+        self._mtype = mtype
+        self._shallow = shallow
+        self._pmode = pmode
+        self._pgroup = pgroup
+        self._pname = pname
+        self._offset = offset
+        self._count = count
 
     @property
-    def expr(self) -> str:
+    def expr(self) -> Optional[str]:
         return self._expr
 
     @expr.setter
-    def expr(self, value: str):
+    def expr(self, value: Optional[str]):
         self._expr = value
 
     @property
-    def region(self) -> List[float]:
+    def region(self) -> Optional[List[float]]:
         return self._region
 
     @region.setter
-    def region(self, value: List[float]):
+    def region(self, value: Optional[List[float]]):
         self._region = value
 
     @property
-    def time(self) -> List[str]:
+    def time(self) -> Optional[List[str]]:
         return self._time
 
     @time.setter
-    def time(self, value: List[str]):
+    def time(self, value: Optional[List[str]]):
         self._time = value
 
     @property
-    def wdepth(self) -> List[float]:
+    def wdepth(self) -> Optional[List[float]]:
         return self._wdepth
 
     @wdepth.setter
-    def wdepth(self, value: List[float]):
+    def wdepth(self, value: Optional[List[float]]):
         self._wdepth = value
 
     @property
-    def mtype(self) -> str:
+    def mtype(self) -> Optional[str]:
         return self._mtype
 
     @mtype.setter
-    def mtype(self, value: str):
+    def mtype(self, value: Optional[str]):
         self._mtype = value
 
     @property
-    def shallow(self) -> str:
+    def shallow(self) -> Optional[str]:
         return self._shallow
 
     @shallow.setter
-    def shallow(self, value: str):
+    def shallow(self, value: Optional[str]):
         self._shallow = value
 
     @property
-    def pmode(self) -> str:
+    def pmode(self) -> Optional[str]:
         return self._pmode
 
     @pmode.setter
-    def pmode(self, value: str):
+    def pmode(self, value: Optional[str]):
         self._pmode = value
 
     @property
-    def pgroup(self) -> List[str]:
+    def pgroup(self) -> Optional[List[str]]:
         return self._pgroup
 
     @pgroup.setter
-    def pgroup(self, value: List[str]):
+    def pgroup(self, value: Optional[List[str]]):
         self._pgroup = value
 
     @property
-    def pname(self) -> List[str]:
+    def pname(self) -> Optional[List[str]]:
         return self._pname
 
     @pname.setter
-    def pname(self, value: List[str]):
+    def pname(self, value: Optional[List[str]]):
         self._pname = value
 
     @property
-    def offset(self) -> int:
+    def offset(self) -> Optional[int]:
         return self._offset
 
     @offset.setter
-    def offset(self, value: int):
+    def offset(self, value: Optional[int]):
         self._offset = value
 
     @property
-    def count(self) -> int:
+    def count(self) -> Optional[int]:
         return self._count
 
     @count.setter
-    def count(self, value: int):
+    def count(self, value: Optional[int]):
         self._count = value
