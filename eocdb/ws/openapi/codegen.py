@@ -3,7 +3,8 @@ import os
 from contextlib import contextmanager
 from typing import List, Dict, Union, Tuple
 
-from .model import OpenAPI, Operation, Schema, Parameter
+from eocdb.core import UNDEFINED
+from .model import OpenAPI, Operation, Schema, Parameter, Property
 
 TAB = "    "
 
@@ -385,26 +386,40 @@ class CodeGen:
         res_mime_type, res_schema = _select_handled_mime_type_and_schema_from_response(op)
         res_py_type_name = _get_py_type_name(res_schema) if res_schema else None
 
-        param_decl_parts = []
-        for parameter in req_params:
-            py_name = _get_py_lower_name(parameter.name, esc_builtins=True)
-            py_type = _get_py_type_name(parameter.schema)
-            param_decl_parts.append(f"{py_name}: {py_type}")
-        if req_py_type_name:
-            param_decl_parts.append(f"data: {req_py_type_name}")
-        for parameter in opt_params:
-            py_name = _get_py_lower_name(parameter.name, esc_builtins=True)
-            py_type = _get_py_type_name(parameter.schema)
-            param_decl_parts.append(f"{py_name}: {py_type} = {repr(parameter.schema.default)}")
-        param_decl = ", ".join(param_decl_parts)
-
-        code.append()
-        code.append()
-
-        code.append("# noinspection PyUnusedLocal")
         py_return_type_code = f" -> {res_py_type_name}" if res_py_type_name else ""
-        if param_decl:
-            code.append(f"def {func_name}(ctx: WsContext, {param_decl}){py_return_type_code}:")
+
+        code.append()
+        code.append()
+        code.append("# noinspection PyUnusedLocal")
+        if req_params or opt_params:
+
+            params_decls = []
+            for p in req_params:
+                py_name = _get_py_lower_name(p.name, esc_builtins=True)
+                py_type = _get_py_type_name(p.schema)
+                params_decls.append((py_name, py_type, UNDEFINED))
+            if req_py_type_name:
+                params_decls.append(("data", req_py_type_name, UNDEFINED))
+            for p in opt_params:
+                py_name = _get_py_lower_name(p.name, esc_builtins=True)
+                py_type = _get_py_type_name(p.schema)
+                params_decls.append((py_name, py_type, p.schema.default))
+
+            code.append(f"def {func_name}(ctx: WsContext,")
+            prefix = " " * (len(func_name) + 5)
+            for i in range(len(params_decls)):
+                py_name, py_type, py_default = params_decls[i]
+                postfix = "," if i < len(params_decls) - 1 else f"){py_return_type_code}:"
+                if py_default is UNDEFINED:
+                    code.append(f"{prefix}{py_name}: {py_type}{postfix}")
+                else:
+                    code.append(f"{prefix}{py_name}: {py_type} = {repr(p.schema.default)}{postfix}")
+
+            # TODO by forman: generate code for op args validation here
+            # noinspection PyUnusedLocal
+            for p in op.parameters:
+                # noinspection PyUnusedLocal
+                py_param_name = _get_py_lower_name(p.name, esc_builtins=True)
         else:
             code.append(f"def {func_name}(ctx: WsContext){py_return_type_code}:")
 
@@ -599,34 +614,35 @@ class CodeGen:
                 code.append(f'The {class_name} model.')
             code.append('"""')
 
-            req_props = []
-            opt_props = []
-            for p in schema.properties:
-                if schema.required and p.name in schema.required:
-                    req_props.append(p)
-                else:
-                    opt_props.append(p)
-
-            init_params_parts = []
-            for p in req_props:
-                py_name = _get_py_lower_name(p.name, esc_builtins=True)
-                py_type = _get_py_type_name(p.schema)
-                init_params_parts.append(f"{py_name}: {py_type}")
-            for p in opt_props:
-                py_name = _get_py_lower_name(p.name, esc_builtins=True)
-                py_type = _get_py_type_name(p.schema)
-                py_default = p.schema.default
-                init_params_parts.append(f"{py_name}: {py_type} = {repr(py_default)}")
-            init_params = ", ".join(init_params_parts)
-
             code.append()
-            if init_params:
-                code.append(f"def __init__(self, {init_params}):")
-            else:
-                code.append(f"def __init__(self):")
+            if schema.properties:
+                req_props, _opt_props = _split_req_and_opt_properties(schema)
+                param_decls = []
+                for p in req_props:
+                    py_name = _get_py_lower_name(p.name, esc_builtins=True)
+                    py_type = _get_py_type_name(p.schema)
+                    param_decls.append((py_name, py_type, UNDEFINED))
+                for p in _opt_props:
+                    py_name = _get_py_lower_name(p.name, esc_builtins=True)
+                    py_type = _get_py_type_name(p.schema)
+                    param_decls.append((py_name, py_type, p.schema.default))
+                code.append(f"def __init__(self,")
+                prefix = 13 * " "
+                for i in range(len(param_decls)):
+                    py_name, py_type, py_default = param_decls[i]
+                    postfix = "," if i < len(param_decls) - 1 else "):"
+                    if py_default is UNDEFINED:
+                        code.append(f"{prefix}{py_name}: {py_type}{postfix}")
+                    else:
+                        code.append(f"{prefix}{py_name}: {py_type} = {repr(py_default)}{postfix}")
 
             with code.indent():
                 if schema.properties:
+                    # TODO by forman: generate code for init args validation here
+                    # noinspection PyUnusedLocal
+                    for p in schema.properties:
+                        # noinspection PyUnusedLocal
+                        py_param_name = _get_py_lower_name(p.name, esc_builtins=True)
                     for p in schema.properties:
                         py_param_name = _get_py_lower_name(p.name, esc_builtins=True)
                         py_prop_name = _get_py_lower_name(p.name, esc_builtins=False)
@@ -787,12 +803,25 @@ def _get_py_op_func_name(op: Operation, class_name: str):
 def _split_req_and_opt_parameters(op: Operation) -> Tuple[List[Parameter], List[Parameter]]:
     required_params = []
     optional_params = []
-    for parameter in op.parameters:
-        if parameter.in_ == "path" or parameter.schema.default is None and parameter.schema.nullable:
-            required_params.append(parameter)
-        else:
-            optional_params.append(parameter)
+    if op.parameters:
+        for p in op.parameters:
+            if p.in_ == "path" or p.schema.default is None and p.schema.nullable:
+                required_params.append(p)
+            else:
+                optional_params.append(p)
     return required_params, optional_params
+
+
+def _split_req_and_opt_properties(schema: Schema) -> Tuple[List[Property], List[Property]]:
+    required_props = []
+    optional_props = []
+    if schema.properties:
+        for p in schema.properties:
+            if schema.required and p.name in schema.required:
+                required_props.append(p)
+            else:
+                optional_props.append(p)
+    return required_props, optional_props
 
 
 _LICENSE_AND_COPYRIGHT = """# The MIT License (MIT)
