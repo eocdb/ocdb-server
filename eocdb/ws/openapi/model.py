@@ -47,6 +47,11 @@ class Schema(metaclass=ABCMeta):
 
     @property
     @abstractmethod
+    def required(self) -> Optional[List[str]]:
+        pass
+
+    @property
+    @abstractmethod
     def ref_name(self) -> Optional[str]:
         pass
 
@@ -87,6 +92,7 @@ class SchemaImpl(Schema):
                  format_: str = None,
                  items: "Schema" = None,
                  properties: List[Property] = None,
+                 required: List[str] = None,
                  ref_name: str = None,
                  enum: Enum = None,
                  minimum: Number = None,
@@ -100,6 +106,7 @@ class SchemaImpl(Schema):
         self._format = format_
         self._items = items
         self._properties = properties
+        self._required = required
         self._ref_name = ref_name
         self._enum = enum
         self._minimum = minimum
@@ -123,6 +130,10 @@ class SchemaImpl(Schema):
     @property
     def properties(self) -> Optional[List[Property]]:
         return self._properties
+
+    @property
+    def required(self) -> Optional[List[str]]:
+        return self._required
 
     @property
     def ref_name(self) -> Optional[str]:
@@ -180,6 +191,10 @@ class SchemaProxy(Schema):
     @property
     def properties(self) -> Optional[List[Property]]:
         return self.delegate.properties
+
+    @property
+    def required(self) -> Optional[List[str]]:
+        return self.delegate.required
 
     @property
     def ref_name(self) -> Optional[str]:

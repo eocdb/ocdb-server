@@ -179,6 +179,7 @@ class Parser:
                           properties=properties,
                           ref_name=ref_name,
                           enum=schema_dict.get("enum"),
+                          required=schema_dict.get("required"),
                           minimum=schema_dict.get("minimum"),
                           maximum=schema_dict.get("maximum"),
                           nullable=schema_dict.get("nullable", False))
