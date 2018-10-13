@@ -586,7 +586,7 @@ class CodeGen:
         else:
             code = self._gen_new_code_module()
             module_code[module_name] = code
-            code.append("from typing import Dict, List")
+            code.append("from typing import Dict, List, Optional")
             code.append()
             code.append("from ..model import Model")
             code.append(self._gen_model_imports(package="", excluded_schema_name=schema_name))
@@ -602,19 +602,47 @@ class CodeGen:
                 code.append(f'The {class_name} model.')
             code.append('"""')
 
+            req_props = []
+            opt_props = []
+            for p in schema.properties:
+                if schema.required and p.name in schema.required:
+                    req_props.append(p)
+                else:
+                    opt_props.append(p)
+
+            init_params_parts = []
+            for p in req_props:
+                py_name = _get_py_lower_name(p.name, esc_builtins=True)
+                py_type = _get_py_type_name(p.schema)
+                init_params_parts.append(f"{py_name}: {py_type}")
+            for p in opt_props:
+                py_name = _get_py_lower_name(p.name, esc_builtins=True)
+                py_type = _get_py_type_name(p.schema)
+                py_default = p.schema.default
+                init_params_parts.append(f"{py_name}: {py_type} = {repr(py_default)}")
+            init_params = ", ".join(init_params_parts)
+
             code.append()
-            code.append(f"def __init__(self):")
+            if init_params:
+                code.append(f"def __init__(self, {init_params}):")
+            else:
+                code.append(f"def __init__(self):")
+
             with code.indent():
                 if schema.properties:
                     for prop in schema.properties:
-                        py_name = _get_py_lower_name(prop.name, esc_builtins=False)
-                        code.append(f"self._{py_name} = None")
+                        py_param_name = _get_py_lower_name(prop.name, esc_builtins=True)
+                        py_prop_name = _get_py_lower_name(prop.name, esc_builtins=False)
+                        code.append(f"self._{py_prop_name} = {py_param_name}")
                 else:
                     code.append(f"pass")
 
             for prop in schema.properties:
                 py_name = _get_py_lower_name(prop.name, esc_builtins=False)
                 py_type = _get_py_type_name(prop.schema)
+                required = schema.required and prop.name in schema.required
+                if not required:
+                    py_type = f"Optional[{py_type}]"
                 code.append()
                 code.append(f"@property")
                 code.append(f"def {py_name}(self) -> {py_type}:")
