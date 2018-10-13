@@ -1,3 +1,13 @@
+"""
+Model classes representing an OpenAPI 3.0.0 document.
+
+See also
+
+* https://swagger.io/docs/specification
+* https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
+
+"""
+
 from abc import ABCMeta, abstractmethod
 from typing import List, Dict, Union
 
@@ -8,6 +18,9 @@ Number = Union[int, float]
 
 
 class Property:
+    """
+    Property is an item in Schema.properties for Schema.type == "object"
+    """
     def __init__(self, name: str, schema: "Schema"):
         assert_not_none_not_empty(name, "name")
         assert_not_none(schema, "schema")

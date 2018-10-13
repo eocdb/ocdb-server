@@ -10,6 +10,16 @@ TAB = "    "
 
 
 class Code:
+    """
+    Generates Python code from a valid(!) OpenAPI 3.0.0 document.
+
+    See also
+
+    * https://swagger.io/docs/specification
+    * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
+
+    """
+
     def __init__(self, part: Union[str, list, "Code"] = None):
         self._indent = 0
         self._lines = []
@@ -413,7 +423,7 @@ class CodeGen:
                 if py_default is UNDEFINED:
                     code.append(f"{prefix}{py_name}: {py_type}{postfix}")
                 else:
-                    code.append(f"{prefix}{py_name}: {py_type} = {repr(p.schema.default)}{postfix}")
+                    code.append(f"{prefix}{py_name}: {py_type} = {repr(py_default)}{postfix}")
 
             # TODO by forman: generate code for op args validation here
             # noinspection PyUnusedLocal
@@ -805,7 +815,7 @@ def _split_req_and_opt_parameters(op: Operation) -> Tuple[List[Parameter], List[
     optional_params = []
     if op.parameters:
         for p in op.parameters:
-            if p.in_ == "path" or p.schema.default is None and p.schema.nullable:
+            if p.required or p.in_ == "path" or p.schema.default is UNDEFINED:
                 required_params.append(p)
             else:
                 optional_params.append(p)

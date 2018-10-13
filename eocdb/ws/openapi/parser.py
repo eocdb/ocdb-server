@@ -3,12 +3,22 @@ from typing import List, Dict, Union
 
 import yaml
 
+from eocdb.core import UNDEFINED
 from .model import OpenAPI, Parameter, RequestBody, Response, Property, Schema, SchemaImpl, SchemaProxy, \
     Content, Components, PathItem, Operation
 from ...core.asserts import *
 
 
 class Parser:
+    """
+    Parses an OpenAPI 3.0.0 document.
+
+    See also
+
+    * https://swagger.io/docs/specification
+    * https://github.com/OAI/OpenAPI-Specification/blob/master/versions/3.0.0.md
+
+    """
 
     @classmethod
     def from_yaml(cls, file: Union[IOBase, str]) -> OpenAPI:
@@ -182,7 +192,8 @@ class Parser:
                           required=schema_dict.get("required"),
                           minimum=schema_dict.get("minimum"),
                           maximum=schema_dict.get("maximum"),
-                          nullable=schema_dict.get("nullable", False))
+                          nullable=schema_dict.get("nullable", False),
+                          default=schema_dict.get("default", UNDEFINED))
 
     @classmethod
     def _parse_request_body(cls,
