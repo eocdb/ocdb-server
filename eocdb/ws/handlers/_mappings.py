@@ -28,6 +28,7 @@ MAPPINGS = [
     (url_pattern('/store/info'), StoreInfo),
     (url_pattern('/store/upload'), StoreUpload),
     (url_pattern('/store/download'), StoreDownload),
+    (url_pattern('/datasets/validate'), DatasetsValidate),
     (url_pattern('/datasets'), Datasets),
     (url_pattern('/datasets/{id}'), DatasetsId),
     (url_pattern('/datasets/{affil}/{project}/{cruise}'), DatasetsAffilProjectCruise),

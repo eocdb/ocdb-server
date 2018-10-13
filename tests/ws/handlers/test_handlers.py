@@ -123,6 +123,33 @@ class StoreDownloadTest(WsTestCase):
         self.assertEqual(expected_response_data, actual_response_data)
 
 
+class DatasetsValidateTest(WsTestCase):
+
+    def test_post(self):
+        dataset = new_dataset(13)
+        data = dataset.to_dict()
+        body = tornado.escape.json_encode(data)
+        response = self.fetch(f"/datasets/validate", method='POST', body=body)
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertIsInstance(actual_response_data, dict)
+        self.assertIn("status", actual_response_data)
+        self.assertIn("OK", actual_response_data["status"])
+
+        dataset = new_dataset(13)
+        dataset.id = "gnartz!"
+        data = dataset.to_dict()
+        body = tornado.escape.json_encode(data)
+        response = self.fetch(f"/datasets/validate", method='POST', body=body)
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertIsInstance(actual_response_data, dict)
+        self.assertIn("status", actual_response_data)
+        self.assertIn("WARNING", actual_response_data["status"])
+
+
 class DatasetsTest(WsTestCase):
 
     def test_get(self):
@@ -157,30 +184,21 @@ class DatasetsTest(WsTestCase):
         self.assertEqual(4, actual_response_data["total_count"])
 
     def test_put(self):
-        dry = 0
-
-        data = new_dataset(13).to_dict()
+        dataset = new_dataset(13)
+        data = dataset.to_dict()
         body = tornado.escape.json_encode(data)
-        query = urllib.parse.urlencode(dict(dry=dry))
-
-        response = self.fetch(f"/datasets?{query}", method='PUT', body=body)
+        response = self.fetch(f"/datasets", method='PUT', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-
         datasets = find_datasets(self.ctx)
         self.assertEqual(1, datasets.total_count)
 
     @unittest.skip('not implemented yet')
     def test_post(self):
-        # TODO (generated): set query parameter(s) to reasonable value(s)
-        dry = None
-
         # TODO (generated): set data for request body to reasonable value
         data = {}
         body = tornado.escape.json_encode(data)
-        query = urllib.parse.urlencode(dict(dry=dry))
-
-        response = self.fetch(f"/datasets?{query}", method='POST', body=body)
+        response = self.fetch(f"/datasets", method='POST', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -211,7 +229,7 @@ class DatasetsIdTest(WsTestCase):
         id = "gnarz-foop"
         response = self.fetch(f"/datasets/{id}", method='GET')
         self.assertEqual(404, response.code)
-        self.assertEqual('dataset with ID gnarz-foop not found', response.reason)
+        self.assertEqual('Dataset with ID gnarz-foop not found', response.reason)
 
     @unittest.skip('not implemented yet')
     def test_delete(self):

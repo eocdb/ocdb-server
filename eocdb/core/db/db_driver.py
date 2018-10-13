@@ -11,7 +11,7 @@ from ..models.dataset_ref import DatasetRef
 class DbDriver(Service):
 
     @abstractmethod
-    def add_dataset(self, dataset: Dataset):
+    def add_dataset(self, dataset: Dataset) -> bool:
         """Add dataset."""
 
     @abstractmethod
@@ -19,11 +19,11 @@ class DbDriver(Service):
         """Update dataset."""
 
     @abstractmethod
-    def delete_dataset(self, dataset_id) -> bool:
+    def delete_dataset(self, dataset_id: str) -> bool:
         """Delete dataset by ID."""
 
     @abstractmethod
-    def get_dataset(self, dataset_id) -> Optional[Dataset]:
+    def get_dataset(self, dataset_id: str) -> Optional[Dataset]:
         """Get dataset by ID."""
 
     @abstractmethod

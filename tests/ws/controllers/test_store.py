@@ -23,7 +23,7 @@
 import unittest
 
 from eocdb.ws.controllers.store import *
-from ..helpers import new_test_service_context
+from ..helpers import new_test_service_context, new_dataset
 
 
 class StoreTest(unittest.TestCase):

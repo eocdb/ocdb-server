@@ -28,8 +28,13 @@ from ...core.models.dataset_query import DatasetQuery
 from ...core.models.dataset_query_result import DatasetQueryResult
 from ...core.models.dataset_ref import DatasetRef
 from ...core.models.dataset_validation_result import DatasetValidationResult
-from ...core.val.validator import validate_dataset
-from ...ws.errors import WsResourceNotFoundError
+from ...core.val import validator
+from ...ws.errors import WsResourceNotFoundError, WsBadRequestError, WsNotImplementedError
+
+
+# noinspection PyUnusedLocal
+def validate_dataset(ctx: WsContext, dataset: Dataset) -> DatasetValidationResult:
+    return validator.validate_dataset(dataset)
 
 
 def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, time: List[str] = None,
@@ -63,20 +68,28 @@ def find_datasets(ctx: WsContext, expr: str = None, region: List[float] = None, 
     return result
 
 
-def add_dataset(ctx: WsContext, dataset: Dataset, dry: bool = None) -> DatasetValidationResult:
-    validation_result = validate_dataset(dataset)
-    if validation_result.status == "OK" and not dry:
-        for driver in ctx.get_db_drivers(mode="w"):
-            driver.instance().add_dataset(dataset)
-    return validation_result
+def add_dataset(ctx: WsContext, dataset: Dataset):
+    validation_result = validator.validate_dataset(dataset)
+    if validation_result.status == "ERROR":
+        raise WsBadRequestError(f"Invalid dataset.")
+    added = False
+    for driver in ctx.get_db_drivers(mode="w"):
+        if driver.instance().add_dataset(dataset):
+            added = True
+    if not added:
+        raise WsBadRequestError(f"Could not add dataset {dataset.name}")
 
 
-def update_dataset(ctx: WsContext, dataset: Dataset, dry: bool = None) -> DatasetValidationResult:
-    validation_result = validate_dataset(dataset)
-    if validation_result.status == "OK" and not dry:
-        for driver in ctx.get_db_drivers(mode="w"):
-            driver.instance().update_dataset(dataset)
-    return validation_result
+def update_dataset(ctx: WsContext, dataset: Dataset):
+    validation_result = validator.validate_dataset(dataset)
+    if validation_result.status == "ERROR":
+        raise WsBadRequestError(f"Invalid dataset.")
+    updated = False
+    for driver in ctx.get_db_drivers(mode="w"):
+        if driver.instance().update_dataset(dataset):
+            updated = True
+    if not updated:
+        raise WsResourceNotFoundError(f"Dataset with ID {dataset.id} not found")
 
 
 # noinspection PyUnusedLocal
@@ -86,7 +99,7 @@ def delete_dataset(ctx: WsContext, dataset_id: str, api_key: str = None):
         if driver.instance().delete_dataset(dataset_id):
             deleted = True
     if not deleted:
-        raise WsResourceNotFoundError(f"dataset with ID {dataset_id} not found")
+        raise WsResourceNotFoundError(f"Dataset with ID {dataset_id} not found")
 
 
 def get_dataset_by_id(ctx: WsContext, dataset_id: str) -> Dataset:
@@ -94,14 +107,14 @@ def get_dataset_by_id(ctx: WsContext, dataset_id: str) -> Dataset:
         dataset = driver.instance().get_dataset(dataset_id)
         if dataset is not None:
             return dataset
-    raise WsResourceNotFoundError(f"dataset with ID {dataset_id} not found")
+    raise WsResourceNotFoundError(f"Dataset with ID {dataset_id} not found")
 
 
 # noinspection PyUnusedLocal
 def get_datasets_in_bucket(ctx: WsContext, affil: str, project: str, cruise: str) -> List[DatasetRef]:
-    raise NotImplementedError('operation get_datasets_in_bucket() not yet implemented')
+    raise WsNotImplementedError('Operation get_datasets_in_bucket() not yet implemented')
 
 
 # noinspection PyUnusedLocal
 def get_dataset_by_bucket_and_name(ctx: WsContext, affil: str, project: str, cruise: str, name: str) -> str:
-    raise NotImplementedError('operation get_dataset_by_bucket_and_name() not yet implemented')
+    raise WsNotImplementedError('Operation get_dataset_by_bucket_and_name() not yet implemented')

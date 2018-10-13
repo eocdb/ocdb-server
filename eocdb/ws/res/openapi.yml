@@ -106,6 +106,18 @@ paths:
           $ref: '#/components/responses/FileDownload'
         '400':
           description: Invalid query value(s).
+  '/datasets/validate':
+    post:
+      tags:
+        - Datasets
+      summary: Validate a dataset
+      description: Validates the given dataset and returns a validation report.
+      operationId: validateDataset
+      requestBody:
+        $ref: '#/components/requestBodies/Dataset'
+      responses:
+        'default':
+          $ref: '#/components/responses/DatasetValidationResult'
   '/datasets':
     get:
       tags:
@@ -157,13 +169,13 @@ paths:
       summary: Add a new dataset
       description: Adds a new dataset to the store and returns the validation result.
       operationId: addDataset
-      parameters:
-        - $ref: "#/components/parameters/dryParam"
       requestBody:
         $ref: '#/components/requestBodies/Dataset'
       responses:
-        'default':
-          $ref: '#/components/responses/DatasetValidationResult'
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid request.
       security:
         - eocdb_auth:
             - 'write:datasets'
@@ -174,8 +186,6 @@ paths:
       summary: Update an existing dataset
       description: Updates an existing dataset to the store and returns the validation result.
       operationId: updateDataset
-      parameters:
-        - $ref: "#/components/parameters/dryParam"
       requestBody:
         $ref: '#/components/requestBodies/Dataset'
       responses:
@@ -521,14 +531,6 @@ components:
       required: true
       schema:
         type: string
-    dryParam:
-      name: dry
-      in: query
-      description: If set, the dataset will not be added but just validated.
-      required: false
-      schema:
-        type: boolean
-        default: False
     exprParam:
       name: expr
       in: query

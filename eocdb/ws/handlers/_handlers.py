@@ -90,7 +90,21 @@ class StoreDownload(WsRequestHandler):
         self.finish(result)
 
 
-# noinspection PyAbstractClass,PyShadowingBuiltins
+# noinspection PyAbstractClass
+class DatasetsValidate(WsRequestHandler):
+
+    def post(self):
+        """Provide API operation validateDataset()."""
+        # transform body with mime-type application/json into a Dataset
+        data_dict = tornado.escape.json_decode(self.request.body)
+        dataset = Dataset.from_dict(data_dict)
+        result = validate_dataset(self.ws_context, dataset=dataset)
+        # transform result of type DatasetValidationResult into response with mime-type application/json
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result.to_dict()))
+
+
+# noinspection PyAbstractClass
 class Datasets(WsRequestHandler):
 
     def get(self):
@@ -117,23 +131,18 @@ class Datasets(WsRequestHandler):
 
     def put(self):
         """Provide API operation addDataset()."""
-        # noinspection PyBroadException,PyUnusedLocal
-        dry = self.query.get_param_bool('dry', default=None)
         # transform body with mime-type application/json into a Dataset
         data_dict = tornado.escape.json_decode(self.request.body)
         dataset = Dataset.from_dict(data_dict)
-        result = add_dataset(self.ws_context, dataset=dataset, dry=dry)
-        # transform result of type DatasetValidationResult into response with mime-type application/json
-        self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result.to_dict()))
+        add_dataset(self.ws_context, dataset=dataset)
+        self.finish()
 
     def post(self):
         """Provide API operation updateDataset()."""
-        dry = self.query.get_param_bool('dry', default=None)
         # transform body with mime-type application/json into a Dataset
         data_dict = tornado.escape.json_decode(self.request.body)
-        data = Dataset.from_dict(data_dict)
-        result = update_dataset(self.ws_context, dataset=data, dry=dry)
+        dataset = Dataset.from_dict(data_dict)
+        result = update_dataset(self.ws_context, dataset=dataset)
         # transform result of type DatasetValidationResult into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))

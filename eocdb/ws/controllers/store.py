@@ -23,6 +23,10 @@
 from typing import Dict, List
 
 from ..context import WsContext
+from ..errors import WsNotImplementedError
+from ...core.models.dataset import Dataset
+from ...core.models.dataset_validation_result import DatasetValidationResult
+from ...core.val import validator
 from ...db.static_data import get_product_groups, get_products
 
 
@@ -33,7 +37,7 @@ def get_store_info(ctx: WsContext) -> Dict:
 
 # noinspection PyUnusedLocal
 def upload_store_files(ctx: WsContext, data: Dict):
-    raise NotImplementedError('operation upload_store_files() not yet implemented')
+    raise WsNotImplementedError('Operation upload_store_files() not yet implemented')
 
 
 # noinspection PyUnusedLocal
@@ -41,4 +45,4 @@ def download_store_files(ctx: WsContext, expr: str = None, region: List[float] =
                          wdepth: List[float] = None, mtype: str = None, wlmode: str = None, shallow: str = None,
                          pmode: str = None, pgroup: List[str] = None, pname: List[str] = None,
                          docs: bool = None) -> str:
-    raise NotImplementedError('operation download_store_files() not yet implemented')
+    raise WsNotImplementedError('Operation download_store_files() not yet implemented')

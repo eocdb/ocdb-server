@@ -22,6 +22,7 @@
 
 import unittest
 
+from eocdb.core.models.issue import Issue
 from eocdb.ws.controllers.datasets import *
 from ..helpers import new_test_service_context, new_dataset
 
@@ -31,25 +32,34 @@ class DatasetsTest(unittest.TestCase):
     def setUp(self):
         self.ctx = new_test_service_context()
 
-    def test_add_dataset(self):
-        result = add_dataset(self.ctx, dataset=new_dataset(1), dry=False)
-        self.assertIsInstance(result, DatasetValidationResult)
+    def test_validate_dataset(self):
+        dataset = new_dataset(11)
+        dataset.id = None
+        result = validate_dataset(self.ctx, dataset=dataset)
         expected_result = DatasetValidationResult()
         expected_result.status = "OK"
         expected_result.issues = []
         self.assertEqual(expected_result, result)
 
-        result = add_dataset(self.ctx, dataset=new_dataset(2), dry=False)
-        self.assertIsInstance(result, DatasetValidationResult)
+        dataset = new_dataset(11)
+        dataset.id = "Grunz"
+        result = validate_dataset(self.ctx, dataset=dataset)
+        issue = Issue()
+        issue.type = "WARNING"
+        issue.description = "Datasets should have no ID before insert or update"
         expected_result = DatasetValidationResult()
-        expected_result.status = "OK"
-        expected_result.issues = []
+        expected_result.status = "WARNING"
+        expected_result.issues = [issue]
         self.assertEqual(expected_result, result)
+
+    def test_add_dataset(self):
+        add_dataset(self.ctx, dataset=new_dataset(1))
+        add_dataset(self.ctx, dataset=new_dataset(2))
 
     def test_find_datasets(self):
-        add_dataset(self.ctx, dataset=new_dataset(1), dry=False)
-        add_dataset(self.ctx, dataset=new_dataset(2), dry=False)
-        add_dataset(self.ctx, dataset=new_dataset(3), dry=False)
+        add_dataset(self.ctx, dataset=new_dataset(1))
+        add_dataset(self.ctx, dataset=new_dataset(2))
+        add_dataset(self.ctx, dataset=new_dataset(3))
 
         expr = None
         region = None
@@ -71,9 +81,9 @@ class DatasetsTest(unittest.TestCase):
         self.assertEqual(3, result.total_count)
 
     def test_get_dataset_by_id(self):
-        add_dataset(self.ctx, dataset=new_dataset(1), dry=False)
-        add_dataset(self.ctx, dataset=new_dataset(2), dry=False)
-        add_dataset(self.ctx, dataset=new_dataset(3), dry=False)
+        add_dataset(self.ctx, dataset=new_dataset(1))
+        add_dataset(self.ctx, dataset=new_dataset(2))
+        add_dataset(self.ctx, dataset=new_dataset(3))
         result = find_datasets(self.ctx)
         dataset_id_1 = result.datasets[0].id
         dataset_id_2 = result.datasets[1].id
@@ -92,21 +102,17 @@ class DatasetsTest(unittest.TestCase):
 
     @unittest.skip('not implemented yet')
     def test_update_dataset(self):
-        data = Dataset()
+        dataset = Dataset()
         # TODO (generated): set data properties
-        # TODO (generated): set optional parameters
-        dry = None
-
-        result = update_dataset(self.ctx, data=data, dry=dry)
+        result = update_dataset(self.ctx, dataset=dataset)
         self.assertIsNone(result)
 
     @unittest.skip('not implemented yet')
     def test_delete_dataset(self):
         # TODO (generated): set required parameters
-        id_ = None
+        dataset_id = None
         # TODO (generated): set optional parameters
         api_key = None
-
         result = delete_dataset(self.ctx, id_, api_key=api_key)
         self.assertIsNone(result)
 
