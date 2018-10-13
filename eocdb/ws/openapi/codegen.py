@@ -387,6 +387,7 @@ class CodeGen:
             code.append()
             code.append("from ..context import WsContext")
             code.append(self._gen_model_imports())
+            code.append(self._gen_assert_imports())
 
         req_params, opt_params = _split_req_and_opt_parameters(op)
 
@@ -402,7 +403,6 @@ class CodeGen:
         code.append()
         code.append("# noinspection PyUnusedLocal")
         if req_params or opt_params:
-
             params_decls = []
             for p in req_params:
                 py_name = _get_py_lower_name(p.name, esc_builtins=True)
@@ -425,11 +425,9 @@ class CodeGen:
                 else:
                     code.append(f"{prefix}{py_name}: {py_type} = {repr(py_default)}{postfix}")
 
-            # TODO by forman: generate code for op args validation here
-            # noinspection PyUnusedLocal
-            for p in op.parameters:
-                # noinspection PyUnusedLocal
-                py_param_name = _get_py_lower_name(p.name, esc_builtins=True)
+            with code.indent():
+                for p in op.parameters:
+                    code.append(self._gen_param_validation_code(p))
         else:
             code.append(f"def {func_name}(ctx: WsContext){py_return_type_code}:")
 
@@ -604,6 +602,7 @@ class CodeGen:
             code.append()
             code.append("from ..model import Model")
             code.append(self._gen_model_imports(package="", excluded_schema_name=schema_name))
+            code.append(self._gen_assert_imports())
 
         for p in schema.properties:
             if p.schema.enum:
@@ -648,11 +647,10 @@ class CodeGen:
 
             with code.indent():
                 if schema.properties:
-                    # TODO by forman: generate code for init args validation here
-                    # noinspection PyUnusedLocal
                     for p in schema.properties:
-                        # noinspection PyUnusedLocal
-                        py_param_name = _get_py_lower_name(p.name, esc_builtins=True)
+                        code.append(self._gen_param_validation_code(Parameter(name=p.name,
+                                                                              schema=p.schema,
+                                                                              in_="query")))
                     for p in schema.properties:
                         py_param_name = _get_py_lower_name(p.name, esc_builtins=True)
                         py_prop_name = _get_py_lower_name(p.name, esc_builtins=False)
@@ -676,6 +674,9 @@ class CodeGen:
                 code.append(f"@{py_name}.setter")
                 code.append(f"def {py_name}(self, value: {py_type}):")
                 with code.indent():
+                    code.append(self._gen_param_validation_code(Parameter(name="value",
+                                                                          schema=p.schema,
+                                                                          in_="query")))
                     code.append(f"self._{py_name} = value")
 
     def _gen_model_tests_code(self, schema_name: str, schema: Schema, modules: Dict[str, Code]):
@@ -695,12 +696,32 @@ class CodeGen:
         code.append("]")
         return code
 
+    def _gen_param_validation_code(self, param: Parameter) -> Code:
+        code = Code()
+        py_param_name = _get_py_lower_name(param.name, esc_builtins=True)
+        if not param.schema.nullable and not param.allow_empty_value:
+            code.append(f"assert_not_none_not_empty({py_param_name}, name='{py_param_name}')")
+        elif not param.schema.nullable:
+            code.append(f"assert_not_none({py_param_name}, name='{py_param_name}')")
+        elif not param.allow_empty_value:
+            code.append(f"assert_not_empty({py_param_name}, name='{py_param_name}')")
+        if param.schema.enum:
+            code.append(f"assert_one_of({py_param_name}, {repr(param.schema.enum)}, name='{py_param_name}')")
+        return code
+
     @classmethod
     def _gen_new_code_module(cls) -> Code:
         code = Code(_LICENSE_AND_COPYRIGHT)
         code.append()
         code.append()
         return code
+
+    def _gen_assert_imports(self) -> Code:
+        return Code("from ...core.asserts import"
+                    " assert_not_empty,"
+                    " assert_not_none,"
+                    " assert_not_none_not_empty,"
+                    " assert_one_of")
 
 
 _TYPE_TO_PY_TYPE_MAP = dict(string="str", number="float", boolean="bool", integer="int", array='List', object="Dict")

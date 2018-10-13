@@ -148,6 +148,7 @@ class Parser:
                          schema,
                          ref_name=ref_name,
                          required=parameter_dict.get("required", False),
+                         allow_empty_value=parameter_dict.get("allowEmptyValue", True),
                          description=parameter_dict.get("description"))
 
     @classmethod
@@ -249,7 +250,7 @@ class Parser:
         return content
 
     @classmethod
-    def _parse_component_ref(cls, ref: str, comp_name: str) -> Optional[str]:
+    def _parse_component_ref(cls, ref: str, comp_name: str) -> str:
         ref_parts = ref.split("/")
         if len(ref_parts) != 4 or ref_parts[0] != '#' or ref_parts[1] != 'components' or ref_parts[2] != comp_name:
             raise ValueError(f"invalid {comp_name} reference: {ref}")
@@ -259,9 +260,9 @@ class Parser:
                  version: str,
                  path_items: List[PathItem],
                  components: Components):
-        assert_not_none_not_empty(version, "version")
-        assert_not_none(path_items, "path_items")
-        assert_not_none(components, "components")
+        assert_not_none_not_empty(version, name="version")
+        assert_not_none(path_items, name="path_items")
+        assert_not_none(components, name="components")
         self._version = version
         self._path_items = path_items
         self._components = components

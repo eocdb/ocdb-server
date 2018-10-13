@@ -9,7 +9,7 @@ See also
 """
 
 from abc import ABCMeta, abstractmethod
-from typing import List, Dict, Union
+from typing import List, Dict, Union, Optional
 
 from ...core.asserts import *
 
@@ -21,9 +21,10 @@ class Property:
     """
     Property is an item in Schema.properties for Schema.type == "object"
     """
+
     def __init__(self, name: str, schema: "Schema"):
-        assert_not_none_not_empty(name, "name")
-        assert_not_none(schema, "schema")
+        assert_not_none_not_empty(name, name="name")
+        assert_not_none(schema, name="schema")
         self._name = name
         self._schema = schema
 
@@ -113,8 +114,8 @@ class SchemaImpl(Schema):
                  nullable: bool = False,
                  default: Any = None,
                  description: str = None):
-        assert_one_of(type_, "type", {"string", "number", "integer", "boolean", "array", "object"})
-        assert_not_empty(ref_name, "ref_name")
+        assert_one_of(type_, {"string", "number", "integer", "boolean", "array", "object"}, name="type")
+        assert_not_empty(ref_name, name="ref_name")
         self._type = type_
         self._format = format_
         self._items = items
@@ -237,9 +238,10 @@ class SchemaProxy(Schema):
     def description(self) -> Optional[str]:
         return self.delegate.description
 
+
 class Component:
     def __init__(self, ref_name: str = None):
-        assert_not_empty(ref_name, "ref_name")
+        assert_not_empty(ref_name, name="ref_name")
         self._ref_name = ref_name
 
     @property
@@ -254,17 +256,19 @@ class Parameter(Component):
                  schema: Schema,
                  ref_name: str = None,
                  required: bool = False,
+                 allow_empty_value: bool = True,
                  description: str = None):
         super().__init__(ref_name=ref_name)
-        assert_not_none_not_empty(name, "name")
-        assert_not_empty(name, "name")
-        assert_one_of(in_, "in_", {"path", "query", "header", "cookie"})
-        assert_not_none(schema, "schema")
+        assert_not_none_not_empty(name, name="name")
+        assert_not_empty(name, name="name")
+        assert_one_of(in_, {"path", "query", "header", "cookie"}, name="in_")
+        assert_not_none(schema, name="schema")
         self._name = name
         self._ref_name = ref_name
         self._in = in_
         self._schema = schema
         self._required = required
+        self._allow_empty_value = allow_empty_value
         self._description = description
 
     @property
@@ -288,6 +292,10 @@ class Parameter(Component):
         return self._required
 
     @property
+    def allow_empty_value(self) -> bool:
+        return self._allow_empty_value
+
+    @property
     def description(self) -> Optional[str]:
         return self._description
 
@@ -301,7 +309,7 @@ class DescribedContent(Component):
                  ref_name: str = None,
                  description: str = None):
         super().__init__(ref_name=ref_name)
-        assert_not_none(content, "content")
+        assert_not_none(content, name="content")
         self._content = content
         self._description = description
 
@@ -397,8 +405,8 @@ class PathItem:
                  operations: List[Operation],
                  summary: str = None,
                  description: str = None):
-        assert_not_none(path, "path")
-        assert_not_none(operations, "operations")
+        assert_not_none(path, name="path")
+        assert_not_none(operations, name="operations")
         self._path = path
         self._operations = operations
         self._summary = summary
@@ -451,9 +459,9 @@ class OpenAPI:
                  version: str,
                  path_items: List[PathItem],
                  components: Components):
-        assert_not_none_not_empty(version, "version")
-        assert_not_none(path_items, "path_items")
-        assert_not_none(components, "components")
+        assert_not_none_not_empty(version, name="version")
+        assert_not_none(path_items, name="path_items")
+        assert_not_none(components, name="components")
         self._version = version
         self._path_items = path_items
         self._components = components
