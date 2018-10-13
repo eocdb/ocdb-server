@@ -591,6 +591,14 @@ class CodeGen:
             code.append("from ..model import Model")
             code.append(self._gen_model_imports(package="", excluded_schema_name=schema_name))
 
+        for p in schema.properties:
+            if p.schema.enum:
+                code.append()
+                name_prefix = _get_py_upper_name(schema_name) + "_" + _get_py_upper_name(p.name)
+                for e in p.schema.enum:
+                    e_name = str(e).replace(' ', '_').replace('-', '_').upper()
+                    code.append(f"{name_prefix}_{e_name} = {repr(e)}")
+
         code.append()
         code.append()
         code.append(f"class {class_name}(Model):")
@@ -630,17 +638,17 @@ class CodeGen:
 
             with code.indent():
                 if schema.properties:
-                    for prop in schema.properties:
-                        py_param_name = _get_py_lower_name(prop.name, esc_builtins=True)
-                        py_prop_name = _get_py_lower_name(prop.name, esc_builtins=False)
+                    for p in schema.properties:
+                        py_param_name = _get_py_lower_name(p.name, esc_builtins=True)
+                        py_prop_name = _get_py_lower_name(p.name, esc_builtins=False)
                         code.append(f"self._{py_prop_name} = {py_param_name}")
                 else:
                     code.append(f"pass")
 
-            for prop in schema.properties:
-                py_name = _get_py_lower_name(prop.name, esc_builtins=False)
-                py_type = _get_py_type_name(prop.schema)
-                required = schema.required and prop.name in schema.required
+            for p in schema.properties:
+                py_name = _get_py_lower_name(p.name, esc_builtins=False)
+                py_type = _get_py_type_name(p.schema)
+                required = schema.required and p.name in schema.required
                 if not required:
                     py_type = f"Optional[{py_type}]"
                 code.append()
@@ -742,6 +750,7 @@ def _select_handled_mime_type_and_schema(content: Dict[str, Schema]) -> Tuple[st
 
 
 def _get_py_lower_name(name: str, esc_builtins: bool = False):
+    """Gen name for Python packages, modules, functions, methods, properties, variables."""
     py_name = ''
     n = len(name)
     for i in range(n):
@@ -756,7 +765,13 @@ def _get_py_lower_name(name: str, esc_builtins: bool = False):
     return py_name
 
 
+def _get_py_upper_name(name: str):
+    """Gen name for Python constants."""
+    return _get_py_lower_name(name).upper()
+
+
 def _get_py_camel_name(s: str):
+    """Gen name for Python classes."""
     n = len(s)
     if n == 0:
         return s
