@@ -67,38 +67,32 @@ class WsContext:
     def dispose(self):
         self._db_drivers.dispose()
 
-    def get_db_drivers(self, mode: str = None):
-        if mode not in ("r", "w", "rw", "wr"):
-            raise ValueError(f"illegal mode {repr(mode)}")
-    @classmethod
-    def get_app_info(cls) -> Dict:
-        return dict(name=DEFAULT_SERVER_NAME,
-                    description=__description__,
-                    version=__version__)
-
     def get_db_driver(self) -> DbDriver:
         """Get the primary database driver."""
 
-        num_primary_db_drivers = 0
+        primary_db_driver = None
 
         def filter_db_drivers(service_id, service, config):
-            nonlocal num_primary_db_drivers
+            nonlocal primary_db_driver
             if not isinstance(service, DbDriver):
                 return False
             if config.get('primary', False):
-                num_primary_db_drivers += 1
+                if primary_db_driver is not None:
+                    raise RuntimeError('There can only be a single primary database driver')
+                primary_db_driver = service
             return True
 
         drivers = self._db_drivers.find_services(service_filter=filter_db_drivers)
-        if len(drivers) == 0:
-            raise RuntimeError('No database driver found')
-        if num_primary_db_drivers > 1:
-            raise RuntimeError('There can only be a single primary database driver')
-        if len(drivers) > 1:
-            raise RuntimeError('With multiple database drivers, one must be configured to be the primary one')
+        if primary_db_driver is None:
+            if len(drivers) == 1:
+                primary_db_driver = drivers[0]
+            elif len(drivers) == 0:
+                raise RuntimeError('No database driver found')
+            else:
+                raise RuntimeError('With multiple database drivers, one must be configured to be the primary one')
 
         # noinspection PyTypeChecker
-        return drivers[0]
+        return primary_db_driver
 
     def get_db_drivers(self) -> Sequence[DbDriver]:
         # noinspection PyTypeChecker
