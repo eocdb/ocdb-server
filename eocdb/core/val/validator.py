@@ -11,14 +11,13 @@ ISSUE_TYPE_WARNING = "WARNING"
 
 
 def assert_id_is_none(dataset: Dataset) -> Optional[Issue]:
-    if dataset.id is not None:
+    if dataset.status == "new" and dataset.id is not None:
         return Issue(ISSUE_TYPE_WARNING, "Datasets should have no ID before insert or update")
     return None
 
 
 _VALIDATION_RULES = [
     assert_id_is_none,
-    # TODO by forman: add more FCHECK validation rules here
 ]
 
 
