@@ -1,14 +1,11 @@
-from typing import List, Any, Dict, Optional
+from typing import Any, Dict, Optional
 
 import bson.objectid
 import pymongo
 import pymongo.errors
 
-from ..core import Dataset as _Dataset
-from ..core.db.db_dataset import DbDataset
 from ..core.db.db_driver import DbDriver
 from ..core.db.errors import OperationalError
-from ..core.deprecated import deprecated
 from ..core.models.bucket import Bucket
 from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
@@ -133,36 +130,6 @@ class MongoDbDriver(DbDriver):
     def clear(self):
         if self._client is not None:
             self._collection.drop()
-
-    @deprecated
-    def insert(self, document):
-        self._collection.insert_one(document)
-
-    @deprecated
-    def get(self, query_expression=None) -> List[_Dataset]:
-        if query_expression is None:
-            cursor = self._collection.find()
-        else:
-            term_1 = query_expression.term1
-            name_1 = term_1.name
-            min_1 = term_1.start_value
-            max_1 = term_1.end_value
-
-            term_2 = query_expression.term2
-            name_2 = term_2.name
-            min_2 = term_2.start_value
-            max_2 = term_2.end_value
-
-            cursor = self._collection.find(
-                {'records.' + name_1: {"$gt": min_1, "$lt": max_1}, "records." + name_2: {"$gt": min_2, "$lt": max_2}})
-
-        results = []
-        for record in cursor:
-            dataset = DbDataset()
-            dataset.set_metadata(record)
-            results.append(dataset)
-
-        return results
 
     def _set_config(self, config: Dict[str, Any]):
         for key in ("url", "uri"):

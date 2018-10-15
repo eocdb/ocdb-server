@@ -2,7 +2,7 @@ import unittest
 
 from eocdb.ws.errors import WsBadRequestError
 from eocdb.ws.reqparams import RequestParams
-from tests.ws.helpers import RequestParamsMock
+from tests.helpers import RequestParamsMock
 
 
 class RequestParamsTest(unittest.TestCase):

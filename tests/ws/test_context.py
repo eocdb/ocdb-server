@@ -1,7 +1,7 @@
 # import os
 import unittest
 
-from tests.ws.helpers import new_test_service_context
+from tests.helpers import new_test_service_context
 
 
 class WsContextTest(unittest.TestCase):

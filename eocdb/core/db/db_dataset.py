@@ -1,17 +1,29 @@
 import datetime
 from typing import Dict, Any, List
 
-from eocdb.core.dataset import Dataset
+from eocdb.core.models.bucket import Bucket
+from eocdb.core.models.dataset import Dataset
 
 
 class DbDataset(Dataset):
 
-    def __init__(self):
-        self._records = []
+    def __init__(self,
+                 bucket: Bucket,
+                 name: str,
+                 status: str,
+                 metadata: Dict,
+                 records: List[List[float]],
+                 id_: str = None):
+        super().__init__(
+                 bucket,
+                 name,
+                 status,
+                 metadata,
+                 records,
+                 id_)
         self._attributes = []
         self._geo_locations = []
         self._times = []
-        self._metadata = dict()
 
     @property
     def metadata(self) -> Dict[str, Any]:

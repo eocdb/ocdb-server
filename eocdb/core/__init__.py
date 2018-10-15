@@ -19,7 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 
-from .dataset import Dataset
 from .query.query import Query, QueryBuilder, QueryVisitor
 from .query.parser import QueryParser, QuerySyntaxError
 from .service import Service, ServiceInfo, ServiceConfig, ServiceRegistry, ServiceLookup

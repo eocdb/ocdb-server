@@ -3,6 +3,7 @@ from typing import Optional
 
 import yaml
 
+from eocdb.core.db.db_dataset import DbDataset
 from eocdb.core.models.bucket import Bucket
 from eocdb.core.models.dataset import Dataset
 from eocdb.ws.context import WsContext
@@ -18,11 +19,18 @@ def new_test_service_context() -> WsContext:
 
 
 def get_test_res_dir() -> str:
-    return os.path.normpath(os.path.join(os.path.dirname(__file__), 'res'))
+    return os.path.normpath(os.path.join(os.path.dirname(__file__), 'ws/res'))
 
 
 def new_test_dataset(n: int = 0):
     return Dataset(Bucket(f"affil_{n}", f"project_{n}", f"cruise_{n}"),
+                   f"dataset-{n}",
+                   "new",
+                   dict(fields=["a", "b", "c"]),
+                   [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]])
+
+def new_test_db_dataset(n: int = 0):
+    return DbDataset(Bucket(f"affil_{n}", f"project_{n}", f"cruise_{n}"),
                    f"dataset-{n}",
                    "new",
                    dict(fields=["a", "b", "c"]),

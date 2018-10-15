@@ -2,7 +2,7 @@ import datetime
 import unittest
 
 from eocdb.core.seabass.sb_file_reader import SbFileReader
-from eocdb.core.db.db_dataset import DbDataset
+from tests.helpers import new_test_db_dataset
 
 
 class SbFileReaderTest(unittest.TestCase):
@@ -185,35 +185,33 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertEqual(datetime.datetime(2001, 5, 10, 4, 37, 0), document.times[2])
 
     def test_extract_delimiter_regex(self):
-        dataset = DbDataset()
-        dataset.set_metadata({'delimiter': 'comma'})
+        metadata = {'delimiter': 'comma'}
 
-        regex = self.reader._extract_delimiter_regex(dataset)
+        regex = self.reader._extract_delimiter_regex(metadata)
         self.assertEqual(",+", regex)
 
-        dataset.set_metadata({'delimiter': 'space'})
-        regex = self.reader._extract_delimiter_regex(dataset)
+        metadata = {'delimiter': 'space'}
+        regex = self.reader._extract_delimiter_regex(metadata)
         self.assertEqual("\s+", regex)
 
-        dataset.set_metadata({'delimiter': 'tab'})
-        regex = self.reader._extract_delimiter_regex(dataset)
+        metadata = {'delimiter': 'tab'}
+        regex = self.reader._extract_delimiter_regex(metadata)
         self.assertEqual("\t+", regex)
 
     def test_extract_delimiter_regex_invalid(self):
-        dataset = DbDataset()
-        dataset.set_metadata({'delimiter': 'double-slash-and-semicolon'})
+        metadata = {'delimiter': 'double-slash-and-semicolon'}
 
         try:
-            self.reader._extract_delimiter_regex(dataset)
+            self.reader._extract_delimiter_regex(metadata)
             self.fail("IOException expected")
         except IOError:
             pass
 
     def test_extract_delimiter_regex_missing(self):
-        dataset = DbDataset()
+        metadata =  {}
 
         try:
-            self.reader._extract_delimiter_regex(dataset)
+            self.reader._extract_delimiter_regex(metadata)
             self.fail("IOException expected")
         except IOError:
             pass
@@ -254,7 +252,7 @@ class SbFileReaderTest(unittest.TestCase):
         datetime.datetime(2003, 8, 12, 15, 23, 54), self.reader._extract_date("20030812", "15:23:54", check_gmt=False)
 
     def test_extract_geo_location_from_header(self):
-        dataset = DbDataset()
+        dataset = new_test_db_dataset(2)
         dataset.add_metadatum('east_longitude', '22.7')
         dataset.add_metadatum('north_latitude', '-17.09')
 

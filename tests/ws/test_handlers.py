@@ -3,7 +3,7 @@ import unittest
 from tornado.testing import AsyncHTTPTestCase
 
 from eocdb.ws.app import new_application
-from tests.ws.helpers import new_test_service_context
+from tests.helpers import new_test_service_context
 
 
 # For usage of the tornado.testing.AsyncHTTPTestCase see http://www.tornadoweb.org/en/stable/testing.html

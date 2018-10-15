@@ -24,7 +24,7 @@ import unittest
 
 from eocdb.core.models.issue import Issue
 from eocdb.ws.controllers.datasets import *
-from ..helpers import new_test_service_context, new_test_dataset
+from tests.helpers import new_test_service_context, new_test_dataset
 
 
 class DatasetsTest(unittest.TestCase):

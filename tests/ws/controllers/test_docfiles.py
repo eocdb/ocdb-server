@@ -23,7 +23,7 @@
 import unittest
 
 from eocdb.ws.controllers.docfiles import *
-from ..helpers import new_test_service_context
+from tests.helpers import new_test_service_context
 
 
 class DocFilesTest(unittest.TestCase):

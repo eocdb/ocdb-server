@@ -2,6 +2,7 @@ import datetime
 import re
 
 from eocdb.core.db.db_dataset import DbDataset
+from eocdb.core.models.bucket import Bucket
 
 EOF = 'end_of_file'
 
@@ -19,7 +20,11 @@ class SbFileReader():
             return self._parse(lines)
 
     def _parse(self, lines):
-        dataset = DbDataset()
+        dataset = DbDataset(Bucket("bla", "bli", "blub"),
+                            "name",
+                            "new",
+                            {},
+                            [])
         self.lines = lines
 
         self.handle_header = None
@@ -79,7 +84,7 @@ class SbFileReader():
                 dataset.add_metadatum(key, value)
 
     def _interprete_header(self, dataset):
-        self._delimiter_regex = self._extract_delimiter_regex(dataset)
+        self._delimiter_regex = self._extract_delimiter_regex(dataset.metadata)
 
         if self.field_list is None:
             raise IOError('Missing header tag "fields"')
@@ -190,11 +195,11 @@ class SbFileReader():
 
             dataset.add_record(record)
 
-    def _extract_delimiter_regex(self, dataset):
-        if not 'delimiter' in dataset.metadata:
+    def _extract_delimiter_regex(self, metadata):
+        if not 'delimiter' in metadata:
             raise IOError('Missing delimiter tag in header')
 
-        delimiter = dataset.metadata['delimiter']
+        delimiter = metadata['delimiter']
         if delimiter == 'comma':
             return ',+'
         elif delimiter == 'space':
