@@ -69,7 +69,6 @@ class MongoDbDriver(DbDriver):
         dataset_refs = []
         index = 0
         for dataset_dict in cursor:
-            # TODO by forman: is there a MongoDB specifc way to get results for start_index <= index <= end_index?
             if index >= start_index and (end_index == -1 or index <= end_index):
                 dataset_id = str(dataset_dict.get("_id"))
                 bucket_dict = dataset_dict.get("bucket")
