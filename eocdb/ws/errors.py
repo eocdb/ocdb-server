@@ -42,7 +42,7 @@ class WsConfigError(WsError):
 
 class WsBadRequestError(WsError):
     """
-    Exception raised by tile service request handlers.
+    400 - Bad Request.
     """
 
     def __init__(self, reason: str, log_message: str = None):
@@ -51,8 +51,17 @@ class WsBadRequestError(WsError):
 
 class WsResourceNotFoundError(WsError):
     """
-    Exception raised by tile service request handlers.
+    404 - Not Found.
     """
 
     def __init__(self, reason: str, log_message: str = None):
         super().__init__(reason, status_code=404, log_message=log_message)
+
+
+class WsNotImplementedError(WsError):
+    """
+    501 - Not Implemented.
+    """
+
+    def __init__(self, reason: str, log_message: str = None):
+        super().__init__(reason, status_code=501, log_message=log_message)

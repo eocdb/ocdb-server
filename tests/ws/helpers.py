@@ -3,6 +3,8 @@ from typing import Optional
 
 import yaml
 
+from eocdb.core.models.bucket import Bucket
+from eocdb.core.models.dataset import Dataset
 from eocdb.ws.context import WsContext
 from eocdb.ws.reqparams import RequestParams
 
@@ -19,11 +21,17 @@ def get_test_res_dir() -> str:
     return os.path.normpath(os.path.join(os.path.dirname(__file__), 'res'))
 
 
+def new_test_dataset(n: int = 0):
+    return Dataset(Bucket(f"affil_{n}", f"project_{n}", f"cruise_{n}"),
+                   f"dataset-{n}",
+                   "new",
+                   dict(fields=["a", "b", "c"]),
+                   [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]])
+
+
 class RequestParamsMock(RequestParams):
     def __init__(self, **kvp):
         self.kvp = kvp
 
-    def get_query_argument(self, name: str, default: Optional[str]) -> Optional[str]:
+    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
         return self.kvp.get(name, default)
-
-

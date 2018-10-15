@@ -192,7 +192,9 @@ class WsRequestHandler(RequestHandler):
 
     def __init__(self, application, request, **kwargs):
         super(WsRequestHandler, self).__init__(application, request, **kwargs)
-        self._params = WsRequestParams(self)
+        self._header = WsRequestHeader(self)
+        self._query = WsRequestQuery(self)
+        self._cookie = WsRequestCookie(self)
 
     @property
     def ws_context(self) -> WsContext:
@@ -203,8 +205,16 @@ class WsRequestHandler(RequestHandler):
         return self.request.protocol + '://' + self.request.host
 
     @property
-    def params(self) -> 'WsRequestParams':
-        return self._params
+    def header(self) -> RequestParams:
+        return self._header
+
+    @property
+    def query(self) -> RequestParams:
+        return self._query
+
+    @property
+    def cookie(self) -> RequestParams:
+        return self._cookie
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -241,11 +251,26 @@ class WsRequestHandler(RequestHandler):
         self.finish(self.to_json(obj))
 
 
-class WsRequestParams(RequestParams):
+class WsRequestHeader(RequestParams):
     def __init__(self, handler: RequestHandler):
         self.handler = handler
 
-    def get_query_argument(self, name: str, default: Optional[str]) -> Optional[str]:
+    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
+        """
+        Get query argument.
+        :param name: Query argument name
+        :param default: Default value.
+        :return: the value or none
+        :raise: WsBadRequestError
+        """
+        return self.handler.request.headers.get(name, default=default)
+
+
+class WsRequestQuery(RequestParams):
+    def __init__(self, handler: RequestHandler):
+        self.handler = handler
+
+    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
         """
         Get query argument.
         :param name: Query argument name
@@ -254,6 +279,21 @@ class WsRequestParams(RequestParams):
         :raise: WsBadRequestError
         """
         return self.handler.get_query_argument(name, default=default)
+
+
+class WsRequestCookie(RequestParams):
+    def __init__(self, handler: RequestHandler):
+        self.handler = handler
+
+    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
+        """
+        Get query argument.
+        :param name: Query argument name
+        :param default: Default value.
+        :return: the value or none
+        :raise: WsBadRequestError
+        """
+        return self.handler.get_cookie(name, default=default)
 
 
 class _GlobalEventLoopPolicy(asyncio.DefaultEventLoopPolicy):
@@ -303,17 +343,17 @@ def url_pattern(pattern: str):
     reg_expr = ''
     pos = 0
     while True:
-        pos1 = pattern.find('{{', pos)
+        pos1 = pattern.find('{', pos)
         if pos1 >= 0:
-            pos2 = pattern.find('}}', pos1 + 2)
+            pos2 = pattern.find('}', pos1 + 1)
             if pos2 > pos1:
-                name = pattern[pos1 + 2:pos2]
+                name = pattern[pos1 + 1:pos2]
                 if not name.isidentifier():
-                    raise ValueError('name in {{name}} must be a valid identifier, but got "%s"' % name)
+                    raise ValueError('name in {name} must be a valid identifier, but got "%s"' % name)
                 reg_expr += pattern[pos:pos1] + (name_pattern % name)
-                pos = pos2 + 2
+                pos = pos2 + 1
             else:
-                raise ValueError('no matching "}}" after "{{" in "%s"' % pattern)
+                raise ValueError('no matching "}" after "{" in "%s"' % pattern)
 
         else:
             reg_expr += pattern[pos:]

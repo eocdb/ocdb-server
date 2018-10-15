@@ -1,0 +1,980 @@
+openapi: 3.0.0
+servers:
+  - url: 'http://eocdb.io/api/v01'
+info:
+  title: eocdb-server
+  version: "0.1.0-dev.1"
+  description: |
+    RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
+    How we utilise HTTP methods:
+    * GET: get existing items - read only.
+    * PUT: add new items.
+    * POST: update existing items.
+    * DELETE: delete existing items.
+  contact:
+    email: eocdb@eumetsat.eu
+  license:
+    name: MIT
+    url: 'https://opensource.org/licenses/MIT'
+tags:
+  - name: Service
+    description: Access to service info.
+  - name: Store
+    description: Access to the store.
+  - name: Datasets
+    description: Access to measurement datasets.
+  - name: DocFiles
+    description: Access to documentation files.
+  - name: Users
+    description: Access to users.
+paths:
+  '/service/info':
+    get:
+      tags:
+        - Service
+      summary: Get service information
+      description: Returns information about the service as a dictionary of key-value pairs.
+      operationId: getServiceInfo
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - api_key: []
+  '/store/info':
+    get:
+      tags:
+        - Store
+      summary: Get store information
+      description: Returns information about the store as a dictionary of key-value pairs.
+      operationId: getStoreInfo
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - api_key: []
+  '/store/upload':
+    post:
+      tags:
+        - Store
+      summary: Batch mode upload of files
+      description: Upload a ZIP file of datasets and optionally documentaion files and insert them into the store.
+      operationId: uploadStoreFiles
+      requestBody:
+        $ref: '#/components/requestBodies/FileUpload'
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid request.
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
+  '/store/download':
+    get:
+      tags:
+        - Store
+      summary: Batch mode download of files
+      description: Download a ZIP file of datasets and optionally documentaion files for the given query from the store.
+      operationId: downloadStoreFiles
+      parameters:
+        # Important: keep following parameters in sync with findDatasets() operation
+        # {{{
+        - $ref: "#/components/parameters/exprParam"
+        - $ref: "#/components/parameters/regionParam"
+        - $ref: "#/components/parameters/timeParam"
+        - $ref: "#/components/parameters/wdepthParam"
+        - $ref: "#/components/parameters/mtypeParam"
+        - $ref: "#/components/parameters/wlmodeParam"
+        - $ref: "#/components/parameters/shallowParam"
+        - $ref: "#/components/parameters/pmodeParam"
+        - $ref: "#/components/parameters/pgroupParam"
+        - $ref: "#/components/parameters/pnameParam"
+        # }}}
+        - name: docs
+          in: query
+          description: Weather to include documentation files. Defaults to docs=0 (do not include files).
+          required: false
+          schema:
+            type: boolean
+            default: false
+      responses:
+        '200':
+          $ref: '#/components/responses/FileDownload'
+        '400':
+          description: Invalid query value(s).
+  # TODO by forman: address publishing/hiding datasets
+  # '/datasets/publish/{id}':
+  '/datasets/validate':
+    post:
+      tags:
+        - Datasets
+      summary: Validate a dataset
+      description: Validates the given dataset and returns a validation report.
+      operationId: validateDataset
+      requestBody:
+        $ref: '#/components/requestBodies/Dataset'
+      responses:
+        'default':
+          $ref: '#/components/responses/DatasetValidationResult'
+  '/datasets':
+    get:
+      tags:
+        - Datasets
+      summary: Find datasets
+      description: Querys datasets by search expression, bounding box, time range, etc.
+      operationId: findDatasets
+      parameters:
+        # Important: keep following parameters in sync with downloadStoreFiles() operation
+        # {{{
+        - $ref: "#/components/parameters/exprParam"
+        - $ref: "#/components/parameters/regionParam"
+        - $ref: "#/components/parameters/timeParam"
+        - $ref: "#/components/parameters/wdepthParam"
+        - $ref: "#/components/parameters/mtypeParam"
+        - $ref: "#/components/parameters/wlmodeParam"
+        - $ref: "#/components/parameters/shallowParam"
+        - $ref: "#/components/parameters/pmodeParam"
+        - $ref: "#/components/parameters/pgroupParam"
+        - $ref: "#/components/parameters/pnameParam"
+        # }}}
+        - name: offset
+          in: query
+          description: Dataset start offset. First dataset is at offset=1. Defaults to 1.
+          required: false
+          schema:
+            type: integer
+            minimum: 1
+            default: 1
+            nullable: true
+        - name: count
+          in: query
+          description: Maximum number of datasets in response. Defaults to 1000.
+          required: false
+          schema:
+            type: integer
+            minimum: 0
+            default: 1000
+            nullable: true
+      responses:
+        '200':
+          $ref: '#/components/responses/DatasetQueryResult'
+        '400':
+          description: Invalid query value(s)
+      security:
+        - api_key: []
+    put:
+      tags:
+        - Datasets
+      summary: Add a new dataset
+      description: Adds a new dataset to the store and returns a dataset reference.
+      operationId: addDataset
+      requestBody:
+        $ref: '#/components/requestBodies/Dataset'
+      responses:
+        '200':
+          $ref: '#/components/responses/DatasetRef'
+        '400':
+          description: Invalid request.
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
+    post:
+      tags:
+        - Datasets
+      summary: Update an existing dataset
+      description: Updates an existing dataset to the store.
+      operationId: updateDataset
+      requestBody:
+        $ref: '#/components/requestBodies/Dataset'
+      responses:
+        '200':
+          description: Sucessful operation.
+        '400':
+          description: Invalid ID supplied.
+        '404':
+          description: Dataset not found.
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
+  '/datasets/{id}':
+    get:
+      tags:
+        - Datasets
+      summary: Get dataset by ID
+      description: Returns a single dataset by ID.
+      operationId: getDatasetById
+      parameters:
+        - $ref: "#/components/parameters/datasetIdParam"
+      responses:
+        '200':
+          $ref: '#/components/responses/Dataset'
+        '400':
+          description: Invalid dataset ID.
+        '404':
+          description: Dataset not found.
+      security:
+        - api_key: []
+    delete:
+      tags:
+        - Datasets
+      summary: Delete a dataset
+      description: Deletes an existing dataset by ID.
+      operationId: deleteDataset
+      parameters:
+        - $ref: "#/components/parameters/apiKeyParam"
+        - $ref: "#/components/parameters/datasetIdParam"
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid dataset ID.
+        '404':
+          description: Dataset not found.
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
+  '/datasets/{affil}/{project}/{cruise}':
+    get:
+      tags:
+        - Datasets
+      summary: Get all datasets for bucket
+      description: Returns all dataset references for given affil, project, and cruise.
+      operationId: getDatasetsInBucket
+      parameters:
+        - $ref: "#/components/parameters/affilParam"
+        - $ref: "#/components/parameters/projectParam"
+        - $ref: "#/components/parameters/cruiseParam"
+      responses:
+        '200':
+          $ref: '#/components/responses/DatasetRefs'
+        '400':
+          description: Invalid path.
+      security:
+        - eocdb_auth:
+            - 'read:datasets'
+  '/datasets/{affil}/{project}/{cruise}/{name}':
+    get:
+      tags:
+        - Datasets
+      summary: Get dataset file from bucket
+      description: Gets a dataset file for given affil, project, cruise, and dataset name.
+      operationId: getDatasetByBucketAndName
+      parameters:
+        - $ref: "#/components/parameters/affilParam"
+        - $ref: "#/components/parameters/projectParam"
+        - $ref: "#/components/parameters/cruiseParam"
+        - $ref: "#/components/parameters/datasetNameParam"
+      responses:
+        '200':
+          $ref: '#/components/responses/FileDownload'
+        '400':
+          description: Invalid path.
+        '404':
+          description: Dataset not found.
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
+  '/docfiles':
+    put:
+      tags:
+        - DocFiles
+      summary: Add documentation file
+      description: Adds a new documentation file for given affil, project, cruise, and file name.
+      operationId: addDocFile
+      requestBody:
+        $ref: '#/components/requestBodies/FileUpload'
+      responses:
+        '200':
+          description: Successful operation.
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
+    post:
+      tags:
+        - DocFiles
+      summary: Update documentation file
+      description: Updates an existing documentation file.
+      operationId: updateDocFile
+      requestBody:
+        $ref: '#/components/requestBodies/FileUpload'
+      responses:
+        '200':
+          description: Successful operation.
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
+  '/docfiles/{affil}/{project}/{cruise}':
+    get:
+      tags:
+        - DocFiles
+      summary: Get documentation files for bucket
+      description: Get documentation file references for given affil, project, and cruise.
+      operationId: getDocFilesInBucket
+      parameters:
+        - $ref: "#/components/parameters/affilParam"
+        - $ref: "#/components/parameters/projectParam"
+        - $ref: "#/components/parameters/cruiseParam"
+      responses:
+        '200':
+          $ref: '#/components/responses/DocFileRefs'
+        '400':
+          description: Invalid path.
+        '404':
+          description: Documentation file not found.
+  '/docfiles/{affil}/{project}/{cruise}/{name}':
+    get:
+      tags:
+        - DocFiles
+      summary: Get documentation file for bucket
+      description: Downloads documentation file for given affil, project, cruise, and file name.
+      operationId: downloadDocFile
+      parameters:
+        - $ref: "#/components/parameters/affilParam"
+        - $ref: "#/components/parameters/projectParam"
+        - $ref: "#/components/parameters/cruiseParam"
+        - $ref: "#/components/parameters/docFileNameParam"
+      responses:
+        '200':
+          $ref: '#/components/responses/FileDownload'
+        '400':
+          description: Invalid path.
+        '404':
+          description: Documentation file not found.
+    delete:
+      tags:
+        - DocFiles
+      summary: Delete documentation file from bucket
+      description: Deletes a documentation file for given affil, project, cruise, and file name.
+      operationId: deleteDocFile
+      parameters:
+        - $ref: "#/components/parameters/affilParam"
+        - $ref: "#/components/parameters/projectParam"
+        - $ref: "#/components/parameters/cruiseParam"
+        - $ref: "#/components/parameters/docFileNameParam"
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid path.
+        '404':
+          description: Documentation file not found.
+      security:
+        - eocdb_auth:
+            - 'write:docFiles'
+            - 'read:docFiles'
+  '/users':
+    post:
+      tags:
+        - Users
+      summary: Add user
+      description: Registers a new user. This can only be done by the logged in user.
+      operationId: createUser
+      requestBody:
+        $ref: '#/components/requestBodies/User'
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid request.
+  '/users/login':
+    get:
+      tags:
+        - Users
+      summary: Login user
+      description: Logs a user into the system using given credentials.
+      operationId: loginUser
+      parameters:
+        - name: username
+          in: query
+          description: The user name for login
+          required: true
+          schema:
+            type: string
+        - name: password
+          in: query
+          description: The password for login in clear text
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Successful operation.
+          headers:
+            X-Rate-Limit:
+              description: calls per hour allowed by the user
+              schema:
+                type: integer
+                format: int32
+            X-Expires-After:
+              description: date in UTC when token expires
+              schema:
+                type: string
+                format: date-time
+          content:
+            application/json:
+              schema:
+                type: string
+        '400':
+          description: Invalid username/password supplied
+  '/users/logout':
+    get:
+      tags:
+        - Users
+      summary: Logout user
+      description: Logs out current logged-in user.
+      operationId: logoutUser
+      responses:
+        '200':
+          description: Successful operation.
+  '/users/{id}':
+    get:
+      tags:
+        - Users
+      summary: Get user information
+      description: Gets user information by user ID.
+      operationId: getUserByID
+      parameters:
+        - $ref: '#/components/parameters/userIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/User'
+        '400':
+          description: Invalid user ID supplied.
+        '404':
+          description: User not found with given ID.
+    put:
+      tags:
+        - Users
+      summary: Update user information
+      description: Uopdates user information by user ID. This can only be done by the logged in user.
+      operationId: updateUser
+      parameters:
+        - $ref: '#/components/parameters/userIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/User'
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid user ID supplied.
+        '404':
+          description: User not found with given ID.
+    delete:
+      tags:
+        - Users
+      summary: Remove user
+      description: Removes the user with the given user ID. This can only be done by the logged in user.
+      operationId: deleteUser
+      parameters:
+        - $ref: '#/components/parameters/userIdParam'
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid user ID supplied.
+        '404':
+          description: User not found with given ID.
+components:
+  parameters:
+    apiKeyParam:
+      name: api_key
+      in: header
+      required: false
+      schema:
+        type: string
+    affilParam:
+      name: affil
+      in: path
+      description: Affiliation name.
+      required: true
+      schema:
+        type: string
+    projectParam:
+      name: project
+      in: path
+      description: Project name.
+      required: true
+      schema:
+        type: string
+    cruiseParam:
+      name: cruise
+      in: path
+      description: Cruise name.
+      required: true
+      schema:
+        type: string
+    docFileNameParam:
+      name: name
+      in: path
+      description: Documentaion file name.
+      required: true
+      schema:
+        type: string
+    datasetNameParam:
+      name: name
+      in: path
+      description: Dataset name.
+      required: true
+      schema:
+        type: string
+    datasetIdParam:
+      name: id
+      in: path
+      description: ID of dataset.
+      required: true
+      schema:
+        type: string
+    exprParam:
+      name: expr
+      in: query
+      description: Query string expression using Lucene syntax.
+      required: false
+      schema:
+        type: string
+        default: null
+        nullable: true
+    regionParam:
+      name: region
+      in: query
+      description: Bounding box in decimal degree given as lon_min,lat_min,lon_max,lat_max or WKT string.
+      required: false
+      schema:
+        type: array
+        items:
+          type: number
+          format: double
+        default: null
+        nullable: true
+        minItems: 4
+        maxItems: 4
+    timeParam:
+      name: time
+      in: query
+      description: Date/time range given as start_date,end_date. Date/time must have ISO format.
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
+          format: date
+        default: null
+        nullable: true
+        minItems: 2
+        maxItems: 2
+    wdepthParam:
+      name: wdepth
+      in: query
+      description: Water depth range. First value is minimum, second is maximum.
+      required: false
+      explode: true
+      schema:
+        type: array
+        items:
+          type: number
+          format: double
+        default: null
+        nullable: true
+        minItems: 2
+        maxItems: 2
+    mtypeParam:
+      name: mtype
+      in: query
+      description: Measurement type. Defaults to "all".
+      required: false
+      schema:
+        type: string
+        default: "all"
+        nullable: true
+    wlmodeParam:
+      name: wlmode
+      in: query
+      description: How to search for wavelength measurements. Defaults to "all".
+      required: false
+      schema:
+        type: string
+        enum: ["all", "multispectral", "hyperspectral"]
+        default: "all"
+        nullable: true
+    shallowParam:
+      name: shallow
+      in: query
+      description: How to deal with datasets with optically shallow water measurements. Defaults to "no".
+      required: false
+      schema:
+        type: string
+        enum: ["no", "yes", "exclusively"]
+        default: "no"
+        nullable: true
+    pmodeParam:
+      name: pmode
+      in: query
+      description: Product find mode. Applies only, if "pgroup" or "pname" are given. Defaults to "contains".
+      required: false
+      schema:
+        type: string
+        enum: ["contains", "same_cruise", "dont_apply"]
+        default: "contains"
+        nullable: true
+    pgroupParam:
+      name: pgroup
+      in: query
+      description: Product group(s).
+      required: false
+      explode: true
+      schema:
+        type: array
+        items:
+          type: string
+        default: null
+        nullable: true
+    pnameParam:
+      name: pname
+      in: query
+      description: Product names(s).
+      required: false
+      explode: true
+      schema:
+        type: array
+        items:
+          type: string
+        default: null
+        nullable: true
+    userIdParam:
+      name: id
+      in: path
+      description: The ID of the user.
+      required: true
+      schema:
+        type: integer
+  schemas:
+    DatasetQuery:
+      type: object
+      properties:
+        expr:
+          type: string
+          nullable: true
+          default: null
+        region:
+          type: array
+          items:
+            type: number
+            format: double
+          nullable: true
+          default: null
+          minItems: 4
+          maxItems: 4
+        time:
+          type: array
+          items:
+            type: string
+            format: date
+          nullable: true
+          default: null
+          minItems: 2
+          maxItems: 2
+        wdepth:
+          type: array
+          items:
+            type: number
+            format: double
+          nullable: true
+          default: null
+          minItems: 2
+          maxItems: 2
+        mtype:
+          type: string
+          nullable: true
+          default: "all"
+        shallow:
+          type: string
+          nullable: true
+          default: null
+        pmode:
+          type: string
+          nullable: true
+          default: "all"
+        pgroup:
+          type: array
+          items:
+            type: string
+          nullable: true
+          default: null
+        pname:
+          type: array
+          items:
+            type: string
+          nullable: true
+          default: null
+        offset:
+          type: integer
+          minimum: 1
+          nullable: true
+          default: 1
+        count:
+          type: integer
+          minimum: 0
+          nullable: true
+          default: 1000
+    DatasetQueryResult:
+      type: object
+      required:
+        - totalCount
+        - datasets
+        - query
+      properties:
+        totalCount:
+          type: integer
+        datasets:
+          type: array
+          items:
+            $ref: '#/components/schemas/DatasetRef'
+        query:
+          $ref: '#/components/schemas/DatasetQuery'
+    DatasetValidationResult:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum: ["OK", "WARNING", "ERROR"]
+          description: Result of validation.
+        issues:
+          type: array
+          items:
+            $ref: '#/components/schemas/Issue'
+          description: Validation issues. Will be empty if status is OK.
+    Issue:
+      type: object
+      required:
+        - type
+        - description
+      properties:
+        type:
+          type: string
+          enum: ["WARNING", "ERROR"]
+          description: Type of issue.
+        description:
+          type: string
+          description: Type of issue.
+    User:
+      type: object
+      required:
+        - name
+        - password
+      properties:
+        id:
+          type: integer
+          format: int64
+        name:
+          type: string
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+        phone:
+          type: string
+        permissions:
+          type: integer
+          format: int32
+    Dataset:
+      type: object
+      required:
+        - bucket
+        - name
+        - status
+        - metadata
+        - records
+      properties:
+        id:
+          type: string
+        bucket:
+          $ref: '#/components/schemas/Bucket'
+        name:
+          type: string
+        status:
+          type: string
+          description: Dataset status in the store.
+          enum:
+            - new
+            - validating
+            - available
+            - hidden
+        metadata:
+          type: object
+        records:
+          type: array
+          items:
+            type: array
+            items:
+              type: number
+    DatasetRef:
+      type: object
+      required:
+        - id
+        - bucket
+        - name
+      properties:
+        id:
+          type: string
+        bucket:
+          $ref: '#/components/schemas/Bucket'
+        name:
+          type: string
+    DocFileRef:
+      type: object
+      required:
+        - bucket
+        - name
+      properties:
+        bucket:
+          $ref: '#/components/schemas/Bucket'
+        name:
+          type: string
+    # TODO by forman: is "Bucket" what we need?
+    Bucket:
+      type: object
+      required:
+        - affil
+        - project
+        - cruise
+      properties:
+        affil:
+          type: string
+        project:
+          type: string
+        cruise:
+          type: string
+  requestBodies:
+    Dataset:
+      description: Dataset object.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Dataset'
+    User:
+      description: User object.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    FileUpload:
+      description: 'File upload.'
+      required: true
+      content:
+        # see https://swagger.io/docs/specification/describing-request-body/file-upload/
+        # see https://stackoverflow.com/questions/4526273/what-does-enctype-multipart-form-data-mean
+        multipart/form-data:
+          schema:
+            type: object
+            properties:
+              # Current user
+              userName:
+                type: string
+              # Bucket info
+              affil:
+                type: string
+              project:
+                type: string
+              cruise:
+                type: string
+              # The file to be uploaded
+              fileName:
+                type: string
+                format: binary
+  responses:
+    DatasetQueryResult:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetQueryResult'
+    DatasetValidationResult:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetValidationResult'
+    Dataset:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Dataset'
+    DatasetRef:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetRef'
+    DatasetRefs:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/DatasetRef'
+    DocFileRefs:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/DocFileRef'
+    User:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/User'
+    FileDownload:
+      description: Successful operation.
+      content:
+        application/octet-stream:
+          schema:
+            type: string
+            format: binary
+  securitySchemes:
+    eocdb_auth:
+      type: oauth2
+      flows:
+        implicit:
+          authorizationUrl: 'http://eocdb.io/oauth/dialog'
+          scopes:
+            'write:datasets': modify datasets in your account
+            'read:datasets': read your datasets
+            'write:docFiles': modify documentation files in your account
+            'read:docFiles': read your documentation files
+            'write:users': modify users
+            'read:users': read users
+    api_key:
+      type: apiKey
+      name: api_key
+      in: header
+
+externalDocs:
+  description: Find out more about EUMETSAT Ocean Colour In-Situ Database
+  url: 'http://eocdb.io'
