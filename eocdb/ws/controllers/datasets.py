@@ -75,7 +75,7 @@ def find_datasets(ctx: WsContext,
     query.count = count
 
     result = DatasetQueryResult(0, [], query)
-    for driver in ctx.get_db_drivers(mode="r"):
+    for driver in ctx.get_db_drivers():
         result_part = driver.instance().find_datasets(query)
         result.total_count += result_part.total_count
         result.datasets += result_part.datasets
@@ -90,14 +90,11 @@ def add_dataset(ctx: WsContext,
     validation_result = validator.validate_dataset(dataset)
     if validation_result.status == "ERROR":
         raise WsBadRequestError(f"Invalid dataset.")
-    first_dataset_id = None
-    for driver in ctx.get_db_drivers(mode="w"):
-        dataset_id = driver.instance().add_dataset(dataset)
-        if first_dataset_id is None:
-            first_dataset_id = dataset_id
-    if not first_dataset_id:
+    driver = ctx.get_db_driver()
+    dataset_id = driver.instance().add_dataset(dataset)
+    if not dataset_id:
         raise WsBadRequestError(f"Could not add dataset {dataset.name}")
-    return DatasetRef(first_dataset_id, dataset.bucket, dataset.name)
+    return DatasetRef(dataset_id, dataset.bucket, dataset.name)
 
 
 def update_dataset(ctx: WsContext,
@@ -107,10 +104,8 @@ def update_dataset(ctx: WsContext,
     validation_result = validator.validate_dataset(dataset)
     if validation_result.status == "ERROR":
         raise WsBadRequestError(f"Invalid dataset.")
-    updated = False
-    for driver in ctx.get_db_drivers(mode="w"):
-        if driver.instance().update_dataset(dataset):
-            updated = True
+    driver = ctx.get_db_driver()
+    updated = driver.instance().update_dataset(dataset)
     if not updated:
         raise WsResourceNotFoundError(f"Dataset with ID {dataset.id} not found")
     return updated
@@ -122,10 +117,8 @@ def delete_dataset(ctx: WsContext,
     """Delete an existing dataset."""
     assert_not_none(api_key, name='api_key')
     assert_not_none(dataset_id, name='dataset_id')
-    deleted = False
-    for driver in ctx.get_db_drivers(mode="w"):
-        if driver.instance().delete_dataset(dataset_id):
-            deleted = True
+    driver = ctx.get_db_driver()
+    deleted = driver.instance().delete_dataset(dataset_id)
     if not deleted:
         raise WsResourceNotFoundError(f"Dataset with ID {dataset_id} not found")
     return deleted
@@ -135,10 +128,10 @@ def get_dataset_by_id(ctx: WsContext,
                       dataset_id: str) -> Dataset:
     """Get dataset by ID."""
     assert_not_none(dataset_id, name='dataset_id')
-    for driver in ctx.get_db_drivers(mode="r"):
-        dataset = driver.instance().get_dataset(dataset_id)
-        if dataset is not None:
-            return dataset
+    driver = ctx.get_db_driver()
+    dataset = driver.instance().get_dataset(dataset_id)
+    if dataset is not None:
+        return dataset
     raise WsResourceNotFoundError(f"Dataset with ID {dataset_id} not found")
 
 
