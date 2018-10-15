@@ -66,12 +66,6 @@ class WsContext:
     def dispose(self):
         self._database_drivers.dispose()
 
-    @classmethod
-    def get_app_info(cls) -> Dict:
-        return dict(name=DEFAULT_SERVER_NAME,
-                    description=__description__,
-                    version=__version__)
-
     def get_db_drivers(self, mode: str = None):
         if mode not in ("r", "w", "rw", "wr"):
             raise ValueError(f"illegal mode {repr(mode)}")

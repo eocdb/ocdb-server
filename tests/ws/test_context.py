@@ -13,13 +13,3 @@ class WsContextTest(unittest.TestCase):
         ctx.configure(new_config)
         self.assertIsNot(new_config, ctx.config)
         self.assertEqual(new_config, ctx.config)
-
-    def test_get_app_info(self):
-        ctx = new_test_service_context()
-        self.assertEqual(
-            {
-                'name': 'eocdb-server',
-                'version': '0.1.0',
-                'description': 'EUMETSAT Ocean Colour In-Situ Database Server'
-            },
-            ctx.get_app_info())
