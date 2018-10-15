@@ -63,7 +63,6 @@ class MongoDbDriver(DbDriver):
             end_index = start_index + query.count - 1
 
         query_filter = None
-        # TODO by forman: setup MongoDB-specific query_filter from query
 
         cursor = self._collection.find(query_filter)
 
