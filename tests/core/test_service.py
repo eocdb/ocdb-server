@@ -32,33 +32,33 @@ class ServiceRegistryTest(TestCase):
 
         # Test all possible lookups so we don't need to do that again in this test class
 
-        service_a = self.registry.find_by_id("service_a")
+        service_a = self.registry.get_service("service_a")
         self.assertIsInstance(service_a, TestServiceA)
-        service_b = self.registry.find_by_id("service_b")
+        service_b = self.registry.get_service("service_b")
         self.assertIsInstance(service_b, TestServiceB)
-        service_c = self.registry.find_by_id("service_c")
+        service_c = self.registry.get_service("service_c")
         self.assertIsNone(service_c)
 
-        self.assertIs(service_a, self.registry.find_by_id("service_a"))
+        self.assertIs(service_a, self.registry.get_service("service_a"))
 
-        services = self.registry.find_by_type(TestServiceA)
+        services = self.registry.find_services(service_type=TestServiceA)
         self.assertEqual({service_a, service_b}, set(services))
-        services = self.registry.find_by_type(TestServiceB)
+        services = self.registry.find_services(service_type=TestServiceB)
         self.assertEqual({service_b}, set(services))
         # noinspection PyTypeChecker
-        services = self.registry.find_by_type(object)
+        services = self.registry.find_services(service_type=object)
         self.assertEqual({service_a, service_b}, set(services))
         # noinspection PyTypeChecker
-        services = self.registry.find_by_type(int)
+        services = self.registry.find_services(service_type=int)
         self.assertEqual(set(), set(services))
 
-        services = self.registry.find_by_filter(lambda sid, s, c: sid.startswith('ser'))
+        services = self.registry.find_services(service_filter=lambda sid, s, c: sid.startswith('ser'))
         self.assertEqual({service_a, service_b}, set(services))
-        services = self.registry.find_by_filter(lambda sid, s, c: s is service_b)
+        services = self.registry.find_services(service_filter=lambda sid, s, c: s is service_b)
         self.assertEqual({service_b}, set(services))
-        services = self.registry.find_by_filter(lambda sid, s, c: c['type'].endswith('iceA'))
+        services = self.registry.find_services(service_filter=lambda sid, s, c: c['type'].endswith('iceA'))
         self.assertEqual({service_a}, set(services))
-        services = self.registry.find_by_filter(lambda sid, s, c: c['type'].endswith('iceC'))
+        services = self.registry.find_services(service_filter=lambda sid, s, c: c['type'].endswith('iceC'))
         self.assertEqual(set(), set(services))
 
     def test_nominal_updates(self):
@@ -74,9 +74,9 @@ class ServiceRegistryTest(TestCase):
             },
         })
 
-        service_a = self.registry.find_by_id("service_a")
+        service_a = self.registry.get_service("service_a")
         self.assertIsNotNone(service_a)
-        service_b = self.registry.find_by_id("service_b")
+        service_b = self.registry.get_service("service_b")
         self.assertIsNotNone(service_b)
         self.assertEqual(1, service_a.num_inits)
         self.assertEqual(1, service_b.num_inits)
@@ -97,10 +97,10 @@ class ServiceRegistryTest(TestCase):
             },
         })
 
-        service_a = self.registry.find_by_id("service_a")
+        service_a = self.registry.get_service("service_a")
         self.assertIsNotNone(service_a)
-        self.assertIsNone(self.registry.find_by_id("service_b"))
-        service_c = self.registry.find_by_id("service_c")
+        self.assertIsNone(self.registry.get_service("service_b"))
+        service_c = self.registry.get_service("service_c")
         self.assertIsNotNone(service_c)
         self.assertEqual(1, service_a.num_inits)
         self.assertEqual(1, service_b.num_inits)
@@ -127,13 +127,13 @@ class ServiceRegistryTest(TestCase):
             },
         })
 
-        service_a = self.registry.find_by_id("service_a")
+        service_a = self.registry.get_service("service_a")
         self.assertIsNotNone(service_a)
-        self.assertIsNone(self.registry.find_by_id("service_b"))
-        self.assertIsNone(self.registry.find_by_id("service_c"))
-        service_c1 = self.registry.find_by_id("service_c1")
+        self.assertIsNone(self.registry.get_service("service_b"))
+        self.assertIsNone(self.registry.get_service("service_c"))
+        service_c1 = self.registry.get_service("service_c1")
         self.assertIsNotNone(service_c1)
-        service_c2 = self.registry.find_by_id("service_c2")
+        service_c2 = self.registry.get_service("service_c2")
         self.assertIsNotNone(service_c2)
         self.assertEqual(1, service_a.num_inits)
         self.assertEqual(1, service_b.num_inits)
@@ -153,11 +153,11 @@ class ServiceRegistryTest(TestCase):
 
         self.registry.dispose()
 
-        self.assertIsNone(self.registry.find_by_id("service_a"))
-        self.assertIsNone(self.registry.find_by_id("service_b"))
-        self.assertIsNone(self.registry.find_by_id("service_c"))
-        self.assertIsNone(self.registry.find_by_id("service_c1"))
-        self.assertIsNone(self.registry.find_by_id("service_c2"))
+        self.assertIsNone(self.registry.get_service("service_a"))
+        self.assertIsNone(self.registry.get_service("service_b"))
+        self.assertIsNone(self.registry.get_service("service_c"))
+        self.assertIsNone(self.registry.get_service("service_c1"))
+        self.assertIsNone(self.registry.get_service("service_c2"))
         self.assertEqual(1, service_a.num_inits)
         self.assertEqual(1, service_b.num_inits)
         self.assertEqual(1, service_c.num_inits)

@@ -1,7 +1,6 @@
 databases:
   default:
     type: eocdb.db.mongo_db_driver.MongoDbDriver
-    read: true
-    write: true
+    primary: true
     parameters:
       mock: true
