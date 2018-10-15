@@ -26,7 +26,8 @@ from ...core.models.user import User
 
 
 # noinspection PyUnusedLocal
-def create_user(ctx: WsContext):
+def create_user(ctx: WsContext,
+                user: User):
     # TODO (generated): implement operation create_user()
     raise NotImplementedError('operation create_user() not yet implemented')
 
@@ -42,24 +43,25 @@ def login_user(ctx: WsContext,
 
 
 # noinspection PyUnusedLocal
-def logout_user(ctx: WsContext):
+def logout_user(ctx: WsContext,
+                user_id: int):
     # TODO (generated): implement operation logout_user()
     raise NotImplementedError('operation logout_user() not yet implemented')
 
 
 # noinspection PyUnusedLocal,PyTypeChecker
 def get_user_by_id(ctx: WsContext,
-                   id_: int) -> User:
-    assert_not_none(id_, name='id_')
+                   user_id: int) -> User:
+    assert_not_none(user_id, name='user_id')
     # TODO (generated): implement operation get_user_by_id()
     raise NotImplementedError('operation get_user_by_id() not yet implemented')
 
 
 # noinspection PyUnusedLocal
 def update_user(ctx: WsContext,
-                id_: int,
+                user_id: int,
                 data: User):
-    assert_not_none(id_, name='id_')
+    assert_not_none(user_id, name='user_id')
     # TODO (generated): implement operation update_user()
     raise NotImplementedError('operation update_user() not yet implemented')
 

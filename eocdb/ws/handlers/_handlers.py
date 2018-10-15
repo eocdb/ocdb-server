@@ -134,7 +134,10 @@ class Datasets(WsRequestHandler):
         # transform body with mime-type application/json into a Dataset
         data_dict = tornado.escape.json_decode(self.request.body)
         dataset = Dataset.from_dict(data_dict)
-        add_dataset(self.ws_context, dataset=dataset)
+        result = add_dataset(self.ws_context, dataset=dataset)
+        # transform result of type DatasetRef into response with mime-type application/json
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result.to_dict()))
         self.finish()
 
     def post(self):
@@ -142,10 +145,8 @@ class Datasets(WsRequestHandler):
         # transform body with mime-type application/json into a Dataset
         data_dict = tornado.escape.json_decode(self.request.body)
         dataset = Dataset.from_dict(data_dict)
-        result = update_dataset(self.ws_context, dataset=dataset)
-        # transform result of type DatasetValidationResult into response with mime-type application/json
-        self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result.to_dict()))
+        update_dataset(self.ws_context, dataset=dataset)
+        self.finish()
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins

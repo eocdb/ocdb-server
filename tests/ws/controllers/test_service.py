@@ -37,10 +37,9 @@ class ServiceTest(unittest.TestCase):
         self.assertIn("openapi", result)
         self.assertEqual("3.0.0", result["openapi"])
         self.assertIn("info", result)
-        self.assertEqual(dict(title="eocdb-server",
-                              version="0.1.0-dev.1",
-                              description="Web Service API for the EUMETSAT Ocean Colour In-Situ Database\n",
-                              contact=dict(email="eocdb@eumetsat.eu"),
-                              license=dict(name="MIT",
-                                           url="https://opensource.org/licenses/MIT")),
-                         result["info"])
+        self.assertIsInstance(result["info"], dict)
+        self.assertEqual("eocdb-server", result["info"].get("title"))
+        self.assertEqual("0.1.0-dev.1", result["info"].get("version"))
+        self.assertIsNotNone(result["info"].get("description"))
+        self.assertEqual("RESTful API for the EUMETSAT Ocean C",
+                         result["info"].get("description")[0:36])

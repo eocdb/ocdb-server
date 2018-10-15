@@ -1,3 +1,4 @@
+# TODO by forman: address security consistently.
 openapi: 3.0.0
 servers:
   - url: 'http://eocdb.io/api/v01'
@@ -5,7 +6,12 @@ info:
   title: eocdb-server
   version: "0.1.0-dev.1"
   description: |
-    Web Service API for the EUMETSAT Ocean Colour In-Situ Database
+    RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
+    How we utilise HTTP methods:
+    * GET: get existing items - read only.
+    * PUT: add new items.
+    * POST: update existing items.
+    * DELETE: delete existing items.
   contact:
     email: eocdb@eumetsat.eu
   license:
@@ -106,6 +112,8 @@ paths:
           $ref: '#/components/responses/FileDownload'
         '400':
           description: Invalid query value(s).
+  # TODO by forman: address publishing/hiding datasets
+  # '/datasets/publish/{id}':
   '/datasets/validate':
     post:
       tags:
@@ -168,13 +176,13 @@ paths:
       tags:
         - Datasets
       summary: Add a new dataset
-      description: Adds a new dataset to the store and returns the validation result.
+      description: Adds a new dataset to the store and returns a dataset reference.
       operationId: addDataset
       requestBody:
         $ref: '#/components/requestBodies/Dataset'
       responses:
         '200':
-          description: Successful operation.
+          $ref: '#/components/responses/DatasetRef'
         '400':
           description: Invalid request.
       security:
@@ -185,7 +193,7 @@ paths:
       tags:
         - Datasets
       summary: Update an existing dataset
-      description: Updates an existing dataset to the store and returns the validation result.
+      description: Updates an existing dataset to the store.
       operationId: updateDataset
       requestBody:
         $ref: '#/components/requestBodies/Dataset'
@@ -843,6 +851,7 @@ components:
           $ref: '#/components/schemas/Bucket'
         name:
           type: string
+    # TODO by forman: is "Bucket" what we need?
     Bucket:
       type: object
       required:
@@ -914,6 +923,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Dataset'
+    DatasetRef:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetRef'
     DatasetRefs:
       description: Successful operation.
       content:

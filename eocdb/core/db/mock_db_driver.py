@@ -15,8 +15,16 @@ from ..models.dataset_ref import DatasetRef
 #                 better use MongoDbDriver.init(mock=True), which is at zero dev cost.
 
 class MockDbDriver(DbDriver):
+    def init(self, **config):
+        pass
 
-    def add_dataset(self, dataset: Dataset):
+    def update(self, **config):
+        pass
+
+    def dispose(self):
+        pass
+
+    def add_dataset(self, dataset: Dataset) -> str:
         raise NotImplementedError()
 
     def update_dataset(self, dataset: Dataset) -> bool:
@@ -61,12 +69,3 @@ class MockDbDriver(DbDriver):
     @deprecated
     def insert(self, document):
         raise NotImplementedError()
-
-    def init(self, **config):
-        pass
-
-    def update(self, **config):
-        pass
-
-    def dispose(self):
-        pass

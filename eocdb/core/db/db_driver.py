@@ -11,20 +11,20 @@ from ..models.dataset_ref import DatasetRef
 class DbDriver(Service):
 
     @abstractmethod
-    def add_dataset(self, dataset: Dataset) -> bool:
-        """Add dataset."""
+    def add_dataset(self, dataset: Dataset) -> str:
+        """Add new dataset and return ID."""
 
     @abstractmethod
     def update_dataset(self, dataset: Dataset) -> bool:
-        """Update dataset."""
+        """Update existing dataset and return success."""
 
     @abstractmethod
     def delete_dataset(self, dataset_id: str) -> bool:
-        """Delete dataset by ID."""
+        """Delete existing dataset by ID and return success."""
 
     @abstractmethod
     def get_dataset(self, dataset_id: str) -> Optional[Dataset]:
-        """Get dataset by ID."""
+        """Get existing dataset by ID."""
 
     @abstractmethod
     def find_datasets(self, query: DatasetQuery) -> List[DatasetRef]:

@@ -1,5 +1,5 @@
-import unittest
 import os
+import unittest
 
 from eocdb.ws.openapi.parser import Parser
 
@@ -12,6 +12,7 @@ class ParserTest(unittest.TestCase):
         self.assertIsNotNone(openapi)
         self.assertEqual(openapi.version, "3.0.0")
 
+        # So far, this is just a smoke test
         self.assertIsNotNone(openapi.components)
         self.assertIsNotNone(openapi.components.schemas)
         self.assertEqual(9, len(openapi.components.schemas))
@@ -20,8 +21,7 @@ class ParserTest(unittest.TestCase):
         self.assertIsNotNone(openapi.components.request_bodies)
         self.assertEqual(3, len(openapi.components.request_bodies))
         self.assertIsNotNone(openapi.components.responses)
-        self.assertEqual(7, len(openapi.components.responses))
+        self.assertEqual(8, len(openapi.components.responses))
 
         self.assertIsNotNone(openapi.path_items)
         self.assertEqual(16, len(openapi.path_items))
-

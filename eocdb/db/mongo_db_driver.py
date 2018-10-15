@@ -18,9 +18,9 @@ from ..core.models.dataset_ref import DatasetRef
 
 class MongoDbDriver(DbDriver):
 
-    def add_dataset(self, dataset: Dataset) -> bool:
+    def add_dataset(self, dataset: Dataset) -> str:
         result = self._collection.insert_one(dataset.to_dict())
-        return result.acknowledged
+        return str(result.inserted_id)
 
     def update_dataset(self, dataset: Dataset) -> bool:
         obj_id = self._obj_id(dataset.id)
@@ -29,14 +29,14 @@ class MongoDbDriver(DbDriver):
         dataset_dict = dataset.to_dict()
         if "id" in dataset_dict:
             del dataset_dict["id"]
-        result = self._collection.update_one({"_id": obj_id}, dataset_dict)
+        result = self._collection.replace_one({"_id": obj_id}, dataset_dict, upsert=True)
         return result.modified_count == 1
 
     def delete_dataset(self, dataset_id: str) -> bool:
         obj_id = self._obj_id(dataset_id)
         if obj_id is None:
             return False
-        result = self._collection.delete_one({'x': 1})
+        result = self._collection.delete_one({'_id': obj_id})
         return result.deleted_count == 1
 
     def get_dataset(self, dataset_id: str) -> Optional[Dataset]:
@@ -63,7 +63,7 @@ class MongoDbDriver(DbDriver):
             end_index = start_index + query.count - 1
 
         query_filter = None
-        # TODO by forman: setup query_filter from query
+        # TODO by forman: setup MongoDB-specific query_filter from query
 
         cursor = self._collection.find(query_filter)
 
@@ -182,4 +182,3 @@ class MongoDbDriver(DbDriver):
                 config["host"] = uri
                 del config[key]
         self._config = config
-

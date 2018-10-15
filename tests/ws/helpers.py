@@ -21,7 +21,7 @@ def get_test_res_dir() -> str:
     return os.path.normpath(os.path.join(os.path.dirname(__file__), 'res'))
 
 
-def new_dataset(n: int):
+def new_test_dataset(n: int = 0):
     return Dataset(Bucket(f"affil_{n}", f"project_{n}", f"cruise_{n}"),
                    f"dataset-{n}",
                    "new",
@@ -35,5 +35,3 @@ class RequestParamsMock(RequestParams):
 
     def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
         return self.kvp.get(name, default)
-
-

@@ -24,7 +24,7 @@ import unittest
 
 from eocdb.core.models.issue import Issue
 from eocdb.ws.controllers.datasets import *
-from ..helpers import new_test_service_context, new_dataset
+from ..helpers import new_test_service_context, new_test_dataset
 
 
 class DatasetsTest(unittest.TestCase):
@@ -33,13 +33,13 @@ class DatasetsTest(unittest.TestCase):
         self.ctx = new_test_service_context()
 
     def test_validate_dataset(self):
-        dataset = new_dataset(11)
+        dataset = new_test_dataset(11)
         dataset.id = None
         result = validate_dataset(self.ctx, dataset=dataset)
         expected_result = DatasetValidationResult("OK", [])
         self.assertEqual(expected_result, result)
 
-        dataset = new_dataset(11)
+        dataset = new_test_dataset(11)
         dataset.id = "Grunz"
         result = validate_dataset(self.ctx, dataset=dataset)
         issue = Issue("WARNING", "Datasets should have no ID before insert or update")
@@ -47,13 +47,25 @@ class DatasetsTest(unittest.TestCase):
         self.assertEqual(expected_result, result)
 
     def test_add_dataset(self):
-        add_dataset(self.ctx, dataset=new_dataset(1))
-        add_dataset(self.ctx, dataset=new_dataset(2))
+        dataset_1 = new_test_dataset(6)
+        result_1 = add_dataset(self.ctx, dataset=dataset_1)
+        self.assertIsInstance(result_1, DatasetRef)
+        self.assertIsNotNone(result_1.id)
+        self.assertEqual(dataset_1.bucket, result_1.bucket)
+        self.assertEqual(dataset_1.name, result_1.name)
+
+        dataset_2 = new_test_dataset(8)
+        result_2 = add_dataset(self.ctx, dataset=dataset_2)
+        self.assertIsInstance(result_2, DatasetRef)
+        self.assertIsNotNone(result_2.id)
+        self.assertNotEqual(result_1.id, result_2.id)
+        self.assertEqual(dataset_2.bucket, result_2.bucket)
+        self.assertEqual(dataset_2.name, result_2.name)
 
     def test_find_datasets(self):
-        add_dataset(self.ctx, dataset=new_dataset(1))
-        add_dataset(self.ctx, dataset=new_dataset(2))
-        add_dataset(self.ctx, dataset=new_dataset(3))
+        add_dataset(self.ctx, dataset=new_test_dataset(1))
+        add_dataset(self.ctx, dataset=new_test_dataset(2))
+        add_dataset(self.ctx, dataset=new_test_dataset(3))
 
         expr = None
         region = None
@@ -87,13 +99,9 @@ class DatasetsTest(unittest.TestCase):
         self.assertEqual(3, result.total_count)
 
     def test_get_dataset_by_id(self):
-        add_dataset(self.ctx, dataset=new_dataset(1))
-        add_dataset(self.ctx, dataset=new_dataset(2))
-        add_dataset(self.ctx, dataset=new_dataset(3))
-        result = find_datasets(self.ctx)
-        dataset_id_1 = result.datasets[0].id
-        dataset_id_2 = result.datasets[1].id
-        dataset_id_3 = result.datasets[2].id
+        dataset_id_1 = add_dataset(self.ctx, dataset=new_test_dataset(1)).id
+        dataset_id_2 = add_dataset(self.ctx, dataset=new_test_dataset(2)).id
+        dataset_id_3 = add_dataset(self.ctx, dataset=new_test_dataset(3)).id
         dataset_1 = get_dataset_by_id(self.ctx, dataset_id_1)
         self.assertIsNotNone(dataset_1)
         self.assertEqual(dataset_id_1, dataset_1.id)
@@ -106,23 +114,24 @@ class DatasetsTest(unittest.TestCase):
         with self.assertRaises(WsResourceNotFoundError):
             get_dataset_by_id(self.ctx, "gnarz")
 
-    @unittest.skip('not implemented yet')
     def test_update_dataset(self):
-        # noinspection PyArgumentList
-        dataset = Dataset()
-        # TODO (generated): set data properties
-        result = update_dataset(self.ctx, dataset=dataset)
-        self.assertIsNone(result)
+        dataset_ref = add_dataset(self.ctx, new_test_dataset(42))
+        dataset_id = dataset_ref.id
+        dataset_update = new_test_dataset(42)
+        dataset_update.id = dataset_id
+        dataset_update.name = "chl-bibo"
+        update_dataset(self.ctx, dataset=dataset_update)
+        updated_dataset = get_dataset_by_id(self.ctx, dataset_id)
+        self.assertEqual(dataset_update, updated_dataset)
 
-    @unittest.skip('not implemented yet')
     def test_delete_dataset(self):
-        # TODO (generated): set required parameters
-        dataset_id = None
-        # TODO (generated): set optional parameters
-        api_key = None
-        # noinspection PyArgumentList
-        result = delete_dataset(self.ctx, dataset_id, api_key=api_key)
-        self.assertIsNone(result)
+        dataset_ref = add_dataset(self.ctx, new_test_dataset(42))
+        dataset_id = dataset_ref.id
+        dataset = get_dataset_by_id(self.ctx, dataset_id)
+        self.assertEqual(dataset_id, dataset.id)
+        delete_dataset(self.ctx, "api_key", dataset_id)
+        with self.assertRaises(WsResourceNotFoundError):
+            delete_dataset(self.ctx, "api_key", dataset_id)
 
     @unittest.skip('not implemented yet')
     def test_get_datasets_in_bucket(self):

@@ -23,7 +23,7 @@
 import unittest
 
 from eocdb.ws.controllers.store import *
-from ..helpers import new_test_service_context, new_dataset
+from ..helpers import new_test_service_context
 
 
 class StoreTest(unittest.TestCase):
@@ -37,9 +37,11 @@ class StoreTest(unittest.TestCase):
         self.assertIn("products", result)
         self.assertIsInstance(result["products"], list)
         self.assertTrue(len(result["products"]) > 300)
+        self.assertIsInstance(result["products"][0], dict)
         self.assertIn("productGroups", result)
         self.assertIsInstance(result["productGroups"], list)
         self.assertTrue(len(result["productGroups"]) > 15)
+        self.assertIsInstance(result["productGroups"][0], dict)
 
     @unittest.skip('not implemented yet')
     def test_upload_store_files(self):
