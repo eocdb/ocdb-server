@@ -10,8 +10,6 @@ T = QueryTokenizer
 
 class QueryParserTest(TestCase):
 
-    # TODO (forman): cover all syntax error cases
-
     def test_empty(self):
         self.assertEqual(None, P.parse(""))
         self.assertEqual(None, P.parse("   "))
