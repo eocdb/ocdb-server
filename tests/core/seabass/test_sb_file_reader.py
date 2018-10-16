@@ -2,7 +2,7 @@ import datetime
 import unittest
 
 from eocdb.core.seabass.sb_file_reader import SbFileReader
-from eocdb.core.db.db_dataset import DbDataset
+from tests.helpers import new_test_db_dataset
 
 
 class SbFileReaderTest(unittest.TestCase):
@@ -38,6 +38,7 @@ class SbFileReaderTest(unittest.TestCase):
                    '/data_file_name=pro_03_04AA_L2s.dat\n',
                    '/data_type=cast\n',
                    '/data_status=preliminary\n',
+                   '/affiliations = IMARPE\n',
                    '/experiment=LAMONT_SCS\n',
                    '!/experiment=JUN16SCS\n',
                    '/cruise=jun16scs\n',
@@ -55,10 +56,14 @@ class SbFileReaderTest(unittest.TestCase):
                    '05:42:50,0.50000000,56.90948085,115.97783666,171.51381329,100.38906060,161.96556721,113.75394300,113.36437951,77.19171621,94.68081637,74.03389812,80.24165958,92.87650441,41.91937544,7.05047058,-999,-999,-999,-999,-999,-999,-999,2.32841663,53.06609583,27.46488778,0.37780480']
 
         document = self.reader._parse(sb_file)
-        self.assertEqual({'data_file_name': 'pro_03_04AA_L2s.dat', 'data_type': 'cast', 'data_status': 'preliminary',
+        self.assertEqual({'affiliations': 'IMARPE','data_file_name': 'pro_03_04AA_L2s.dat', 'data_type': 'cast', 'data_status': 'preliminary',
                           'experiment': 'LAMONT_SCS', 'cruise': 'jun16scs', 'station': '03_04', 'delimiter': 'comma',
                           'east_longitude': '109.587[DEG]', 'west_longitude': '109.587[DEG]',
                           'north_latitude': '11.713[DEG]', 'south_latitude': '11.713[DEG]', 'start_date': '20020616'}, document.metadata)
+
+        self.assertEqual("IMARPE", document.bucket.affil)
+        self.assertEqual("LAMONT_SCS", document.bucket._project)
+        self.assertEqual("jun16scs", document.bucket._cruise)
 
         self.assertEqual(27, document.attribute_count)
         self.assertEqual("time", document.attribute_names[0])
@@ -185,35 +190,33 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertEqual(datetime.datetime(2001, 5, 10, 4, 37, 0), document.times[2])
 
     def test_extract_delimiter_regex(self):
-        dataset = DbDataset()
-        dataset.set_metadata({'delimiter': 'comma'})
+        metadata = {'delimiter': 'comma'}
 
-        regex = self.reader._extract_delimiter_regex(dataset)
+        regex = self.reader._extract_delimiter_regex(metadata)
         self.assertEqual(",+", regex)
 
-        dataset.set_metadata({'delimiter': 'space'})
-        regex = self.reader._extract_delimiter_regex(dataset)
+        metadata = {'delimiter': 'space'}
+        regex = self.reader._extract_delimiter_regex(metadata)
         self.assertEqual("\s+", regex)
 
-        dataset.set_metadata({'delimiter': 'tab'})
-        regex = self.reader._extract_delimiter_regex(dataset)
+        metadata = {'delimiter': 'tab'}
+        regex = self.reader._extract_delimiter_regex(metadata)
         self.assertEqual("\t+", regex)
 
     def test_extract_delimiter_regex_invalid(self):
-        dataset = DbDataset()
-        dataset.set_metadata({'delimiter': 'double-slash-and-semicolon'})
+        metadata = {'delimiter': 'double-slash-and-semicolon'}
 
         try:
-            self.reader._extract_delimiter_regex(dataset)
+            self.reader._extract_delimiter_regex(metadata)
             self.fail("IOException expected")
         except IOError:
             pass
 
     def test_extract_delimiter_regex_missing(self):
-        dataset = DbDataset()
+        metadata =  {}
 
         try:
-            self.reader._extract_delimiter_regex(dataset)
+            self.reader._extract_delimiter_regex(metadata)
             self.fail("IOException expected")
         except IOError:
             pass
@@ -254,7 +257,7 @@ class SbFileReaderTest(unittest.TestCase):
         datetime.datetime(2003, 8, 12, 15, 23, 54), self.reader._extract_date("20030812", "15:23:54", check_gmt=False)
 
     def test_extract_geo_location_from_header(self):
-        dataset = DbDataset()
+        dataset = new_test_db_dataset(2)
         dataset.add_metadatum('east_longitude', '22.7')
         dataset.add_metadatum('north_latitude', '-17.09')
 
@@ -263,4 +266,20 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertEqual(1, len(dataset.geo_locations))
         self.assertAlmostEqual(22.7, dataset.geo_locations[0]['lon'], 8)
         self.assertAlmostEqual(-17.09, dataset.geo_locations[0]['lat'], 8)
+
+    def test_extract_bucket_empty(self):
+        metadata = {}
+
+        bucket = self.reader._extract_bucket(metadata)
+        self.assertEqual("n_a", bucket.affil)
+        self.assertEqual("n_a", bucket.project)
+        self.assertEqual("n_a", bucket.cruise)
+
+    def test_extract_bucket(self):
+        metadata = {'affiliations': 'waranga_university', 'experiment' : 'wooly_mammouth', 'cruise' : 'last_week_chl'}
+
+        bucket = self.reader._extract_bucket(metadata)
+        self.assertEqual("waranga_university", bucket.affil)
+        self.assertEqual("wooly_mammouth", bucket.project)
+        self.assertEqual("last_week_chl", bucket.cruise)
 

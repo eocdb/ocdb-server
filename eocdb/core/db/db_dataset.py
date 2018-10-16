@@ -1,24 +1,29 @@
 import datetime
 from typing import Dict, Any, List
 
-from eocdb.core.dataset import Dataset
+from eocdb.core.models.bucket import Bucket
+from eocdb.core.models.dataset import Dataset
 
 
 class DbDataset(Dataset):
 
-    def __init__(self):
-        self._records = []
+    def __init__(self,
+                 bucket: Bucket,
+                 name: str,
+                 status: str,
+                 metadata: Dict,
+                 records: List[List[float]],
+                 id_: str = None):
+        super().__init__(
+            bucket,
+            name,
+            status,
+            metadata,
+            records,
+            id_)
         self._attributes = []
         self._geo_locations = []
         self._times = []
-        self._metadata = dict()
-
-    @property
-    def metadata(self) -> Dict[str, Any]:
-        return self._metadata
-
-    def set_metadata(self, metadata):
-        self._metadata = metadata
 
     def add_metadatum(self, key, value):
         self._metadata.update({key: value})
@@ -28,8 +33,15 @@ class DbDataset(Dataset):
         return len(self._attributes)
 
     @property
+    def attributes(self) -> List:
+        return self._attributes
+
+    @property
     def attribute_names(self) -> List[str]:
         return self._attributes
+
+    def set_attributes(self, attributes):
+        self._attributes = attributes
 
     def add_attributes(self, attribute_names):
         self._attributes.extend(attribute_names)
@@ -37,10 +49,6 @@ class DbDataset(Dataset):
     @property
     def record_count(self) -> int:
         return len(self._records)
-
-    @property
-    def records(self) -> List[List]:
-        return self._records
 
     def add_record(self, record):
         self._records.append(record)
@@ -60,10 +68,7 @@ class DbDataset(Dataset):
         self._times.append(timestamp)
 
     def to_dict(self) -> Dict[str, Any]:
-        result_dict = dict()
-        result_dict.update({'metadata': self.metadata})
-        result_dict.update({'records': self._records})
-        result_dict.update({'attributes': self._attributes})
+        result_dict = super().to_dict()
         result_dict.update({'geo_locations': self._geo_locations})
         converted_times = []
         for time in self._times:

@@ -24,7 +24,6 @@ import logging
 import os
 from typing import Any, Dict, Sequence
 
-from . import __version__, __description__
 from .defaults import DEFAULT_SERVER_NAME, DEFAULT_MAX_THREAD_COUNT
 from ..core.db.db_driver import DbDriver
 from ..core.service import ServiceRegistry

@@ -28,7 +28,7 @@ import tornado.testing
 
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id
-from ..helpers import new_test_service_context, new_test_dataset
+from tests.helpers import new_test_service_context, new_test_dataset
 
 
 class WsTestCase(tornado.testing.AsyncHTTPTestCase):
