@@ -25,9 +25,6 @@ class DbDataset(Dataset):
         self._geo_locations = []
         self._times = []
 
-    def set_metadata(self, metadata):
-        self._metadata = metadata
-
     def add_metadatum(self, key, value):
         self._metadata.update({key: value})
 
@@ -42,6 +39,9 @@ class DbDataset(Dataset):
     @property
     def attribute_names(self) -> List[str]:
         return self._attributes
+
+    def set_attributes(self, attributes):
+        self._attributes = attributes
 
     def add_attributes(self, attribute_names):
         self._attributes.extend(attribute_names)

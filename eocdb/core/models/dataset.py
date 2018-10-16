@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from .bucket import Bucket
 from ..asserts import assert_not_none, assert_one_of
@@ -33,16 +33,17 @@ DATASET_STATUS_HIDDEN = 'hidden'
 
 
 class Dataset(Model):
+    Field = Union[str, int, float]
+
     """
     The Dataset model.
     """
-
     def __init__(self,
                  bucket: Bucket,
                  name: str,
                  status: str,
                  metadata: Dict,
-                 records: List[List[float]],
+                 records: List[List[Field]],
                  id_: str = None):
         assert_not_none(bucket, name='bucket')
         assert_not_none(name, name='name')

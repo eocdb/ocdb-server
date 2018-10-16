@@ -1,8 +1,10 @@
 import datetime
 import re
+from typing import List
 
 from eocdb.core.db.db_dataset import DbDataset
 from eocdb.core.models.bucket import Bucket
+from eocdb.core.models.dataset import Dataset
 
 EOF = 'end_of_file'
 
@@ -10,32 +12,36 @@ EOF = 'end_of_file'
 class SbFileReader():
 
     def __init__(self):
-        self.lines = []
-        self.line_index = 0
+        self._lines = []
+        self._line_index = 0
 
     def read(self, filename):
         with open(filename, 'r') as file:
-            self.line_index = 0
+            self._line_index = 0
             lines = file.readlines()
             return self._parse(lines)
 
     def _parse(self, lines):
-        dataset = DbDataset(Bucket("bla", "bli", "blub"),
-                            "name",
-                            "new",
-                            {},
-                            [])
-        self.lines = lines
+
+        self._lines = lines
 
         self.handle_header = None
 
+        metadata = {}
         line = self._next_line()
         if '/begin_header' in line.lower():
             self.handle_header = True
-            self._parse_header(dataset)
+            metadata = self._parse_header()
 
-        self._interprete_header(dataset)
-        self._parse_records(dataset)
+        field_list = self._extract_field_list(metadata)
+        records = self._parse_records()
+        bucket = self._extract_bucket(metadata)
+        dataset = DbDataset(bucket,
+                            "name",
+                            "new",
+                            metadata,
+                            records)
+        dataset.set_attributes(field_list)
         self._extract_searchfields(dataset)
 
         if self.handle_header is None or self.handle_header is True:
@@ -44,14 +50,15 @@ class SbFileReader():
         return dataset
 
     def _next_line(self) -> str:
-        if self.line_index < len(self.lines):
-            line = self.lines[self.line_index]
-            self.line_index += 1
+        if self._line_index < len(self._lines):
+            line = self._lines[self._line_index]
+            self._line_index += 1
             return line
 
         return EOF
 
-    def _parse_header(self, dataset):
+    def _parse_header(self) -> dict:
+        metadata = dict()
         while True:
             line = self._next_line()
             if line == EOF:
@@ -81,16 +88,17 @@ class SbFileReader():
             if key == 'fields':
                 self.field_list = value
             else:
-                dataset.add_metadatum(key, value)
+                metadata.update({key: value})
 
-    def _interprete_header(self, dataset):
-        self._delimiter_regex = self._extract_delimiter_regex(dataset.metadata)
+        return metadata
+
+    def _extract_field_list(self, metadata):
+        self._delimiter_regex = self._extract_delimiter_regex(metadata)
 
         if self.field_list is None:
             raise IOError('Missing header tag "fields"')
 
-        variable_names = self.field_list.lower().split(',')
-        dataset.add_attributes(variable_names)
+        return self.field_list.lower().split(',')
 
     def _extract_searchfields(self, dataset):
         self._extract_geo_locations(dataset)
@@ -172,7 +180,22 @@ class SbFileReader():
         lat = self._extract_angle(north_lat_string)
         dataset.add_geo_location(lon, lat)
 
-    def _parse_records(self, dataset):
+    def _extract_bucket(self, metadata) -> Bucket:
+        affiliation = self.extract_value_if_present("affiliations", metadata)
+        project = self.extract_value_if_present("experiment", metadata)
+        cruise = self.extract_value_if_present("cruise", metadata)
+
+        return Bucket(affiliation, project, cruise)
+
+    def extract_value_if_present(self, key, metadata):
+        if key in metadata:
+            return metadata[key]
+        else:
+            return "n_a"
+
+    def _parse_records(self) -> List[List[Dataset.Field]]:
+        records = []
+
         while True:
             line = self._next_line()
             if line == EOF:
@@ -193,7 +216,9 @@ class SbFileReader():
                 else:
                     record.append(token)
 
-            dataset.add_record(record)
+            records.append(record)
+
+        return records
 
     def _extract_delimiter_regex(self, metadata):
         if not 'delimiter' in metadata:
