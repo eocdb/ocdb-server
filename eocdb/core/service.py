@@ -70,16 +70,17 @@ class ServiceLookup(metaclass=ABCMeta):
     """ A provider for services. """
 
     @abstractmethod
-    def find_by_id(self, service_id: ServiceId) -> Optional[Service]:
-        """ Find service by identifier . """
+    def get_service(self, service_id: ServiceId) -> Optional[Service]:
+        """ Find service by identifier *service_id*. Return None, if no such service exists. """
 
     @abstractmethod
-    def find_by_type(self, service_type: ServiceType) -> Optional[Service]:
-        """ Find services by type. """
-
-    @abstractmethod
-    def find_by_filter(self, service_filter: ServiceFilter) -> Sequence[Service]:
-        """ Get basic service information. """
+    def find_services(self,
+                      service_type: ServiceType = None,
+                      service_filter: ServiceFilter = None) -> Sequence[Service]:
+        """
+        Find services that match *service_type*, or a given *service_filter*, or both.
+        If no criterion is given, all registered services are returned.
+        """
 
 
 class ServiceRegistry(ServiceLookup):
@@ -122,21 +123,26 @@ class ServiceRegistry(ServiceLookup):
         self._configs = dict()
         self._services = dict()
 
-    def find_by_id(self, service_id: ServiceId) -> Optional[Service]:
+    def get_service(self, service_id: ServiceId) -> Optional[Service]:
         """ Find service by identifier *service_id*. Return None, if no such service exists. """
         return self._services.get(service_id)
 
-    def find_by_type(self, service_type: ServiceType) -> Sequence[Service]:
-        """ Find services that are instances of the given type *service_type*. """
-        return [service for service in self._services.values() if isinstance(service, service_type)]
-
-    def find_by_filter(self, service_filter: ServiceFilter) -> Sequence[Service]:
+    def find_services(self,
+                      service_type: ServiceType = None,
+                      service_filter: ServiceFilter = None) -> Sequence[Service]:
         """
-        Find service by a filter function. *service_filter* is called
-        with the service id, the service, and its configuration.
+        Find services that match *service_type*, or a given *service_filter*, or both.
+        If no criterion is given, all registered services are returned.
         """
-        return [self._services[service_id] for service_id in self._services.keys()
-                if service_filter(service_id, self._services[service_id], self._configs[service_id])]
+        services = []
+        for sid in self._services.keys():
+            service = self._services[sid]
+            config = self._configs[sid]
+            matches_type = service_type is None or isinstance(service, service_type)
+            matches_filter = service_filter is None or service_filter(sid, service, config)
+            if matches_type and matches_filter:
+                services.append(service)
+        return services
 
     def update(self, configs: ServiceConfigs):
         """
@@ -162,12 +168,13 @@ class ServiceRegistry(ServiceLookup):
             service = self._load_service(config)
             self._init_service(service, config)
             self._add_service(service_id, service, config)
+            self._configs[service_id] = config
 
         for service_id in ids_to_be_updated:
             new_config = configs[service_id]
             service, old_config = self._get_service(service_id)
             if old_config != new_config:
-                self._update_service(service, old_config, new_config)
+                self._update_service(service_id, service, old_config, new_config)
 
     def dispose(self):
         """ Dispose and remove all services. """
@@ -227,8 +234,9 @@ class ServiceRegistry(ServiceLookup):
             raise ServiceError(f'failed to initialize service of type {type(service)} '
                                f'with configuration {config}') from error
 
-    @classmethod
-    def _update_service(cls, service: Service, old_config: ServiceConfig, new_config: ServiceConfig):
+    def _update_service(self, service_id: str, service: Service, old_config: ServiceConfig, new_config: ServiceConfig):
+        self._configs[service_id] = new_config
+
         old_type = old_config.get(SERVICE_TYPE_CONFIG_NAME)
         new_type = new_config.get(SERVICE_TYPE_CONFIG_NAME)
         if old_type != new_type:
