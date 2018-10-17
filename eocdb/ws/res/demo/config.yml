@@ -1,3 +1,5 @@
+store_path: ~/.eocdb/store
+
 databases:
   default:
     type: eocdb.db.mongod_db_driver.MongoDbDriver
