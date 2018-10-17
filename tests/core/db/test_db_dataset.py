@@ -33,7 +33,7 @@ class DbDatsetTest(TestCase):
                           'metadata': {},
                           'name': 'dataset-3',  # comes from test-dataset
                           'records': [],
-                          'rel_path': 'relative_path-3',    # comes from test-dataset
+                          'path': 'relative_path-3',    # comes from test-dataset
                           'status': 'new',
                           'times': []}, self.dataset.to_dict())
 
@@ -55,7 +55,7 @@ class DbDatsetTest(TestCase):
                           'metadata': {'key_1': 'value_1', 'key_2': 'value_2'},
                           'name': 'dataset-3',
                           'records': [[-39.4, 110.8, 0.267612499], [-39.5, 110.9, 0.367612499]],
-                          'rel_path': 'relative_path-3',
+                          'path': 'relative_path-3',
                           'status': 'new',
                           'times': ['2008-10-04T15:22:51']},
                            self.dataset.to_dict())

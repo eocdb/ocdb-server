@@ -31,13 +31,13 @@ class DatasetRef(Model):
 
     def __init__(self,
                  id_: str,
-                 rel_path: str,
+                 path: str,
                  name: str):
         assert_not_none(id_, name='id_')
-        assert_not_none(rel_path, name='rel_path')
+        assert_not_none(path, name='path')
         assert_not_none(name, name='name')
         self._id = id_
-        self._rel_path = rel_path
+        self._path = path
         self._name = name
 
     @property
@@ -50,13 +50,13 @@ class DatasetRef(Model):
         self._id = value
 
     @property
-    def rel_path(self) -> str:
-        return self._rel_path
+    def path(self) -> str:
+        return self._path
 
-    @rel_path.setter
-    def rel_path(self, value: rel_path):
+    @path.setter
+    def path(self, value: path):
         assert_not_none(value, name='value')
-        self._rel_path = value
+        self._path = value
 
     @property
     def name(self) -> str:

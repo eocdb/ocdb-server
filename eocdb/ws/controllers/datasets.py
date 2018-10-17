@@ -94,7 +94,7 @@ def add_dataset(ctx: WsContext,
     dataset_id = driver.instance().add_dataset(dataset)
     if not dataset_id:
         raise WsBadRequestError(f"Could not add dataset {dataset.name}")
-    return DatasetRef(dataset_id, dataset.rel_path, dataset.name)
+    return DatasetRef(dataset_id, dataset.path, dataset.name)
 
 def update_dataset(ctx: WsContext,
                    dataset: Dataset):

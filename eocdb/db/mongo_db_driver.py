@@ -68,7 +68,7 @@ class MongoDbDriver(DbDriver):
             if index >= start_index and (end_index == -1 or index <= end_index):
                 dataset_id = str(dataset_dict.get("_id"))
                 name = dataset_dict.get("name")
-                relative_path = dataset_dict.get("rel_path")
+                relative_path = dataset_dict.get("path")
                 dataset_ref = DatasetRef(dataset_id, relative_path, name)
                 dataset_refs.append(dataset_ref)
             index += 1

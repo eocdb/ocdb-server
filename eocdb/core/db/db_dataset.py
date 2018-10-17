@@ -7,14 +7,14 @@ from eocdb.core.models.dataset import Dataset
 class DbDataset(Dataset):
 
     def __init__(self,
-                 rel_path: str,
+                 path: str,
                  name: str,
                  status: str,
                  metadata: Dict,
                  records: List[List[float]],
                  id_: str = None):
         super().__init__(
-            rel_path,
+            path,
             name,
             status,
             metadata,

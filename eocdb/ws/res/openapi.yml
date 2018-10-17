@@ -799,7 +799,7 @@ components:
     Dataset:
       type: object
       required:
-        - rel_path
+        - path
         - name
         - status
         - metadata
@@ -807,7 +807,7 @@ components:
       properties:
         id:
           type: string
-        rel_path:
+        path:
           type: string
         name:
           type: string
@@ -831,38 +831,24 @@ components:
       type: object
       required:
         - id
-        - rel_path
+        - path
         - name
       properties:
         id:
           type: string
-        rel_path:
+        path:
           type: string
         name:
           type: string
     DocFileRef:
       type: object
       required:
-        - rel_path
+        - path
         - name
       properties:
-        rel_path:
+        path:
           type: string
         name:
-          type: string
-    # TODO by forman: is "Bucket" what we need?
-    Bucket:
-      type: object
-      required:
-        - affil
-        - project
-        - cruise
-      properties:
-        affil:
-          type: string
-        project:
-          type: string
-        cruise:
           type: string
   requestBodies:
     Dataset:

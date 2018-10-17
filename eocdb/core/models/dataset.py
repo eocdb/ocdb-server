@@ -38,20 +38,20 @@ class Dataset(Model):
     The Dataset model.
     """
     def __init__(self,
-                 rel_path: str,
+                 path: str,
                  name: str,
                  status: str,
                  metadata: Dict,
                  records: List[List[Field]],
                  id_: str = None):
-        assert_not_none(rel_path, name='rel_path')
+        assert_not_none(path, name='path')
         assert_not_none(name, name='name')
         assert_not_none(status, name='status')
         assert_one_of(status, ['new', 'validating', 'available', 'hidden'], name='status')
         assert_not_none(metadata, name='metadata')
         assert_not_none(records, name='records')
         self._id = id_
-        self._rel_path = rel_path
+        self._path = path
         self._name = name
         self._status = status
         self._metadata = metadata
@@ -66,13 +66,13 @@ class Dataset(Model):
         self._id = value
 
     @property
-    def rel_path(self) -> str:
-        return self._rel_path
+    def path(self) -> str:
+        return self._path
 
-    @rel_path.setter
-    def rel_path(self, value: rel_path):
+    @path.setter
+    def path(self, value: path):
         assert_not_none(value, name='value')
-        self._rel_path = value
+        self._path = value
 
     @property
     def name(self) -> str:
