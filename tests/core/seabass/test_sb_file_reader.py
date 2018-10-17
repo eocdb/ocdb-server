@@ -61,10 +61,6 @@ class SbFileReaderTest(unittest.TestCase):
                           'east_longitude': '109.587[DEG]', 'west_longitude': '109.587[DEG]',
                           'north_latitude': '11.713[DEG]', 'south_latitude': '11.713[DEG]', 'start_date': '20020616'}, document.metadata)
 
-        self.assertEqual("IMARPE", document.bucket.affil)
-        self.assertEqual("LAMONT_SCS", document.bucket._project)
-        self.assertEqual("jun16scs", document.bucket._cruise)
-
         self.assertEqual(27, document.attribute_count)
         self.assertEqual("time", document.attribute_names[0])
         self.assertEqual("lu470.4", document.attribute_names[17])
@@ -266,20 +262,3 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertEqual(1, len(dataset.geo_locations))
         self.assertAlmostEqual(22.7, dataset.geo_locations[0]['lon'], 8)
         self.assertAlmostEqual(-17.09, dataset.geo_locations[0]['lat'], 8)
-
-    def test_extract_bucket_empty(self):
-        metadata = {}
-
-        bucket = self.reader._extract_bucket(metadata)
-        self.assertEqual("n_a", bucket.affil)
-        self.assertEqual("n_a", bucket.project)
-        self.assertEqual("n_a", bucket.cruise)
-
-    def test_extract_bucket(self):
-        metadata = {'affiliations': 'waranga_university', 'experiment' : 'wooly_mammouth', 'cruise' : 'last_week_chl'}
-
-        bucket = self.reader._extract_bucket(metadata)
-        self.assertEqual("waranga_university", bucket.affil)
-        self.assertEqual("wooly_mammouth", bucket.project)
-        self.assertEqual("last_week_chl", bucket.cruise)
-

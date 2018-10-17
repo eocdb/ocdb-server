@@ -3,7 +3,6 @@ import re
 from typing import List
 
 from eocdb.core.db.db_dataset import DbDataset
-from eocdb.core.models.bucket import Bucket
 from eocdb.core.models.dataset import Dataset
 
 EOF = 'end_of_file'
@@ -35,8 +34,7 @@ class SbFileReader():
 
         field_list = self._extract_field_list(metadata)
         records = self._parse_records()
-        bucket = self._extract_bucket(metadata)
-        dataset = DbDataset(bucket,
+        dataset = DbDataset("relative_path",
                             "name",
                             "new",
                             metadata,
@@ -179,13 +177,6 @@ class SbFileReader():
         north_lat_string = dataset.metadata['north_latitude']
         lat = self._extract_angle(north_lat_string)
         dataset.add_geo_location(lon, lat)
-
-    def _extract_bucket(self, metadata) -> Bucket:
-        affiliation = self.extract_value_if_present("affiliations", metadata)
-        project = self.extract_value_if_present("experiment", metadata)
-        cruise = self.extract_value_if_present("cruise", metadata)
-
-        return Bucket(affiliation, project, cruise)
 
     def extract_value_if_present(self, key, metadata):
         if key in metadata:

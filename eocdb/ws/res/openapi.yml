@@ -799,7 +799,7 @@ components:
     Dataset:
       type: object
       required:
-        - bucket
+        - path
         - name
         - status
         - metadata
@@ -807,8 +807,8 @@ components:
       properties:
         id:
           type: string
-        bucket:
-          $ref: '#/components/schemas/Bucket'
+        path:
+          type: string
         name:
           type: string
         status:
@@ -831,38 +831,24 @@ components:
       type: object
       required:
         - id
-        - bucket
+        - path
         - name
       properties:
         id:
           type: string
-        bucket:
-          $ref: '#/components/schemas/Bucket'
+        path:
+          type: string
         name:
           type: string
     DocFileRef:
       type: object
       required:
-        - bucket
+        - path
         - name
       properties:
-        bucket:
-          $ref: '#/components/schemas/Bucket'
+        path:
+          type: string
         name:
-          type: string
-    # TODO by forman: is "Bucket" what we need?
-    Bucket:
-      type: object
-      required:
-        - affil
-        - project
-        - cruise
-      properties:
-        affil:
-          type: string
-        project:
-          type: string
-        cruise:
           type: string
   requestBodies:
     Dataset:

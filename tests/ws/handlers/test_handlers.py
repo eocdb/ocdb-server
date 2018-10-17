@@ -193,7 +193,7 @@ class DatasetsTest(WsTestCase):
         self.assertEqual('OK', response.reason)
         query_result = find_datasets(self.ctx)
         self.assertEqual(1, query_result.total_count)
-        self.assertEqual(dataset.bucket, query_result.datasets[0].bucket)
+        self.assertEqual(dataset.path, query_result.datasets[0].path)
         self.assertEqual("dataset-13", query_result.datasets[0].name)
 
     def test_post(self):
