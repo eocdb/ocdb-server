@@ -22,22 +22,25 @@
 
 from ._handlers import *
 from ..webservice import url_pattern
+from ...version import VERSION
+
+PREFIX = f"/eocdb/api/v{VERSION}"
 
 MAPPINGS = [
-    (url_pattern('/service/info'), ServiceInfo),
-    (url_pattern('/store/info'), StoreInfo),
-    (url_pattern('/store/upload'), StoreUpload),
-    (url_pattern('/store/download'), StoreDownload),
-    (url_pattern('/datasets/validate'), DatasetsValidate),
-    (url_pattern('/datasets'), Datasets),
-    (url_pattern('/datasets/{id}'), DatasetsId),
-    (url_pattern('/datasets/{affil}/{project}/{cruise}'), DatasetsAffilProjectCruise),
-    (url_pattern('/datasets/{affil}/{project}/{cruise}/{name}'), DatasetsAffilProjectCruiseName),
-    (url_pattern('/docfiles'), Docfiles),
-    (url_pattern('/docfiles/{affil}/{project}/{cruise}'), DocfilesAffilProjectCruise),
-    (url_pattern('/docfiles/{affil}/{project}/{cruise}/{name}'), DocfilesAffilProjectCruiseName),
-    (url_pattern('/users'), Users),
-    (url_pattern('/users/login'), UsersLogin),
-    (url_pattern('/users/logout'), UsersLogout),
-    (url_pattern('/users/{id}'), UsersId),
+    (url_pattern(PREFIX + '/service/info'), ServiceInfo),
+    (url_pattern(PREFIX + '/store/info'), StoreInfo),
+    (url_pattern(PREFIX + '/store/upload'), StoreUpload),
+    (url_pattern(PREFIX + '/store/download'), StoreDownload),
+    (url_pattern(PREFIX + '/datasets/validate'), DatasetsValidate),
+    (url_pattern(PREFIX + '/datasets'), Datasets),
+    (url_pattern(PREFIX + '/datasets/{id}'), DatasetsId),
+    (url_pattern(PREFIX + '/datasets/{affil}/{project}/{cruise}'), DatasetsAffilProjectCruise),
+    (url_pattern(PREFIX + '/datasets/{affil}/{project}/{cruise}/{name}'), DatasetsAffilProjectCruiseName),
+    (url_pattern(PREFIX + '/docfiles'), Docfiles),
+    (url_pattern(PREFIX + '/docfiles/{affil}/{project}/{cruise}'), DocfilesAffilProjectCruise),
+    (url_pattern(PREFIX + '/docfiles/{affil}/{project}/{cruise}/{name}'), DocfilesAffilProjectCruiseName),
+    (url_pattern(PREFIX + '/users'), Users),
+    (url_pattern(PREFIX + '/users/login'), UsersLogin),
+    (url_pattern(PREFIX + '/users/logout'), UsersLogout),
+    (url_pattern(PREFIX + '/users/{id}'), UsersId),
 ]
