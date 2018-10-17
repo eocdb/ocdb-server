@@ -28,12 +28,12 @@ class DbDatsetTest(TestCase):
 
     def test_to_dict_empty(self):
         self.assertEqual({'attributes': [],
-                          'bucket': {'affil': 'affil_3', 'cruise': 'cruise_3', 'project': 'project_3'}, # comes from test-dataset
                           'geo_locations': [],
                           'id': None,
                           'metadata': {},
                           'name': 'dataset-3',  # comes from test-dataset
                           'records': [],
+                          'rel_path': 'relative_path-3',    # comes from test-dataset
                           'status': 'new',
                           'times': []}, self.dataset.to_dict())
 
@@ -50,12 +50,12 @@ class DbDatsetTest(TestCase):
         self.dataset.add_record(record_2)
 
         self.assertEqual({'attributes': ['lat', 'lon', 'chl'],
-                          'bucket': {'affil': 'affil_3', 'cruise': 'cruise_3', 'project': 'project_3'},
                           'geo_locations': [{'lat': 18.076, 'lon': -107.23}],
                           'id': None,
                           'metadata': {'key_1': 'value_1', 'key_2': 'value_2'},
                           'name': 'dataset-3',
                           'records': [[-39.4, 110.8, 0.267612499], [-39.5, 110.9, 0.367612499]],
+                          'rel_path': 'relative_path-3',
                           'status': 'new',
                           'times': ['2008-10-04T15:22:51']},
                            self.dataset.to_dict())

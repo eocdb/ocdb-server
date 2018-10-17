@@ -1,6 +1,5 @@
 from unittest import TestCase
 
-from eocdb.core.models.bucket import Bucket
 from eocdb.core.models.dataset import Dataset
 from eocdb.core.models.issue import Issue
 from eocdb.core.val.validator import validate_dataset
@@ -9,7 +8,7 @@ from eocdb.core.val.validator import validate_dataset
 class ValidatorTest(TestCase):
 
     def test_validate_dataset(self):
-        dataset = Dataset(Bucket("a", "p", "c"), "ds", "new", {}, [], id_=None)
+        dataset = Dataset("a/test/path", "ds", "new", {}, [], id_=None)
         result = validate_dataset(dataset)
         self.assertIsNotNone(result)
         self.assertEqual("OK", result.status)

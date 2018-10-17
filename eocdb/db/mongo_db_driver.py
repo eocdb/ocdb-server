@@ -6,7 +6,6 @@ import pymongo.errors
 
 from ..core.db.db_driver import DbDriver
 from ..core.db.errors import OperationalError
-from ..core.models.bucket import Bucket
 from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
@@ -68,9 +67,9 @@ class MongoDbDriver(DbDriver):
         for dataset_dict in cursor:
             if index >= start_index and (end_index == -1 or index <= end_index):
                 dataset_id = str(dataset_dict.get("_id"))
-                bucket_dict = dataset_dict.get("bucket")
                 name = dataset_dict.get("name")
-                dataset_ref = DatasetRef(dataset_id, Bucket.from_dict(bucket_dict), name)
+                relative_path = dataset_dict.get("rel_path")
+                dataset_ref = DatasetRef(dataset_id, relative_path, name)
                 dataset_refs.append(dataset_ref)
             index += 1
 

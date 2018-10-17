@@ -20,7 +20,6 @@
 # SOFTWARE.
 
 
-from .bucket import Bucket
 from ..asserts import assert_not_none
 from ..model import Model
 
@@ -32,13 +31,13 @@ class DatasetRef(Model):
 
     def __init__(self,
                  id_: str,
-                 bucket: Bucket,
+                 rel_path: str,
                  name: str):
         assert_not_none(id_, name='id_')
-        assert_not_none(bucket, name='bucket')
+        assert_not_none(rel_path, name='rel_path')
         assert_not_none(name, name='name')
         self._id = id_
-        self._bucket = bucket
+        self._rel_path = rel_path
         self._name = name
 
     @property
@@ -51,13 +50,13 @@ class DatasetRef(Model):
         self._id = value
 
     @property
-    def bucket(self) -> Bucket:
-        return self._bucket
+    def rel_path(self) -> str:
+        return self._rel_path
 
-    @bucket.setter
-    def bucket(self, value: Bucket):
+    @rel_path.setter
+    def rel_path(self, value: rel_path):
         assert_not_none(value, name='value')
-        self._bucket = value
+        self._rel_path = value
 
     @property
     def name(self) -> str:

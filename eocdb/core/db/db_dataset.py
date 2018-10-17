@@ -1,21 +1,20 @@
 import datetime
 from typing import Dict, Any, List
 
-from eocdb.core.models.bucket import Bucket
 from eocdb.core.models.dataset import Dataset
 
 
 class DbDataset(Dataset):
 
     def __init__(self,
-                 bucket: Bucket,
+                 rel_path: str,
                  name: str,
                  status: str,
                  metadata: Dict,
                  records: List[List[float]],
                  id_: str = None):
         super().__init__(
-            bucket,
+            rel_path,
             name,
             status,
             metadata,

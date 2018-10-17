@@ -4,7 +4,6 @@ from typing import Optional
 import yaml
 
 from eocdb.core.db.db_dataset import DbDataset
-from eocdb.core.models.bucket import Bucket
 from eocdb.core.models.dataset import Dataset
 from eocdb.ws.context import WsContext
 from eocdb.ws.reqparams import RequestParams
@@ -23,14 +22,14 @@ def get_test_res_dir() -> str:
 
 
 def new_test_dataset(n: int = 0):
-    return Dataset(Bucket(f"affil_{n}", f"project_{n}", f"cruise_{n}"),
+    return Dataset(f"relative_path-{n}",
                    f"dataset-{n}",
                    "new",
                    dict(fields=["a", "b", "c"]),
                    [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]])
 
 def new_test_db_dataset(n: int = 0):
-    return DbDataset(Bucket(f"affil_{n}", f"project_{n}", f"cruise_{n}"),
+    return DbDataset(f"relative_path-{n}",
                    f"dataset-{n}",
                    "new",
                    dict(fields=["a", "b", "c"]),
