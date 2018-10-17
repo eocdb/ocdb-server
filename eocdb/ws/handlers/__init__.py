@@ -20,4 +20,4 @@
 # SOFTWARE.
 
 
-from ._mappings import MAPPINGS
+from ._mappings import MAPPINGS, API_URL_PREFIX

@@ -28,6 +28,7 @@ import tornado.testing
 
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id
+from eocdb.ws.handlers import API_URL_PREFIX
 from tests.helpers import new_test_service_context, new_test_dataset
 
 
@@ -46,7 +47,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
 class ServiceInfoTest(WsTestCase):
 
     def test_get(self):
-        response = self.fetch(f"/service/info", method='GET')
+        response = self.fetch(API_URL_PREFIX + "/service/info", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -65,7 +66,7 @@ class ServiceInfoTest(WsTestCase):
 class StoreInfoTest(WsTestCase):
 
     def test_get(self):
-        response = self.fetch(f"/store/info", method='GET')
+        response = self.fetch(API_URL_PREFIX + "/store/info", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
         result = tornado.escape.json_decode(response.body)
@@ -82,7 +83,7 @@ class StoreUploadTest(WsTestCase):
         data = None
         body = data
 
-        response = self.fetch(f"/store/upload", method='POST', body=body)
+        response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -112,7 +113,7 @@ class StoreDownloadTest(WsTestCase):
             dict(expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow,
                  pmode=pmode, pgroup=pgroup, pname=pname, docs=docs))
 
-        response = self.fetch(f"/store/download?{query}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/store/download?{query}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -128,7 +129,7 @@ class DatasetsValidateTest(WsTestCase):
         dataset = new_test_dataset(13)
         data = dataset.to_dict()
         body = tornado.escape.json_encode(data)
-        response = self.fetch(f"/datasets/validate", method='POST', body=body)
+        response = self.fetch(API_URL_PREFIX + "/datasets/validate", method='POST', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
         actual_response_data = tornado.escape.json_decode(response.body)
@@ -140,7 +141,7 @@ class DatasetsValidateTest(WsTestCase):
         dataset.id = "gnartz!"
         data = dataset.to_dict()
         body = tornado.escape.json_encode(data)
-        response = self.fetch(f"/datasets/validate", method='POST', body=body)
+        response = self.fetch(API_URL_PREFIX + "/datasets/validate", method='POST', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
         actual_response_data = tornado.escape.json_decode(response.body)
@@ -176,7 +177,7 @@ class DatasetsTest(WsTestCase):
                     pmode=pmode, pgroup=pgroup, pname=pname, offset=offset, count=count)
         query = urllib.parse.urlencode({k: v for k, v in args.items() if v is not None})
 
-        response = self.fetch(f"/datasets?{query}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/datasets?{query}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -188,7 +189,7 @@ class DatasetsTest(WsTestCase):
         # test addDataset() operation
         dataset = new_test_dataset(13)
         body = tornado.escape.json_encode(dataset.to_dict())
-        response = self.fetch(f"/datasets", method='PUT', body=body)
+        response = self.fetch(API_URL_PREFIX + "/datasets", method='PUT', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
         query_result = find_datasets(self.ctx)
@@ -206,7 +207,7 @@ class DatasetsTest(WsTestCase):
         update_dataset.id = dataset_id
         update_dataset.name = "bibo"
         body = tornado.escape.json_encode(update_dataset.to_dict())
-        response = self.fetch(f"/datasets", method='POST', body=body)
+        response = self.fetch(API_URL_PREFIX + "/datasets", method='POST', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
         updated_dataset = get_dataset_by_id(self.ctx, dataset_id=dataset_id)
@@ -221,7 +222,7 @@ class DatasetsIdTest(WsTestCase):
     def test_get(self):
         dataset_ref = add_dataset(self.ctx, new_test_dataset(0))
         dataset_id = dataset_ref.id
-        response = self.fetch(f"/datasets/{dataset_id}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
         actual_response_data = tornado.escape.json_decode(response.body)
@@ -229,20 +230,20 @@ class DatasetsIdTest(WsTestCase):
         self.assertEqual(dataset_id, actual_response_data["id"])
 
         dataset_id = "gnarz-foop"
-        response = self.fetch(f"/datasets/{dataset_id}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}", method='GET')
         self.assertEqual(404, response.code)
         self.assertEqual('Dataset with ID gnarz-foop not found', response.reason)
 
     def test_delete(self):
         dataset_ref = add_dataset(self.ctx, new_test_dataset(0))
         dataset_id = dataset_ref.id
-        response = self.fetch(f"/datasets/{dataset_id}",
+        response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}",
                               method='DELETE',
                               headers=dict(api_key="8745hfu57"))
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        response = self.fetch(f"/datasets/{dataset_id}",
+        response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}",
                               method='DELETE',
                               headers=dict(api_key="8745hfu57"))
         self.assertEqual(404, response.code)
@@ -258,7 +259,7 @@ class DatasetsAffilProjectCruiseTest(WsTestCase):
         project = None
         cruise = None
 
-        response = self.fetch(f"/datasets/{affil}/{project}/{cruise}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/datasets/{affil}/{project}/{cruise}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -279,7 +280,7 @@ class DatasetsAffilProjectCruiseNameTest(WsTestCase):
         cruise = None
         name = None
 
-        response = self.fetch(f"/datasets/{affil}/{project}/{cruise}/{name}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/datasets/{affil}/{project}/{cruise}/{name}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -297,7 +298,7 @@ class DocfilesTest(WsTestCase):
         data = None
         body = data
 
-        response = self.fetch(f"/docfiles", method='PUT', body=body)
+        response = self.fetch(API_URL_PREFIX + "/docfiles", method='PUT', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -312,7 +313,7 @@ class DocfilesTest(WsTestCase):
         data = None
         body = data
 
-        response = self.fetch(f"/docfiles", method='POST', body=body)
+        response = self.fetch(API_URL_PREFIX + "/docfiles", method='POST', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -331,7 +332,7 @@ class DocfilesAffilProjectCruiseTest(WsTestCase):
         project = None
         cruise = None
 
-        response = self.fetch(f"/docfiles/{affil}/{project}/{cruise}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/docfiles/{affil}/{project}/{cruise}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -352,7 +353,7 @@ class DocfilesAffilProjectCruiseNameTest(WsTestCase):
         cruise = None
         name = None
 
-        response = self.fetch(f"/docfiles/{affil}/{project}/{cruise}/{name}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/docfiles/{affil}/{project}/{cruise}/{name}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -369,7 +370,7 @@ class DocfilesAffilProjectCruiseNameTest(WsTestCase):
         cruise = None
         name = None
 
-        response = self.fetch(f"/docfiles/{affil}/{project}/{cruise}/{name}", method='DELETE')
+        response = self.fetch(API_URL_PREFIX + f"/docfiles/{affil}/{project}/{cruise}/{name}", method='DELETE')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -387,7 +388,7 @@ class UsersTest(WsTestCase):
         data = {}
         body = tornado.escape.json_encode(data)
 
-        response = self.fetch(f"/users", method='POST', body=body)
+        response = self.fetch(API_URL_PREFIX + "/users", method='POST', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -406,7 +407,7 @@ class UsersLoginTest(WsTestCase):
         password = None
         query = urllib.parse.urlencode(dict(username=username, password=password))
 
-        response = self.fetch(f"/users/login?{query}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/users/login?{query}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -420,7 +421,7 @@ class UsersLogoutTest(WsTestCase):
 
     @unittest.skip('not implemented yet')
     def test_get(self):
-        response = self.fetch(f"/users/logout", method='GET')
+        response = self.fetch(API_URL_PREFIX + "/users/logout", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -437,7 +438,7 @@ class UsersIdTest(WsTestCase):
         # TODO (generated): set path parameter(s) to reasonable value(s)
         id = None
 
-        response = self.fetch(f"/users/{id}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/users/{id}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -455,7 +456,7 @@ class UsersIdTest(WsTestCase):
         data = {}
         body = tornado.escape.json_encode(data)
 
-        response = self.fetch(f"/users/{id}", method='PUT', body=body)
+        response = self.fetch(API_URL_PREFIX + f"/users/{id}", method='PUT', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -469,7 +470,7 @@ class UsersIdTest(WsTestCase):
         # TODO (generated): set path parameter(s) to reasonable value(s)
         id = None
 
-        response = self.fetch(f"/users/{id}", method='DELETE')
+        response = self.fetch(API_URL_PREFIX + f"/users/{id}", method='DELETE')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
