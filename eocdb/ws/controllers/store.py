@@ -20,10 +20,12 @@
 # SOFTWARE.
 
 
+import os
 from typing import Dict, List
 
 from ..context import WsContext
 from ...core.asserts import assert_not_none, assert_one_of
+from ...core.models.uploaded_file import UploadedFile
 from ...db.static_data import get_product_groups, get_products
 
 
@@ -32,12 +34,35 @@ def get_store_info(ctx: WsContext) -> Dict:
     return dict(products=get_products(), productGroups=get_product_groups())
 
 
-# noinspection PyUnusedLocal
 def upload_store_files(ctx: WsContext,
-                       data: Dict):
-    assert_not_none(data)
-    # TODO (generated): implement operation upload_store_files()
-    raise NotImplementedError('operation upload_store_files() not yet implemented')
+                       path: str,
+                       dataset_files: List[UploadedFile],
+                       doc_files: List[UploadedFile]):
+    assert_not_none(path)
+    assert_not_none(dataset_files)
+    assert_not_none(doc_files)
+
+    store_path = ctx.config.get("store_path", "~/.eocdb/store")
+    store_path = os.path.expanduser(store_path)
+    if not os.path.isabs(store_path):
+        store_path = os.path.join(ctx.base_dir, store_path)
+
+    datasets_dir_path = os.path.join(store_path, path, "datasets")
+    os.makedirs(datasets_dir_path, exist_ok=True)
+
+    docs_dir_path = os.path.join(store_path, path, "docs")
+    os.makedirs(docs_dir_path, exist_ok=True)
+
+    for file in dataset_files:
+        file_path = os.path.join(datasets_dir_path, file.filename)
+        with open(file_path, "w") as fp:
+            fp.write(file.body.decode("utf-8"))
+            # TODO: parse file and put into database with submission date (field "received") and qc_status = "todo"
+
+    for file in doc_files:
+        file_path = os.path.join(docs_dir_path, file.filename)
+        with open(file_path, "wb") as fp:
+            fp.write(file.body)
 
 
 # noinspection PyUnusedLocal,PyTypeChecker

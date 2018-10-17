@@ -55,7 +55,7 @@ class DocFilesTest(unittest.TestCase):
         cruise = None
 
         # noinspection PyTypeChecker
-        result = get_doc_files_in_bucket(self.ctx, affil, project, cruise)
+        result = get_doc_files_in_path(self.ctx, affil, project, cruise)
         self.assertIsInstance(result, list)
         # TODO (generated): set expected result
         expected_result = []
@@ -70,7 +70,7 @@ class DocFilesTest(unittest.TestCase):
         name = None
 
         # noinspection PyTypeChecker
-        result = download_doc_file(self.ctx, affil, project, cruise, name)
+        result = get_doc_file_by_name(self.ctx, affil, project, cruise, name)
         # TODO (generated): set expected result
         expected_result = None
         self.assertEqual(expected_result, result)
