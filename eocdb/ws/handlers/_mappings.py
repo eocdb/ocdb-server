@@ -24,23 +24,23 @@ from ._handlers import *
 from ..webservice import url_pattern
 from ...version import VERSION
 
-PREFIX = f"/eocdb/api/v{VERSION}"
+API_URL_PREFIX = f"/eocdb/api/v{VERSION}"
 
 MAPPINGS = [
-    (url_pattern(PREFIX + '/service/info'), ServiceInfo),
-    (url_pattern(PREFIX + '/store/info'), StoreInfo),
-    (url_pattern(PREFIX + '/store/upload'), StoreUpload),
-    (url_pattern(PREFIX + '/store/download'), StoreDownload),
-    (url_pattern(PREFIX + '/datasets/validate'), DatasetsValidate),
-    (url_pattern(PREFIX + '/datasets'), Datasets),
-    (url_pattern(PREFIX + '/datasets/{id}'), DatasetsId),
-    (url_pattern(PREFIX + '/datasets/{affil}/{project}/{cruise}'), DatasetsAffilProjectCruise),
-    (url_pattern(PREFIX + '/datasets/{affil}/{project}/{cruise}/{name}'), DatasetsAffilProjectCruiseName),
-    (url_pattern(PREFIX + '/docfiles'), Docfiles),
-    (url_pattern(PREFIX + '/docfiles/{affil}/{project}/{cruise}'), DocfilesAffilProjectCruise),
-    (url_pattern(PREFIX + '/docfiles/{affil}/{project}/{cruise}/{name}'), DocfilesAffilProjectCruiseName),
-    (url_pattern(PREFIX + '/users'), Users),
-    (url_pattern(PREFIX + '/users/login'), UsersLogin),
-    (url_pattern(PREFIX + '/users/logout'), UsersLogout),
-    (url_pattern(PREFIX + '/users/{id}'), UsersId),
+    (url_pattern(API_URL_PREFIX + '/service/info'), ServiceInfo),
+    (url_pattern(API_URL_PREFIX + '/store/info'), StoreInfo),
+    (url_pattern(API_URL_PREFIX + '/store/upload'), StoreUpload),
+    (url_pattern(API_URL_PREFIX + '/store/download'), StoreDownload),
+    (url_pattern(API_URL_PREFIX + '/datasets/validate'), DatasetsValidate),
+    (url_pattern(API_URL_PREFIX + '/datasets'), Datasets),
+    (url_pattern(API_URL_PREFIX + '/datasets/{id}'), DatasetsId),
+    (url_pattern(API_URL_PREFIX + '/datasets/{affil}/{project}/{cruise}'), DatasetsAffilProjectCruise),
+    (url_pattern(API_URL_PREFIX + '/datasets/{affil}/{project}/{cruise}/{name}'), DatasetsAffilProjectCruiseName),
+    (url_pattern(API_URL_PREFIX + '/docfiles'), Docfiles),
+    (url_pattern(API_URL_PREFIX + '/docfiles/{affil}/{project}/{cruise}'), DocfilesAffilProjectCruise),
+    (url_pattern(API_URL_PREFIX + '/docfiles/{affil}/{project}/{cruise}/{name}'), DocfilesAffilProjectCruiseName),
+    (url_pattern(API_URL_PREFIX + '/users'), Users),
+    (url_pattern(API_URL_PREFIX + '/users/login'), UsersLogin),
+    (url_pattern(API_URL_PREFIX + '/users/logout'), UsersLogout),
+    (url_pattern(API_URL_PREFIX + '/users/{id}'), UsersId),
 ]
