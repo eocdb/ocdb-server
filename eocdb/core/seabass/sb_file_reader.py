@@ -1,26 +1,55 @@
+# The MIT License (MIT)
+# Copyright (c) 2018 by EUMETSAT
+#
+# Permission is hereby granted, free of charge, to any person obtaining a copy of
+# this software and associated documentation files (the "Software"), to deal in
+# the Software without restriction, including without limitation the rights to
+# use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies
+# of the Software, and to permit persons to whom the Software is furnished to do
+# so, subject to the following conditions:
+#
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+#
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+
 import datetime
 import re
-from typing import List
+from typing import List, Sequence, Any
 
-from eocdb.core.db.db_dataset import DbDataset
-from eocdb.core.models.dataset import Dataset
+from ..db.db_dataset import DbDataset
+from ..models.dataset import Dataset
 
 EOF = 'end_of_file'
 
 
-class SbFileReader():
+class SbFileReader:
 
     def __init__(self):
         self._lines = []
         self._line_index = 0
 
-    def read(self, filename):
-        with open(filename, 'r') as file:
-            self._line_index = 0
-            lines = file.readlines()
-            return self._parse(lines)
+    def read(self, file_obj: Any) -> Dataset:
+        """
+        Read a Dataset from plain text file in SeaBASS format.
 
-    def _parse(self, lines):
+        :param file_obj: A path or a file-like object.
+        :return: A Dataset
+        """
+        self._line_index = 0
+        if hasattr(file_obj, "readlines"):
+            return self._parse(file_obj.readlines())
+        else:
+            with open(file_obj, 'r') as fp:
+                return self._parse(fp.readlines())
+
+    def _parse(self, lines: Sequence[str]) -> Dataset:
 
         self._lines = lines
 
@@ -68,7 +97,7 @@ class SbFileReader():
 
             # done with header
             if '/end_header' in line.lower():
-                if self.handle_header == True:
+                if self.handle_header:
                     self.handle_header = False
                     break
                 else:
@@ -76,7 +105,7 @@ class SbFileReader():
 
             # split line, trim and remove leading slash
             line = re.sub("[\r\n]+", '', line).strip()
-            if not '=' in line:
+            if '=' not in line:
                 # then it is no key/value pair - skip this line tb 2018-09-20
                 continue
 
@@ -178,7 +207,8 @@ class SbFileReader():
         lat = self._extract_angle(north_lat_string)
         dataset.add_geo_location(lon, lat)
 
-    def extract_value_if_present(self, key, metadata):
+    @classmethod
+    def extract_value_if_present(cls, key, metadata):
         if key in metadata:
             return metadata[key]
         else:
@@ -211,8 +241,9 @@ class SbFileReader():
 
         return records
 
-    def _extract_delimiter_regex(self, metadata):
-        if not 'delimiter' in metadata:
+    @classmethod
+    def _extract_delimiter_regex(cls, metadata):
+        if 'delimiter' not in metadata:
             raise IOError('Missing delimiter tag in header')
 
         delimiter = metadata['delimiter']
@@ -225,31 +256,35 @@ class SbFileReader():
         else:
             raise IOError('Invalid delimiter-value in header')
 
-    def _is_number(self, token):
+    @classmethod
+    def _is_number(cls, token):
         try:
             float(token)
             return True
         except ValueError:
             return False
 
-    def _is_integer(self, token):
+    @classmethod
+    def _is_integer(cls, token):
         try:
             int(token)
             return True
         except ValueError:
             return False
 
-    def _extract_angle(self, angle_str):
+    @classmethod
+    def _extract_angle(cls, angle_str):
         parse_str = angle_str
         if '[' in angle_str:
             unit_index = parse_str.find('[')
             parse_str = angle_str[0:unit_index]
         return float(parse_str)
 
-    def _extract_date(self, date_str, time_str, check_gmt=False):
+    @classmethod
+    def _extract_date(cls, date_str, time_str, check_gmt=False):
         time_str = time_str.upper()
         if check_gmt:
-            if not '[GMT]' in time_str:
+            if '[GMT]' not in time_str:
                 raise IOError("No time zone given. Required all times be expressed as [GMT]")
 
         year = int(date_str[0:4])

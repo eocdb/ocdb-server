@@ -65,13 +65,13 @@ paths:
       tags:
         - Store
       summary: Batch mode upload of files
-      description: Upload a ZIP file of datasets and optionally documentaion files and insert them into the store.
+      description: Upload datasets and documentation files and insert them into the store.
       operationId: uploadStoreFiles
       requestBody:
         $ref: '#/components/requestBodies/FileUpload'
       responses:
         '200':
-          description: Successful operation.
+          $ref: '#/components/responses/DatasetValidationResults'
         '400':
           description: Invalid request.
       security:
@@ -108,7 +108,7 @@ paths:
             default: false
       responses:
         '200':
-          $ref: '#/components/responses/FileDownload'
+          $ref: '#/components/responses/BinaryFileContent'
         '400':
           description: Invalid query value(s).
   # TODO by forman: address publishing/hiding datasets
@@ -278,7 +278,7 @@ paths:
         - $ref: "#/components/parameters/datasetNameParam"
       responses:
         '200':
-          $ref: '#/components/responses/FileDownload'
+          $ref: '#/components/responses/TextFileContent'
         '400':
           description: Invalid path.
         '404':
@@ -341,8 +341,8 @@ paths:
       tags:
         - DocFiles
       summary: Get documentation file for path
-      description: Downloads documentation file for given path=affil/project/cruise.
-      operationId: downloadDocFile
+      description: Gets binary documentation file for given path=affil/project/cruise.
+      operationId: getDocFileByName
       parameters:
         - $ref: "#/components/parameters/affilParam"
         - $ref: "#/components/parameters/projectParam"
@@ -350,7 +350,7 @@ paths:
         - $ref: "#/components/parameters/docFileNameParam"
       responses:
         '200':
-          $ref: '#/components/responses/FileDownload'
+          $ref: '#/components/responses/BinaryFileContent'
         '400':
           description: Invalid path.
         '404':
@@ -759,6 +759,10 @@ components:
           items:
             $ref: '#/components/schemas/Issue'
           description: Validation issues. Will be empty if status is OK.
+    DatasetValidationResults:
+      type: object
+      additionalProperties:
+        $ref: '#/components/schemas/DatasetValidationResult'
     Issue:
       type: object
       required:
@@ -898,6 +902,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/DatasetValidationResult'
+    DatasetValidationResults:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/DatasetValidationResults'
     Dataset:
       description: Successful operation.
       content:
@@ -932,7 +942,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/User'
-    FileDownload:
+    TextFileContent:
+      description: Successful operation.
+      content:
+        text/plain:
+          schema:
+            type: string
+    BinaryFileContent:
       description: Successful operation.
       content:
         application/octet-stream:

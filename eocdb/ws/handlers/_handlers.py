@@ -21,6 +21,7 @@
 
 
 import tornado.escape
+import tornado.httputil
 
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
@@ -58,11 +59,36 @@ class StoreUpload(WsRequestHandler):
 
     def post(self):
         """Provide API operation uploadStoreFiles()."""
-        # transform body with mime-type multipart/form-data into a Dict
-        # TODO (generated): transform self.request.body first
-        data = self.request.body
-        upload_store_files(self.ws_context, data=data)
-        self.finish()
+        arguments = dict()
+        files = dict()
+        # transform body with mime-type multipart/form-data into arguments and files Dict
+        tornado.httputil.parse_body_arguments(self.request.headers.get("Content-Type"),
+                                              self.request.body,
+                                              arguments,
+                                              files)
+
+        path = arguments.get("path")
+        if isinstance(path, list):
+            if len(path) != 1:
+                raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
+            path = path[0]
+        elif not isinstance(path, str):
+            raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
+
+        if isinstance(path, bytes):
+            path = path.decode("utf-8")
+
+        dataset_files = []
+        for file in files.get("dataset_files", []):
+            dataset_files.append(UploadedFile.from_dict(file))
+
+        doc_files = []
+        for file in files.get("doc_files", []):
+            doc_files.append(UploadedFile.from_dict(file))
+
+        result = upload_store_files(self.ws_context, path, dataset_files, doc_files)
+        # Note, result is a Dict[filename, DatasetValidationResult]
+        self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -173,7 +199,7 @@ class DatasetsAffilProjectCruise(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str):
         """Provide API operation getDatasetsInBucket()."""
-        result = get_datasets_in_bucket(self.ws_context, affil=affil, project=project, cruise=cruise)
+        result = get_datasets_in_path(self.ws_context, affil=affil, project=project, cruise=cruise)
         # transform result of type List[DatasetRef] into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode([item.to_dict() for item in result]))
@@ -184,10 +210,9 @@ class DatasetsAffilProjectCruiseName(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str, name: str):
         """Provide API operation getDatasetByBucketAndName()."""
-        result = get_dataset_by_bucket_and_name(self.ws_context, affil=affil, project=project, cruise=cruise,
-                                                name=name)
-        # transform result of type str into response with mime-type application/octet-stream
-        # TODO (generated): transform result first
+        result = get_dataset_by_name(self.ws_context, affil=affil, project=project, cruise=cruise, name=name)
+        # transform result of type str into response with mime-type text/plain
+        self.set_header('Content-Type', 'text/plain')
         self.finish(result)
 
 
@@ -215,8 +240,8 @@ class Docfiles(WsRequestHandler):
 class DocfilesAffilProjectCruise(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str):
-        """Provide API operation getDocFilesInBucket()."""
-        result = get_doc_files_in_bucket(self.ws_context, affil=affil, project=project, cruise=cruise)
+        """Provide API operation getDocFilesInPath()."""
+        result = get_doc_files_in_path(self.ws_context, affil=affil, project=project, cruise=cruise)
         # transform result of type List[DocFileRef] into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode([item.to_dict() for item in result]))
@@ -226,10 +251,10 @@ class DocfilesAffilProjectCruise(WsRequestHandler):
 class DocfilesAffilProjectCruiseName(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str, name: str):
-        """Provide API operation downloadDocFile()."""
-        result = download_doc_file(self.ws_context, affil=affil, project=project, cruise=cruise, name=name)
-        # transform result of type str into response with mime-type application/octet-stream
-        # TODO (generated): transform result first
+        """Provide API operation getDocFileByName()."""
+        result = get_doc_file_by_name(self.ws_context, affil=affil, project=project, cruise=cruise, name=name)
+        # transform result of type bytes into response with mime-type application/octet-stream
+        self.set_header('Content-Type', 'application/octet-stream')
         self.finish(result)
 
     def delete(self, affil: str, project: str, cruise: str, name: str):

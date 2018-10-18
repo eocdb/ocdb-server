@@ -18,3 +18,43 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+
+from ..asserts import assert_not_none
+from ..model import Model
+
+
+class UploadedFile(Model):
+    def __init__(self, filename: str, content_type: str, body: bytes):
+        assert_not_none(filename, name="filename")
+        assert_not_none(content_type, name="content_type")
+        assert_not_none(body, name="body")
+        self._filename = filename
+        self._content_type = content_type
+        self._body = body
+
+    @property
+    def filename(self) -> str:
+        return self._filename
+
+    @filename.setter
+    def filename(self, value: str):
+        assert_not_none(value, name="value")
+        self._filename = value
+
+    @property
+    def content_type(self) -> str:
+        return self._content_type
+
+    @content_type.setter
+    def content_type(self, value: str):
+        assert_not_none(value, name="value")
+        self._content_type = value
+
+    @property
+    def body(self) -> bytes:
+        return self._body
+
+    @body.setter
+    def body(self, value: bytes):
+        assert_not_none(value, name="value")
+        self._body = value

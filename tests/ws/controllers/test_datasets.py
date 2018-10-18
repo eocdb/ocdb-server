@@ -134,27 +134,27 @@ class DatasetsTest(unittest.TestCase):
             delete_dataset(self.ctx, "api_key", dataset_id)
 
     @unittest.skip('not implemented yet')
-    def test_get_datasets_in_bucket(self):
+    def test_get_datasets_in_path(self):
         # TODO (generated): set required parameters
         affil = None
         project = None
         cruise = None
         # noinspection PyTypeChecker
-        result = get_datasets_in_bucket(self.ctx, affil, project, cruise)
+        result = get_datasets_in_path(self.ctx, affil, project, cruise)
         self.assertIsInstance(result, list)
         # TODO (generated): set expected result
         expected_result = []
         self.assertEqual(expected_result, result)
 
     @unittest.skip('not implemented yet')
-    def test_get_dataset_by_bucket_and_name(self):
+    def test_get_dataset_by_name(self):
         # TODO (generated): set required parameters
         affil = None
         project = None
         cruise = None
         name = None
         # noinspection PyTypeChecker
-        result = get_dataset_by_bucket_and_name(self.ctx, affil, project, cruise, name)
+        result = get_dataset_by_name(self.ctx, affil, project, cruise, name)
         # TODO (generated): set expected result
         expected_result = None
         self.assertEqual(expected_result, result)

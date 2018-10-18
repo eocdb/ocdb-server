@@ -1,3 +1,6 @@
+store_path: ./_eocdb_test_store
+
+
 databases:
   default:
     type: eocdb.db.mongo_db_driver.MongoDbDriver
