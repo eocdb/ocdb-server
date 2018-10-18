@@ -23,8 +23,21 @@ class WsContextTest(unittest.TestCase):
 
     def test_store_path(self):
         ctx = new_test_service_context()
-        self.assertIsInstance(ctx.store_path, str)
-        self.assertTrue(ctx.store_path.replace("\\", "/").endswith("/.eocdb/store"))
+        path = ctx.store_path
+        self.assertIsInstance(path, str)
+        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/store"))
+
+    def test_get_datasets_store_path(self):
+        ctx = new_test_service_context()
+        path = ctx.get_datasets_store_path("BIGELOW/BALCH/gnats")
+        self.assertIsInstance(path, str)
+        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/store/BIGELOW/BALCH/gnats/archive"))
+
+    def test_get_doc_files_store_path(self):
+        ctx = new_test_service_context()
+        path = ctx.get_doc_files_store_path("BIGELOW/BALCH/gnats")
+        self.assertIsInstance(path, str)
+        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/store/BIGELOW/BALCH/gnats/documents"))
 
     def test_db_driver(self):
         ctx = new_test_service_context()

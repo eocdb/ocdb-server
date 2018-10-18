@@ -42,15 +42,10 @@ def upload_store_files(ctx: WsContext,
     assert_not_none(dataset_files)
     assert_not_none(doc_files)
 
-    store_path = ctx.config.get("store_path", "~/.eocdb/store")
-    store_path = os.path.expanduser(store_path)
-    if not os.path.isabs(store_path):
-        store_path = os.path.join(ctx.base_dir, store_path)
-
-    datasets_dir_path = os.path.join(store_path, path, "datasets")
+    datasets_dir_path = ctx.get_datasets_store_path(path)
     os.makedirs(datasets_dir_path, exist_ok=True)
 
-    docs_dir_path = os.path.join(store_path, path, "docs")
+    docs_dir_path = ctx.get_doc_files_store_path(path)
     os.makedirs(docs_dir_path, exist_ok=True)
 
     for file in dataset_files:

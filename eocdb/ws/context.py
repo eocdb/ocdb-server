@@ -37,6 +37,9 @@ DEFAULT_STORE_PATH = "~/.eocdb/store"
 
 DB_DRIVERS_CONFIG_NAME = "databases"
 
+DATASETS_DIR_NAME = "archive"
+DOC_FILES_DIR_NAME = "documents"
+
 
 class WsContext:
 
@@ -96,6 +99,12 @@ class WsContext:
 
         # noinspection PyTypeChecker
         return primary_db_driver
+
+    def get_datasets_store_path(self, sub_path: str) -> str:
+        return os.path.join(self.store_path, sub_path, DATASETS_DIR_NAME)
+
+    def get_doc_files_store_path(self, sub_path: str) -> str:
+        return os.path.join(self.store_path, sub_path, DOC_FILES_DIR_NAME)
 
     def configure(self, new_config: Config):
         old_config = self._config
