@@ -47,16 +47,7 @@ class MongoDbDriver(DbDriver):
         return None
 
     def find_datasets(self, query: DatasetQuery) -> DatasetQueryResult:
-        if query.offset is None:
-            start_index = 0
-        else:
-            start_index = query.offset - 1
-
-        if query.count is None:
-            end_index = -1
-        else:
-            # Note, for count=0 we will get an empty result set, which is desired.
-            end_index = start_index + query.count - 1
+        start_index, end_index = self._get_start_and_end_index(query)
 
         query_filter = None
 
@@ -74,6 +65,18 @@ class MongoDbDriver(DbDriver):
             index += 1
 
         return DatasetQueryResult(index, dataset_refs, query)
+
+    def _get_start_and_end_index(self, query):
+        if query.offset is None:
+            start_index = 0
+        else:
+            start_index = query.offset - 1
+        if query.count is None:
+            end_index = -1
+        else:
+            # Note, for count=0 we will get an empty result set, which is desired.
+            end_index = start_index + query.count - 1
+        return start_index, end_index
 
     @classmethod
     def _obj_id(cls, id_: str) -> Optional[bson.objectid.ObjectId]:
