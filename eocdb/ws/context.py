@@ -32,7 +32,13 @@ _LOG = logging.getLogger('eocdb')
 
 Config = Dict[str, Any]
 
+STORE_PATH_CONFIG_NAME = "store_path"
+DEFAULT_STORE_PATH = "~/.eocdb/store"
+
 DB_DRIVERS_CONFIG_NAME = "databases"
+
+DATASETS_DIR_NAME = "archive"
+DOC_FILES_DIR_NAME = "documents"
 
 
 class WsContext:
@@ -40,33 +46,34 @@ class WsContext:
     def __init__(self, base_dir=None):
         self._base_dir = os.path.abspath(base_dir or '')
         self._config = {}
+        self._store_path = None
         self._db_drivers = ServiceRegistry()
         self._thread_pool = concurrent.futures.ThreadPoolExecutor(max_workers=DEFAULT_MAX_THREAD_COUNT,
                                                                   thread_name_prefix=DEFAULT_SERVER_NAME)
+
+    @property
+    def config(self) -> Config:
+        return self._config
 
     @property
     def base_dir(self) -> str:
         return self._base_dir
 
     @property
-    def config(self) -> Config:
-        return self._config
+    def store_path(self) -> str:
+        store_path = self.config.get(STORE_PATH_CONFIG_NAME, DEFAULT_STORE_PATH)
+        store_path = os.path.expanduser(store_path)
+        if not os.path.isabs(store_path):
+            store_path = os.path.join(self.base_dir, store_path)
+        return store_path
 
-    def configure(self, new_config: Config):
-        old_config = self._config
-        new_config = new_config or {}
+    @property
+    def db_drivers(self) -> Sequence[DbDriver]:
+        # noinspection PyTypeChecker
+        return self._db_drivers.find_services(service_type=DbDriver)
 
-        old_db_drivers = old_config.get(DB_DRIVERS_CONFIG_NAME, {})
-        new_db_drivers = new_config.get(DB_DRIVERS_CONFIG_NAME, {})
-        if old_db_drivers != new_db_drivers:
-            self._db_drivers.update(new_db_drivers)
-
-        self._config = dict(new_config)
-
-    def dispose(self):
-        self._db_drivers.dispose()
-
-    def get_db_driver(self) -> DbDriver:
+    @property
+    def db_driver(self) -> DbDriver:
         """Get the primary database driver."""
 
         primary_db_driver = None
@@ -93,6 +100,22 @@ class WsContext:
         # noinspection PyTypeChecker
         return primary_db_driver
 
-    def get_db_drivers(self) -> Sequence[DbDriver]:
-        # noinspection PyTypeChecker
-        return self._db_drivers.find_services(service_type=DbDriver)
+    def get_datasets_store_path(self, sub_path: str) -> str:
+        return os.path.join(self.store_path, sub_path, DATASETS_DIR_NAME)
+
+    def get_doc_files_store_path(self, sub_path: str) -> str:
+        return os.path.join(self.store_path, sub_path, DOC_FILES_DIR_NAME)
+
+    def configure(self, new_config: Config):
+        old_config = self._config
+        new_config = new_config or {}
+
+        old_db_drivers = old_config.get(DB_DRIVERS_CONFIG_NAME, {})
+        new_db_drivers = new_config.get(DB_DRIVERS_CONFIG_NAME, {})
+        if old_db_drivers != new_db_drivers:
+            self._db_drivers.update(new_db_drivers)
+
+        self._config = dict(new_config)
+
+    def dispose(self):
+        self._db_drivers.dispose()

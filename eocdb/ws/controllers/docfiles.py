@@ -44,10 +44,10 @@ def update_doc_file(ctx: WsContext,
 
 
 # noinspection PyUnusedLocal,PyTypeChecker
-def get_doc_files_in_bucket(ctx: WsContext,
-                            affil: str,
-                            project: str,
-                            cruise: str) -> List[DocFileRef]:
+def get_doc_files_in_path(ctx: WsContext,
+                          affil: str,
+                          project: str,
+                          cruise: str) -> List[DocFileRef]:
     assert_not_none(affil, name='affil')
     assert_not_none(project, name='project')
     assert_not_none(cruise, name='cruise')
@@ -56,11 +56,11 @@ def get_doc_files_in_bucket(ctx: WsContext,
 
 
 # noinspection PyUnusedLocal,PyTypeChecker
-def download_doc_file(ctx: WsContext,
-                      affil: str,
-                      project: str,
-                      cruise: str,
-                      name: str) -> str:
+def get_doc_file_by_name(ctx: WsContext,
+                         affil: str,
+                         project: str,
+                         cruise: str,
+                         name: str) -> bytes:
     assert_not_none(affil, name='affil')
     assert_not_none(project, name='project')
     assert_not_none(cruise, name='cruise')
