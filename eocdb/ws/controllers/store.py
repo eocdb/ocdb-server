@@ -30,7 +30,7 @@ from ...core.models.dataset_validation_result import DatasetValidationResult, DA
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.uploaded_file import UploadedFile
 from ...core.seabass.sb_file_reader import SbFileReader
-from ...core.val.validator import validate_dataset
+from ...core.val import validator
 from ...db.static_data import get_product_groups, get_products
 
 
@@ -71,7 +71,7 @@ def upload_store_files(ctx: WsContext,
         # Validate the datasets that could be successfully parsed:
         if file.filename in datasets:
             dataset = datasets[file.filename]
-            dataset_validation_result = validate_dataset(dataset)
+            dataset_validation_result = validator.validate_dataset(dataset)
             validation_results[file.filename] = dataset_validation_result
             if dataset_validation_result.status == "ERROR":
                 has_errors = True
