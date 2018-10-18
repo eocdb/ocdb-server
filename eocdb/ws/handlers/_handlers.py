@@ -86,8 +86,9 @@ class StoreUpload(WsRequestHandler):
         for file in files.get("doc_files", []):
             doc_files.append(UploadedFile.from_dict(file))
 
-        upload_store_files(self.ws_context, path, dataset_files, doc_files)
-        self.finish()
+        result = upload_store_files(self.ws_context, path, dataset_files, doc_files)
+        # Note, result is a Dict[filename, DatasetValidationResult]
+        self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
