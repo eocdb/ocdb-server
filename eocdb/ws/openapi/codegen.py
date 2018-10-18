@@ -605,13 +605,14 @@ class CodeGen:
             code.append(self._gen_model_imports(package="", excluded_schema_name=schema_name))
             code.append(self._gen_assert_imports())
 
-        for p in schema.properties:
-            if p.schema.enum:
-                code.append()
-                name_prefix = _get_py_upper_name(schema_name) + "_" + _get_py_upper_name(p.name)
-                for e in p.schema.enum:
-                    e_name = str(e).replace(' ', '_').replace('-', '_').upper()
-                    code.append(f"{name_prefix}_{e_name} = {repr(e)}")
+        if schema.properties:
+            for p in schema.properties:
+                if p.schema.enum:
+                    code.append()
+                    name_prefix = _get_py_upper_name(schema_name) + "_" + _get_py_upper_name(p.name)
+                    for e in p.schema.enum:
+                        e_name = str(e).replace(' ', '_').replace('-', '_').upper()
+                        code.append(f"{name_prefix}_{e_name} = {repr(e)}")
 
         code.append()
         code.append()
@@ -658,24 +659,25 @@ class CodeGen:
                 else:
                     code.append(f"pass")
 
-            for p in schema.properties:
-                py_name = _get_py_lower_name(p.name, esc_builtins=False)
-                py_type = _get_py_type_name(p.schema)
-                required = schema.required and p.name in schema.required
-                if not required:
-                    py_type = f"Optional[{py_type}]"
-                code.append()
-                code.append(f"@property")
-                code.append(f"def {py_name}(self) -> {py_type}:")
-                with code.indent():
-                    code.append(f"return self._{py_name}")
+            if schema.properties:
+                for p in schema.properties:
+                    py_name = _get_py_lower_name(p.name, esc_builtins=False)
+                    py_type = _get_py_type_name(p.schema)
+                    required = schema.required and p.name in schema.required
+                    if not required:
+                        py_type = f"Optional[{py_type}]"
+                    code.append()
+                    code.append(f"@property")
+                    code.append(f"def {py_name}(self) -> {py_type}:")
+                    with code.indent():
+                        code.append(f"return self._{py_name}")
 
-                code.append()
-                code.append(f"@{py_name}.setter")
-                code.append(f"def {py_name}(self, value: {py_type}):")
-                with code.indent():
-                    code.append(self._gen_param_validation_code(self._prop_to_param(p, schema, name="value")))
-                    code.append(f"self._{py_name} = value")
+                    code.append()
+                    code.append(f"@{py_name}.setter")
+                    code.append(f"def {py_name}(self, value: {py_type}):")
+                    with code.indent():
+                        code.append(self._gen_param_validation_code(self._prop_to_param(p, schema, name="value")))
+                        code.append(f"self._{py_name} = value")
 
     @classmethod
     def _prop_to_param(cls, prop: Property, schema: Schema, name: str = None) -> Parameter:
