@@ -7,6 +7,9 @@ from eocdb.core.query.query import FieldWildcardQuery, T, FieldRangeQuery, Field
 
 class MongoQueryGenerator(QueryVisitor[str]):
 
+    plain_fields = ["path", "name", "status"]
+    METADATA = 'metadata.'
+
     def __init__(self):
         self.query_dict = {}
         self.last_field = None
@@ -22,10 +25,12 @@ class MongoQueryGenerator(QueryVisitor[str]):
         raise NotImplementedError()
 
     def visit_binary_op(self, q: BinaryOpQuery, term1: T, term2: T) -> Optional[T]:
+        name_1 = self._get_db_field_name(q.term1.name)
+        name_2 = self._get_db_field_name(q.term2.name)
         if q.op == 'AND':
-            self.query_dict.update({q.term1.name: q.term1.value, q.term2.name: q.term2.value})
+            self.query_dict.update({name_1: q.term1.value, name_2: q.term2.value})
         elif q.op == 'OR':
-            self.query_dict.update({'$or': [{q.term1.name: q.term1.value}, {q.term2.name: q.term2.value}]})
+            self.query_dict.update({'$or': [{name_1: q.term1.value}, {name_2: q.term2.value}]})
         else:
             raise NotImplementedError()
 
@@ -35,11 +40,13 @@ class MongoQueryGenerator(QueryVisitor[str]):
         raise NotImplementedError()
 
     def visit_field_value(self, q: FieldValueQuery) -> Optional[T]:
-        self.last_field = {q.name : q.value}
+        name = self._get_db_field_name(q.name)
+        self.last_field = {name : q.value}
         return self.last_field
 
     def visit_field_range(self, q: FieldRangeQuery) -> Optional[T]:
-        self.query_dict.update({q.name : {'$gte' : q.start_value, '$lte': q.end_value}})
+        name = self._get_db_field_name(q.name)
+        self.query_dict.update({name : {'$gte' : q.start_value, '$lte': q.end_value}})
         return self.query_dict
 
     def visit_field_wildcard(self, q: FieldWildcardQuery) -> Optional[T]:
@@ -50,5 +57,12 @@ class MongoQueryGenerator(QueryVisitor[str]):
         else:
             raise NotImplementedError
 
-        self.query_dict.update({q.name: {'$regex': reg_exp}})
+        name = self._get_db_field_name(q.name)
+        self.query_dict.update({name: {'$regex': reg_exp}})
         return self.query_dict
+
+    def _get_db_field_name(self, name: str) -> str:
+        if name in self.plain_fields:
+            return name
+
+        return self.METADATA + name
