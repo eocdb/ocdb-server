@@ -5,5 +5,5 @@ from tests.db.test_mongo_db_driver import TestMongoDbDriver
 class DbTestMongoDbDriver(TestMongoDbDriver):
 
     def setUp(self):
-        self.driver = MongoDbDriver()
-        self.driver.init()
+        self._driver = MongoDbDriver()
+        self._driver.init()

@@ -1,7 +1,8 @@
 import unittest
 
+from eocdb.core.db.errors import OperationalError
+from eocdb.core.models.dataset import DATASET_STATUS_NEW, DATASET_STATUS_VALIDATING
 from eocdb.core.models.dataset_query import DatasetQuery
-from eocdb.core.query.parser import QueryParser
 from eocdb.db.mongo_db_driver import MongoDbDriver
 from tests import helpers
 
@@ -9,18 +10,18 @@ from tests import helpers
 class TestMongoDbDriver(unittest.TestCase):
 
     def setUp(self):
-        self.driver = MongoDbDriver()
-        self.driver.init(mock=True)
+        self._driver = MongoDbDriver()
+        self._driver.init(mock=True)
 
     def tearDown(self):
-        self.driver.clear()
-        self.driver.close()
+        self._driver.clear()
+        self._driver.close()
 
     def test_connect_twice_throws(self):
         try:
-            self.driver.connect()
-            self.fail("Exception expected")
-        except:
+            self._driver.connect()
+            self.fail("OperationalError expected")
+        except OperationalError:
             pass
 
     def test_insert_one_and_get(self):
@@ -32,9 +33,9 @@ class TestMongoDbDriver(unittest.TestCase):
         dataset.records = [[109.8,  -38.4, 998, 20, 36],
                            [109.9, -38.3, 998, 20, 35]]
 
-        id = self.driver.add_dataset(dataset)
+        ds_id = self._driver.add_dataset(dataset)
 
-        result = self.driver.get_dataset(id)
+        result = self._driver.get_dataset(ds_id)
         self.assertIsNotNone(result)
         self.assertEqual("UCSB", result.metadata["affiliations"])
         self.assertEqual("Norm_Nelson", result.metadata["investigators"])
@@ -45,32 +46,180 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_get_invalid_id(self):
         dataset = helpers.new_test_dataset(2)
 
-        self.driver.add_dataset(dataset)
+        self._driver.add_dataset(dataset)
 
-        result = self.driver.get_dataset("rippelschnatz")
+        result = self._driver.get_dataset("rippelschnatz")
         self.assertIsNone(result)
 
+    # noinspection PyTypeChecker
     def test_get_null_id(self):
-        result = self.driver.get_dataset(None)
+        result = self._driver.get_dataset(None)
         self.assertIsNone(result)
 
-    def test_insert_two_and_get_metadata_field(self):
+    def test_insert_two_and_get_by_metadata_field(self):
         dataset = helpers.new_test_dataset(3)
         dataset.metadata["source"] = "we_don_t_care"
-        self.driver.add_dataset(dataset)
+        self._driver.add_dataset(dataset)
 
         dataset = helpers.new_test_dataset(4)
         dataset.metadata["source"] = "we_want_this"
-        self.driver.add_dataset(dataset)
+        self._driver.add_dataset(dataset)
 
         query = DatasetQuery(expr="source: we_want_this")
 
-        result = self.driver.find_datasets(query)
-        self.assertIsNotNone(result)
-        # @todo 1 tb/tb continue here 2018-10-18
-        #self.assertEqual(1, result.total_count)
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("dataset-4", result.datasets[0].name)
 
+    def test_insert_three_and_get_by_metadata_field_and(self):
+        dataset = helpers.new_test_dataset(3)
+        dataset.metadata["affiliations"] = "we_don_t_care"
+        dataset.metadata["cruise"] = "baltic_1"
+        self._driver.add_dataset(dataset)
 
+        dataset = helpers.new_test_dataset(4)
+        dataset.metadata["affiliations"] = "we_want_this"
+        dataset.metadata["cruise"] = "baltic_2"
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(5)
+        dataset.metadata["affiliations"] = "we_want_this"
+        dataset.metadata["cruise"] = "baltic_1"
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(expr="affiliations: we_want_this AND cruise: baltic_1")
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("dataset-5", result.datasets[0].name)
+
+        query = DatasetQuery(expr="affiliations: we_want_this AND cruise: baltic_2")
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("dataset-4", result.datasets[0].name)
+
+    def test_insert_three_and_get_by_metadata_field_or(self):
+        dataset = helpers.new_test_dataset(6)
+        dataset.metadata["affiliations"] = "we_don_t_care"
+        dataset.metadata["cruise"] = "baltic_1"
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(7)
+        dataset.metadata["affiliations"] = "we_want_this"
+        dataset.metadata["cruise"] = "baltic_2"
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(8)
+        dataset.metadata["affiliations"] = "we_want_this"
+        dataset.metadata["cruise"] = "baltic_1"
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(expr="affiliations: we_want_this OR cruise: baltic_1")
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(3, result.total_count)
+        self.assertEqual("dataset-6", result.datasets[0].name)
+
+        query = DatasetQuery(expr="affiliations: we_want_this OR cruise: baltic_2")
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
+        self.assertEqual("dataset-7", result.datasets[0].name)
+
+    def test_insert_and_get_by_not_existing_metadata_field(self):
+        dataset = helpers.new_test_dataset(9)
+        dataset.metadata["calibration_files"] = "yes_they_are_here"
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(expr="the_absent_field: not_there")
+        result = self._driver.find_datasets(query)
+        self.assertEqual(0, result.total_count)
+
+    def test_insert_and_get_by_path(self):
+        dataset = helpers.new_test_dataset(9)
+        dataset.path = "/usr/local/path/schnath"
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(10)
+        dataset.path = "C:\\data\\seabass\\cruise"
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(expr="path: /usr/local/path/schnath")
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("dataset-9", result.datasets[0].name)
+
+    def test_insert_and_get_by_name(self):
+        dataset = helpers.new_test_dataset(11)
+        dataset.name = "Helga"
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(12)
+        dataset.name = "Gertrud"
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(expr="name: Gertrud")
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("Gertrud", result.datasets[0].name)
+
+    def test_insert_and_get_by_name_single_char_wildcard(self):
+        dataset = helpers.new_test_dataset(13)
+        dataset.name = "Helga"
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(14)
+        dataset.name = "Helma"
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(15)
+        dataset.name = "Olga"
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(expr="name: Hel?a")
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
+        self.assertEqual("Helga", result.datasets[0].name)
+        self.assertEqual("Helma", result.datasets[1].name)
+
+    def test_insert_and_get_by_name_multi_char_wildcard(self):
+        dataset = helpers.new_test_dataset(13)
+        dataset.name = "Helga"
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(14)
+        dataset.name = "Helma"
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(15)
+        dataset.name = "Olga"
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(expr="name: *ga")
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
+        self.assertEqual("Helga", result.datasets[0].name)
+        self.assertEqual("Olga", result.datasets[1].name)
+
+    def test_insert_and_get_by_status(self):
+        dataset = helpers.new_test_dataset(13)
+        dataset.status = DATASET_STATUS_NEW
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(14)
+        dataset.status = DATASET_STATUS_VALIDATING
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(expr="status: validating")
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("dataset-14", result.datasets[0].name)
 
     def test_insert_two_and_get_by_location(self):
         pass
@@ -105,15 +254,25 @@ class TestMongoDbDriver(unittest.TestCase):
         # self.assertEqual(1, len(dataset_list))
         # self.assertEqual("Laboratoire_Optique_Atmospherique", dataset_list[0].metadata["affiliations"])
 
-    def test_get_start_and_end_index(self):
+    def test_get_get_start_index_and_page_size(self):
         query = DatasetQuery()
         query.offset = 1
-        self.assertEqual((0, 1000), self.driver._get_start_index_and_page_size(query))
+        self.assertEqual((0, 1000), self._driver._get_start_index_and_page_size(query))
 
         query.offset = 12
         query.count = 106
-        self.assertEqual((11, 106), self.driver._get_start_index_and_page_size(query))
+        self.assertEqual((11, 106), self._driver._get_start_index_and_page_size(query))
 
         query.offset = 14
         query.count = None
-        self.assertEqual((13, -1), self.driver._get_start_index_and_page_size(query))
+        self.assertEqual((13, -1), self._driver._get_start_index_and_page_size(query))
+
+    def test_get_get_start_index_and_page_size_raises_on_offset_zero(self):
+        query = DatasetQuery()
+        query.offset = 0
+
+        try:
+            self._driver._get_start_index_and_page_size(query)
+            self.fail("ValueError expected")
+        except ValueError:
+            pass

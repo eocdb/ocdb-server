@@ -4,6 +4,8 @@ import bson.objectid
 import pymongo
 import pymongo.errors
 
+from eocdb.core import QueryParser
+from ..db.mongo_query_generator import MongoQueryGenerator
 from ..core.db.db_driver import DbDriver
 from ..core.db.errors import OperationalError
 from ..core.models.dataset import Dataset
@@ -32,6 +34,7 @@ class MongoDbDriver(DbDriver):
         obj_id = self._obj_id(dataset_id)
         if obj_id is None:
             return False
+
         result = self._collection.delete_one({'_id': obj_id})
         return result.deleted_count == 1
 
@@ -39,6 +42,7 @@ class MongoDbDriver(DbDriver):
         obj_id = self._obj_id(dataset_id)
         if obj_id is None:
             return None
+
         dataset_dict = self._collection.find_one({"_id": obj_id})
         if dataset_dict is not None:
             del dataset_dict["_id"]
@@ -49,9 +53,10 @@ class MongoDbDriver(DbDriver):
     def find_datasets(self, query: DatasetQuery) -> DatasetQueryResult:
         start_index, end_index = MongoDbDriver._get_start_index_and_page_size(query)
 
-        query_filter = None
+        q = QueryParser.parse(query.expr)
+        q.accept(self._query_generator)
 
-        cursor = self._collection.find(query_filter)
+        cursor = self._collection.find(self._query_generator.query)
 
         dataset_refs = []
         index = 0
@@ -70,6 +75,8 @@ class MongoDbDriver(DbDriver):
     def _get_start_index_and_page_size(query):
         if query.offset is None:
             start_index = 0
+        elif query.offset == 0:
+            raise ValueError("Page offset is out of range")
         else:
             start_index = query.offset - 1
 
@@ -92,6 +99,7 @@ class MongoDbDriver(DbDriver):
         self._client = None
         self._collection = None
         self._config = None
+        self._query_generator = MongoQueryGenerator()
 
     def init(self, **config):
         self._set_config(config)
