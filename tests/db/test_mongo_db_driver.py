@@ -269,22 +269,22 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_get_get_start_index_and_page_size(self):
         query = DatasetQuery()
         query.offset = 1
-        self.assertEqual((0, 1000), self._driver._get_start_index_and_page_size(query))
+        self.assertEqual((0, 1000), self._driver._get_start_index_and_count(query))
 
         query.offset = 12
         query.count = 106
-        self.assertEqual((11, 106), self._driver._get_start_index_and_page_size(query))
+        self.assertEqual((11, 106), self._driver._get_start_index_and_count(query))
 
         query.offset = 14
         query.count = None
-        self.assertEqual((13, -1), self._driver._get_start_index_and_page_size(query))
+        self.assertEqual((13, -1), self._driver._get_start_index_and_count(query))
 
     def test_get_get_start_index_and_page_size_raises_on_offset_zero(self):
         query = DatasetQuery()
         query.offset = 0
 
         try:
-            self._driver._get_start_index_and_page_size(query)
+            self._driver._get_start_index_and_count(query)
             self.fail("ValueError expected")
         except ValueError:
             pass

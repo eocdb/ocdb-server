@@ -51,7 +51,7 @@ class MongoDbDriver(DbDriver):
         return None
 
     def find_datasets(self, query: DatasetQuery) -> DatasetQueryResult:
-        start_index, end_index = MongoDbDriver._get_start_index_and_page_size(query)
+        start_index, count = MongoDbDriver._get_start_index_and_count(query)
 
         query_dict = {}
         if query.expr is not None:
@@ -64,7 +64,7 @@ class MongoDbDriver(DbDriver):
         dataset_refs = []
         index = 0
         for dataset_dict in cursor:
-            if index >= start_index and (end_index == -1 or index <= end_index):
+            if index >= start_index and (count == -1 or index < start_index + count):
                 dataset_id = str(dataset_dict.get("_id"))
                 name = dataset_dict.get("name")
                 relative_path = dataset_dict.get("path")
@@ -75,7 +75,7 @@ class MongoDbDriver(DbDriver):
         return DatasetQueryResult(index, dataset_refs, query)
 
     @staticmethod
-    def _get_start_index_and_page_size(query):
+    def _get_start_index_and_count(query):
         if query.offset is None:
             start_index = 0
         elif query.offset == 0:
@@ -84,10 +84,10 @@ class MongoDbDriver(DbDriver):
             start_index = query.offset - 1
 
         if query.count is None:
-            page_size = -1
+            count = -1
         else:
-            page_size = query.count
-        return start_index, page_size
+            count = query.count
+        return start_index, count
 
     @classmethod
     def _obj_id(cls, id_: str) -> Optional[bson.objectid.ObjectId]:
