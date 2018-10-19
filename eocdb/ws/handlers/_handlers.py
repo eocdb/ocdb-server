@@ -217,6 +217,27 @@ class DatasetsAffilProjectCruiseName(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
+class DatasetsIdQcinfo(WsRequestHandler):
+
+    def get(self, id: str):
+        """Provide API operation getDatasetQcInfo()."""
+        dataset_id = id
+        result = get_dataset_qc_info(self.ws_context, dataset_id=dataset_id)
+        # transform result of type QcInfo into response with mime-type application/json
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result.to_dict()))
+
+    def post(self, id: str):
+        """Provide API operation setDatasetQcInfo()."""
+        dataset_id = id
+        # transform body with mime-type application/json into a QcInfo
+        data_dict = tornado.escape.json_decode(self.request.body)
+        qc_info = QcInfo.from_dict(data_dict)
+        result = set_dataset_qc_info(self.ws_context, dataset_id=dataset_id, qc_info=qc_info)
+        self.finish()
+
+
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class Docfiles(WsRequestHandler):
 
     def put(self):

@@ -20,26 +20,44 @@
 # SOFTWARE.
 
 
-import unittest
+from typing import Dict, Optional
 
-from eocdb.ws.controllers.service import *
-from tests.helpers import new_test_service_context
+from ..model import Model
+from ...core.asserts import assert_not_none, assert_one_of
+
+QC_INFO_STATUS_WAITING = 'waiting'
+QC_INFO_STATUS_ONGOING = 'ongoing'
+QC_INFO_STATUS_PASSED = 'passed'
+QC_INFO_STATUS_FAILED = 'failed'
 
 
-class ServiceTest(unittest.TestCase):
+class QcInfo(Model):
+    """
+    The QcInfo model.
+    """
 
-    def setUp(self):
-        self.ctx = new_test_service_context()
+    def __init__(self,
+                 status: str,
+                 result: Dict = None):
+        assert_not_none(status, name='status')
+        assert_one_of(status, ['waiting', 'ongoing', 'passed', 'failed'], name='status')
+        self._status = status
+        self._result = result
 
-    def test_get_service_info(self):
-        result = get_service_info(self.ctx)
-        self.assertIsInstance(result, dict)
-        self.assertIn("openapi", result)
-        self.assertEqual("3.0.0", result["openapi"])
-        self.assertIn("info", result)
-        self.assertIsInstance(result["info"], dict)
-        self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.2", result["info"].get("version"))
-        self.assertIsNotNone(result["info"].get("description"))
-        self.assertEqual("RESTful API for the EUMETSAT Ocean C",
-                         result["info"].get("description")[0:36])
+    @property
+    def status(self) -> str:
+        return self._status
+
+    @status.setter
+    def status(self, value: str):
+        assert_not_none(value, name='value')
+        assert_one_of(value, ['waiting', 'ongoing', 'passed', 'failed'], name='value')
+        self._status = value
+
+    @property
+    def result(self) -> Optional[Dict]:
+        return self._result
+
+    @result.setter
+    def result(self, value: Optional[Dict]):
+        self._result = value
