@@ -28,12 +28,13 @@ def new_test_dataset(n: int = 0):
                    dict(fields=["a", "b", "c"]),
                    [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]])
 
+
 def new_test_db_dataset(n: int = 0):
     return DbDataset(f"relative_path-{n}",
-                   f"dataset-{n}",
-                   "new",
-                   dict(fields=["a", "b", "c"]),
-                   [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]])
+                     f"dataset-{n}",
+                     "new",
+                     dict(fields=["a", "b", "c"]),
+                     [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]])
 
 
 class RequestParamsMock(RequestParams):
