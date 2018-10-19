@@ -47,7 +47,7 @@ class MongoDbDriver(DbDriver):
         return None
 
     def find_datasets(self, query: DatasetQuery) -> DatasetQueryResult:
-        start_index, end_index = self._get_start_and_end_index(query)
+        start_index, end_index = MongoDbDriver._get_start_index_and_page_size(query)
 
         query_filter = None
 
@@ -66,17 +66,18 @@ class MongoDbDriver(DbDriver):
 
         return DatasetQueryResult(index, dataset_refs, query)
 
-    def _get_start_and_end_index(self, query):
+    @staticmethod
+    def _get_start_index_and_page_size(query):
         if query.offset is None:
             start_index = 0
         else:
             start_index = query.offset - 1
+
         if query.count is None:
-            end_index = -1
+            page_size = -1
         else:
-            # Note, for count=0 we will get an empty result set, which is desired.
-            end_index = start_index + query.count - 1
-        return start_index, end_index
+            page_size = query.count
+        return start_index, page_size
 
     @classmethod
     def _obj_id(cls, id_: str) -> Optional[bson.objectid.ObjectId]:

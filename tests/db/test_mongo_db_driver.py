@@ -107,11 +107,13 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def test_get_start_and_end_index(self):
         query = DatasetQuery()
-        self.assertEqual((0, 999), self.driver._get_start_and_end_index(query))
+        query.offset = 1
+        self.assertEqual((0, 1000), self.driver._get_start_index_and_page_size(query))
 
         query.offset = 12
-        self.assertEqual((11, 1010), self.driver._get_start_and_end_index(query))
+        query.count = 106
+        self.assertEqual((11, 106), self.driver._get_start_index_and_page_size(query))
 
-        query.offset = 1
-        query.count = 15
-        self.assertEqual((0, 14), self.driver._get_start_and_end_index(query))
+        query.offset = 14
+        query.count = None
+        self.assertEqual((13, -1), self.driver._get_start_index_and_page_size(query))
