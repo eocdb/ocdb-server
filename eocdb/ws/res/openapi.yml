@@ -3,7 +3,7 @@ servers:
   - url: 'http://eocdb.io/api/v01'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.1"
+  version: "0.1.0-dev.2"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -279,6 +279,47 @@ paths:
       responses:
         '200':
           $ref: '#/components/responses/TextFileContent'
+        '400':
+          description: Invalid path.
+        '404':
+          description: Dataset not found.
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
+  '/datasets/{id}/qcinfo':
+    get:
+      tags:
+        - Datasets
+      summary: Get dataset QC information
+      description: Gets a dataset's quality control information.
+      operationId: getDatasetQcInfo
+      parameters:
+        - $ref: "#/components/parameters/datasetIdParam"
+      responses:
+        '200':
+          $ref: '#/components/responses/QcInfo'
+        '400':
+          description: Invalid path.
+        '404':
+          description: Dataset not found.
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
+    post:
+      tags:
+        - Datasets
+      summary: Set dataset QC information
+      description: Sets a dataset's quality control information.
+      operationId: setDatasetQcInfo
+      parameters:
+        - $ref: "#/components/parameters/datasetIdParam"
+      requestBody:
+        $ref: "#/components/requestBodies/QcInfo"
+      responses:
+        '200':
+          description: Successful operation.
         '400':
           description: Invalid path.
         '404':
@@ -854,6 +895,20 @@ components:
           type: string
         name:
           type: string
+    QcInfo:
+      type: object
+      required:
+        - status
+      properties:
+        status:
+          type: string
+          enum:
+          - waiting
+          - ongoing
+          - passed
+          - failed
+        result:
+          type: object
   requestBodies:
     Dataset:
       description: Dataset object.
@@ -862,6 +917,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Dataset'
+    QcInfo:
+      description: Quality control information.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/QcInfo'
     User:
       description: User object.
       required: true
@@ -928,6 +990,12 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/DatasetRef'
+    QcInfo:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/QcInfo'
     DocFileRefs:
       description: Successful operation.
       content:

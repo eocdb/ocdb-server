@@ -23,6 +23,7 @@
 import unittest
 
 from eocdb.core.models.issue import Issue
+from eocdb.core.models.qc_info import QC_INFO_STATUS_ONGOING, QC_INFO_STATUS_PASSED
 from eocdb.ws.controllers.datasets import *
 from tests.helpers import new_test_service_context, new_test_dataset
 
@@ -158,3 +159,23 @@ class DatasetsTest(unittest.TestCase):
         # TODO (generated): set expected result
         expected_result = None
         self.assertEqual(expected_result, result)
+
+    def test_get_set_dataset_qc_info(self):
+        dataset_ref = add_dataset(self.ctx, new_test_dataset(42))
+        dataset_id = dataset_ref.id
+
+        qc_info = get_dataset_qc_info(self.ctx, dataset_id)
+        self.assertEqual(QcInfo(QC_INFO_STATUS_WAITING), qc_info)
+
+        expected_qc_info = QcInfo(QC_INFO_STATUS_ONGOING)
+        set_dataset_qc_info(self.ctx, dataset_id, expected_qc_info)
+        qc_info = get_dataset_qc_info(self.ctx, dataset_id)
+        self.assertEqual(expected_qc_info, qc_info)
+
+        expected_qc_info = QcInfo(QC_INFO_STATUS_PASSED,
+                                  dict(by='Illaria',
+                                       when="2019-02-01",
+                                       doc_files=["qc-report.docx"]))
+        set_dataset_qc_info(self.ctx, dataset_id, expected_qc_info)
+        qc_info = get_dataset_qc_info(self.ctx, dataset_id)
+        self.assertEqual(expected_qc_info, qc_info)

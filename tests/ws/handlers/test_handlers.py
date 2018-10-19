@@ -26,8 +26,9 @@ import urllib.parse
 import tornado.escape
 import tornado.testing
 
+from eocdb.core.models.qc_info import QcInfo, QC_INFO_STATUS_PASSED
 from eocdb.ws.app import new_application
-from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id
+from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id, get_dataset_qc_info
 from eocdb.ws.handlers import API_URL_PREFIX
 from tests.helpers import new_test_service_context, new_test_dataset
 
@@ -57,7 +58,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.1", result["info"].get("version"))
+        self.assertEqual("0.1.0-dev.2", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -288,6 +289,36 @@ class DatasetsAffilProjectCruiseNameTest(WsTestCase):
         expected_response_data = None
         actual_response_data = response.body
         self.assertEqual(expected_response_data, actual_response_data)
+
+
+class DatasetsIdQcinfoTest(WsTestCase):
+
+    def test_get(self):
+        dataset_ref = add_dataset(self.ctx, new_test_dataset(42))
+        dataset_id = dataset_ref.id
+
+        response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}/qcinfo", method='GET')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        expected_response_data = {'result': None, 'status': 'waiting'}
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertEqual(expected_response_data, actual_response_data)
+
+    def test_post(self):
+        dataset_ref = add_dataset(self.ctx, new_test_dataset(42))
+        dataset_id = dataset_ref.id
+
+        expected_qc_info = QcInfo(QC_INFO_STATUS_PASSED,
+                                  dict(by='Illaria',
+                                       when="2019-02-01",
+                                       doc_files=["qc-report.docx"]))
+        body = tornado.escape.json_encode(expected_qc_info.to_dict())
+        response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}/qcinfo", method='POST', body=body)
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_qc_info = get_dataset_qc_info(self.ctx, dataset_id)
+        self.assertEqual(expected_qc_info, actual_qc_info)
 
 
 class DocfilesTest(WsTestCase):

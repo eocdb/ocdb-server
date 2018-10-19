@@ -29,6 +29,7 @@ from ...core.models.dataset_query import DatasetQuery
 from ...core.models.dataset_query_result import DatasetQueryResult
 from ...core.models.dataset_ref import DatasetRef
 from ...core.models.dataset_validation_result import DatasetValidationResult
+from ...core.models.qc_info import QcInfo, QC_INFO_STATUS_WAITING
 from ...core.val import validator
 from ...ws.errors import WsResourceNotFoundError, WsBadRequestError, WsNotImplementedError
 
@@ -155,3 +156,22 @@ def get_dataset_by_name(ctx: WsContext,
     assert_not_none(name, name='name')
     # TODO (generated): implement operation get_dataset_by_bucket_and_name()
     raise WsNotImplementedError('Operation get_dataset_by_bucket_and_name() not yet implemented')
+
+
+# noinspection PyUnusedLocal
+def get_dataset_qc_info(ctx: WsContext,
+                        dataset_id: str) -> QcInfo:
+    assert_not_none(dataset_id, name='dataset_id')
+    dataset = ctx.db_driver.get_dataset(dataset_id)
+    qc_info_dict = dataset.metadata.get("qc_info")
+    return QcInfo.from_dict(qc_info_dict) if qc_info_dict else QcInfo(QC_INFO_STATUS_WAITING)
+
+
+# noinspection PyUnusedLocal
+def set_dataset_qc_info(ctx: WsContext,
+                        dataset_id: str,
+                        qc_info: QcInfo):
+    assert_not_none(dataset_id, name='dataset_id')
+    dataset = ctx.db_driver.get_dataset(dataset_id)
+    dataset.metadata["qc_info"] = qc_info.to_dict()
+    ctx.db_driver.update_dataset(dataset)
