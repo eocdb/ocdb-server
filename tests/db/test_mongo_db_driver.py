@@ -56,6 +56,18 @@ class TestMongoDbDriver(unittest.TestCase):
         result = self._driver.get_dataset(None)
         self.assertIsNone(result)
 
+    def test_insert_two_and_get_empty_expression(self):
+        dataset = helpers.new_test_dataset(1)
+        dataset.metadata["source"] = "we_don_t_care"
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_dataset(2)
+        dataset.metadata["source"] = "we_want_this"
+        self._driver.add_dataset(dataset)
+
+        result = self._driver.find_datasets(DatasetQuery())
+        self.assertEqual(2, result.total_count)
+
     def test_insert_two_and_get_by_metadata_field(self):
         dataset = helpers.new_test_dataset(3)
         dataset.metadata["source"] = "we_don_t_care"

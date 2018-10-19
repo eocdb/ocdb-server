@@ -53,10 +53,13 @@ class MongoDbDriver(DbDriver):
     def find_datasets(self, query: DatasetQuery) -> DatasetQueryResult:
         start_index, end_index = MongoDbDriver._get_start_index_and_page_size(query)
 
-        q = QueryParser.parse(query.expr)
-        q.accept(self._query_generator)
+        query_dict = {}
+        if query.expr is not None:
+            q = QueryParser.parse(query.expr)
+            q.accept(self._query_generator)
+            query_dict = self._query_generator.query
 
-        cursor = self._collection.find(self._query_generator.query)
+        cursor = self._collection.find(query_dict)
 
         dataset_refs = []
         index = 0
