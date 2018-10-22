@@ -59,20 +59,17 @@ class MongoDbDriver(DbDriver):
             q.accept(self._query_generator)
             query_dict = self._query_generator.query
 
-        cursor = self._collection.find(query_dict)
+        cursor = self._collection.find(query_dict, skip=start_index, limit=count)
 
         dataset_refs = []
-        index = 0
         for dataset_dict in cursor:
-            if index >= start_index and (count == -1 or index < start_index + count):
-                dataset_id = str(dataset_dict.get("_id"))
-                name = dataset_dict.get("name")
-                relative_path = dataset_dict.get("path")
-                dataset_ref = DatasetRef(dataset_id, relative_path, name)
-                dataset_refs.append(dataset_ref)
-            index += 1
+            dataset_id = str(dataset_dict.get("_id"))
+            name = dataset_dict.get("name")
+            relative_path = dataset_dict.get("path")
+            dataset_ref = DatasetRef(dataset_id, relative_path, name)
+            dataset_refs.append(dataset_ref)
 
-        return DatasetQueryResult(index, dataset_refs, query)
+        return DatasetQueryResult(len(dataset_refs), dataset_refs, query)
 
     @staticmethod
     def _get_start_index_and_count(query):
@@ -84,7 +81,7 @@ class MongoDbDriver(DbDriver):
             start_index = query.offset - 1
 
         if query.count is None:
-            count = -1
+            count = 0
         else:
             count = query.count
         return start_index, count

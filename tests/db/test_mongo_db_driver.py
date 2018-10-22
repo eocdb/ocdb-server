@@ -233,6 +233,61 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(1, result.total_count)
         self.assertEqual("dataset-14", result.datasets[0].name)
 
+    def test_get_offset_only(self):
+        for i in range(0, 10):
+            dataset = helpers.new_test_dataset(i)
+            self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(offset=1)
+        result = self._driver.find_datasets(query)
+        self.assertEqual(10, result.total_count)
+        self.assertEqual("dataset-0", result.datasets[0].name)
+
+        query = DatasetQuery(offset=2)
+        result = self._driver.find_datasets(query)
+        self.assertEqual(9, result.total_count)
+        self.assertEqual("dataset-1", result.datasets[0].name)
+
+        query = DatasetQuery(offset=6)
+        result = self._driver.find_datasets(query)
+        self.assertEqual(5, result.total_count)
+        self.assertEqual("dataset-5", result.datasets[0].name)
+
+    def test_get_count_only(self):
+        for i in range(0, 10):
+            dataset = helpers.new_test_dataset(i)
+            self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(count=4)
+        result = self._driver.find_datasets(query)
+        self.assertEqual(4, result.total_count)
+        self.assertEqual("dataset-0", result.datasets[0].name)
+
+        query = DatasetQuery(count=7)
+        result = self._driver.find_datasets(query)
+        self.assertEqual(7, result.total_count)
+        self.assertEqual("dataset-0", result.datasets[0].name)
+
+    def test_get_offset_and_count(self):
+        for i in range(0, 10):
+            dataset = helpers.new_test_dataset(i)
+            self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(offset=2, count=4)
+        result = self._driver.find_datasets(query)
+        self.assertEqual(4, result.total_count)
+        self.assertEqual("dataset-1", result.datasets[0].name)
+
+        query = DatasetQuery(offset=5, count=3)
+        result = self._driver.find_datasets(query)
+        self.assertEqual(3, result.total_count)
+        self.assertEqual("dataset-4", result.datasets[0].name)
+
+        query = DatasetQuery(offset=8, count=5)
+        result = self._driver.find_datasets(query)
+        self.assertEqual(3, result.total_count)
+        self.assertEqual("dataset-7", result.datasets[0].name)
+
     def test_insert_two_and_get_by_location(self):
         pass
         # doc = {"affiliations": "UCSB",
@@ -277,7 +332,7 @@ class TestMongoDbDriver(unittest.TestCase):
 
         query.offset = 14
         query.count = None
-        self.assertEqual((13, -1), self._driver._get_start_index_and_count(query))
+        self.assertEqual((13, 0), self._driver._get_start_index_and_count(query))
 
     def test_get_get_start_index_and_page_size_raises_on_offset_zero(self):
         query = DatasetQuery()
