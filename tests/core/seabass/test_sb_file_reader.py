@@ -55,25 +55,26 @@ class SbFileReaderTest(unittest.TestCase):
                    '05:42:49,0.40000000,56.61060942,122.66957337,132.33737132,114.44906813,121.14584599,129.14107229,164.93812382,153.82678513,107.74022908,74.84475416,112.73332494,117.61951804,44.97546967,12.29104733,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999',
                    '05:42:50,0.50000000,56.90948085,115.97783666,171.51381329,100.38906060,161.96556721,113.75394300,113.36437951,77.19171621,94.68081637,74.03389812,80.24165958,92.87650441,41.91937544,7.05047058,-999,-999,-999,-999,-999,-999,-999,2.32841663,53.06609583,27.46488778,0.37780480']
 
-        document = self.reader._parse(sb_file)
+        dataset = self.reader._parse(sb_file)
         self.assertEqual({'affiliations': 'IMARPE','data_file_name': 'pro_03_04AA_L2s.dat', 'data_type': 'cast', 'data_status': 'preliminary',
                           'experiment': 'LAMONT_SCS', 'cruise': 'jun16scs', 'station': '03_04', 'delimiter': 'comma',
                           'east_longitude': '109.587[DEG]', 'west_longitude': '109.587[DEG]',
-                          'north_latitude': '11.713[DEG]', 'south_latitude': '11.713[DEG]', 'start_date': '20020616'}, document.metadata)
+                          'north_latitude': '11.713[DEG]', 'south_latitude': '11.713[DEG]', 'start_date': '20020616'}, dataset.metadata)
 
-        self.assertEqual(27, document.attribute_count)
-        self.assertEqual("time", document.attribute_names[0])
-        self.assertEqual("lu470.4", document.attribute_names[17])
+        self.assertEqual(27, dataset.attribute_count)
+        self.assertEqual("time", dataset.attribute_names[0])
+        self.assertEqual("lu470.4", dataset.attribute_names[17])
 
-        self.assertEqual(2, document.record_count)
-        self.assertEqual('05:42:50', document.records[1][0])
-        self.assertAlmostEqual(56.90948085, document.records[1][2])
-        self.assertEqual(-999, document.records[1][21])
-        self.assertEqual(27, len(document.records[0]))
+        self.assertEqual(2, dataset.record_count)
+        self.assertEqual('05:42:50', dataset.records[1][0])
+        self.assertAlmostEqual(56.90948085, dataset.records[1][2])
+        self.assertEqual(-999, dataset.records[1][21])
+        self.assertEqual(27, len(dataset.records[0]))
 
-        self.assertEqual(1, len(document.geo_locations))
-        self.assertAlmostEqual(109.587, document.geo_locations[0]["lon"], 8)
-        self.assertAlmostEqual(11.713, document.geo_locations[0]["lat"], 8)
+        self.assertEqual(1, len(dataset.longitudes))
+        self.assertEqual(1, len(dataset.latitudes))
+        self.assertAlmostEqual(109.587, dataset.longitudes[0], 8)
+        self.assertAlmostEqual(11.713, dataset.latitudes[0], 8)
 
     def test_parse_location_in_records_time_info_in_separate_record_fields(self):
         sb_file = ['/begin_header\n',
@@ -85,25 +86,26 @@ class SbFileReaderTest(unittest.TestCase):
                    '1992 03 01 23 04 00 12.00 -110.03 0.4600 46\n',
                    '1992 03 01 23 04 00 12.00 -110.03 0.3600 70\n']
 
-        document = self.reader._parse(sb_file)
-        self.assertEqual({'delimiter': 'space'}, document.metadata)
+        dataset = self.reader._parse(sb_file)
+        self.assertEqual({'delimiter': 'space'}, dataset.metadata)
 
-        self.assertEqual(10, document.attribute_count)
-        self.assertEqual("month", document.attribute_names[1])
-        self.assertEqual("second", document.attribute_names[5])
+        self.assertEqual(10, dataset.attribute_count)
+        self.assertEqual("month", dataset.attribute_names[1])
+        self.assertEqual("second", dataset.attribute_names[5])
 
-        self.assertEqual(4, document.record_count)
-        self.assertEqual(3, document.records[2][1])
-        self.assertEqual(23, document.records[2][3])
-        self.assertAlmostEqual(-110.03, document.records[2][7], 8)
-        self.assertEqual(11, len(document.records[0]))  # @todo 3 tb/tb why is this 11 - we just have 10 data fields
+        self.assertEqual(4, dataset.record_count)
+        self.assertEqual(3, dataset.records[2][1])
+        self.assertEqual(23, dataset.records[2][3])
+        self.assertAlmostEqual(-110.03, dataset.records[2][7], 8)
+        self.assertEqual(11, len(dataset.records[0]))  # @todo 3 tb/tb why is this 11 - we just have 10 data fields
 
-        self.assertEqual(4, len(document.geo_locations))
-        self.assertAlmostEqual(-110.03, document.geo_locations[1]["lon"], 8)
-        self.assertAlmostEqual(12.0, document.geo_locations[1]["lat"], 8)
+        self.assertEqual(4, len(dataset.longitudes))
+        self.assertEqual(4, len(dataset.latitudes))
+        self.assertAlmostEqual(-110.03, dataset.longitudes[1], 8)
+        self.assertAlmostEqual(12.0, dataset.latitudes[1], 8)
 
-        self.assertEqual(4, len(document.times))
-        self.assertEqual(datetime.datetime(1992, 3, 1, 23, 4, 0), document.times[3])
+        self.assertEqual(4, len(dataset.times))
+        self.assertEqual(datetime.datetime(1992, 3, 1, 23, 4, 0), dataset.times[3])
 
     def test_parse_location_in_records_time_info_in_separate_record_fields_missing_seconds(self):
         sb_file = ['/begin_header\n',
@@ -115,25 +117,26 @@ class SbFileReaderTest(unittest.TestCase):
                    '1992 03 01 23 04 12.00 -110.03 0.4600 46\n',
                    '1992 03 01 23 04 12.00 -110.03 0.3600 70\n']
 
-        document = self.reader._parse(sb_file)
-        self.assertEqual({'delimiter': 'space'}, document.metadata)
+        dataset = self.reader._parse(sb_file)
+        self.assertEqual({'delimiter': 'space'}, dataset.metadata)
 
-        self.assertEqual(9, document.attribute_count)
-        self.assertEqual("month", document.attribute_names[1])
-        self.assertEqual("lon", document.attribute_names[6])
+        self.assertEqual(9, dataset.attribute_count)
+        self.assertEqual("month", dataset.attribute_names[1])
+        self.assertEqual("lon", dataset.attribute_names[6])
 
-        self.assertEqual(4, document.record_count)
-        self.assertEqual(3, document.records[2][1])
-        self.assertEqual(23, document.records[2][3])
-        self.assertAlmostEqual(0.46, document.records[2][7], 8)
-        self.assertEqual(10, len(document.records[0]))
+        self.assertEqual(4, dataset.record_count)
+        self.assertEqual(3, dataset.records[2][1])
+        self.assertEqual(23, dataset.records[2][3])
+        self.assertAlmostEqual(0.46, dataset.records[2][7], 8)
+        self.assertEqual(10, len(dataset.records[0]))
 
-        self.assertEqual(4, len(document.geo_locations))
-        self.assertAlmostEqual(-110.03, document.geo_locations[1]["lon"], 8)
-        self.assertAlmostEqual(12.0, document.geo_locations[1]["lat"], 8)
+        self.assertEqual(4, len(dataset.latitudes))
+        self.assertEqual(4, len(dataset.longitudes))
+        self.assertAlmostEqual(-110.03, dataset.longitudes[1], 8)
+        self.assertAlmostEqual(12.0, dataset.latitudes[1], 8)
 
-        self.assertEqual(4, len(document.times))
-        self.assertEqual(datetime.datetime(1992, 3, 1, 23, 4, 0), document.times[3])
+        self.assertEqual(4, len(dataset.times))
+        self.assertEqual(datetime.datetime(1992, 3, 1, 23, 4, 0), dataset.times[3])
 
     def test_parse_time_in_header(self):
         sb_file = ['/begin_header\n',
@@ -152,13 +155,13 @@ class SbFileReaderTest(unittest.TestCase):
                    '5.000000 0.158000\n',
                    '6.000000 0.158000\n']
 
-        document = self.reader._parse(sb_file)
+        dataset = self.reader._parse(sb_file)
         self.assertEqual({'delimiter': 'space', 'east_longitude': '125.198[DEG]', 'end_date': '20010723',
                           'end_time': '00:08:00[GMT]','north_latitude': '26.957[DEG]', 'start_date': '20010723',
-                          'start_time': '00:08:00[GMT]'}, document.metadata)
+                          'start_time': '00:08:00[GMT]'}, dataset.metadata)
 
-        self.assertEqual(1, len(document.times))
-        self.assertEqual(datetime.datetime(2001, 7, 23, 0, 8, 0), document.times[0])
+        self.assertEqual(1, len(dataset.times))
+        self.assertEqual(datetime.datetime(2001, 7, 23, 0, 8, 0), dataset.times[0])
 
     def test_parse_time_in_records_date_time(self):
         sb_file = ['/begin_header\n',
@@ -177,13 +180,13 @@ class SbFileReaderTest(unittest.TestCase):
                    '20010510 04:37:00 0.0 1.0310 303\n',
                    '20010510 04:37:00 0.0 1.0290 304\n']
 
-        document = self.reader._parse(sb_file)
+        dataset = self.reader._parse(sb_file)
         self.assertEqual({'delimiter': 'space', 'east_longitude': '114.196[DEG]', 'end_date': '20010510',
                           'end_time': '04:37:00[GMT]','north_latitude': '22.442[DEG]', 'start_date': '20010510',
-                          'start_time': '04:37:00[GMT]'}, document.metadata)
+                          'start_time': '04:37:00[GMT]'}, dataset.metadata)
 
-        self.assertEqual(5, len(document.times))
-        self.assertEqual(datetime.datetime(2001, 5, 10, 4, 37, 0), document.times[2])
+        self.assertEqual(5, len(dataset.times))
+        self.assertEqual(datetime.datetime(2001, 5, 10, 4, 37, 0), dataset.times[2])
 
     def test_extract_delimiter_regex(self):
         metadata = {'delimiter': 'comma'}
@@ -259,6 +262,7 @@ class SbFileReaderTest(unittest.TestCase):
 
         self.reader._extract_geo_location_form_header(dataset)
 
-        self.assertEqual(1, len(dataset.geo_locations))
-        self.assertAlmostEqual(22.7, dataset.geo_locations[0]['lon'], 8)
-        self.assertAlmostEqual(-17.09, dataset.geo_locations[0]['lat'], 8)
+        self.assertEqual(1, len(dataset.longitudes))
+        self.assertEqual(1, len(dataset.latitudes))
+        self.assertAlmostEqual(22.7, dataset.longitudes[0], 8)
+        self.assertAlmostEqual(-17.09, dataset.latitudes[0], 8)

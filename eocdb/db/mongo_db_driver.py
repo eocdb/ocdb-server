@@ -61,6 +61,10 @@ class MongoDbDriver(DbDriver):
             q.accept(self._query_generator)
             query_dict = self._query_generator.query
 
+        if query.region is not None:
+            query_dict["longitudes"] = {'$gte' : query.region[0], '$lte' : query.region[2]}
+            query_dict["latitudes"] = {'$gte' : query.region[1], '$lte' : query.region[3]}
+
         cursor = self._collection.find(query_dict, skip=start_index, limit=count)
         total_num_results = self._collection.count_documents(query_dict)
         num_results = total_num_results - start_index
@@ -70,16 +74,12 @@ class MongoDbDriver(DbDriver):
         else:
             dataset_refs = []
             for dataset_dict in cursor:
-                dataset_id = str(dataset_dict.get("_id"))
-                name = dataset_dict.get("name")
-                relative_path = dataset_dict.get("path")
-                dataset_ref = DatasetRef(dataset_id, relative_path, name)
-                dataset_refs.append(dataset_ref)
+                dataset_refs.append(self._to_dataset_ref(dataset_dict))
 
             return DatasetQueryResult(num_results, dataset_refs, query)
 
     @staticmethod
-    def _get_start_index_and_count(query):
+    def _get_start_index_and_count(query) -> (int, int):
         if query.offset is None:
             start_index = 0
         elif query.offset == 0:
@@ -165,3 +165,9 @@ class MongoDbDriver(DbDriver):
                 config["host"] = uri
                 del config[key]
         self._config = config
+
+    def _to_dataset_ref(self, dataset_dict):
+        dataset_id = str(dataset_dict.get("_id"))
+        name = dataset_dict.get("name")
+        relative_path = dataset_dict.get("path")
+        return DatasetRef(dataset_id, relative_path, name)

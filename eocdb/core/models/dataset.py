@@ -56,6 +56,8 @@ class Dataset(Model):
         self._status = status
         self._metadata = metadata
         self._records = records
+        self._longitudes = []
+        self._latitudes = []
 
     @property
     def id(self) -> Optional[str]:
@@ -110,3 +112,21 @@ class Dataset(Model):
     def records(self, value: List[List[float]]):
         assert_not_none(value, name='value')
         self._records = value
+
+    @property
+    def longitudes(self) -> List[float]:
+        return self._longitudes
+
+    @longitudes.setter
+    def longitudes(self, value: List[float]):
+        assert_not_none(value, name='longitudes')
+        self._longitudes = value
+
+    @property
+    def latitudes(self) -> List[float]:
+        return self._latitudes
+
+    @latitudes.setter
+    def latitudes(self, value: List[float]):
+        assert_not_none(value, name='latitudes')
+        self._latitudes = value

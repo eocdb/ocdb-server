@@ -21,7 +21,6 @@ class DbDataset(Dataset):
             records,
             id_)
         self._attributes = []
-        self._geo_locations = []
         self._times = []
 
     def add_metadatum(self, key, value):
@@ -52,12 +51,9 @@ class DbDataset(Dataset):
     def add_record(self, record):
         self._records.append(record)
 
-    @property
-    def geo_locations(self) -> List[List]:
-        return self._geo_locations
-
     def add_geo_location(self, lon, lat):
-        self._geo_locations.append({'lon': lon, 'lat': lat})
+        self._longitudes.append(lon)
+        self._latitudes.append(lat)
 
     @property
     def times(self) -> List[datetime.datetime]:
@@ -68,7 +64,6 @@ class DbDataset(Dataset):
 
     def to_dict(self) -> Dict[str, Any]:
         result_dict = super().to_dict()
-        result_dict.update({'geo_locations': self._geo_locations})
         converted_times = []
         for time in self._times:
             converted_times.append(time.isoformat())

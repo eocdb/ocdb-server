@@ -28,7 +28,8 @@ class DbDatsetTest(TestCase):
 
     def test_to_dict_empty(self):
         self.assertEqual({'attributes': [],
-                          'geo_locations': [],
+                          'latitudes': [],
+                          'longitudes': [],
                           'id': None,
                           'metadata': {},
                           'name': 'dataset-3',  # comes from test-dataset
@@ -50,7 +51,8 @@ class DbDatsetTest(TestCase):
         self.dataset.add_record(record_2)
 
         self.assertEqual({'attributes': ['lat', 'lon', 'chl'],
-                          'geo_locations': [{'lat': 18.076, 'lon': -107.23}],
+                          'latitudes': [18.076],
+                          'longitudes': [-107.23],
                           'id': None,
                           'metadata': {'key_1': 'value_1', 'key_2': 'value_2'},
                           'name': 'dataset-3',
@@ -80,14 +82,19 @@ class DbDatsetTest(TestCase):
         self.assertEqual("value_2", self.dataset.metadata["key_2"])
 
     def test_add_geo_location_and_get(self):
-        self.assertEqual(0, len(self.dataset.geo_locations))
+        self.assertEqual(0, len(self.dataset.longitudes))
+        self.assertEqual(0, len(self.dataset.latitudes))
 
         self.dataset.add_geo_location(12, 13)
         self.dataset.add_geo_location(14, 15)
 
-        self.assertEqual(2, len(self.dataset.geo_locations))
-        self.assertAlmostEqual(14.0, self.dataset.geo_locations[1]['lon'], 8)
-        self.assertAlmostEqual(15.0, self.dataset.geo_locations[1]['lat'], 8)
+        self.assertEqual(2, len(self.dataset.longitudes))
+        self.assertAlmostEqual(12.0, self.dataset.longitudes[0], 8)
+        self.assertAlmostEqual(14.0, self.dataset.longitudes[1], 8)
+
+        self.assertEqual(2, len(self.dataset.latitudes))
+        self.assertAlmostEqual(13.0, self.dataset.latitudes[0], 8)
+        self.assertAlmostEqual(15.0, self.dataset.latitudes[1], 8)
 
     def test_add_times_and_get(self):
         self.assertEqual(0, len(self.dataset.times))

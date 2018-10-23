@@ -49,7 +49,7 @@ class SbFileReader:
             with open(file_obj, 'r') as fp:
                 return self._parse(fp.readlines())
 
-    def _parse(self, lines: Sequence[str]) -> Dataset:
+    def _parse(self, lines: Sequence[str]) -> DbDataset:
 
         self._lines = lines
 

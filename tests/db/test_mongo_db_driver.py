@@ -30,7 +30,7 @@ class TestMongoDbDriver(unittest.TestCase):
         dataset.metadata["received"] = "20160829"
         dataset.metadata["investigators"] = "Norm_Nelson"
 
-        dataset.records = [[109.8,  -38.4, 998, 20, 36],
+        dataset.records = [[109.8, -38.4, 998, 20, 36],
                            [109.9, -38.3, 998, 20, 35]]
 
         ds_id = self._driver.add_dataset(dataset)
@@ -305,37 +305,18 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual("dataset-3", result.datasets[0].name)
 
     def test_insert_two_and_get_by_location(self):
-        pass
-        # doc = {"affiliations": "UCSB",
-        #        "received": 20160829,
-        #        "investigators": "Norm_Nelson",
-        #        "records": [{"lon": 109.7, "lat": -38.3, "station": 998, "depth": 20, "sample": 36},
-        #                    {"lon": 109.9, "lat": -38.5, "station": 998, "depth": 20, "sample": 35}]}
-        #
-        # self.driver.insert(doc)
-        #
-        # doc = {"affiliations": "Laboratoire_Optique_Atmospherique",
-        #        "received": 20020321,
-        #        "investigators": "Pierre_Yves_Deschamps",
-        #        "records": [{"lon": -122.26, "lat": 30.52, "SZA": 44.62, "pressure_atm": -9, "wind": -9},
-        #                    {"lon": -122.26, "lat": 30.52, "SZA": 39.11, "pressure_atm": -9, "wind": -9}]}
-        #
-        # self.driver.insert(doc)
-        #
-        # dataset_list = self.driver.get()
-        # self.assertEqual(2, len(dataset_list))
-        #
-        # P = QueryParser
-        # expression = P.parse("lon:[107 TO 110] AND lat:[-40 TO -35]")
-        #
-        # dataset_list = self.driver.get(expression)
-        # self.assertEqual(1, len(dataset_list))
-        # self.assertEqual("UCSB", dataset_list[0].metadata["affiliations"])
-        #
-        # expression = P.parse("lon:[-125 TO -120] AND lat:[29 TO 31]")
-        # dataset_list = self.driver.get(expression)
-        # self.assertEqual(1, len(dataset_list))
-        # self.assertEqual("Laboratoire_Optique_Atmospherique", dataset_list[0].metadata["affiliations"])
+        dataset = helpers.new_test_db_dataset(11)
+        dataset.add_geo_location(lon=-76.3461, lat=39.0652)
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(12)
+        dataset.add_geo_location(lon=-76.4373, lat=38.7354)
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(region=[-77.0, 38.0, -76.0, 38.9])  # covers second dataset tb 2018-10-23
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
 
     def test_get_get_start_index_and_page_size(self):
         query = DatasetQuery()
@@ -365,6 +346,14 @@ class TestMongoDbDriver(unittest.TestCase):
         query.offset = 1
         query.count = -1
         self.assertEqual((0, 0), self._driver._get_start_index_and_count(query))
+
+    def test_to_dataset_ref(self):
+        dataset_dict = {"_id": "nasenmann.org", "name": "Rosamunde", "path": "/where/is/your/mama/gone"}
+
+        dataset_ref = self._driver._to_dataset_ref(dataset_dict)
+        self.assertEqual("nasenmann.org", dataset_ref.id)
+        self.assertEqual("Rosamunde", dataset_ref.name)
+        self.assertEqual("/where/is/your/mama/gone", dataset_ref.path)
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):
