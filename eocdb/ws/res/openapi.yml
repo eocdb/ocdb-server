@@ -844,9 +844,6 @@ components:
     Dataset:
       type: object
       required:
-        - path
-        - name
-        - status
         - metadata
         - records
       properties:
@@ -854,16 +851,6 @@ components:
           type: string
         path:
           type: string
-        name:
-          type: string
-        status:
-          type: string
-          description: Dataset status in the store.
-          enum:
-            - new
-            - validating
-            - available
-            - hidden
         metadata:
           type: object
         records:

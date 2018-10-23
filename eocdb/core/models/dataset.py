@@ -22,38 +22,22 @@
 
 from typing import Dict, List, Optional, Union
 
-from ..asserts import assert_not_none, assert_one_of
+from ..asserts import assert_not_none
 from ..model import Model
-
-DATASET_STATUS_NEW = 'new'
-DATASET_STATUS_VALIDATING = 'validating'
-DATASET_STATUS_AVAILABLE = 'available'
-DATASET_STATUS_HIDDEN = 'hidden'
 
 
 class Dataset(Model):
     Field = Union[str, int, float]
 
-    """
-    The Dataset model.
-    """
     def __init__(self,
-                 path: str,
-                 name: str,
-                 status: str,
                  metadata: Dict,
                  records: List[List[Field]],
-                 id_: str = None):
-        assert_not_none(path, name='path')
-        assert_not_none(name, name='name')
-        assert_not_none(status, name='status')
-        assert_one_of(status, ['new', 'validating', 'available', 'hidden'], name='status')
+                 id_: str = None,
+                 path: str = None):
         assert_not_none(metadata, name='metadata')
         assert_not_none(records, name='records')
         self._id = id_
         self._path = path
-        self._name = name
-        self._status = status
         self._metadata = metadata
         self._records = records
 
@@ -66,32 +50,12 @@ class Dataset(Model):
         self._id = value
 
     @property
-    def path(self) -> str:
+    def path(self) -> Optional[str]:
         return self._path
 
     @path.setter
-    def path(self, value: path):
-        assert_not_none(value, name='value')
+    def path(self, value: Optional[str]):
         self._path = value
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @name.setter
-    def name(self, value: str):
-        assert_not_none(value, name='value')
-        self._name = value
-
-    @property
-    def status(self) -> str:
-        return self._status
-
-    @status.setter
-    def status(self, value: str):
-        assert_not_none(value, name='value')
-        assert_one_of(value, ['new', 'validating', 'available', 'hidden'], name='value')
-        self._status = value
 
     @property
     def metadata(self) -> Dict:
