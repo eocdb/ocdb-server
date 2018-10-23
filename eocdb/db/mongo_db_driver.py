@@ -4,7 +4,7 @@ import bson.objectid
 import pymongo
 import pymongo.errors
 
-from eocdb.core import QueryParser
+from ..core import QueryParser
 from ..db.mongo_query_generator import MongoQueryGenerator
 from ..core.db.db_driver import DbDriver
 from ..core.db.errors import OperationalError
@@ -24,9 +24,11 @@ class MongoDbDriver(DbDriver):
         obj_id = self._obj_id(dataset.id)
         if obj_id is None:
             return False
+
         dataset_dict = dataset.to_dict()
         if "id" in dataset_dict:
             del dataset_dict["id"]
+
         result = self._collection.replace_one({"_id": obj_id}, dataset_dict, upsert=True)
         return result.modified_count == 1
 
@@ -59,20 +61,22 @@ class MongoDbDriver(DbDriver):
             q.accept(self._query_generator)
             query_dict = self._query_generator.query
 
-        cursor = self._collection.find(query_dict)
+        cursor = self._collection.find(query_dict, skip=start_index, limit=count)
+        total_num_results = self._collection.count_documents(query_dict)
+        num_results = total_num_results - start_index
 
-        dataset_refs = []
-        index = 0
-        for dataset_dict in cursor:
-            if index >= start_index and (count == -1 or index < start_index + count):
+        if query.count == 0:
+            return DatasetQueryResult(num_results, [], query)
+        else:
+            dataset_refs = []
+            for dataset_dict in cursor:
                 dataset_id = str(dataset_dict.get("_id"))
                 name = dataset_dict.get("name")
                 relative_path = dataset_dict.get("path")
                 dataset_ref = DatasetRef(dataset_id, relative_path, name)
                 dataset_refs.append(dataset_ref)
-            index += 1
 
-        return DatasetQueryResult(index, dataset_refs, query)
+            return DatasetQueryResult(num_results, dataset_refs, query)
 
     @staticmethod
     def _get_start_index_and_count(query):
@@ -83,8 +87,8 @@ class MongoDbDriver(DbDriver):
         else:
             start_index = query.offset - 1
 
-        if query.count is None:
-            count = -1
+        if query.count is None or query.count == -1:
+            count = 0
         else:
             count = query.count
         return start_index, count
