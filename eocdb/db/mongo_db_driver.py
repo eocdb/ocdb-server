@@ -13,6 +13,9 @@ from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
 
+LAT_INDEX_NAME = "_latitudes_"
+LON_INDEX_NAME = "_longitudes_"
+
 
 class MongoDbDriver(DbDriver):
 
@@ -62,8 +65,8 @@ class MongoDbDriver(DbDriver):
             query_dict = self._query_generator.query
 
         if query.region is not None:
-            query_dict["longitudes"] = {'$gte' : query.region[0], '$lte' : query.region[2]}
-            query_dict["latitudes"] = {'$gte' : query.region[1], '$lte' : query.region[3]}
+            query_dict["longitudes"] = {'$gte': query.region[0], '$lte': query.region[2]}
+            query_dict["latitudes"] = {'$gte': query.region[1], '$lte': query.region[3]}
 
         cursor = self._collection.find(query_dict, skip=start_index, limit=count)
         total_num_results = self._collection.count_documents(query_dict)
@@ -140,6 +143,7 @@ class MongoDbDriver(DbDriver):
         self._db = self._client.eocdb
         # Create collection "eocdb.sb_datasets"
         self._collection = self._client.eocdb.sb_datasets
+        self._ensure_indices()
 
     def close(self):
         if self._client is not None:
@@ -166,8 +170,16 @@ class MongoDbDriver(DbDriver):
                 del config[key]
         self._config = config
 
-    def _to_dataset_ref(self, dataset_dict):
+    @staticmethod
+    def _to_dataset_ref(dataset_dict):
         dataset_id = str(dataset_dict.get("_id"))
         name = dataset_dict.get("name")
         relative_path = dataset_dict.get("path")
         return DatasetRef(dataset_id, relative_path, name)
+
+    def _ensure_indices(self):
+        index_information = self._collection.index_information()
+        if not LON_INDEX_NAME in index_information:
+            self._collection.create_index(LON_INDEX_NAME, background=True)
+        if not LAT_INDEX_NAME in index_information:
+            self._collection.create_index(LAT_INDEX_NAME, background=True)
