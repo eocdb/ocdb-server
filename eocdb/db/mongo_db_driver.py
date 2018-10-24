@@ -180,6 +180,6 @@ class MongoDbDriver(DbDriver):
     def _ensure_indices(self):
         index_information = self._collection.index_information()
         if not LON_INDEX_NAME in index_information:
-            self._collection.create_index(LON_INDEX_NAME, background=True)
+            self._collection.create_index("longitude", name=LON_INDEX_NAME, background=True)
         if not LAT_INDEX_NAME in index_information:
-            self._collection.create_index(LAT_INDEX_NAME, background=True)
+            self._collection.create_index("latitude", name=LAT_INDEX_NAME, background=True)
