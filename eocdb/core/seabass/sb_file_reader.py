@@ -229,6 +229,9 @@ class SbFileReader:
 
             record = []
             for token in tokens:
+                if len(token) < 1:
+                    continue
+
                 if self._is_number(token):
                     if self._is_integer(token):
                         record.append(int(token))

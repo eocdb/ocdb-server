@@ -317,6 +317,62 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
+        self.assertEqual("dataset-12", result.datasets[0].name)
+
+    def test_insert_two_and_get_by_location_many_records(self):
+        dataset = helpers.new_test_db_dataset(13)
+        dataset.add_geo_location(lon=-69.8150, lat=42.7250)
+        dataset.add_geo_location(lon=-69.8167, lat=42.7158)
+        dataset.add_geo_location(lon=-69.7675, lat=43.1685)
+        dataset.add_geo_location(lon=-70.2030, lat=43.1400)
+        dataset.add_geo_location(lon=-70.2053, lat=42.5045)
+        dataset.add_geo_location(lon=-69.5458, lat=42.7790)
+        dataset.add_geo_location(lon=-69.1059, lat=42.5036)
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(14)
+        dataset.add_geo_location(lon=-158.750, lat=20.421)
+        dataset.add_geo_location(lon=-160.182, lat=18.892)
+        dataset.add_geo_location(lon=-161.317, lat=17.672)
+        dataset.add_geo_location(lon=-163.296, lat=15.519)
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(region=[-71.0, 43.0, -70.0, 43.5])  # covers first dataset tb 2018-10-24
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("dataset-13", result.datasets[0].name)
+
+    def test_insert_two_and_get_by_location_and_metadata(self):
+        dataset = helpers.new_test_db_dataset(15)
+        dataset.metadata["data_status"] = "final"
+        dataset.add_geo_location(lon=82, lat=-10)
+        dataset.add_geo_location(lon=82.5, lat=-10.3)
+        dataset.add_geo_location(lon=82.8, lat=-10.19)
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(16)
+        dataset.metadata["data_status"] = "test"
+        dataset.add_geo_location(lon=16.8, lat=-72.34)
+        dataset.add_geo_location(lon=16.7, lat=-71.98)
+        dataset.add_geo_location(lon=16.69, lat=-72.11)
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(expr='data_status: test', region=[15.0, -75.0, 17.0, -70.0])  # covers second dataset tb 2018-10-24
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("dataset-16", result.datasets[0].name)
+
+        query = DatasetQuery(expr='data_status: test', region=[25.0, -75.0, 27.0, -70.0])  # region does not match tb 2018-10-24
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(0, result.total_count)
+
+        query = DatasetQuery(expr='data_status: experimental', region=[15.0, -75.0, 17.0, -70.0])  # status does not match tb 2018-10-24
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(0, result.total_count)
 
     def test_get_get_start_index_and_page_size(self):
         query = DatasetQuery()

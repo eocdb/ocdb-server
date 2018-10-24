@@ -97,7 +97,7 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertEqual(3, dataset.records[2][1])
         self.assertEqual(23, dataset.records[2][3])
         self.assertAlmostEqual(-110.03, dataset.records[2][7], 8)
-        self.assertEqual(11, len(dataset.records[0]))  # @todo 3 tb/tb why is this 11 - we just have 10 data fields
+        self.assertEqual(10, len(dataset.records[0]))
 
         self.assertEqual(4, len(dataset.longitudes))
         self.assertEqual(4, len(dataset.latitudes))
@@ -128,7 +128,7 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertEqual(3, dataset.records[2][1])
         self.assertEqual(23, dataset.records[2][3])
         self.assertAlmostEqual(0.46, dataset.records[2][7], 8)
-        self.assertEqual(10, len(dataset.records[0]))
+        self.assertEqual(9, len(dataset.records[0]))
 
         self.assertEqual(4, len(dataset.latitudes))
         self.assertEqual(4, len(dataset.longitudes))
