@@ -22,19 +22,17 @@ def get_test_res_dir() -> str:
 
 
 def new_test_dataset(n: int = 0):
-    return Dataset(f"relative_path-{n}",
-                   f"dataset-{n}",
-                   "new",
-                   dict(fields=["a", "b", "c"]),
-                   [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]])
+    return _new_test_dataset(Dataset, n)
 
 
 def new_test_db_dataset(n: int = 0):
-    return DbDataset(f"relative_path-{n}",
-                     f"dataset-{n}",
-                     "new",
-                     dict(fields=["a", "b", "c"]),
-                     [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]])
+    return _new_test_dataset(DbDataset, n)
+
+
+def _new_test_dataset(cls, n: int):
+    return cls(dict(fields=["a", "b", "c"]),
+               [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]],
+               path=f"archive/dataset-{n}.txt")
 
 
 class RequestParamsMock(RequestParams):

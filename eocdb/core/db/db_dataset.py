@@ -7,19 +7,11 @@ from eocdb.core.models.dataset import Dataset
 class DbDataset(Dataset):
 
     def __init__(self,
-                 path: str,
-                 name: str,
-                 status: str,
                  metadata: Dict,
                  records: List[List[float]],
-                 id_: str = None):
-        super().__init__(
-            path,
-            name,
-            status,
-            metadata,
-            records,
-            id_)
+                 id_: str = None,
+                 path: str = None):
+        super().__init__(metadata, records, id_=id_, path=path)
         self._attributes = []
         self._times = []
 

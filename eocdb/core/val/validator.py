@@ -1,5 +1,6 @@
 from typing import Callable, Optional
 
+from eocdb.core.models.qc_info import QC_INFO_STATUS_WAITING
 from ..models.dataset import Dataset
 from ..models.dataset_validation_result import DatasetValidationResult
 from ..models.issue import Issue
@@ -11,7 +12,8 @@ ISSUE_TYPE_WARNING = "WARNING"
 
 
 def assert_id_is_none(dataset: Dataset) -> Optional[Issue]:
-    if dataset.status == "new" and dataset.id is not None:
+    qc_status = dataset.metadata.get("qc_status", QC_INFO_STATUS_WAITING)
+    if qc_status == QC_INFO_STATUS_WAITING and dataset.id is not None:
         return Issue(ISSUE_TYPE_WARNING, "Datasets should have no ID before insert or update")
     return None
 

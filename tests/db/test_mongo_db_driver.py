@@ -1,8 +1,8 @@
 import unittest
 
 from eocdb.core.db.errors import OperationalError
-from eocdb.core.models.dataset import DATASET_STATUS_NEW, DATASET_STATUS_VALIDATING
 from eocdb.core.models.dataset_query import DatasetQuery
+from eocdb.core.models.qc_info import QC_INFO_STATUS_ONGOING, QC_INFO_STATUS_PASSED
 from eocdb.db.mongo_db_driver import MongoDbDriver
 from tests import helpers
 
@@ -81,7 +81,7 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("dataset-4", result.datasets[0].name)
+        self.assertEqual("archive/dataset-4.txt", result.datasets[0].path)
 
     def test_insert_three_and_get_by_metadata_field_and(self):
         dataset = helpers.new_test_dataset(3)
@@ -103,13 +103,13 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("dataset-5", result.datasets[0].name)
+        self.assertEqual("archive/dataset-5.txt", result.datasets[0].path)
 
         query = DatasetQuery(expr="affiliations: we_want_this AND cruise: baltic_2")
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("dataset-4", result.datasets[0].name)
+        self.assertEqual("archive/dataset-4.txt", result.datasets[0].path)
 
     def test_insert_three_and_get_by_metadata_field_or(self):
         dataset = helpers.new_test_dataset(6)
@@ -131,13 +131,13 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(3, result.total_count)
-        self.assertEqual("dataset-6", result.datasets[0].name)
+        self.assertEqual("archive/dataset-6.txt", result.datasets[0].path)
 
         query = DatasetQuery(expr="affiliations: we_want_this OR cruise: baltic_2")
 
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("dataset-7", result.datasets[0].name)
+        self.assertEqual("archive/dataset-7.txt", result.datasets[0].path)
 
     def test_insert_and_get_by_not_existing_metadata_field(self):
         dataset = helpers.new_test_dataset(9)
@@ -150,88 +150,130 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def test_insert_and_get_by_path(self):
         dataset = helpers.new_test_dataset(9)
-        dataset.path = "/usr/local/path/schnath"
         self._driver.add_dataset(dataset)
 
         dataset = helpers.new_test_dataset(10)
-        dataset.path = "C:\\data\\seabass\\cruise"
         self._driver.add_dataset(dataset)
 
-        query = DatasetQuery(expr="path: /usr/local/path/schnath")
+        query = DatasetQuery(expr="path:archive/dataset-10.txt")
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("dataset-9", result.datasets[0].name)
+        self.assertEqual("archive/dataset-10.txt", result.datasets[0].path)
 
-    def test_insert_and_get_by_name(self):
-        dataset = helpers.new_test_dataset(11)
-        dataset.name = "Helga"
-        self._driver.add_dataset(dataset)
 
-        dataset = helpers.new_test_dataset(12)
-        dataset.name = "Gertrud"
-        self._driver.add_dataset(dataset)
-
-        query = DatasetQuery(expr="name: Gertrud")
-
-        result = self._driver.find_datasets(query)
-        self.assertEqual(1, result.total_count)
-        self.assertEqual("Gertrud", result.datasets[0].name)
-
-    def test_insert_and_get_by_name_single_char_wildcard(self):
+    def test_insert_and_get_by_path_single_char_wildcard(self):
         dataset = helpers.new_test_dataset(13)
-        dataset.name = "Helga"
+        dataset.path = "/home/eocdb/store/BIGELOW/BALCH/gnats/archive/chl/chl-s170604w.sub"
         self._driver.add_dataset(dataset)
 
         dataset = helpers.new_test_dataset(14)
-        dataset.name = "Helma"
+        dataset.path = "/home/eocdb/store/BIGELOW/BALCH/gnats/archive/chl/chl-s170605w.sub"
         self._driver.add_dataset(dataset)
 
         dataset = helpers.new_test_dataset(15)
-        dataset.name = "Olga"
+        dataset.path = "/home/eocdb/store/BIGELOW/BALCH/gnats/archive/chl/chl-s170804w.sub"
         self._driver.add_dataset(dataset)
 
-        query = DatasetQuery(expr="name: Hel?a")
+        query = DatasetQuery(expr="path:/home/eocdb/store/BIGELOW/BALCH/gnats/archive/chl/chl-s17060?w.sub")
 
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("Helga", result.datasets[0].name)
-        self.assertEqual("Helma", result.datasets[1].name)
+        self.assertEqual("/home/eocdb/store/BIGELOW/BALCH/gnats/archive/chl/chl-s170604w.sub",
+                         result.datasets[0].path)
+        self.assertEqual("/home/eocdb/store/BIGELOW/BALCH/gnats/archive/chl/chl-s170605w.sub",
+                         result.datasets[1].path)
 
-    def test_insert_and_get_by_name_multi_char_wildcard(self):
+    def test_insert_and_get_by_path_multi_char_wildcard(self):
         dataset = helpers.new_test_dataset(13)
-        dataset.name = "Helga"
+        dataset.path = "archive/Helga.txt"
         self._driver.add_dataset(dataset)
 
         dataset = helpers.new_test_dataset(14)
-        dataset.name = "Helma"
+        dataset.path = "archive/Helma.txt"
         self._driver.add_dataset(dataset)
 
         dataset = helpers.new_test_dataset(15)
-        dataset.name = "Olga"
+        dataset.path = "archive/Olga.txt"
         self._driver.add_dataset(dataset)
 
-        query = DatasetQuery(expr="name: *ga")
+        query = DatasetQuery(expr="path:*ga")
 
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("Helga", result.datasets[0].name)
-        self.assertEqual("Olga", result.datasets[1].name)
+        self.assertEqual("archive/Helga.txt", result.datasets[0].path)
+        self.assertEqual("archive/Olga.txt", result.datasets[1].path)
 
-    def test_insert_and_get_by_status(self):
+
+    # def test_insert_and_get_by_name(self):
+    #     dataset = helpers.new_test_dataset(11)
+    #     dataset.name = "Helga"
+    #     self._driver.add_dataset(dataset)
+    #
+    #     dataset = helpers.new_test_dataset(12)
+    #     dataset.name = "Gertrud"
+    #     self._driver.add_dataset(dataset)
+    #
+    #     query = DatasetQuery(expr="name: Gertrud")
+    #
+    #     result = self._driver.find_datasets(query)
+    #     self.assertEqual(1, result.total_count)
+    #     self.assertEqual("Gertrud", result.datasets[0].name)
+    #
+    # def test_insert_and_get_by_name_single_char_wildcard(self):
+    #     dataset = helpers.new_test_dataset(13)
+    #     dataset.name = "Helga"
+    #     self._driver.add_dataset(dataset)
+    #
+    #     dataset = helpers.new_test_dataset(14)
+    #     dataset.name = "Helma"
+    #     self._driver.add_dataset(dataset)
+    #
+    #     dataset = helpers.new_test_dataset(15)
+    #     dataset.name = "Olga"
+    #     self._driver.add_dataset(dataset)
+    #
+    #     query = DatasetQuery(expr="name: Hel?a")
+    #
+    #     result = self._driver.find_datasets(query)
+    #     self.assertEqual(2, result.total_count)
+    #     self.assertEqual("Helga", result.datasets[0].name)
+    #     self.assertEqual("Helma", result.datasets[1].name)
+    #
+    # def test_insert_and_get_by_name_multi_char_wildcard(self):
+    #     dataset = helpers.new_test_dataset(13)
+    #     dataset.name = "Helga"
+    #     self._driver.add_dataset(dataset)
+    #
+    #     dataset = helpers.new_test_dataset(14)
+    #     dataset.name = "Helma"
+    #     self._driver.add_dataset(dataset)
+    #
+    #     dataset = helpers.new_test_dataset(15)
+    #     dataset.name = "Olga"
+    #     self._driver.add_dataset(dataset)
+    #
+    #     query = DatasetQuery(expr="name: *ga")
+    #
+    #     result = self._driver.find_datasets(query)
+    #     self.assertEqual(2, result.total_count)
+    #     self.assertEqual("Helga", result.datasets[0].name)
+    #     self.assertEqual("Olga", result.datasets[1].name)
+
+    def test_insert_and_get_by_qc_status(self):
         dataset = helpers.new_test_dataset(13)
-        dataset.status = DATASET_STATUS_NEW
+        dataset.metadata["qc_status"] = QC_INFO_STATUS_ONGOING
         self._driver.add_dataset(dataset)
 
         dataset = helpers.new_test_dataset(14)
-        dataset.status = DATASET_STATUS_VALIDATING
+        dataset.metadata["qc_status"] = QC_INFO_STATUS_PASSED
         self._driver.add_dataset(dataset)
 
-        query = DatasetQuery(expr="status: validating")
+        query = DatasetQuery(expr="qc_status:" + QC_INFO_STATUS_PASSED)
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("dataset-14", result.datasets[0].name)
+        self.assertEqual("archive/dataset-14.txt", result.datasets[0].path)
 
     def test_get_offset_only(self):
         self._add_test_datasets_to_db()
@@ -239,17 +281,17 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(offset=1)
         result = self._driver.find_datasets(query)
         self.assertEqual(10, result.total_count)
-        self.assertEqual("dataset-0", result.datasets[0].name)
+        self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
 
         query = DatasetQuery(offset=2)
         result = self._driver.find_datasets(query)
         self.assertEqual(9, result.total_count)
-        self.assertEqual("dataset-1", result.datasets[0].name)
+        self.assertEqual("archive/dataset-1.txt", result.datasets[0].path)
 
         query = DatasetQuery(offset=6)
         result = self._driver.find_datasets(query)
         self.assertEqual(5, result.total_count)
-        self.assertEqual("dataset-5", result.datasets[0].name)
+        self.assertEqual("archive/dataset-5.txt", result.datasets[0].path)
 
     def test_get_count_only(self):
         self._add_test_datasets_to_db()
@@ -257,12 +299,12 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(count=4)
         result = self._driver.find_datasets(query)
         self.assertEqual(10, result.total_count)
-        self.assertEqual("dataset-0", result.datasets[0].name)
+        self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
 
         query = DatasetQuery(count=7)
         result = self._driver.find_datasets(query)
         self.assertEqual(10, result.total_count)
-        self.assertEqual("dataset-0", result.datasets[0].name)
+        self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
 
     def test_get_count_zero_returns_number_of_results(self):
         self._add_test_datasets_to_db()
@@ -278,17 +320,17 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(offset=2, count=4)
         result = self._driver.find_datasets(query)
         self.assertEqual(9, result.total_count)
-        self.assertEqual("dataset-1", result.datasets[0].name)
+        self.assertEqual("archive/dataset-1.txt", result.datasets[0].path)
 
         query = DatasetQuery(offset=5, count=3)
         result = self._driver.find_datasets(query)
         self.assertEqual(6, result.total_count)
-        self.assertEqual("dataset-4", result.datasets[0].name)
+        self.assertEqual("archive/dataset-4.txt", result.datasets[0].path)
 
         query = DatasetQuery(offset=8, count=5)
         result = self._driver.find_datasets(query)
         self.assertEqual(3, result.total_count)
-        self.assertEqual("dataset-7", result.datasets[0].name)
+        self.assertEqual("archive/dataset-7.txt", result.datasets[0].path)
 
     def test_get_offset_and_negative_count(self):
         self._add_test_datasets_to_db()
@@ -296,13 +338,13 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(offset=1, count=-1)
         result = self._driver.find_datasets(query)
         self.assertEqual(10, result.total_count)
-        self.assertEqual("dataset-0", result.datasets[0].name)
-        self.assertEqual("dataset-9", result.datasets[9].name)
+        self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
+        self.assertEqual("archive/dataset-9.txt", result.datasets[9].path)
 
         query = DatasetQuery(offset=4, count=-1)
         result = self._driver.find_datasets(query)
         self.assertEqual(7, result.total_count)
-        self.assertEqual("dataset-3", result.datasets[0].name)
+        self.assertEqual("archive/dataset-3.txt", result.datasets[0].path)
 
     def test_insert_two_and_get_by_location(self):
         dataset = helpers.new_test_db_dataset(11)
@@ -317,7 +359,7 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("dataset-12", result.datasets[0].name)
+        self.assertEqual("archive/dataset-12.txt", result.datasets[0].path)
 
     def test_insert_two_and_get_by_location_many_records(self):
         dataset = helpers.new_test_db_dataset(13)
@@ -341,7 +383,7 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("dataset-13", result.datasets[0].name)
+        self.assertEqual("archive/dataset-13.txt", result.datasets[0].path)
 
     def test_insert_two_and_get_by_location_and_metadata(self):
         dataset = helpers.new_test_db_dataset(15)
@@ -362,7 +404,7 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("dataset-16", result.datasets[0].name)
+        self.assertEqual("archive/dataset-16.txt", result.datasets[0].path)
 
         query = DatasetQuery(expr='data_status: test', region=[25.0, -75.0, 27.0, -70.0])  # region does not match tb 2018-10-24
 
@@ -404,12 +446,11 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual((0, 0), self._driver._get_start_index_and_count(query))
 
     def test_to_dataset_ref(self):
-        dataset_dict = {"_id": "nasenmann.org", "name": "Rosamunde", "path": "/where/is/your/mama/gone"}
+        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde"}
 
         dataset_ref = self._driver._to_dataset_ref(dataset_dict)
         self.assertEqual("nasenmann.org", dataset_ref.id)
-        self.assertEqual("Rosamunde", dataset_ref.name)
-        self.assertEqual("/where/is/your/mama/gone", dataset_ref.path)
+        self.assertEqual("/where/is/your/mama/gone/Rosamunde", dataset_ref.path)
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):
