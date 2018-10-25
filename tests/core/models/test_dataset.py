@@ -1,30 +1,6 @@
 from unittest import TestCase
 
-from eocdb.core.models.dataset import Dataset
-
-try:
-    import pandas
-
-
-    def to_data_frame(self):
-        """Convert this dataset to a Pandas DataFrame object."""
-        return pandas.DataFrame(data=self.records,
-                                columns=[f.strip() for f in self.metadata["fields"].split(",")])
-
-
-    def from_data_frame(cls, df: pandas.DataFrame) -> Dataset:
-        """Construct dataset from a Pandas DataFrame object."""
-        columns = list(df.columns)
-        return Dataset(metadata=dict(fields=",".join(columns)),
-                       records=[list(r) for r in df.to_records(index=False)])
-
-
-    # Monkey-patch Dataset class
-    Dataset.to_data_frame = to_data_frame
-    Dataset.from_data_frame = classmethod(from_data_frame)
-
-except ImportError:
-    pass
+from eocdb.core.models import Dataset
 
 
 class DatasetTest(TestCase):
