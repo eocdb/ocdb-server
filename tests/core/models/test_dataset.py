@@ -1,4 +1,3 @@
-import uuid
 from unittest import TestCase
 
 from eocdb.core.models.dataset import Dataset
@@ -17,10 +16,7 @@ try:
         """Construct dataset from a Pandas DataFrame object."""
         columns = list(df.columns)
         return Dataset(metadata=dict(fields=",".join(columns)),
-                       records=[list(r) for r in df.to_records(index=False)],
-                       status="new",
-                       name=uuid.uuid4().hex,
-                       path=f"{uuid.uuid4().hex}/{uuid.uuid4().hex}/{uuid.uuid4().hex}")
+                       records=[list(r) for r in df.to_records(index=False)])
 
 
     # Monkey-patch Dataset class
@@ -46,8 +42,7 @@ class DatasetTest(TestCase):
             pass
 
     def test_to_data_frame(self):
-        ds = Dataset(metadata=dict(fields="A,B,C"), records=[[1, 2.2, 3.1], [3, 2.3, 3.2], [5, 2.4, 3.3]], name="gnatz",
-                     path="grunts", status="new")
+        ds = Dataset(metadata=dict(fields="A,B,C"), records=[[1, 2.2, 3.1], [3, 2.3, 3.2], [5, 2.4, 3.3]])
 
         try:
             import pandas

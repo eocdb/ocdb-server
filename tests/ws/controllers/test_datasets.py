@@ -53,7 +53,6 @@ class DatasetsTest(unittest.TestCase):
         self.assertIsInstance(result_1, DatasetRef)
         self.assertIsNotNone(result_1.id)
         self.assertEqual(dataset_1.path, result_1.path)
-        self.assertEqual(dataset_1.name, result_1.name)
 
         dataset_2 = new_test_dataset(8)
         result_2 = add_dataset(self.ctx, dataset=dataset_2)
@@ -61,7 +60,6 @@ class DatasetsTest(unittest.TestCase):
         self.assertIsNotNone(result_2.id)
         self.assertNotEqual(result_1.id, result_2.id)
         self.assertEqual(dataset_2.path, result_2.path)
-        self.assertEqual(dataset_2.name, result_2.name)
 
     def test_find_datasets(self):
         add_dataset(self.ctx, dataset=new_test_dataset(1))
@@ -120,7 +118,7 @@ class DatasetsTest(unittest.TestCase):
         dataset_id = dataset_ref.id
         dataset_update = new_test_dataset(42)
         dataset_update.id = dataset_id
-        dataset_update.name = "chl-bibo"
+        dataset_update.path = "a/b/c/archive/x/x-01.csv"
         update_dataset(self.ctx, dataset=dataset_update)
         updated_dataset = get_dataset_by_id(self.ctx, dataset_id)
         self.assertEqual(dataset_update, updated_dataset)

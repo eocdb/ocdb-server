@@ -20,8 +20,8 @@
 # SOFTWARE.
 
 
-from ..asserts import assert_not_none
 from ..model import Model
+from ...core.asserts import assert_not_none
 
 
 class DatasetRef(Model):
@@ -31,14 +31,11 @@ class DatasetRef(Model):
 
     def __init__(self,
                  id_: str,
-                 path: str,
-                 name: str):
+                 path: str):
         assert_not_none(id_, name='id_')
         assert_not_none(path, name='path')
-        assert_not_none(name, name='name')
         self._id = id_
         self._path = path
-        self._name = name
 
     @property
     def id(self) -> str:
@@ -54,15 +51,6 @@ class DatasetRef(Model):
         return self._path
 
     @path.setter
-    def path(self, value: path):
+    def path(self, value: str):
         assert_not_none(value, name='value')
         self._path = value
-
-    @property
-    def name(self) -> str:
-        return self._name
-
-    @name.setter
-    def name(self, value: str):
-        assert_not_none(value, name='value')
-        self._name = value

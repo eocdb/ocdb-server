@@ -8,7 +8,7 @@ from eocdb.core.val.validator import validate_dataset
 class ValidatorTest(TestCase):
 
     def test_validate_dataset(self):
-        dataset = Dataset("a/test/path", "ds", "new", {}, [], id_=None)
+        dataset = Dataset({}, [], path="archive/chl01.csv")
         result = validate_dataset(dataset)
         self.assertIsNotNone(result)
         self.assertEqual("OK", result.status)

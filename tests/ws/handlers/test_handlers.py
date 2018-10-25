@@ -196,7 +196,6 @@ class DatasetsTest(WsTestCase):
         query_result = find_datasets(self.ctx)
         self.assertEqual(1, query_result.total_count)
         self.assertEqual(dataset.path, query_result.datasets[0].path)
-        self.assertEqual("dataset-13", query_result.datasets[0].name)
 
     def test_post(self):
         # updateDataset() operation
@@ -205,8 +204,8 @@ class DatasetsTest(WsTestCase):
         self.assertEqual(1, query_result.total_count)
         dataset_id = query_result.datasets[0].id
         update_dataset = new_test_dataset(14)
+        update_dataset.path = "a/b/c/archive/x/x-01.csv"
         update_dataset.id = dataset_id
-        update_dataset.name = "bibo"
         body = tornado.escape.json_encode(update_dataset.to_dict())
         response = self.fetch(API_URL_PREFIX + "/datasets", method='POST', body=body)
         self.assertEqual(200, response.code)

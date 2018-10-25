@@ -63,11 +63,7 @@ class SbFileReader:
 
         field_list = self._extract_field_list(metadata)
         records = self._parse_records()
-        dataset = DbDataset("relative_path",
-                            "name",
-                            "new",
-                            metadata,
-                            records)
+        dataset = DbDataset(metadata, records)
         dataset.set_attributes(field_list)
         self._extract_searchfields(dataset)
 

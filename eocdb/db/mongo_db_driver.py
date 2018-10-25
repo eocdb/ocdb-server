@@ -173,9 +173,8 @@ class MongoDbDriver(DbDriver):
     @staticmethod
     def _to_dataset_ref(dataset_dict):
         dataset_id = str(dataset_dict.get("_id"))
-        name = dataset_dict.get("name")
-        relative_path = dataset_dict.get("path")
-        return DatasetRef(dataset_id, relative_path, name)
+        path = dataset_dict.get("path")
+        return DatasetRef(dataset_id, path)
 
     def _ensure_indices(self):
         index_information = self._collection.index_information()
