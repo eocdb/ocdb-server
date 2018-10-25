@@ -29,7 +29,7 @@ from ...core.asserts import assert_not_none, assert_one_of
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.uploaded_file import UploadedFile
-from ...core.seabass.sb_file_reader import SbFileReader
+from ...core.seabass.sb_file_reader import SbFileReader, SbFormatError
 from ...core.val import validator
 from ...db.static_data import get_product_groups, get_products
 
@@ -57,12 +57,17 @@ def upload_store_files(ctx: WsContext,
         text = file.body.decode("utf-8")
         try:
             dataset = SbFileReader().read(io.StringIO(text))
-        # TODO by forman:  except FormatError as e:
-        except IOError as e:
+        except SbFormatError as e:
             dataset = None
             has_errors = True
             validation_results[file.filename] = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
-                                                                        [Issue(ISSUE_TYPE_ERROR, f"{e}")])
+                                                                        [Issue(ISSUE_TYPE_ERROR,
+                                                                               f"Invalid format: {e}")])
+        except OSError as e:
+            dataset = None
+            has_errors = True
+            validation_results[file.filename] = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
+                                                                        [Issue(ISSUE_TYPE_ERROR, f"OSError: {e}")])
         if dataset is not None:
             # Save well-formatted datasets
             datasets[file.filename] = dataset
