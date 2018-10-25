@@ -49,7 +49,7 @@ class SbFileReader:
             with open(file_obj, 'r') as fp:
                 return self._parse(fp.readlines())
 
-    def _parse(self, lines: Sequence[str]) -> Dataset:
+    def _parse(self, lines: Sequence[str]) -> DbDataset:
 
         self._lines = lines
 
@@ -229,6 +229,9 @@ class SbFileReader:
 
             record = []
             for token in tokens:
+                if len(token) < 1:
+                    continue
+
                 if self._is_number(token):
                     if self._is_integer(token):
                         record.append(int(token))

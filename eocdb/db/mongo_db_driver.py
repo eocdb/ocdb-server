@@ -4,7 +4,7 @@ import bson.objectid
 import pymongo
 import pymongo.errors
 
-from eocdb.core import QueryParser
+from ..core import QueryParser
 from ..db.mongo_query_generator import MongoQueryGenerator
 from ..core.db.db_driver import DbDriver
 from ..core.db.errors import OperationalError
@@ -12,6 +12,9 @@ from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
+
+LAT_INDEX_NAME = "_latitudes_"
+LON_INDEX_NAME = "_longitudes_"
 
 
 class MongoDbDriver(DbDriver):
@@ -24,9 +27,11 @@ class MongoDbDriver(DbDriver):
         obj_id = self._obj_id(dataset.id)
         if obj_id is None:
             return False
+
         dataset_dict = dataset.to_dict()
         if "id" in dataset_dict:
             del dataset_dict["id"]
+
         result = self._collection.replace_one({"_id": obj_id}, dataset_dict, upsert=True)
         return result.modified_count == 1
 
@@ -59,23 +64,25 @@ class MongoDbDriver(DbDriver):
             q.accept(self._query_generator)
             query_dict = self._query_generator.query
 
-        cursor = self._collection.find(query_dict)
+        if query.region is not None:
+            query_dict["longitudes"] = {'$gte': query.region[0], '$lte': query.region[2]}
+            query_dict["latitudes"] = {'$gte': query.region[1], '$lte': query.region[3]}
 
-        dataset_refs = []
-        index = 0
-        for dataset_dict in cursor:
-            if index >= start_index and (count == -1 or index < start_index + count):
-                dataset_id = str(dataset_dict.get("_id"))
-                name = dataset_dict.get("name")
-                relative_path = dataset_dict.get("path")
-                dataset_ref = DatasetRef(dataset_id, relative_path, name)
-                dataset_refs.append(dataset_ref)
-            index += 1
+        cursor = self._collection.find(query_dict, skip=start_index, limit=count)
+        total_num_results = self._collection.count_documents(query_dict)
+        num_results = total_num_results - start_index
 
-        return DatasetQueryResult(index, dataset_refs, query)
+        if query.count == 0:
+            return DatasetQueryResult(num_results, [], query)
+        else:
+            dataset_refs = []
+            for dataset_dict in cursor:
+                dataset_refs.append(self._to_dataset_ref(dataset_dict))
+
+            return DatasetQueryResult(num_results, dataset_refs, query)
 
     @staticmethod
-    def _get_start_index_and_count(query):
+    def _get_start_index_and_count(query) -> (int, int):
         if query.offset is None:
             start_index = 0
         elif query.offset == 0:
@@ -83,8 +90,8 @@ class MongoDbDriver(DbDriver):
         else:
             start_index = query.offset - 1
 
-        if query.count is None:
-            count = -1
+        if query.count is None or query.count == -1:
+            count = 0
         else:
             count = query.count
         return start_index, count
@@ -136,6 +143,7 @@ class MongoDbDriver(DbDriver):
         self._db = self._client.eocdb
         # Create collection "eocdb.sb_datasets"
         self._collection = self._client.eocdb.sb_datasets
+        self._ensure_indices()
 
     def close(self):
         if self._client is not None:
@@ -161,3 +169,17 @@ class MongoDbDriver(DbDriver):
                 config["host"] = uri
                 del config[key]
         self._config = config
+
+    @staticmethod
+    def _to_dataset_ref(dataset_dict):
+        dataset_id = str(dataset_dict.get("_id"))
+        name = dataset_dict.get("name")
+        relative_path = dataset_dict.get("path")
+        return DatasetRef(dataset_id, relative_path, name)
+
+    def _ensure_indices(self):
+        index_information = self._collection.index_information()
+        if not LON_INDEX_NAME in index_information:
+            self._collection.create_index("longitude", name=LON_INDEX_NAME, background=True)
+        if not LAT_INDEX_NAME in index_information:
+            self._collection.create_index("latitude", name=LAT_INDEX_NAME, background=True)
