@@ -3,7 +3,6 @@ from typing import List, Optional
 
 from ..models.dataset import Dataset
 from .. import Service
-from ..deprecated import deprecated
 from ..models.dataset_query import DatasetQuery
 from ..models.dataset_ref import DatasetRef
 
