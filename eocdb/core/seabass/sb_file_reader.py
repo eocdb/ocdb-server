@@ -68,7 +68,7 @@ class SbFileReader:
         self._extract_searchfields(dataset)
 
         if self.handle_header is None or self.handle_header is True:
-            raise IOError("/end_header tag missing")
+            raise SbFormatError("/end_header tag missing")
 
         return dataset
 
@@ -119,7 +119,7 @@ class SbFileReader:
         self._delimiter_regex = self._extract_delimiter_regex(metadata)
 
         if self.field_list is None:
-            raise IOError('Missing header tag "fields"')
+            raise SbFormatError('Missing header tag "fields"')
 
         return self.field_list.lower().split(',')
 
@@ -179,7 +179,7 @@ class SbFileReader:
             dataset.add_time(timestamp)
 
         else:
-            raise IOError("Acquisition time not properly encoded")
+            raise SbFormatError("Acquisition time not properly encoded")
 
     def _extract_geo_locations(self, dataset):
         if 'lon' in dataset.attribute_names and 'lat' in dataset.attribute_names:
@@ -194,7 +194,7 @@ class SbFileReader:
             self._extract_geo_location_form_header(dataset)
 
         else:
-            raise IOError("Geolocation not properly encoded")
+            raise SbFormatError("Geolocation not properly encoded")
 
     def _extract_geo_location_form_header(self, dataset):
         east_lon_string = dataset.metadata['east_longitude']
@@ -243,7 +243,7 @@ class SbFileReader:
     @classmethod
     def _extract_delimiter_regex(cls, metadata):
         if 'delimiter' not in metadata:
-            raise IOError('Missing delimiter tag in header')
+            raise SbFormatError('Missing delimiter tag in header')
 
         delimiter = metadata['delimiter']
         if delimiter == 'comma':
@@ -253,7 +253,7 @@ class SbFileReader:
         elif delimiter == 'tab':
             return '\t+'
         else:
-            raise IOError('Invalid delimiter-value in header')
+            raise SbFormatError('Invalid delimiter-value in header')
 
     @classmethod
     def _is_number(cls, token):
@@ -284,7 +284,7 @@ class SbFileReader:
         time_str = time_str.upper()
         if check_gmt:
             if '[GMT]' not in time_str:
-                raise IOError("No time zone given. Required all times be expressed as [GMT]")
+                raise SbFormatError("No time zone given. Required all times be expressed as [GMT]")
 
         year = int(date_str[0:4])
         month = int(date_str[4:6])
@@ -300,3 +300,12 @@ class SbFileReader:
         second = int(tokens[2])
 
         return datetime.datetime(year, month, day, hour, minute, second)
+
+
+class SbFormatError(Exception):
+    """
+    This error is raised if SbFileReader encounters format errors.
+    """
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)

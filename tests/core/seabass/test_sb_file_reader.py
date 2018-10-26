@@ -1,7 +1,7 @@
 import datetime
 import unittest
 
-from eocdb.core.seabass.sb_file_reader import SbFileReader
+from eocdb.core.seabass.sb_file_reader import SbFileReader, SbFormatError
 from tests.helpers import new_test_db_dataset
 
 
@@ -17,21 +17,15 @@ class SbFileReaderTest(unittest.TestCase):
 
     def test_parse_empty_header_missing_begin(self):
         sb_file = ['/end_header\n']
-
-        try:
+        with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-            self.fail("IOError expected")
-        except IOError:
-            pass
+        self.assertEquals("Missing delimiter tag in header", f"{cm.exception}")
 
     def test_parse_empty_header_missing_end(self):
         sb_file = ['/begin_header\n']
-
-        try:
+        with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-            self.fail("IOError expected")
-        except IOError:
-            pass
+        self.assertEquals("Missing delimiter tag in header", f"{cm.exception}")
 
     def test_parse_location_in_header_time_info_in_header_and_records(self):
         sb_file = ['/begin_header\n',
@@ -56,10 +50,12 @@ class SbFileReaderTest(unittest.TestCase):
                    '05:42:50,0.50000000,56.90948085,115.97783666,171.51381329,100.38906060,161.96556721,113.75394300,113.36437951,77.19171621,94.68081637,74.03389812,80.24165958,92.87650441,41.91937544,7.05047058,-999,-999,-999,-999,-999,-999,-999,2.32841663,53.06609583,27.46488778,0.37780480']
 
         dataset = self.reader._parse(sb_file)
-        self.assertEqual({'affiliations': 'IMARPE','data_file_name': 'pro_03_04AA_L2s.dat', 'data_type': 'cast', 'data_status': 'preliminary',
+        self.assertEqual({'affiliations': 'IMARPE', 'data_file_name': 'pro_03_04AA_L2s.dat', 'data_type': 'cast',
+                          'data_status': 'preliminary',
                           'experiment': 'LAMONT_SCS', 'cruise': 'jun16scs', 'station': '03_04', 'delimiter': 'comma',
                           'east_longitude': '109.587[DEG]', 'west_longitude': '109.587[DEG]',
-                          'north_latitude': '11.713[DEG]', 'south_latitude': '11.713[DEG]', 'start_date': '20020616'}, dataset.metadata)
+                          'north_latitude': '11.713[DEG]', 'south_latitude': '11.713[DEG]', 'start_date': '20020616'},
+                         dataset.metadata)
 
         self.assertEqual(27, dataset.attribute_count)
         self.assertEqual("time", dataset.attribute_names[0])
@@ -157,7 +153,7 @@ class SbFileReaderTest(unittest.TestCase):
 
         dataset = self.reader._parse(sb_file)
         self.assertEqual({'delimiter': 'space', 'east_longitude': '125.198[DEG]', 'end_date': '20010723',
-                          'end_time': '00:08:00[GMT]','north_latitude': '26.957[DEG]', 'start_date': '20010723',
+                          'end_time': '00:08:00[GMT]', 'north_latitude': '26.957[DEG]', 'start_date': '20010723',
                           'start_time': '00:08:00[GMT]'}, dataset.metadata)
 
         self.assertEqual(1, len(dataset.times))
@@ -182,7 +178,7 @@ class SbFileReaderTest(unittest.TestCase):
 
         dataset = self.reader._parse(sb_file)
         self.assertEqual({'delimiter': 'space', 'east_longitude': '114.196[DEG]', 'end_date': '20010510',
-                          'end_time': '04:37:00[GMT]','north_latitude': '22.442[DEG]', 'start_date': '20010510',
+                          'end_time': '04:37:00[GMT]', 'north_latitude': '22.442[DEG]', 'start_date': '20010510',
                           'start_time': '04:37:00[GMT]'}, dataset.metadata)
 
         self.assertEqual(5, len(dataset.times))
@@ -204,21 +200,15 @@ class SbFileReaderTest(unittest.TestCase):
 
     def test_extract_delimiter_regex_invalid(self):
         metadata = {'delimiter': 'double-slash-and-semicolon'}
-
-        try:
+        with self.assertRaises(SbFormatError) as cm:
             self.reader._extract_delimiter_regex(metadata)
-            self.fail("IOException expected")
-        except IOError:
-            pass
+        self.assertEquals("Invalid delimiter-value in header", f"{cm.exception}")
 
     def test_extract_delimiter_regex_missing(self):
-        metadata =  {}
-
-        try:
+        metadata = {}
+        with self.assertRaises(SbFormatError) as cm:
             self.reader._extract_delimiter_regex(metadata)
-            self.fail("IOException expected")
-        except IOError:
-            pass
+        self.assertEquals("Missing delimiter tag in header", f"{cm.exception}")
 
     def test_is_number(self):
         self.assertTrue(self.reader._is_number('1246'))
@@ -240,17 +230,23 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertAlmostEqual(-2.00987, self.reader._extract_angle("-2.00987"), 8)
 
     def test_extract_date(self):
-        self.assertEqual(datetime.datetime(2002, 7, 11, 14, 22, 53), self.reader._extract_date("20020711", "14:22:53[GMT]"))
+        self.assertEqual(datetime.datetime(2002, 7, 11, 14, 22, 53),
+                         self.reader._extract_date("20020711", "14:22:53[GMT]"))
 
     def test_extract_date_no_leading_zero(self):
-        self.assertEqual(datetime.datetime(2002, 7, 11, 2, 23, 54), self.reader._extract_date("20020711", "2:23:54[GMT]"))
+        self.assertEqual(datetime.datetime(2002, 7, 11, 2, 23, 54),
+                         self.reader._extract_date("20020711", "2:23:54[GMT]"))
 
     def test_extract_date_throws_on_missing_GMT(self):
-        try:
-            datetime.datetime(2002, 7, 11, 14, 22, 53), self.reader._extract_date("20030812", "15:23:54", check_gmt=True)
-            self.fail("IOError expected.")
-        except IOError:
-            pass
+        with self.assertRaises(SbFormatError) as cm:
+            datetime.datetime(2002, 7, 11, 14, 22, 53), self.reader._extract_date("20030812", "15:23:54",
+                                                                                  check_gmt=True)
+        self.assertEquals("No time zone given. Required all times be expressed as [GMT]", f"{cm.exception}")
+
+        with self.assertRaises(SbFormatError) as cm:
+            datetime.datetime(2002, 7, 11, 14, 22, 53), self.reader._extract_date("20030812", "15:23:54",
+                                                                                  check_gmt=True)
+        self.assertEquals("No time zone given. Required all times be expressed as [GMT]", f"{cm.exception}")
 
     def test_extract_date_missing_GMT_ignored_if_requested(self):
         datetime.datetime(2003, 8, 12, 15, 23, 54), self.reader._extract_date("20030812", "15:23:54", check_gmt=False)
