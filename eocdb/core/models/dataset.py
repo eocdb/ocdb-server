@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Any
 
 from ..asserts import assert_not_none
 from ..model import Model
@@ -42,6 +42,8 @@ class Dataset(Model):
         self._records = records
         self._longitudes = []
         self._latitudes = []
+        self._attributes = []
+        self._times = []
 
     @property
     def id(self) -> Optional[str]:
@@ -94,3 +96,29 @@ class Dataset(Model):
     def latitudes(self, value: List[float]):
         assert_not_none(value, name='latitudes')
         self._latitudes = value
+
+    @property
+    def attributes(self) -> List[str]:
+        return self._attributes
+
+    @attributes.setter
+    def attributes(self, value: List[str]):
+        assert_not_none(value, name='attributes')
+        self._attributes = value
+
+    @property
+    def times(self) -> List[str]:
+        return self._times
+
+    @times.setter
+    def times(self, value: List[str]):
+        assert_not_none(value, name='times')
+        self._times = value
+
+    def to_dict(self) -> Dict[str, Any]:
+        result_dict = super().to_dict()
+        converted_times = []
+        for time in self._times:
+            converted_times.append(time.isoformat())
+        result_dict.update({'times': converted_times})
+        return result_dict

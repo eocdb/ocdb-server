@@ -70,5 +70,4 @@ class TestMongoQueryGenerator(unittest.TestCase):
         self.assertEqual("metadata.wamp", self.mongo_gen._get_db_field_name("wamp"))
 
         self.assertEqual("path", self.mongo_gen._get_db_field_name("path"))
-        self.assertEqual("name", self.mongo_gen._get_db_field_name("name"))
         self.assertEqual("status", self.mongo_gen._get_db_field_name("status"))

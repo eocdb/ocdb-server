@@ -19,13 +19,13 @@ class SbFileReaderTest(unittest.TestCase):
         sb_file = ['/end_header\n']
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-        self.assertEquals("Missing delimiter tag in header", f"{cm.exception}")
+        self.assertEqual("Missing delimiter tag in header", f"{cm.exception}")
 
     def test_parse_empty_header_missing_end(self):
         sb_file = ['/begin_header\n']
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-        self.assertEquals("Missing delimiter tag in header", f"{cm.exception}")
+        self.assertEqual("Missing delimiter tag in header", f"{cm.exception}")
 
     def test_parse_location_in_header_time_info_in_header_and_records(self):
         sb_file = ['/begin_header\n',
@@ -202,13 +202,13 @@ class SbFileReaderTest(unittest.TestCase):
         metadata = {'delimiter': 'double-slash-and-semicolon'}
         with self.assertRaises(SbFormatError) as cm:
             self.reader._extract_delimiter_regex(metadata)
-        self.assertEquals("Invalid delimiter-value in header", f"{cm.exception}")
+        self.assertEqual("Invalid delimiter-value in header", f"{cm.exception}")
 
     def test_extract_delimiter_regex_missing(self):
         metadata = {}
         with self.assertRaises(SbFormatError) as cm:
             self.reader._extract_delimiter_regex(metadata)
-        self.assertEquals("Missing delimiter tag in header", f"{cm.exception}")
+        self.assertEqual("Missing delimiter tag in header", f"{cm.exception}")
 
     def test_is_number(self):
         self.assertTrue(self.reader._is_number('1246'))
@@ -241,12 +241,12 @@ class SbFileReaderTest(unittest.TestCase):
         with self.assertRaises(SbFormatError) as cm:
             datetime.datetime(2002, 7, 11, 14, 22, 53), self.reader._extract_date("20030812", "15:23:54",
                                                                                   check_gmt=True)
-        self.assertEquals("No time zone given. Required all times be expressed as [GMT]", f"{cm.exception}")
+        self.assertEqual("No time zone given. Required all times be expressed as [GMT]", f"{cm.exception}")
 
         with self.assertRaises(SbFormatError) as cm:
             datetime.datetime(2002, 7, 11, 14, 22, 53), self.reader._extract_date("20030812", "15:23:54",
                                                                                   check_gmt=True)
-        self.assertEquals("No time zone given. Required all times be expressed as [GMT]", f"{cm.exception}")
+        self.assertEqual("No time zone given. Required all times be expressed as [GMT]", f"{cm.exception}")
 
     def test_extract_date_missing_GMT_ignored_if_requested(self):
         datetime.datetime(2003, 8, 12, 15, 23, 54), self.reader._extract_date("20030812", "15:23:54", check_gmt=False)

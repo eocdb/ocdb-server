@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 
 from eocdb.core.db.errors import OperationalError
 from eocdb.core.models.dataset_query import DatasetQuery
@@ -204,62 +205,6 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual("archive/Helga.txt", result.datasets[0].path)
         self.assertEqual("archive/Olga.txt", result.datasets[1].path)
 
-
-    # def test_insert_and_get_by_name(self):
-    #     dataset = helpers.new_test_dataset(11)
-    #     dataset.name = "Helga"
-    #     self._driver.add_dataset(dataset)
-    #
-    #     dataset = helpers.new_test_dataset(12)
-    #     dataset.name = "Gertrud"
-    #     self._driver.add_dataset(dataset)
-    #
-    #     query = DatasetQuery(expr="name: Gertrud")
-    #
-    #     result = self._driver.find_datasets(query)
-    #     self.assertEqual(1, result.total_count)
-    #     self.assertEqual("Gertrud", result.datasets[0].name)
-    #
-    # def test_insert_and_get_by_name_single_char_wildcard(self):
-    #     dataset = helpers.new_test_dataset(13)
-    #     dataset.name = "Helga"
-    #     self._driver.add_dataset(dataset)
-    #
-    #     dataset = helpers.new_test_dataset(14)
-    #     dataset.name = "Helma"
-    #     self._driver.add_dataset(dataset)
-    #
-    #     dataset = helpers.new_test_dataset(15)
-    #     dataset.name = "Olga"
-    #     self._driver.add_dataset(dataset)
-    #
-    #     query = DatasetQuery(expr="name: Hel?a")
-    #
-    #     result = self._driver.find_datasets(query)
-    #     self.assertEqual(2, result.total_count)
-    #     self.assertEqual("Helga", result.datasets[0].name)
-    #     self.assertEqual("Helma", result.datasets[1].name)
-    #
-    # def test_insert_and_get_by_name_multi_char_wildcard(self):
-    #     dataset = helpers.new_test_dataset(13)
-    #     dataset.name = "Helga"
-    #     self._driver.add_dataset(dataset)
-    #
-    #     dataset = helpers.new_test_dataset(14)
-    #     dataset.name = "Helma"
-    #     self._driver.add_dataset(dataset)
-    #
-    #     dataset = helpers.new_test_dataset(15)
-    #     dataset.name = "Olga"
-    #     self._driver.add_dataset(dataset)
-    #
-    #     query = DatasetQuery(expr="name: *ga")
-    #
-    #     result = self._driver.find_datasets(query)
-    #     self.assertEqual(2, result.total_count)
-    #     self.assertEqual("Helga", result.datasets[0].name)
-    #     self.assertEqual("Olga", result.datasets[1].name)
-
     def test_insert_and_get_by_qc_status(self):
         dataset = helpers.new_test_dataset(13)
         dataset.metadata["qc_status"] = QC_INFO_STATUS_ONGOING
@@ -416,6 +361,112 @@ class TestMongoDbDriver(unittest.TestCase):
         result = self._driver.find_datasets(query)
         self.assertEqual(0, result.total_count)
 
+    def test_insert_two_and_get_by_time_interval(self):
+        dataset = helpers.new_test_db_dataset(17)
+        dataset.metadata["data_type"] = "bottle"
+        dataset.add_time(datetime(2008, 7, 11, 14, 16, 22))
+        dataset.add_time(datetime(2008, 7, 11, 14, 17, 19))
+        dataset.add_time(datetime(2008, 7, 11, 14, 18, 4))
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(18)
+        dataset.metadata["data_type"] = "cup"
+        dataset.add_time(datetime(2008, 8, 23, 16, 41, 9))
+        dataset.add_time(datetime(2008, 8, 23, 16, 41, 54))
+        dataset.add_time(datetime(2008, 8, 23, 16, 42, 46))
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(time=["2008-07-11T00:00:00", "2008-07-11T23:59:59"])  # covers first dataset tb 2018-10-29
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
+
+        query = DatasetQuery(time=["2008-08-23T00:00:00", "2008-08-23T23:59:59"])  # covers second dataset tb 2018-10-29
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("archive/dataset-18.txt", result.datasets[0].path)
+
+        query = DatasetQuery(time=["2007-01-01T00:00:00", "2008-08-23T23:59:59"])  # covers both datasets tb 2018-10-29
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
+        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
+        self.assertEqual("archive/dataset-18.txt", result.datasets[1].path)
+
+        query = DatasetQuery(time=["2005-01-01T00:00:00", "2005-01-01T23:59:59"])  # covers no dataset tb 2018-10-29
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(0, result.total_count)
+
+    def test_insert_two_and_get_by_time_interval_no_start_date(self):
+        dataset = helpers.new_test_db_dataset(17)
+        dataset.metadata["data_type"] = "bottle"
+        dataset.add_time(datetime(2008, 7, 11, 14, 16, 22))
+        dataset.add_time(datetime(2008, 7, 11, 14, 17, 19))
+        dataset.add_time(datetime(2008, 7, 11, 14, 18, 4))
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(18)
+        dataset.metadata["data_type"] = "cup"
+        dataset.add_time(datetime(2008, 8, 23, 16, 41, 9))
+        dataset.add_time(datetime(2008, 8, 23, 16, 41, 54))
+        dataset.add_time(datetime(2008, 8, 23, 16, 42, 46))
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(time=[None, "2008-07-11T23:59:59"])  # covers first dataset tb 2018-10-29
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
+
+        query = DatasetQuery(time=[None, "2010-01-01T23:59:59"])  # covers both datasets tb 2018-10-29
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
+        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
+        self.assertEqual("archive/dataset-18.txt", result.datasets[1].path)
+
+        query = DatasetQuery(time=[None, "2001-01-01T23:59:59"])  # covers no dataset tb 2018-10-29
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(0, result.total_count)
+
+
+    def test_insert_two_and_get_by_time_interval_no_end_date(self):
+        dataset = helpers.new_test_db_dataset(17)
+        dataset.metadata["data_type"] = "bottle"
+        dataset.add_time(datetime(2008, 7, 11, 14, 16, 22))
+        dataset.add_time(datetime(2008, 7, 11, 14, 17, 19))
+        dataset.add_time(datetime(2008, 7, 11, 14, 18, 4))
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(18)
+        dataset.metadata["data_type"] = "cup"
+        dataset.add_time(datetime(2008, 8, 23, 16, 41, 9))
+        dataset.add_time(datetime(2008, 8, 23, 16, 41, 54))
+        dataset.add_time(datetime(2008, 8, 23, 16, 42, 46))
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(time=["2008-08-20T00:00:00", None])  # covers second dataset tb 2018-10-29
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("archive/dataset-18.txt", result.datasets[0].path)
+
+        query = DatasetQuery(time=["2007-01-01T00:00:00", None])  # covers both datasets tb 2018-10-29
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
+        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
+        self.assertEqual("archive/dataset-18.txt", result.datasets[1].path)
+
+        query = DatasetQuery(time=["2010-01-01T23:59:59", None])  # covers no dataset tb 2018-10-29
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(0, result.total_count)
+
     def test_get_get_start_index_and_page_size(self):
         query = DatasetQuery()
         query.offset = 1
@@ -451,6 +502,21 @@ class TestMongoDbDriver(unittest.TestCase):
         dataset_ref = self._driver._to_dataset_ref(dataset_dict)
         self.assertEqual("nasenmann.org", dataset_ref.id)
         self.assertEqual("/where/is/your/mama/gone/Rosamunde", dataset_ref.path)
+
+    def test_convert_times_empty(self):
+        dict = {'path': 'archive/dataset-17.txt',
+                'times': []}
+
+        converted_dict = self._driver._convert_times(dict)
+        self.assertEqual([], converted_dict["times"])
+
+    def test_convert_times_two_values(self):
+        dict = {'path': 'archive/dataset-17.txt',
+                'times': ['2008-07-11T14:16:22', '2008-07-11T14:17:08']}
+
+        converted_dict = self._driver._convert_times(dict)
+        self.assertEqual([datetime(2008, 7, 11, 14, 16, 22), datetime(2008, 7, 11, 14, 17, 8)], converted_dict["times"])
+
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):
