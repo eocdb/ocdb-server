@@ -54,7 +54,7 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'eocdb-server = eocdb.ws.app:main',
+            'eocdb-server = eocdb.ws.main:main',
         ],
     },
     install_requires=requirements,
