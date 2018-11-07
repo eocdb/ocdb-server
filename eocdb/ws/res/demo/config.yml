@@ -1,8 +1,10 @@
 store_path: ~/.eocdb/store
 
+
 databases:
   default:
-    type: eocdb.db.mongod_db_driver.MongoDbDriver
+    type: eocdb.db.mongo_db_driver.MongoDbDriver
     primary: true
     parameters:
-      url: mongodb://10.3.14.146:27017/sb_extract
+        url: "mongodb://10.3.0.107:27017/eocdb"
+
