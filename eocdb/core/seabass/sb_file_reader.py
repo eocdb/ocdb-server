@@ -64,7 +64,7 @@ class SbFileReader:
         field_list = self._extract_field_list(metadata)
         records = self._parse_records()
         dataset = DbDataset(metadata, records)
-        dataset.set_attributes(field_list)
+        dataset.attributes = field_list
         self._extract_searchfields(dataset)
 
         if self.handle_header is None or self.handle_header is True:

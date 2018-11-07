@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, Optional
 
 import bson.objectid
@@ -13,6 +14,8 @@ from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
 
+ISO_FORMAT = "%Y-%m-%dT%H:%M:%S"
+
 LAT_INDEX_NAME = "_latitudes_"
 LON_INDEX_NAME = "_longitudes_"
 
@@ -20,7 +23,9 @@ LON_INDEX_NAME = "_longitudes_"
 class MongoDbDriver(DbDriver):
 
     def add_dataset(self, dataset: Dataset) -> str:
-        result = self._collection.insert_one(dataset.to_dict())
+        dateset_dict = dataset.to_dict()
+        converted_dict = self._convert_times(dateset_dict)
+        result = self._collection.insert_one(converted_dict)
         return str(result.inserted_id)
 
     def update_dataset(self, dataset: Dataset) -> bool:
@@ -58,15 +63,7 @@ class MongoDbDriver(DbDriver):
     def find_datasets(self, query: DatasetQuery) -> DatasetQueryResult:
         start_index, count = MongoDbDriver._get_start_index_and_count(query)
 
-        query_dict = {}
-        if query.expr is not None:
-            q = QueryParser.parse(query.expr)
-            q.accept(self._query_generator)
-            query_dict = self._query_generator.query
-
-        if query.region is not None:
-            query_dict["longitudes"] = {'$gte': query.region[0], '$lte': query.region[2]}
-            query_dict["latitudes"] = {'$gte': query.region[1], '$lte': query.region[3]}
+        query_dict =self._query_converter.to_dict(query)
 
         cursor = self._collection.find(query_dict, skip=start_index, limit=count)
         total_num_results = self._collection.count_documents(query_dict)
@@ -109,7 +106,7 @@ class MongoDbDriver(DbDriver):
         self._client = None
         self._collection = None
         self._config = None
-        self._query_generator = MongoQueryGenerator()
+        self._query_converter = MongoDbDriver.QueryConverter()
 
     def init(self, **config):
         self._set_config(config)
@@ -176,9 +173,56 @@ class MongoDbDriver(DbDriver):
         path = dataset_dict.get("path")
         return DatasetRef(dataset_id, path)
 
+    def _convert_times(self, dataset_dict)-> dict:
+        times_array = dataset_dict["times"]
+        converted_times = []
+        for time in times_array:
+            converted_times.append(datetime.strptime(time, ISO_FORMAT))
+        dataset_dict["times"] = converted_times
+        return dataset_dict
+
     def _ensure_indices(self):
         index_information = self._collection.index_information()
         if not LON_INDEX_NAME in index_information:
             self._collection.create_index("longitude", name=LON_INDEX_NAME, background=True)
         if not LAT_INDEX_NAME in index_information:
             self._collection.create_index("latitude", name=LAT_INDEX_NAME, background=True)
+
+
+    class QueryConverter():
+
+        def __init__(self):
+            self._query_generator = MongoQueryGenerator()
+
+        def to_dict(self, query: DatasetQuery) -> dict:
+            query_dict = {}
+            if query.expr is not None:
+                q = QueryParser.parse(query.expr)
+                q.accept(self._query_generator)
+                query_dict = self._query_generator.query
+
+            if query.region is not None:
+                query_dict["longitudes"] = {'$gte': query.region[0], '$lte': query.region[2]}
+                query_dict["latitudes"] = {'$gte': query.region[1], '$lte': query.region[3]}
+
+            if query.time is not None:
+                start_date = None
+                end_date = None
+                if query.time[0] is not None:
+                    start_date = datetime.strptime(query.time[0], ISO_FORMAT)
+
+                if query.time[1] is not None:
+                    end_date = datetime.strptime(query.time[1], ISO_FORMAT)
+
+                if start_date is None and end_date is None:
+                    raise ValueError("Both time values are none.")
+
+                times_dict = {}
+                if start_date is not None:
+                    times_dict.update({'$gte': start_date})
+                if end_date is not None:
+                    times_dict.update({'$lte': end_date})
+
+                query_dict["times"] = times_dict
+
+            return query_dict
