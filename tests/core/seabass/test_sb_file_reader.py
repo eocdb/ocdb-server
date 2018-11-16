@@ -19,13 +19,13 @@ class SbFileReaderTest(unittest.TestCase):
         sb_file = ['/end_header\n']
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-        self.assertEqual("Missing delimiter tag in header", f"{cm.exception}")
+        self.assertEqual('Missing header tag "fields"', f"{cm.exception}")
 
     def test_parse_empty_header_missing_end(self):
         sb_file = ['/begin_header\n']
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-        self.assertEqual("Missing delimiter tag in header", f"{cm.exception}")
+        self.assertEqual('Missing header tag "fields"', f"{cm.exception}")
 
     def test_parse_location_in_header_time_info_in_header_and_records(self):
         sb_file = ['/begin_header\n',
@@ -183,6 +183,25 @@ class SbFileReaderTest(unittest.TestCase):
 
         self.assertEqual(5, len(dataset.times))
         self.assertEqual(datetime.datetime(2001, 5, 10, 4, 37, 0), dataset.times[2])
+
+    def test_parse_attributes(self):
+        sb_file = ['/begin_header\n',
+                   '/delimiter=tab\n',
+                   '/north_latitude=78.77067[DEG]\n',
+                   '/east_longitude=-104.72140[DEG\n',
+                   '/start_date=20110411\n',
+                   '/end_date=220110411\n',
+                   '/start_time=14:48:00[GMT]\n',
+                   '/end_time=17:48:00[GMT]\n',
+                   '/fields=depth,Wt,sal,agp412,agp440,agp488,agp510,agp532,agp555,agp650,agp676,agp715,cgp412,cgp440,cgp488,cgp510,cgp532,cgp555,cgp650,cgp676,cgp715\n',
+                   '/end_header\n',
+                   '1.0	-1.67 	 30.515 	 0.172957 	 0.114344 	 0.064189 	 0.053668 	 0.046506 	 0.041751 	 0.03159 	 0.030531 	 0.025931 	 0.246614 	 0.178616 	 0.134436 	 0.1365 	 0.104338 	 0.098068 	 0.080178 	 0.080863 	 0.071719\n',
+                   '1.5	-1.671 	 30.514 	 0.157698 	 0.098079 	 0.051644 	 0.042618 	 0.035022 	 0.030336 	 0.020861 	 0.019751 	 0.016011 	 0.227774 	 0.155066 	 0.104526 	 0.08393 	 0.084763 	 0.071008 	 0.056643 	 0.045593 	 0.041029\n',
+                   '2.0	-1.671 	 30.486 	 0.138603 	 0.081831 	 0.033446 	 0.024684 	 0.018127 	 0.013611 	 0.003874 	 0.003721 	 0.001485 	 0.206371 	 0.137294 	 0.085409 	 0.074618 	 0.065446 	 0.058116 	 0.036772 	 0.035281 	 0.028068\n',
+                   '2.5	-1.671 	 30.489 	 0.138417 	 0.081566 	 0.032896 	 0.02452 	 0.017878 	 0.013523 	 0.003648 	 0.003748 	 0.001215 	 0.192826 	 0.123139 	 0.071535 	 0.058058 	 0.047781 	 0.040366 	 0.020996 	 0.016802 	 0.014773\n',
+                   '3.0	-1.672 	 30.473 	 0.140683 	 0.084343 	 0.035572 	 0.027182 	 0.020158 	 0.01573 	 0.005666 	 0.005809 	 0.002923 	 0.194957 	 0.124843 	 0.073786 	 0.059254 	 0.049095 	 0.041698 	 0.022461 	 0.018807 	 0.016752\n']
+
+        dataset = self.reader._parse(sb_file)
 
     def test_extract_delimiter_regex(self):
         metadata = {'delimiter': 'comma'}

@@ -1,6 +1,7 @@
 import unittest
+from typing import List
 
-from eocdb.db.static_data import get_products, get_product_groups, get_fields
+from eocdb.db.static_data import get_products, get_product_groups, get_fields, get_groups_for_product
 
 
 class StaticDataTest(unittest.TestCase):
@@ -43,12 +44,21 @@ class StaticDataTest(unittest.TestCase):
         self.assertIn('lon', names)
         self.assertIn('lat', names)
 
+    def test_get_group_for_product(self):
+        self.assertEqual(["Chl"], get_groups_for_product("Chl_c1c2"))
+        self.assertEqual(["HPLC"], get_groups_for_product("DV_Chl_b"))
+
+    def test_get_group_for_product_no_result(self):
+        self.assertEqual([], get_groups_for_product("cgp440"))
+
     def assert_valid_field(self, field):
         self.assertIsInstance(field, dict)
-        self.assertEqual(3, len(field))
+        self.assertEqual(4, len(field))
         self.assertIsInstance(field.get("name"), str)
         self.assertIsInstance(field.get("units"), str)
         self.assertIsInstance(field.get("description"), str)
+        self.assertIsInstance(field.get("groups"), List)
         self.assertTrue(len(field.get("name")) > 0)
         self.assertTrue(len(field.get("units")) > 0)
         self.assertTrue(len(field.get("description")) > 0)
+        self.assertTrue(len(field.get("groups")) >= 0)
