@@ -54,12 +54,8 @@ def find_datasets(ctx: WsContext,
                   offset: int = 1,
                   count: int = 1000) -> DatasetQueryResult:
     """Find datasets."""
-    assert_not_none(mtype, name='mtype')
-    assert_not_none(wlmode, name='wlmode')
     assert_one_of(wlmode, ['all', 'multispectral', 'hyperspectral'], name='wlmode')
-    assert_not_none(shallow, name='shallow')
     assert_one_of(shallow, ['no', 'yes', 'exclusively'], name='shallow')
-    assert_not_none(pmode, name='pmode')
     assert_one_of(pmode, ['contains', 'same_cruise', 'dont_apply'], name='pmode')
     query = DatasetQuery()
     query.expr = expr
