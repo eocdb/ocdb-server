@@ -23,7 +23,7 @@ import datetime
 import re
 from typing import List, Sequence, Any
 
-from eocdb.db.static_data import get_product_groups
+from eocdb.db.static_data import get_groups_for_product
 from ..db.db_dataset import DbDataset
 from ..models.dataset import Dataset
 
@@ -124,8 +124,18 @@ class SbFileReader:
             raise SbFormatError('Missing header tag "fields"')
 
         full_field_list = self._field_list.lower().split(',')
-        product_groups = get_product_groups()
-        return full_field_list
+        group_list = []
+        for field in full_field_list:
+            groups = get_groups_for_product(field)
+            if len(groups) == 0:
+                group_list.append(field)
+                continue
+
+            for group in groups:
+                if not group in group_list:
+                    group_list.append(group)
+
+        return group_list
 
     def _extract_searchfields(self, dataset):
         self._extract_geo_locations(dataset)

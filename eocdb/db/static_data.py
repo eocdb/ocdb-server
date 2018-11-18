@@ -46,6 +46,10 @@ def get_groups_for_product(product) -> List[str]:
     if _PRODUCT_TO_GROUP is None:
         _load_product_to_group_map()
 
+    if not product in _PRODUCT_TO_GROUP:
+        product = filter(lambda x: x.isalpha(), product)
+        product = ''.join(list(product))
+
     if product in _PRODUCT_TO_GROUP:
         return _PRODUCT_TO_GROUP[product]
     else:

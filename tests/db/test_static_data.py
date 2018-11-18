@@ -51,6 +51,9 @@ class StaticDataTest(unittest.TestCase):
     def test_get_group_for_product_no_result(self):
         self.assertEqual([], get_groups_for_product("cgp440"))
 
+    def test_get_group_for_product_numbers_stripped(self):
+        self.assertEqual(["a"], get_groups_for_product("agp676"))
+
     def assert_valid_field(self, field):
         self.assertIsInstance(field, dict)
         self.assertEqual(4, len(field))
