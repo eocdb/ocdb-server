@@ -23,10 +23,9 @@ import datetime
 import re
 from typing import List, Sequence, Any
 
-from eocdb.db.static_data import get_groups_for_product
+from ...db.static_data import get_groups_for_product
 from ..db.db_dataset import DbDataset
 from ..models.dataset import Dataset
-
 
 EOF = 'end_of_file'
 
