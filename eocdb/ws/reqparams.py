@@ -22,6 +22,7 @@
 from abc import abstractmethod, ABCMeta
 from typing import Optional, List
 
+from ..core import UNDEFINED
 from .errors import WsBadRequestError
 
 
@@ -178,7 +179,7 @@ class RequestParams(metaclass=ABCMeta):
                 f'"value for parameter {name!r}" must be an number list, but was {value!r}') from e
 
     @abstractmethod
-    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
+    def get_param(self, name: str, default: Optional[str] = UNDEFINED) -> Optional[str]:
         """
         Get query argument.
         :param name: Query argument name
