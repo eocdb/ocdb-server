@@ -304,10 +304,11 @@ class UsersLogin(WsRequestHandler):
 
     def get(self):
         """Provide API operation loginUser()."""
-        username = self.query.get_param('username', default=None)
-        password = self.query.get_param('password', default=None)
-        login_user(self.ws_context, username=username, password=password)
-        self.finish()
+        username = self.header.get_param('username')
+        password = self.header.get_param('password')
+        result = login_user(self.ws_context, username=username, password=password)
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -315,6 +316,7 @@ class UsersLogout(WsRequestHandler):
 
     def get(self):
         """Provide API operation logoutUser()."""
+        username = self.query.get_param_int('userid')
         logout_user(self.ws_context)
         self.finish()
 

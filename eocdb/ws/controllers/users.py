@@ -18,11 +18,32 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+from typing import Dict
 
 from ..context import WsContext
+from ..errors import WsUnauthorizedError, WsNotImplementedError
 from ...core.asserts import assert_not_none
 from ...core.models.user import User
+
+
+# noinspection PyUnusedLocal,PyTypeChecker
+def login_user(ctx: WsContext,
+               username: str,
+               password: str) -> Dict[str, str]:
+    assert_not_none(username, name='username')
+    assert_not_none(password, name='password')
+    users = ctx.config.get("users")
+    if not isinstance(users, dict):
+        raise WsNotImplementedError("No users configured.")
+    user = users.get(username)
+    if not isinstance(user, dict):
+        raise WsUnauthorizedError("Unknown username or password.")
+    actual_password = user.get('password')
+    if actual_password is None or actual_password != password:
+        raise WsUnauthorizedError("Unknown username or password.")
+    user = dict(name=username, **user)
+    del user['password']
+    return user
 
 
 # noinspection PyUnusedLocal
@@ -30,16 +51,6 @@ def create_user(ctx: WsContext,
                 user: User):
     # TODO (generated): implement operation create_user()
     raise NotImplementedError('operation create_user() not yet implemented')
-
-
-# noinspection PyUnusedLocal,PyTypeChecker
-def login_user(ctx: WsContext,
-               username: str,
-               password: str) -> str:
-    assert_not_none(username, name='username')
-    assert_not_none(password, name='password')
-    # TODO (generated): implement operation login_user()
-    raise NotImplementedError('operation login_user() not yet implemented')
 
 
 # noinspection PyUnusedLocal

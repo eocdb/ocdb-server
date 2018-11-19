@@ -430,20 +430,22 @@ class UsersTest(WsTestCase):
 
 class UsersLoginTest(WsTestCase):
 
-    @unittest.skip('not implemented yet')
     def test_get(self):
-        # TODO (generated): set query parameter(s) to reasonable value(s)
-        username = None
-        password = None
-        query = urllib.parse.urlencode(dict(username=username, password=password))
-
-        response = self.fetch(API_URL_PREFIX + f"/users/login?{query}", method='GET')
+        headers = dict(username="scott", password="tiger")
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='GET', headers=headers)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        # TODO (generated): set expected_response correctly
-        expected_response_data = None
-        actual_response_data = response.body
+        expected_response_data = {
+            'id': 1,
+            'name': 'scott',
+            'email': 'bruce.scott@gmail.com',
+            'first_name': 'Bruce',
+            'last_name': 'Scott',
+            'phone': '+34 5678901234',
+            'roles': ['submit', 'admin']
+        }
+        actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
 

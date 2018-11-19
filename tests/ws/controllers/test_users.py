@@ -31,6 +31,20 @@ class UsersTest(unittest.TestCase):
     def setUp(self):
         self.ctx = new_test_service_context()
 
+    def test_login_user(self):
+        # noinspection PyTypeChecker
+        result = login_user(self.ctx, username="scott", password="tiger")
+        expected_result = {
+            'id': 1,
+            'name': 'scott',
+            'email': 'bruce.scott@gmail.com',
+            'first_name': 'Bruce',
+            'last_name': 'Scott',
+            'phone': '+34 5678901234',
+            'roles': ['submit', 'admin']
+        }
+        self.assertEqual(expected_result, result)
+
     @unittest.skip('not implemented yet')
     def test_create_user(self):
         # noinspection PyArgumentList
@@ -39,17 +53,6 @@ class UsersTest(unittest.TestCase):
         # noinspection PyArgumentList
         result = create_user(self.ctx, user=user)
         self.assertIsNone(result)
-
-    @unittest.skip('not implemented yet')
-    def test_login_user(self):
-        # TODO (generated): set optional parameters
-        username = None
-        password = None
-        # noinspection PyTypeChecker
-        result = login_user(self.ctx, username=username, password=password)
-        # TODO (generated): set expected result
-        expected_result = None
-        self.assertEqual(expected_result, result)
 
     @unittest.skip('not implemented yet')
     def test_logout_user(self):

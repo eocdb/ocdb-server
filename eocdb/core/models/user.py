@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 
-from typing import Optional
+from typing import Optional, List
 
 from ..asserts import assert_not_none
 from ..model import Model
@@ -39,7 +39,7 @@ class User(Model):
                  last_name: str,
                  email: str,
                  phone: str,
-                 permissions: int):
+                 roles: List[str]):
         assert_not_none(id_, name='id_')
         assert_not_none(name, name='name')
         assert_not_none(first_name, name='first_name')
@@ -47,7 +47,7 @@ class User(Model):
         assert_not_none(email, name='email')
         assert_not_none(password, name='password')
         assert_not_none(phone, name='phone')
-        assert_not_none(permissions, name='permissions')
+        assert_not_none(roles, name='roles')
         self._id = id_
         self._name = name
         self._first_name = first_name
@@ -55,7 +55,7 @@ class User(Model):
         self._email = email
         self._password = password
         self._phone = phone
-        self._permissions = permissions
+        self._roles = roles
 
     @property
     def id(self) -> Optional[int]:
@@ -121,10 +121,10 @@ class User(Model):
         self._phone = value
 
     @property
-    def permissions(self) -> Optional[int]:
-        return self._permissions
+    def roles(self) -> Optional[List[str]]:
+        return self._roles
 
-    @permissions.setter
-    def permissions(self, value: Optional[int]):
+    @roles.setter
+    def roles(self, value: Optional[List[str]]):
         assert_not_none(value, name='value')
-        self._permissions = value
+        self._roles = value
