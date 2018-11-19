@@ -39,6 +39,7 @@ from tornado.web import RequestHandler, Application
 from .context import WsContext
 from .defaults import DEFAULT_ADDRESS, DEFAULT_PORT, DEFAULT_CONFIG_FILE, DEFAULT_UPDATE_PERIOD, DEFAULT_LOG_PREFIX
 from .reqparams import RequestParams
+from ..core import UNDEFINED
 
 _LOG = logging.getLogger('eocdb')
 
@@ -255,7 +256,7 @@ class WsRequestHeader(RequestParams):
     def __init__(self, handler: RequestHandler):
         self.handler = handler
 
-    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
+    def get_param(self, name: str, default: Optional[str] = UNDEFINED) -> Optional[str]:
         """
         Get query argument.
         :param name: Query argument name
@@ -263,6 +264,8 @@ class WsRequestHeader(RequestParams):
         :return: the value or none
         :raise: WsBadRequestError
         """
+        if default == UNDEFINED:
+            return self.handler.request.headers.get(name)
         return self.handler.request.headers.get(name, default=default)
 
 
@@ -270,7 +273,7 @@ class WsRequestQuery(RequestParams):
     def __init__(self, handler: RequestHandler):
         self.handler = handler
 
-    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
+    def get_param(self, name: str, default: Optional[str] = UNDEFINED) -> Optional[str]:
         """
         Get query argument.
         :param name: Query argument name
@@ -278,6 +281,8 @@ class WsRequestQuery(RequestParams):
         :return: the value or none
         :raise: WsBadRequestError
         """
+        if default == UNDEFINED:
+            return self.handler.get_query_argument(name)
         return self.handler.get_query_argument(name, default=default)
 
 
@@ -285,7 +290,7 @@ class WsRequestCookie(RequestParams):
     def __init__(self, handler: RequestHandler):
         self.handler = handler
 
-    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
+    def get_param(self, name: str, default: Optional[str] = UNDEFINED) -> Optional[str]:
         """
         Get query argument.
         :param name: Query argument name
@@ -293,6 +298,8 @@ class WsRequestCookie(RequestParams):
         :return: the value or none
         :raise: WsBadRequestError
         """
+        if default == UNDEFINED:
+            return self.handler.get_cookie(name)
         return self.handler.get_cookie(name, default=default)
 
 
