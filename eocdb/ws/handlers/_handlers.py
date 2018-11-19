@@ -33,6 +33,10 @@ from ..webservice import WsRequestHandler
 from ...core.models.dataset import Dataset
 from ...core.models.user import User
 
+MTYPE_DEFAULT = 'all'
+WLMODE_DEFAULT = 'all'
+SHALLOW_DEFAULT = 'no'
+PMODE_DEFAULT = 'contains'
 
 # noinspection PyAbstractClass
 class ServiceInfo(WsRequestHandler):
@@ -101,10 +105,10 @@ class StoreDownload(WsRequestHandler):
         region = self.query.get_param_float_list('region', default=None)
         time = self.query.get_param_list('time', default=None)
         wdepth = self.query.get_param_float_list('wdepth', default=None)
-        mtype = self.query.get_param('mtype', default=None)
-        wlmode = self.query.get_param('wlmode', default=None)
-        shallow = self.query.get_param('shallow', default=None)
-        pmode = self.query.get_param('pmode', default=None)
+        mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
+        wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)
+        shallow = self.query.get_param('shallow', default=SHALLOW_DEFAULT)
+        pmode = self.query.get_param('pmode', default=PMODE_DEFAULT)
         pgroup = self.query.get_param_list('pgroup', default=None)
         pname = self.query.get_param_list('pname', default=None)
         docs = self.query.get_param_bool('docs', default=None)
@@ -140,10 +144,10 @@ class Datasets(WsRequestHandler):
         region = self.query.get_param_float_list('region', default=None)
         time = self.query.get_param_list('time', default=None)
         wdepth = self.query.get_param_float_list('wdepth', default=None)
-        mtype = self.query.get_param('mtype', default=None)
-        wlmode = self.query.get_param('wlmode', default=None)
-        shallow = self.query.get_param('shallow', default=None)
-        pmode = self.query.get_param('pmode', default=None)
+        mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
+        wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)
+        shallow = self.query.get_param('shallow', default=SHALLOW_DEFAULT)
+        pmode = self.query.get_param('pmode', default=PMODE_DEFAULT)
         pgroup = self.query.get_param_list('pgroup', default=None)
         pname = self.query.get_param_list('pname', default=None)
         offset = self.query.get_param_int('offset', default=None)

@@ -70,9 +70,9 @@ class DatasetsTest(unittest.TestCase):
         region = None
         time = None
         wdepth = None
-        mtype = "all"
-        wlmode = "all"
-        shallow = "no"
+        mtype = None
+        wlmode = 'all'
+        shallow = 'no'
         pmode = 'contains'
         pgroup = None
         pname = None
