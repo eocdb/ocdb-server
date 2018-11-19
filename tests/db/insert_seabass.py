@@ -44,11 +44,12 @@ class InsertSeabass():
                 if to_ingest:
                     print(full_path)
                     document = reader.read(full_path)
+                    document.path = full_path
 
                     document_count += 1
-                    record_count += document.record_count
+                    record_count += len(document.records)
 
-                    db_driver.insert(document.to_dict())
+                    db_driver.add_dataset(document)
 
         print("Number of docs: " + str(document_count))
         print("Number of recs: " + str(record_count))
