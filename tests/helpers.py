@@ -3,9 +3,11 @@ from typing import Optional
 
 import yaml
 
+from eocdb.core import UNDEFINED
 from eocdb.core.db.db_dataset import DbDataset
 from eocdb.core.models.dataset import Dataset
 from eocdb.ws.context import WsContext
+from eocdb.ws.errors import WsBadRequestError
 from eocdb.ws.reqparams import RequestParams
 
 
@@ -39,5 +41,7 @@ class RequestParamsMock(RequestParams):
     def __init__(self, **kvp):
         self.kvp = kvp
 
-    def get_param(self, name: str, default: Optional[str]) -> Optional[str]:
+    def get_param(self, name: str, default: Optional[str] = UNDEFINED) -> Optional[str]:
+        if default is UNDEFINED and name not in self.kvp:
+            raise WsBadRequestError(f"Parameter '{name}' must be given")
         return self.kvp.get(name, default)
