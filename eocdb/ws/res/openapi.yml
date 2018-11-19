@@ -441,13 +441,13 @@ paths:
       operationId: loginUser
       parameters:
         - name: username
-          in: query
+          in: header
           description: The user name for login
           required: true
           schema:
             type: string
         - name: password
-          in: query
+          in: header
           description: The password for login in clear text
           required: true
           schema:
