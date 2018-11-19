@@ -433,7 +433,6 @@ class TestMongoDbDriver(unittest.TestCase):
         result = self._driver.find_datasets(query)
         self.assertEqual(0, result.total_count)
 
-
     def test_insert_two_and_get_by_time_interval_no_end_date(self):
         dataset = helpers.new_test_db_dataset(17)
         dataset.metadata["data_type"] = "bottle"
@@ -466,6 +465,61 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(0, result.total_count)
+
+    def test_insert_two_and_get_by_attributes_non_matching(self):
+        dataset = helpers.new_test_db_dataset(18)
+        dataset.attributes = ["a", "b"]
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(19)
+        dataset.attributes = ["Chl_a", "b"]
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(pgroup=["sal"])
+        result = self._driver.find_datasets(query)
+        self.assertEqual(0, result.total_count)
+
+    def test_insert_two_and_get_by_attributes_one_matching(self):
+        dataset = helpers.new_test_db_dataset(20)
+        dataset.attributes = ["a", "b"]
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(21)
+        dataset.attributes = ["Chl_a", "b"]
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(pgroup=["Chl_a"])
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("archive/dataset-21.txt", result.datasets[0].path)
+
+    def test_insert_two_and_get_by_attributes_both_matching(self):
+        dataset = helpers.new_test_db_dataset(22)
+        dataset.attributes = ["a", "b"]
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(23)
+        dataset.attributes = ["Chl_a", "b"]
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(pgroup=["b"])
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
+        self.assertEqual("archive/dataset-22.txt", result.datasets[0].path)
+        self.assertEqual("archive/dataset-23.txt", result.datasets[1].path)
+
+    def test_insert_two_and_get_by_attributes_two_groups_both_matching(self):
+        dataset = helpers.new_test_db_dataset(24)
+        dataset.attributes = ["a", "b"]
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(25)
+        dataset.attributes = ["Chl_a", "b"]
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(pgroup=["a", "Chl_a"])
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
 
     def test_get_get_start_index_and_page_size(self):
         query = DatasetQuery()
@@ -516,7 +570,6 @@ class TestMongoDbDriver(unittest.TestCase):
 
         converted_dict = self._driver._convert_times(dict)
         self.assertEqual([datetime(2008, 7, 11, 14, 16, 22), datetime(2008, 7, 11, 14, 17, 8)], converted_dict["times"])
-
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):

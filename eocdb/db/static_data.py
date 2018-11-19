@@ -3,7 +3,7 @@ import json
 import os
 from typing import List, Any, Dict
 
-Field = Dict[str, str]
+Field = Dict[str, Any]
 ProductGroup = Dict[str, Any]
 
 _NON_PRODUCT_FIELD_NAMES = {
@@ -21,6 +21,7 @@ _NON_PRODUCT_FIELD_NAMES = {
 
 _FIELDS = None
 _PRODUCT_GROUPS = None
+_PRODUCT_TO_GROUP = None
 
 
 def get_product_groups() -> List[ProductGroup]:
@@ -34,6 +35,37 @@ def get_product_groups() -> List[ProductGroup]:
         with open(file, encoding="utf8") as fp:
             _PRODUCT_GROUPS = json.load(fp)
     return _PRODUCT_GROUPS
+
+def get_groups_for_product(product) -> List[str]:
+    """
+        Return a list of product groups names the product passed in belongs to.
+        May return empty list.
+        """
+    global _PRODUCT_TO_GROUP
+
+    if _PRODUCT_TO_GROUP is None:
+        _load_product_to_group_map()
+
+    if not product in _PRODUCT_TO_GROUP:
+        product = filter(lambda x: x.isalpha(), product)
+        product = ''.join(list(product))
+
+    if product in _PRODUCT_TO_GROUP:
+        return _PRODUCT_TO_GROUP[product]
+    else:
+        return []
+
+
+def _load_product_to_group_map():
+    global _PRODUCT_TO_GROUP
+    _PRODUCT_TO_GROUP = {}
+    product_groups = get_product_groups()
+    for product_group in product_groups:
+        for product in product_group["products"]:
+            if not product in _PRODUCT_TO_GROUP:
+                _PRODUCT_TO_GROUP.update({product: [product_group["name"]]})
+            else:
+                _PRODUCT_TO_GROUP[product].append(product_group["name"])
 
 
 def get_products() -> List[Field]:
@@ -57,11 +89,14 @@ def get_fields() -> List[Field]:
     global _FIELDS
     if _FIELDS is None:
         _FIELDS = []
+
         file = os.path.join(os.path.dirname(__file__), "res", "fields.csv")
         with open(file, encoding="utf8") as fp:
             reader = csv.reader(fp, delimiter=';')
             for row in reader:
                 if len(row) != 3:
                     raise ValueError(f"malformed file {file}, rows must have 3 columns")
-                _FIELDS.append(dict(name=row[0], units=row[1], description=row[2]))
+                name = row[0]
+                groups = get_groups_for_product(name)
+                _FIELDS.append(dict(name=name, units=row[1], description=row[2], groups=groups))
     return _FIELDS

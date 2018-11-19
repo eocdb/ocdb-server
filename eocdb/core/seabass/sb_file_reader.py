@@ -23,6 +23,7 @@ import datetime
 import re
 from typing import List, Sequence, Any
 
+from ...db.static_data import get_groups_for_product
 from ..db.db_dataset import DbDataset
 from ..models.dataset import Dataset
 
@@ -34,6 +35,7 @@ class SbFileReader:
     def __init__(self):
         self._lines = []
         self._line_index = 0
+        self._field_list = None
 
     def read(self, file_obj: Any) -> Dataset:
         """
@@ -61,8 +63,9 @@ class SbFileReader:
             self.handle_header = True
             metadata = self._parse_header()
 
-        field_list = self._extract_field_list(metadata)
-        records = self._parse_records()
+        field_list = self._extract_field_list()
+        delimiter_regex = self._extract_delimiter_regex(metadata)
+        records = self._parse_records(delimiter_regex)
         dataset = DbDataset(metadata, records)
         dataset.attributes = field_list
         self._extract_searchfields(dataset)
@@ -109,19 +112,29 @@ class SbFileReader:
             key = key[1:].strip()
             value = value.strip()
             if key == 'fields':
-                self.field_list = value
+                self._field_list = value
             else:
                 metadata.update({key: value})
 
         return metadata
 
-    def _extract_field_list(self, metadata):
-        self._delimiter_regex = self._extract_delimiter_regex(metadata)
-
-        if self.field_list is None:
+    def _extract_field_list(self):
+        if self._field_list is None:
             raise SbFormatError('Missing header tag "fields"')
 
-        return self.field_list.lower().split(',')
+        full_field_list = self._field_list.lower().split(',')
+        group_list = []
+        for field in full_field_list:
+            groups = get_groups_for_product(field)
+            if len(groups) == 0:
+                group_list.append(field)
+                continue
+
+            for group in groups:
+                if not group in group_list:
+                    group_list.append(group)
+
+        return group_list
 
     def _extract_searchfields(self, dataset):
         self._extract_geo_locations(dataset)
@@ -210,7 +223,7 @@ class SbFileReader:
         else:
             return "n_a"
 
-    def _parse_records(self) -> List[List[Dataset.Field]]:
+    def _parse_records(self, delimiter_regex) -> List[List[Dataset.Field]]:
         records = []
 
         while True:
@@ -218,7 +231,7 @@ class SbFileReader:
             if line == EOF:
                 break
 
-            tokens = re.split(self._delimiter_regex, line)
+            tokens = re.split(delimiter_regex, line)
             if len(tokens) <= 1:
                 # some files have whitespace between header and records - skip this here tb 2018-09-21
                 continue

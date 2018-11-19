@@ -18,6 +18,8 @@ ISO_FORMAT = "%Y-%m-%dT%H:%M:%S"
 
 LAT_INDEX_NAME = "_latitudes_"
 LON_INDEX_NAME = "_longitudes_"
+ATTRIBUTES_INDEX_NAME = "_attributes_"
+TIMES_INDEX_NAME = "_times_"
 
 
 class MongoDbDriver(DbDriver):
@@ -63,7 +65,7 @@ class MongoDbDriver(DbDriver):
     def find_datasets(self, query: DatasetQuery) -> DatasetQueryResult:
         start_index, count = MongoDbDriver._get_start_index_and_count(query)
 
-        query_dict =self._query_converter.to_dict(query)
+        query_dict = self._query_converter.to_dict(query)
 
         cursor = self._collection.find(query_dict, skip=start_index, limit=count)
         total_num_results = self._collection.count_documents(query_dict)
@@ -173,7 +175,7 @@ class MongoDbDriver(DbDriver):
         path = dataset_dict.get("path")
         return DatasetRef(dataset_id, path)
 
-    def _convert_times(self, dataset_dict)-> dict:
+    def _convert_times(self, dataset_dict) -> dict:
         times_array = dataset_dict["times"]
         converted_times = []
         for time in times_array:
@@ -187,7 +189,10 @@ class MongoDbDriver(DbDriver):
             self._collection.create_index("longitude", name=LON_INDEX_NAME, background=True)
         if not LAT_INDEX_NAME in index_information:
             self._collection.create_index("latitude", name=LAT_INDEX_NAME, background=True)
-
+        if not ATTRIBUTES_INDEX_NAME in index_information:
+            self._collection.create_index("attributes", name=ATTRIBUTES_INDEX_NAME, background=True)
+        if not TIMES_INDEX_NAME in index_information:
+            self._collection.create_index("times", name=TIMES_INDEX_NAME, background=True)
 
     class QueryConverter():
 
@@ -224,5 +229,8 @@ class MongoDbDriver(DbDriver):
                     times_dict.update({'$lte': end_date})
 
                 query_dict["times"] = times_dict
+
+            if query.pgroup is not None:
+                query_dict.update({'attributes': {'$in': query.pgroup}})
 
             return query_dict
