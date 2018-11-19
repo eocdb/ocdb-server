@@ -49,6 +49,15 @@ class WsBadRequestError(WsError):
         super().__init__(reason, status_code=400, log_message=log_message)
 
 
+class WsUnauthorizedError(WsError):
+    """
+    401 - Unauthorized.
+    """
+
+    def __init__(self, reason: str, log_message: str = None):
+        super().__init__(reason, status_code=401, log_message=log_message)
+
+
 class WsResourceNotFoundError(WsError):
     """
     404 - Not Found.
