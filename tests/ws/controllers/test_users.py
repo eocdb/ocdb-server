@@ -45,6 +45,26 @@ class UsersTest(unittest.TestCase):
         }
         self.assertEqual(expected_result, result)
 
+        result = login_user(self.ctx, username="bruce.scott@gmail.com", password="tiger")
+        expected_result = {
+            'id': 1,
+            'name': 'scott',
+            'email': 'bruce.scott@gmail.com',
+            'first_name': 'Bruce',
+            'last_name': 'Scott',
+            'phone': '+34 5678901234',
+            'roles': ['submit', 'admin']
+        }
+        self.assertEqual(expected_result, result)
+
+        with self.assertRaises(WsUnauthorizedError) as cm:
+            login_user(self.ctx, username="scott", password="lion")
+        self.assertEqual("HTTP 401: Unknown username or password", f"{cm.exception}")
+
+        with self.assertRaises(WsUnauthorizedError) as cm:
+            login_user(self.ctx, username="bibo", password="tiger")
+        self.assertEqual("HTTP 401: Unknown username or password", f"{cm.exception}")
+
     @unittest.skip('not implemented yet')
     def test_create_user(self):
         # noinspection PyArgumentList
