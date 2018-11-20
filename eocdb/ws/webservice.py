@@ -38,6 +38,7 @@ from tornado.web import RequestHandler, Application
 
 from .context import WsContext
 from .defaults import DEFAULT_ADDRESS, DEFAULT_PORT, DEFAULT_CONFIG_FILE, DEFAULT_UPDATE_PERIOD, DEFAULT_LOG_PREFIX
+from .errors import WsBadRequestError
 from .reqparams import RequestParams
 from ..core import UNDEFINED
 
@@ -264,8 +265,8 @@ class WsRequestHeader(RequestParams):
         :return: the value or none
         :raise: WsBadRequestError
         """
-        if default == UNDEFINED:
-            return self.handler.request.headers.get(name)
+        if default == UNDEFINED and name not in self.handler.request.headers:
+            raise self._error_missing(name, "string")
         return self.handler.request.headers.get(name, default=default)
 
 

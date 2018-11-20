@@ -22,8 +22,8 @@
 from abc import abstractmethod, ABCMeta
 from typing import Optional, List
 
-from ..core import UNDEFINED
 from .errors import WsBadRequestError
+from ..core import UNDEFINED
 
 
 class RequestParams(metaclass=ABCMeta):
@@ -36,8 +36,8 @@ class RequestParams(metaclass=ABCMeta):
         :return: The int value
         :raise: WsBadRequestError
         """
-        if value is None:
-            raise WsBadRequestError(f'value for parameter "{name!r}" must be a boolean, but none was given')
+        if value is None or value is UNDEFINED:
+            raise cls._error_missing(name, "boolean")
         try:
             value = value.lower()
             if value == 'true':
@@ -46,7 +46,7 @@ class RequestParams(metaclass=ABCMeta):
                 return False
             return bool(int(value))
         except ValueError as e:
-            raise WsBadRequestError(f'value for parameter "{name!r}" must be a boolean, but was {value!r}') from e
+            raise cls._error_wrong_type(name, "boolean") from e
 
     @classmethod
     def to_int(cls,
@@ -63,17 +63,14 @@ class RequestParams(metaclass=ABCMeta):
         :return: The int value
         :raise: WsBadRequestError
         """
-        if value is None:
-            raise WsBadRequestError(f'value for parameter "{name!r}" must be an integer, but none was given')
+        if value is None or value is UNDEFINED:
+            raise cls._error_missing(name, "integer")
         try:
             value = int(value)
-            if minimum is not None and value < minimum:
-                raise WsBadRequestError(f'value of "{name!r}" must not be < {minimum}, but was {value!r}')
-            if maximum is not None and value > maximum:
-                raise WsBadRequestError(f'value of "{name!r}" must not be > {maximum}, but was {value!r}')
+            cls._check_min_max(name, value, maximum, minimum)
             return value
         except ValueError as e:
-            raise WsBadRequestError(f'"value for parameter {name!r}" must be an integer, but was {value!r}') from e
+            raise cls._error_wrong_type(name, "integer") from e
 
     @classmethod
     def to_float(cls,
@@ -91,17 +88,14 @@ class RequestParams(metaclass=ABCMeta):
         :return: The float value
         :raise: WsBadRequestError
         """
-        if value is None:
-            raise WsBadRequestError(f'value for parameter "{name!r}" must be a number, but none was given')
+        if value is None or value is UNDEFINED:
+            raise cls._error_missing(name, "number")
         try:
             value = float(value)
-            if minimum is not None and value < minimum:
-                raise WsBadRequestError(f'value for parameter "{name!r}" must not be < {minimum}, but was {value!r}')
-            if maximum is not None and value > maximum:
-                raise WsBadRequestError(f'value for parameter "{name!r}" must not be > {maximum}, but was {value!r}')
+            cls._check_min_max(name, value, maximum, minimum)
             return value
         except ValueError as e:
-            raise WsBadRequestError(f'value for parameter "{name!r}" must be a number, but was {value!r}') from e
+            raise cls._error_wrong_type(name, "number") from e
 
     @classmethod
     def to_list(cls,
@@ -117,7 +111,7 @@ class RequestParams(metaclass=ABCMeta):
         if value is not None:
             value = list(value.split(','))
         if value is None or value == ['']:
-            raise WsBadRequestError(f'value for parameter "{name!r}" must be a list, but none was given')
+            raise cls._error_missing(name, "list")
         return value
 
     @classmethod
@@ -135,19 +129,14 @@ class RequestParams(metaclass=ABCMeta):
         :return: The int value
         :raise: WsBadRequestError
         """
-        if value is None:
-            raise WsBadRequestError(f'value for parameter "{name!r}" must be an integer list, but none was given')
+        if value is None or value is UNDEFINED:
+            raise cls._error_missing(name, "list of integers")
         try:
             arr = list(map(int, value.split(',')))
-            for value in arr:
-                if minimum is not None and value < minimum:
-                    raise WsBadRequestError(f'value of "{name!r}" list must not be < {minimum}, but was {value!r}')
-                if maximum is not None and value > maximum:
-                    raise WsBadRequestError(f'value of "{name!r}" list must not be > {maximum}, but was {value!r}')
+            cls._check_list_min_max(name, arr, maximum, minimum)
             return arr
         except ValueError as e:
-            raise WsBadRequestError(
-                f'"value for parameter {name!r}" must be an integer list, but was {value!r}') from e
+            raise cls._error_wrong_type(name, "list of integer") from e
 
     @classmethod
     def to_float_list(cls,
@@ -164,19 +153,14 @@ class RequestParams(metaclass=ABCMeta):
         :return: The int value
         :raise: WsBadRequestError
         """
-        if value is None:
-            raise WsBadRequestError(f'value for parameter "{name!r}" must be an number list, but none was given')
+        if value is None or value is UNDEFINED:
+            raise cls._error_missing(name, "list of numbers")
         try:
             arr = list(map(float, value.split(',')))
-            for value in arr:
-                if minimum is not None and value < minimum:
-                    raise WsBadRequestError(f'value of "{name!r}" list must not be < {minimum}, but was {value!r}')
-                if maximum is not None and value > maximum:
-                    raise WsBadRequestError(f'value of "{name!r}" list must not be > {maximum}, but was {value!r}')
+            cls._check_list_min_max(name, arr, maximum, minimum)
             return arr
         except ValueError as e:
-            raise WsBadRequestError(
-                f'"value for parameter {name!r}" must be an number list, but was {value!r}') from e
+            raise cls._error_wrong_type(name, "list of numbers") from e
 
     @abstractmethod
     def get_param(self, name: str, default: Optional[str] = UNDEFINED) -> Optional[str]:
@@ -279,3 +263,31 @@ class RequestParams(metaclass=ABCMeta):
         """
         value = self.get_param(name, default=None)
         return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
+
+    @classmethod
+    def _check_min_max(cls, name, value, maximum, minimum):
+        if minimum is not None and value < minimum:
+            raise cls._error_too_small(name, minimum)
+        if maximum is not None and value > maximum:
+            raise cls._error_too_large(name, maximum)
+
+    @classmethod
+    def _check_list_min_max(cls, name, value, maximum, minimum):
+        for value in value:
+            cls._check_min_max(name, value, maximum, minimum)
+
+    @classmethod
+    def _error_missing(cls, param_name, type_name):
+        return WsBadRequestError(f"Missing value for parameter '{param_name}' of type {type_name}")
+
+    @classmethod
+    def _error_wrong_type(cls, param_name, type_name):
+        return WsBadRequestError(f"Value for parameter '{param_name}' must be a {type_name}")
+
+    @classmethod
+    def _error_too_small(cls, param_name, minimum):
+        return WsBadRequestError(f"Value of parameter '{param_name}' must not be < {minimum}")
+
+    @classmethod
+    def _error_too_large(cls, param_name, maximum):
+        return WsBadRequestError(f"Value of parameter '{param_name}' must not be > {maximum}")
