@@ -33,17 +33,23 @@ def login_user(ctx: WsContext,
     assert_not_none(username, name='username')
     assert_not_none(password, name='password')
     users = ctx.config.get("users")
-    if not isinstance(users, dict):
-        raise WsNotImplementedError("No users configured.")
-    user = users.get(username)
-    if not isinstance(user, dict):
-        raise WsUnauthorizedError("Unknown username or password.")
-    actual_password = user.get('password')
-    if actual_password is None or actual_password != password:
-        raise WsUnauthorizedError("Unknown username or password.")
-    user = dict(name=username, **user)
-    del user['password']
-    return user
+    if not users:
+        raise WsNotImplementedError("No users configured")
+    if not isinstance(users, list):
+        raise WsNotImplementedError("Invalid user configuration")
+    for user in users:
+        if not isinstance(user, dict):
+            raise WsUnauthorizedError("Invalid user configuration")
+    for user in users:
+        if user.get("name") == username or user.get("email") == username:
+            actual_password = user.get('password')
+            if actual_password == password:
+                user = dict(**user)
+                del user['password']
+                return user
+            else:
+                break
+    raise WsUnauthorizedError("Unknown username or password")
 
 
 # noinspection PyUnusedLocal
