@@ -38,6 +38,7 @@ WLMODE_DEFAULT = 'all'
 SHALLOW_DEFAULT = 'no'
 PMODE_DEFAULT = 'contains'
 
+
 # noinspection PyAbstractClass
 class ServiceInfo(WsRequestHandler):
 
@@ -237,7 +238,7 @@ class DatasetsIdQcinfo(WsRequestHandler):
         # transform body with mime-type application/json into a QcInfo
         data_dict = tornado.escape.json_decode(self.request.body)
         qc_info = QcInfo.from_dict(data_dict)
-        result = set_dataset_qc_info(self.ws_context, dataset_id=dataset_id, qc_info=qc_info)
+        set_dataset_qc_info(self.ws_context, dataset_id=dataset_id, qc_info=qc_info)
         self.finish()
 
 
@@ -302,13 +303,14 @@ class Users(WsRequestHandler):
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class UsersLogin(WsRequestHandler):
 
-    def get(self):
+    def post(self):
         """Provide API operation loginUser()."""
-        username = self.header.get_param('username')
-        password = self.header.get_param('password')
-        result = login_user(self.ws_context, username=username, password=password)
+        credentials = tornado.escape.json_decode(self.request.body)
+        username = credentials.get('username')
+        password = credentials.get('password')
+        user_info = login_user(self.ws_context, username=username, password=password)
         self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result))
+        self.finish(tornado.escape.json_encode(user_info))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -316,8 +318,8 @@ class UsersLogout(WsRequestHandler):
 
     def get(self):
         """Provide API operation logoutUser()."""
-        username = self.query.get_param_int('userid')
-        logout_user(self.ws_context)
+        user_id = self.query.get_param_int('userid')
+        logout_user(self.ws_context, user_id)
         self.finish()
 
 
@@ -344,5 +346,5 @@ class UsersId(WsRequestHandler):
     def delete(self, id: str):
         """Provide API operation deleteUser()."""
         user_id = RequestParams.to_int('id', id)
-        delete_user(self.ws_context, user_id=user_id)
+        delete_user(self.ws_context, user_id)
         self.finish()
