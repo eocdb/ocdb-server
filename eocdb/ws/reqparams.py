@@ -37,7 +37,7 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         if value is None or value is UNDEFINED:
-            raise cls._error_missing(name, "boolean")
+            raise cls._error_missing(name)
         try:
             value = value.lower()
             if value == 'true':
@@ -64,7 +64,7 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         if value is None or value is UNDEFINED:
-            raise cls._error_missing(name, "integer")
+            raise cls._error_missing(name)
         try:
             value = int(value)
             cls._check_min_max(name, value, maximum, minimum)
@@ -89,7 +89,7 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         if value is None or value is UNDEFINED:
-            raise cls._error_missing(name, "number")
+            raise cls._error_missing(name)
         try:
             value = float(value)
             cls._check_min_max(name, value, maximum, minimum)
@@ -111,7 +111,7 @@ class RequestParams(metaclass=ABCMeta):
         if value is not None:
             value = list(value.split(','))
         if value is None or value == ['']:
-            raise cls._error_missing(name, "list")
+            raise cls._error_missing(name)
         return value
 
     @classmethod
@@ -130,7 +130,7 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         if value is None or value is UNDEFINED:
-            raise cls._error_missing(name, "list of integers")
+            raise cls._error_missing(name)
         try:
             arr = list(map(int, value.split(',')))
             cls._check_list_min_max(name, arr, maximum, minimum)
@@ -154,7 +154,7 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         if value is None or value is UNDEFINED:
-            raise cls._error_missing(name, "list of numbers")
+            raise cls._error_missing(name)
         try:
             arr = list(map(float, value.split(',')))
             cls._check_list_min_max(name, arr, maximum, minimum)
@@ -277,8 +277,8 @@ class RequestParams(metaclass=ABCMeta):
             cls._check_min_max(name, value, maximum, minimum)
 
     @classmethod
-    def _error_missing(cls, param_name, type_name):
-        return WsBadRequestError(f"Missing value for parameter '{param_name}' of type {type_name}")
+    def _error_missing(cls, param_name):
+        return WsBadRequestError(f"Missing value for parameter '{param_name}'")
 
     @classmethod
     def _error_wrong_type(cls, param_name, type_name):

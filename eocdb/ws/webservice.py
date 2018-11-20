@@ -266,7 +266,7 @@ class WsRequestHeader(RequestParams):
         :raise: WsBadRequestError
         """
         if default == UNDEFINED and name not in self.handler.request.headers:
-            raise self._error_missing(name, "string")
+            raise self._error_missing(name)
         return self.handler.request.headers.get(name, default=default)
 
 
