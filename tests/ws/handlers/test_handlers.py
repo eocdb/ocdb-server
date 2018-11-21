@@ -431,8 +431,9 @@ class UsersTest(WsTestCase):
 class UsersLoginTest(WsTestCase):
 
     def test_get(self):
-        headers = dict(username="scott", password="tiger")
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='GET', headers=headers)
+        credentials = dict(username="scott", password="tiger")
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
