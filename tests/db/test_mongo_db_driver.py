@@ -571,6 +571,10 @@ class TestMongoDbDriver(unittest.TestCase):
         converted_dict = self._driver._convert_times(dict)
         self.assertEqual([datetime(2008, 7, 11, 14, 16, 22), datetime(2008, 7, 11, 14, 17, 8)], converted_dict["times"])
 
+    def test_parse_time(self):
+        self.assertEqual(datetime(2008, 7, 11, 0, 0), MongoDbDriver._parse_datetime("2008-07-11"))
+        self.assertEqual(datetime(2009, 8, 12, 11, 22, 41), MongoDbDriver._parse_datetime("2009-08-12T11:22:41"))
+
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):
             dataset = helpers.new_test_dataset(i)
