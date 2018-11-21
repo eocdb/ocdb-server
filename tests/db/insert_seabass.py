@@ -1,7 +1,7 @@
 import os
 import sys
-from pathlib import Path
 
+from eocdb.core.file_helper import FileHelper
 from eocdb.core.seabass.sb_file_reader import SbFileReader
 from eocdb.db.mongo_db_driver import MongoDbDriver
 
@@ -49,7 +49,7 @@ class InsertSeabass():
                 if to_ingest:
                     print(full_path)
                     document = reader.read(full_path)
-                    document.path = create_relative_path(archive_root_path, full_path)
+                    document.path = str(FileHelper.create_relative_path(archive_root_path, full_path))
 
                     document_count += 1
                     record_count += len(document.records)
@@ -59,12 +59,6 @@ class InsertSeabass():
         print("Number of docs: " + str(document_count))
         print("Number of recs: " + str(record_count))
         db_driver.close()
-
-
-def create_relative_path(archive_root, full_path):
-    root_path = Path(full_path)
-    rel_path = root_path.relative_to(archive_root)
-    return rel_path
 
 
 if __name__ == "__main__":

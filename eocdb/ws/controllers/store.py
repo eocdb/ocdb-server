@@ -24,6 +24,7 @@ import io
 import os
 from typing import Dict, List
 
+from eocdb.core.file_helper import FileHelper
 from ..context import WsContext
 from ...core.asserts import assert_not_none, assert_one_of
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
@@ -94,6 +95,8 @@ def upload_store_files(ctx: WsContext,
         with open(file_path, "w") as fp:
             text = file.body.decode("utf-8")
             fp.write(text)
+        dataset = datasets[file.filename]
+        dataset.path = str(FileHelper.create_relative_path(ctx.store_path, file_path))
 
     # Write documentation files into store
     docs_dir_path = ctx.get_doc_files_store_path(path)
