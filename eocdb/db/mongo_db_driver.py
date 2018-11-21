@@ -1,3 +1,4 @@
+import numpy as np
 from datetime import datetime
 from typing import Any, Dict, Optional
 
@@ -14,8 +15,6 @@ from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
 
-ISO_FORMAT = "%Y-%m-%dT%H:%M:%S"
-
 LAT_INDEX_NAME = "_latitudes_"
 LON_INDEX_NAME = "_longitudes_"
 ATTRIBUTES_INDEX_NAME = "_attributes_"
@@ -26,7 +25,7 @@ class MongoDbDriver(DbDriver):
 
     def add_dataset(self, dataset: Dataset) -> str:
         dateset_dict = dataset.to_dict()
-        converted_dict = self._convert_times(dateset_dict)
+        converted_dict = MongoDbDriver._convert_times(dateset_dict)
         result = self._collection.insert_one(converted_dict)
         return str(result.inserted_id)
 
@@ -175,11 +174,12 @@ class MongoDbDriver(DbDriver):
         path = dataset_dict.get("path")
         return DatasetRef(dataset_id, path)
 
-    def _convert_times(self, dataset_dict) -> dict:
+    @staticmethod
+    def _convert_times(dataset_dict) -> dict:
         times_array = dataset_dict["times"]
         converted_times = []
         for time in times_array:
-            converted_times.append(datetime.strptime(time, ISO_FORMAT))
+            converted_times.append(MongoDbDriver._parse_datetime(time))
         dataset_dict["times"] = converted_times
         return dataset_dict
 
@@ -193,6 +193,12 @@ class MongoDbDriver(DbDriver):
             self._collection.create_index("attributes", name=ATTRIBUTES_INDEX_NAME, background=True)
         if not TIMES_INDEX_NAME in index_information:
             self._collection.create_index("times", name=TIMES_INDEX_NAME, background=True)
+
+    @staticmethod
+    def _parse_datetime(time_string) -> datetime:
+        np_datetime = np.datetime64(time_string)
+        ts = (np_datetime - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
+        return datetime.utcfromtimestamp(ts)
 
     class QueryConverter():
 
@@ -214,10 +220,10 @@ class MongoDbDriver(DbDriver):
                 start_date = None
                 end_date = None
                 if query.time[0] is not None:
-                    start_date = datetime.strptime(query.time[0], ISO_FORMAT)
+                    start_date = MongoDbDriver._parse_datetime(query.time[0])
 
                 if query.time[1] is not None:
-                    end_date = datetime.strptime(query.time[1], ISO_FORMAT)
+                    end_date = MongoDbDriver._parse_datetime(query.time[1])
 
                 if start_date is None and end_date is None:
                     raise ValueError("Both time values are none.")
