@@ -43,12 +43,30 @@ class StoreTest(unittest.TestCase):
         self.assertTrue(len(result["productGroups"]) > 15)
         self.assertIsInstance(result["productGroups"][0], dict)
 
-    @unittest.skip('not implemented yet')
     def test_upload_store_files(self):
-        # TODO (generated): set data dict items
-        data = {}
-        result = upload_store_files(self.ctx, data=data)
-        self.assertIsNone(result)
+        try:
+            data_file_text = ("/begin_header\n"
+                              "/received=20120330\n"
+                              "/delimiter = comma\n"
+                              "/north_latitude=42.598[DEG]\n"
+                              "/east_longitude=-67.105[DEG]\n"
+                              "/start_date=20101117\n"
+                              "/end_date=20101117\n"
+                              "/start_time=20:14:00[GMT]\n"
+                              "/end_time=20:14:00[GMT]\n"
+                              "/fields = station, SN, lat, lon, year, month, day, hour, minute, pressure, wt, sal, CHL, Epar, oxygen\n"
+                              "/units = none, none, degrees, degrees, yyyy, mo, dd, hh, mn, dbar, degreesC, PSU, mg/m^3, uE/cm^2s, ml/L\n"
+                              "/end_header\n"
+                              "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
+            uploaded_fie = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
+
+            result = upload_store_files(self.ctx, path="test_files", dataset_files=[uploaded_fie], doc_files=[])
+            self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
+            self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
+        finally:
+            target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"), "DEL1012_Station_097_CTD_Data.txt")
+            if os.path.isfile(target_file):
+                os.remove(target_file)
 
     @unittest.skip('not implemented yet')
     def test_download_store_files(self):
