@@ -24,7 +24,7 @@ import io
 import os
 from typing import Dict, List
 
-from eocdb.core.file_helper import FileHelper
+from ...core.file_helper import FileHelper
 from ..context import WsContext
 from ...core.asserts import assert_not_none, assert_one_of
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
