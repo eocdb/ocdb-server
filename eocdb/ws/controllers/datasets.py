@@ -23,7 +23,7 @@
 from typing import List
 
 from ..context import WsContext
-from ...core.asserts import assert_not_none, assert_one_of
+from ...core.asserts import assert_not_none, assert_one_of, assert_instance
 from ...core.models.dataset import Dataset
 from ...core.models.dataset_query import DatasetQuery
 from ...core.models.dataset_query_result import DatasetQueryResult
@@ -57,6 +57,8 @@ def find_datasets(ctx: WsContext,
     assert_one_of(wlmode, ['all', 'multispectral', 'hyperspectral'], name='wlmode')
     assert_one_of(shallow, ['no', 'yes', 'exclusively'], name='shallow')
     assert_one_of(pmode, ['contains', 'same_cruise', 'dont_apply'], name='pmode')
+    if pgroup is not None:
+        assert_instance(pgroup, [])
     query = DatasetQuery()
     query.expr = expr
     query.region = region

@@ -521,6 +521,19 @@ class TestMongoDbDriver(unittest.TestCase):
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
 
+    def test_insert_two_and_get_by_attributes_one_group(self):
+        dataset = helpers.new_test_db_dataset(25)
+        dataset.attributes = ["a"]
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(26)
+        dataset.attributes = ["sal"]
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(pgroup=["sal"])
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+
     def test_get_get_start_index_and_page_size(self):
         query = DatasetQuery()
         query.offset = 1

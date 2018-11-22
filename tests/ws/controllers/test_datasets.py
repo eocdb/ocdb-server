@@ -61,7 +61,7 @@ class DatasetsTest(unittest.TestCase):
         self.assertNotEqual(result_1.id, result_2.id)
         self.assertEqual(dataset_2.path, result_2.path)
 
-    def test_find_datasets(self):
+    def test_find_datasets_default_parameter(self):
         add_dataset(self.ctx, dataset=new_test_dataset(1))
         add_dataset(self.ctx, dataset=new_test_dataset(2))
         add_dataset(self.ctx, dataset=new_test_dataset(3))
@@ -96,6 +96,50 @@ class DatasetsTest(unittest.TestCase):
 
         self.assertIsInstance(result, DatasetQueryResult)
         self.assertEqual(3, result.total_count)
+
+    def test_find_datasets_pgroup(self):
+        dataset = new_test_dataset(1)
+        dataset.attributes = ["a"]
+        add_dataset(self.ctx, dataset=dataset)
+
+        dataset = new_test_dataset(2)
+        dataset.attributes = ["sal"]
+        add_dataset(self.ctx, dataset=dataset)
+
+        dataset = new_test_dataset(3)
+        dataset.attributes = ["Chl_a", "Chl_b"]
+        add_dataset(self.ctx, dataset=dataset)
+
+        expr = None
+        region = None
+        time = None
+        wdepth = None
+        mtype = None
+        wlmode = 'all'
+        shallow = 'no'
+        pmode = 'contains'
+        pgroup = ['sal']
+        pname = None
+        offset = None
+        count = None
+
+        # noinspection PyTypeChecker
+        result = find_datasets(self.ctx,
+                               expr=expr,
+                               region=region,
+                               time=time,
+                               wdepth=wdepth,
+                               mtype=mtype,
+                               wlmode=wlmode,
+                               shallow=shallow,
+                               pmode=pmode,
+                               pgroup=pgroup,
+                               pname=pname,
+                               offset=offset,
+                               count=count)
+
+        self.assertIsInstance(result, DatasetQueryResult)
+        self.assertEqual(1, result.total_count)
 
     def test_get_dataset_by_id(self):
         dataset_id_1 = add_dataset(self.ctx, dataset=new_test_dataset(1)).id

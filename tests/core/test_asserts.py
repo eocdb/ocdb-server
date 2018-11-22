@@ -73,3 +73,11 @@ class AssertsTest(unittest.TestCase):
         with self.assertRaises(ValueError) as cm:
             assert_one_of("d", ["a", "b", "c"], name="bibo")
         self.assertEqual("bibo must be one of ['a', 'b', 'c'], but was 'd'", f"{cm.exception}")
+
+    def test_assert_instance(self):
+        assert_instance(["nasenmann"], [])
+        assert_instance({"nasenmann": 456}, {})
+
+        with self.assertRaises(ValueError) as cm:
+            assert_instance(567, "")
+        self.assertEqual("567 is not of type <class 'str'>", f"{cm.exception}")

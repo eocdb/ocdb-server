@@ -1,4 +1,4 @@
-from typing import Any, Sequence, Set, Collection
+from typing import Any, Collection
 
 
 def assert_not_empty(value: Any, name: str = "value"):
@@ -22,3 +22,9 @@ def assert_not_none_not_empty(value: Any, name: str = "value"):
 def assert_one_of(value: Any, enum: Collection[Any], name: str = "value"):
     if value not in enum:
         raise ValueError(f'{name} must be one of {repr(enum)}, but was {repr(value)}')
+
+
+def assert_instance(value: Any, req_type: Any):
+    instance_type = type(req_type)
+    if not isinstance(value, instance_type):
+        raise ValueError(f'{value} is not of type {instance_type}')
