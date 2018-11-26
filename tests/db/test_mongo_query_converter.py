@@ -60,3 +60,23 @@ class TestMongoQueryConverter(unittest.TestCase):
         dict = self.converter.to_dict(query)
         self.assertEqual({'attributes': {'$in': ['sal', 'Chl']}}, dict)
 
+    def test_to_dict_shallow_no(self):
+        query = DatasetQuery(shallow='no')
+
+        dict = self.converter.to_dict(query)
+        self.assertEqual({'metadata.optical_depth_warning': {'$not': {'$eq': 'true'}}}, dict)
+
+    def test_to_dict_shallow_yes(self):
+        query = DatasetQuery(shallow='yes')
+
+        dict = self.converter.to_dict(query)
+        self.assertEqual({}, dict)
+
+    def test_to_dict_shallow_exclusively(self):
+        query = DatasetQuery(shallow='exclusively')
+
+        dict = self.converter.to_dict(query)
+        self.assertEqual({'metadata.optical_depth_warning': 'true'}, dict)
+
+
+
