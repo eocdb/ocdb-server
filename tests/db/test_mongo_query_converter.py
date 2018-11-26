@@ -60,3 +60,15 @@ class TestMongoQueryConverter(unittest.TestCase):
         dict = self.converter.to_dict(query)
         self.assertEqual({'attributes': {'$in': ['sal', 'Chl']}}, dict)
 
+    def test_to_dict_mtype_all(self):
+        query = DatasetQuery(mtype='all')
+
+        dict = self.converter.to_dict(query)
+        self.assertEqual({}, dict)
+
+    def test_to_dict_mtype_brdf(self):
+        query = DatasetQuery(mtype='brdf')
+
+        dict = self.converter.to_dict(query)
+        self.assertEqual({'metadata.data_type': 'brdf'}, dict)
+

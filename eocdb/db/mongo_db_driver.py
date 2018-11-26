@@ -239,4 +239,7 @@ class MongoDbDriver(DbDriver):
             if query.pgroup is not None:
                 query_dict.update({'attributes': {'$in': query.pgroup}})
 
+            if query.mtype != 'all':
+                query_dict.update({'metadata.data_type': query.mtype})
+
             return query_dict

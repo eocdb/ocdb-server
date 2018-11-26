@@ -162,7 +162,6 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(1, result.total_count)
         self.assertEqual("archive/dataset-10.txt", result.datasets[0].path)
 
-
     def test_insert_and_get_by_path_single_char_wildcard(self):
         dataset = helpers.new_test_dataset(13)
         dataset.path = "/home/eocdb/store/BIGELOW/BALCH/gnats/archive/chl/chl-s170604w.sub"
@@ -345,18 +344,21 @@ class TestMongoDbDriver(unittest.TestCase):
         dataset.add_geo_location(lon=16.69, lat=-72.11)
         self._driver.add_dataset(dataset)
 
-        query = DatasetQuery(expr='data_status: test', region=[15.0, -75.0, 17.0, -70.0])  # covers second dataset tb 2018-10-24
+        # covers second dataset tb 2018-10-24
+        query = DatasetQuery(expr='data_status: test', region=[15.0, -75.0, 17.0, -70.0])
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
         self.assertEqual("archive/dataset-16.txt", result.datasets[0].path)
 
-        query = DatasetQuery(expr='data_status: test', region=[25.0, -75.0, 27.0, -70.0])  # region does not match tb 2018-10-24
+        # region does not match tb 2018-10-24
+        query = DatasetQuery(expr='data_status: test', region=[25.0, -75.0, 27.0, -70.0])
 
         result = self._driver.find_datasets(query)
         self.assertEqual(0, result.total_count)
 
-        query = DatasetQuery(expr='data_status: experimental', region=[15.0, -75.0, 17.0, -70.0])  # status does not match tb 2018-10-24
+        # status does not match tb 2018-10-24
+        query = DatasetQuery(expr='data_status: experimental', region=[15.0, -75.0, 17.0, -70.0])
 
         result = self._driver.find_datasets(query)
         self.assertEqual(0, result.total_count)
@@ -520,6 +522,33 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(pgroup=["a", "Chl_a"])
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
+
+    def test_insert_two_and_get_by_measurement_type_all(self):
+        dataset = helpers.new_test_db_dataset(40)
+        dataset.metadata['data_type'] = 'cast'
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(41)
+        dataset.metadata['data_type'] = 'flow_thru'
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(mtype='all')
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
+
+    def test_insert_two_and_get_by_measurement_type(self):
+        dataset = helpers.new_test_db_dataset(42)
+        dataset.metadata['data_type'] = 'cast'
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(43)
+        dataset.metadata['data_type'] = 'flow_thru'
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(mtype='flow_thru')
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("archive/dataset-43.txt", result.datasets[0].path)
 
     def test_insert_two_and_get_by_attributes_one_group(self):
         dataset = helpers.new_test_db_dataset(25)
