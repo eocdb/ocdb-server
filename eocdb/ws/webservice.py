@@ -268,6 +268,15 @@ class WsRequestHeader(RequestParams):
             raise self._error_missing(name)
         return self.handler.request.headers.get(name, default=default)
 
+    def get_params(self, name: str) -> Optional[str]:
+        """
+        Get query argument array.
+        :param name: Query argument name
+        :return: the values or an empyty array
+        :raise: WsBadRequestError
+        """
+        raise NotImplementedError()
+
 
 class WsRequestQuery(RequestParams):
     def __init__(self, handler: RequestHandler):
@@ -285,6 +294,15 @@ class WsRequestQuery(RequestParams):
             return self.handler.get_query_argument(name)
         return self.handler.get_query_argument(name, default=default)
 
+    def get_params(self, name: str) -> Optional[str]:
+        """
+        Get query argument array.
+        :param name: Query argument name
+        :return: the values or an empty array
+        :raise: WsBadRequestError
+        """
+        return self.handler.get_query_arguments(name)
+
 
 class WsRequestCookie(RequestParams):
     def __init__(self, handler: RequestHandler):
@@ -301,6 +319,15 @@ class WsRequestCookie(RequestParams):
         if default == UNDEFINED:
             return self.handler.get_cookie(name)
         return self.handler.get_cookie(name, default=default)
+
+    def get_params(self, name: str) -> Optional[str]:
+        """
+        Get query argument array.
+        :param name: Query argument name
+        :return: the values or an empyty array
+        :raise: WsBadRequestError
+        """
+        raise NotImplementedError()
 
 
 class _GlobalEventLoopPolicy(asyncio.DefaultEventLoopPolicy):
