@@ -563,6 +563,57 @@ class TestMongoDbDriver(unittest.TestCase):
         query.count = -1
         self.assertEqual((0, 0), self._driver._get_start_index_and_count(query))
 
+    def test_shallow_no(self):
+        dataset = helpers.new_test_db_dataset(27)
+        dataset.metadata['optical_depth_warning'] = 'true'
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(28)
+        dataset.metadata['optical_depth_warning'] = 'false'
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(29)
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(shallow='no')
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
+        self.assertEqual("archive/dataset-28.txt", result.datasets[0].path)
+        self.assertEqual("archive/dataset-29.txt", result.datasets[1].path)
+
+    def test_shallow_yes(self):
+        dataset = helpers.new_test_db_dataset(30)
+        dataset.metadata['optical_depth_warning'] = 'true'
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(31)
+        dataset.metadata['optical_depth_warning'] = 'false'
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(32)
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(shallow='yes')
+        result = self._driver.find_datasets(query)
+        self.assertEqual(3, result.total_count)
+
+    def test_shallow_exclusively(self):
+        dataset = helpers.new_test_db_dataset(33)
+        dataset.metadata['optical_depth_warning'] = 'true'
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(34)
+        dataset.metadata['optical_depth_warning'] = 'false'
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(35)
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(shallow='exclusively')
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("archive/dataset-33.txt", result.datasets[0].path)
+
     def test_to_dataset_ref(self):
         dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde"}
 
