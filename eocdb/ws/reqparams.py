@@ -172,6 +172,15 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
 
+    @abstractmethod
+    def get_params(self, name: str) -> Optional[str]:
+        """
+        Get query argument array.
+        :param name: Query argument name
+        :return: the values or an empyty array
+        :raise: WsBadRequestError
+        """
+
     def get_param_bool(self, name: str, default: int = None) -> Optional[bool]:
         """
         Get query argument of type int.
@@ -227,8 +236,13 @@ class RequestParams(metaclass=ABCMeta):
         :return: string list value
         :raise: WsBadRequestError
         """
-        value = self.get_param(name, default=None)
-        return self.to_list(name, value) if value else default
+        value = self.get_params(name)
+        if isinstance(value, str):
+            return self.to_list(name, value) if value else default
+        elif value is None or len(value) == 0:
+            return default
+        else:
+            return value
 
     def get_param_int_list(self,
                            name: str,
@@ -245,7 +259,12 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         value = self.get_param(name, default=None)
-        return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
+        if isinstance(value, str):
+            return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
+        elif value is None or len(value) == 0:
+            return default
+        else:
+            return value
 
     def get_param_float_list(self,
                              name: str,
@@ -262,7 +281,12 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         value = self.get_param(name, default=None)
-        return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
+        if isinstance(value, str):
+            return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
+        elif value is None or len(value) == 0:
+            return default
+        else:
+            return value
 
     @classmethod
     def _check_min_max(cls, name, value, maximum, minimum):
