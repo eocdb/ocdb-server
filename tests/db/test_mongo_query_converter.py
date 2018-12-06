@@ -40,7 +40,6 @@ class TestMongoQueryConverter(unittest.TestCase):
         mongo_dict = self.converter.to_dict(query)
         self.assertEqual({'times': {'$gte': datetime.datetime(2016, 1, 1, 0, 0)}}, mongo_dict)
 
-    # noinspection PyTypeChecker
     def test_to_dict_both_None(self):
         query = DatasetQuery(time=[None, None])
         try:
@@ -78,3 +77,15 @@ class TestMongoQueryConverter(unittest.TestCase):
 
         mongo_dict = self.converter.to_dict(query)
         self.assertEqual({'metadata.optical_depth_warning': 'true'}, mongo_dict)
+
+    def test_to_dict_mtype_all(self):
+        query = DatasetQuery(mtype='all')
+
+        mongo_dict = self.converter.to_dict(query)
+        self.assertEqual({}, mongo_dict)
+
+    def test_to_dict_mtype_brdf(self):
+        query = DatasetQuery(mtype='brdf')
+
+        mongo_dict = self.converter.to_dict(query)
+        self.assertEqual({'metadata.data_type': 'brdf'}, mongo_dict)

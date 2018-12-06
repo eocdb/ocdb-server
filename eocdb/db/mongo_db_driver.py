@@ -245,4 +245,7 @@ class MongoDbDriver(DbDriver):
                 elif query.shallow == 'exclusively':
                     query_dict.update({'metadata.optical_depth_warning': 'true'})
 
+            if query.mtype != 'all':
+                query_dict.update({'metadata.data_type': query.mtype})
+
             return query_dict
