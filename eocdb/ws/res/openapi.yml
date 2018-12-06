@@ -3,7 +3,7 @@ servers:
   - url: 'http://eocdb.io/api/v01'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.2"
+  version: "0.1.0-dev.3"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -90,7 +90,8 @@ paths:
         # {{{
         - $ref: "#/components/parameters/exprParam"
         - $ref: "#/components/parameters/regionParam"
-        - $ref: "#/components/parameters/timeParam"
+        - $ref: "#/components/parameters/startTimeParam"
+        - $ref: "#/components/parameters/endTimeParam"
         - $ref: "#/components/parameters/wdepthParam"
         - $ref: "#/components/parameters/mtypeParam"
         - $ref: "#/components/parameters/wlmodeParam"
@@ -137,7 +138,8 @@ paths:
         # {{{
         - $ref: "#/components/parameters/exprParam"
         - $ref: "#/components/parameters/regionParam"
-        - $ref: "#/components/parameters/timeParam"
+        - $ref: "#/components/parameters/startTimeParam"
+        - $ref: "#/components/parameters/endTimeParam"
         - $ref: "#/components/parameters/wdepthParam"
         - $ref: "#/components/parameters/mtypeParam"
         - $ref: "#/components/parameters/wlmodeParam"
@@ -603,20 +605,24 @@ components:
         nullable: true
         minItems: 4
         maxItems: 4
-    timeParam:
-      name: time
+    startTimeParam:
+      name: start_time
       in: query
-      description: Date/time range given as start_date,end_date. Date/time must have ISO format.
+      description: Start date/time. Date/time must have ISO format.
       required: false
       schema:
-        type: array
-        items:
-          type: string
-          format: date
+        type: string
         default: null
         nullable: true
-        minItems: 2
-        maxItems: 2
+    endTimeParam:
+      name: end_time
+      in: query
+      description: End date/time. Date/time must have ISO format.
+      required: false
+      schema:
+        type: string
+        default: null
+        nullable: true
     wdepthParam:
       name: wdepth
       in: query

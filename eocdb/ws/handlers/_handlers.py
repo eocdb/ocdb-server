@@ -143,7 +143,7 @@ class Datasets(WsRequestHandler):
         # noinspection PyBroadException,PyUnusedLocal
         expr = self.query.get_param('expr', default=None)
         region = self.query.get_param_float_list('region', default=None)
-        time = self.query.get_param_list('time', default=None)
+        time = self.extract_time()
         wdepth = self.query.get_param_float_list('wdepth', default=None)
         mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
         wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)
@@ -178,6 +178,15 @@ class Datasets(WsRequestHandler):
         dataset = Dataset.from_dict(data_dict)
         update_dataset(self.ws_context, dataset=dataset)
         self.finish()
+
+    def extract_time(self):
+        start_time = self.query.get_param('start_time', default=None)
+        end_time = self.query.get_param('end_time', default=None)
+        if start_time is not None or end_time is not None:
+            time = [start_time, end_time]
+        else:
+            time = None
+        return time
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
