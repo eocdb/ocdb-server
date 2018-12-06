@@ -186,6 +186,30 @@ class DatasetsTest(WsTestCase):
         self.assertIn("total_count", actual_response_data)
         self.assertEqual(4, actual_response_data["total_count"])
 
+    def test_get_multiple_pgroups(self):
+        # test findDataset() operation
+
+        dataset = new_test_dataset(0)
+        dataset.attributes = ['chl_a']
+        add_dataset(self.ctx, dataset)
+        add_dataset(self.ctx, new_test_dataset(1))
+        dataset = new_test_dataset(2)
+        dataset.attributes = ['a_pig']
+        add_dataset(self.ctx, dataset)
+        dataset = new_test_dataset(3)
+        dataset.attributes = ['b_part']
+        add_dataset(self.ctx, dataset)
+
+        query = 'mtype=all&wlmode=all&shallow=no&pmode=contains&pgroup=chl_a&pgroup=a_pig'
+
+        response = self.fetch(API_URL_PREFIX + f"/datasets?{query}", method='GET')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertIn("total_count", actual_response_data)
+        self.assertEqual(2, actual_response_data["total_count"])
+
     def test_put(self):
         # test addDataset() operation
         dataset = new_test_dataset(13)

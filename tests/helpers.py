@@ -45,3 +45,7 @@ class RequestParamsMock(RequestParams):
         if default is UNDEFINED and name not in self.kvp:
             raise WsBadRequestError(f"Parameter '{name}' must be given")
         return self.kvp.get(name, default)
+
+    def get_params(self, name: str) -> Optional[str]:
+        value = self.kvp.get(name)
+        return value

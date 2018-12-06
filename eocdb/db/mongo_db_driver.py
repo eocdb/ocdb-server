@@ -239,6 +239,12 @@ class MongoDbDriver(DbDriver):
             if query.pgroup is not None:
                 query_dict.update({'attributes': {'$in': query.pgroup}})
 
+            if query.shallow is not None:
+                if query.shallow == 'no':
+                    query_dict.update({'metadata.optical_depth_warning': {'$not' : {'$eq': 'true'}}})
+                elif query.shallow == 'exclusively':
+                    query_dict.update({'metadata.optical_depth_warning': 'true'})
+
             if query.mtype != 'all':
                 query_dict.update({'metadata.data_type': query.mtype})
 

@@ -12,11 +12,23 @@ class TestMongoQueryGenerator(unittest.TestCase):
     def test_empty_query(self):
         self.assertEqual(None, self.mongo_gen.query)
 
+    def test_query_non_metadata_field(self):
+        q = QueryParser.parse('pgroup:Chl')
+        q.accept(self.mongo_gen)
+
+        self.assertEqual({'pgroup': 'Chl'}, self.mongo_gen.query)
+
+    def test_query_non_metadata_field_or(self):
+        q = QueryParser.parse('pgroup:(Chl OR a)')
+        q.accept(self.mongo_gen)
+
+        self.assertEqual({'$or': [{'pgroup': 'Chl'}, {'pgroup': 'a'}]}, self.mongo_gen.query)
+
     def test_query_field_value_equal_string(self):
         q = QueryParser.parse('investigators:Robert_Vaillancourt')
         q.accept(self.mongo_gen)
 
-        self.assertEqual({'metadata.investigators' : 'Robert_Vaillancourt'}, self.mongo_gen.query)
+        self.assertEqual({'metadata.investigators': 'Robert_Vaillancourt'}, self.mongo_gen.query)
 
     def test_query_field_value_equal_float(self):
         q = QueryParser.parse('north_latitude:42.4853')
@@ -34,7 +46,7 @@ class TestMongoQueryGenerator(unittest.TestCase):
         q = QueryParser.parse('cruise:KN219 OR data_type:bottle')
         q.accept(self.mongo_gen)
 
-        self.assertEqual({'$or': [{'metadata.cruise' : 'KN219'}, {'metadata.data_type' : 'bottle'}]}, self.mongo_gen.query)
+        self.assertEqual({'$or': [{'metadata.cruise': 'KN219'}, {'metadata.data_type': 'bottle'}]}, self.mongo_gen.query)
 
     def test_query_field_value_range(self):
         q = QueryParser.parse('south_latitude:[-25.6 TO -22.5]')
@@ -71,3 +83,4 @@ class TestMongoQueryGenerator(unittest.TestCase):
 
         self.assertEqual("path", self.mongo_gen._get_db_field_name("path"))
         self.assertEqual("status", self.mongo_gen._get_db_field_name("status"))
+        self.assertEqual("pgroup", self.mongo_gen._get_db_field_name("pgroup"))

@@ -60,6 +60,20 @@ class TestMongoQueryConverter(unittest.TestCase):
         dict = self.converter.to_dict(query)
         self.assertEqual({'attributes': {'$in': ['sal', 'Chl']}}, dict)
 
+        mongo_dict = self.converter.to_dict(query)
+        self.assertEqual({'metadata.optical_depth_warning': {'$not': {'$eq': 'true'}}}, mongo_dict)
+
+    def test_to_dict_shallow_yes(self):
+        query = DatasetQuery(shallow='yes')
+
+        mongo_dict = self.converter.to_dict(query)
+        self.assertEqual({}, mongo_dict)
+
+    def test_to_dict_shallow_exclusively(self):
+        query = DatasetQuery(shallow='exclusively')
+
+        mongo_dict = self.converter.to_dict(query)
+        self.assertEqual({'metadata.optical_depth_warning': 'true'}, mongo_dict)
     def test_to_dict_mtype_all(self):
         query = DatasetQuery(mtype='all')
 
