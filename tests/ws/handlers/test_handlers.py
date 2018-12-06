@@ -18,8 +18,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-
+import datetime
 import unittest
 import urllib.parse
 
@@ -209,6 +208,64 @@ class DatasetsTest(WsTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertIn("total_count", actual_response_data)
         self.assertEqual(2, actual_response_data["total_count"])
+
+    def test_get_with_expression(self):
+        dataset = new_test_dataset(0)
+        dataset.metadata["experiment"] = "BOUSSOLE"
+        add_dataset(self.ctx, dataset)
+        add_dataset(self.ctx, new_test_dataset(1))
+        dataset = new_test_dataset(2)
+        dataset.metadata["experiment"] = "nizza"
+        add_dataset(self.ctx, dataset)
+        dataset = new_test_dataset(3)
+        dataset.metadata["experiment"] = "BOUSSOLE"
+        add_dataset(self.ctx, dataset)
+
+        query = 'expr=experiment%3A%20%20*BOUSSOLE*'
+
+        response = self.fetch(API_URL_PREFIX + f"/datasets?{query}", method='GET')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertIn("total_count", actual_response_data)
+        self.assertEqual(2, actual_response_data["total_count"])
+
+    def test_get_with_time_no_overlap(self):
+        dataset = new_test_dataset(0)
+        dataset.times = [datetime.datetime(1992, 4, 11, 16, 42, 19), datetime.datetime(1992, 4, 11, 18, 26, 37)]
+        add_dataset(self.ctx, dataset)
+        dataset = new_test_dataset(1)
+        dataset.times = [datetime.datetime(1994, 9, 16, 19, 22, 8), datetime.datetime(1994, 9, 17, 2, 36, 18)]
+        add_dataset(self.ctx, dataset)
+
+        query = 'start_time=2010-01-01&end_time=2020-01-01'
+
+        response = self.fetch(API_URL_PREFIX + f"/datasets?{query}", method='GET')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertIn("total_count", actual_response_data)
+        self.assertEqual(0, actual_response_data["total_count"])
+
+    def test_get_with_time_overlap(self):
+        dataset = new_test_dataset(0)
+        dataset.times = [datetime.datetime(1992, 4, 11, 16, 42, 19), datetime.datetime(1992, 4, 11, 18, 26, 37)]
+        add_dataset(self.ctx, dataset)
+        dataset = new_test_dataset(1)
+        dataset.times = [datetime.datetime(1994, 9, 16, 19, 22, 8), datetime.datetime(1994, 9, 17, 2, 36, 18)]
+        add_dataset(self.ctx, dataset)
+
+        query = 'start_time=1992-01-01&end_time=1992-12-31'
+
+        response = self.fetch(API_URL_PREFIX + f"/datasets?{query}", method='GET')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertIn("total_count", actual_response_data)
+        self.assertEqual(1, actual_response_data["total_count"])
 
     def test_put(self):
         # test addDataset() operation
