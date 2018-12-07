@@ -643,12 +643,22 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(1, result.total_count)
         self.assertEqual("archive/dataset-33.txt", result.datasets[0].path)
 
-    def test_to_dataset_ref(self):
-        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde"}
+    def test_to_dataset_ref_without_points(self):
+        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde", "longitudes": [-108.7, -107.92], "latitudes": [14.22, 14.64]}
 
-        dataset_ref = self._driver._to_dataset_ref(dataset_dict)
+        dataset_ref, points = self._driver._to_dataset_ref(dataset_dict, geojson=False)
         self.assertEqual("nasenmann.org", dataset_ref.id)
         self.assertEqual("/where/is/your/mama/gone/Rosamunde", dataset_ref.path)
+        self.assertIsNone(points)
+
+    def test_to_dataset_ref_with_points(self):
+        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde", "longitudes": [-108.7, -107.92], "latitudes": [14.22, 14.64]}
+
+        dataset_ref, points = self._driver._to_dataset_ref(dataset_dict, geojson=True)
+        self.assertEqual("nasenmann.org", dataset_ref.id)
+        self.assertEqual("/where/is/your/mama/gone/Rosamunde", dataset_ref.path)
+        self.assertEqual(2, len(points))
+        self.assertEqual((-107.92, 14.64), points[1])
 
     def test_convert_times_empty(self):
         dict = {'path': 'archive/dataset-17.txt',
@@ -667,6 +677,16 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_parse_time(self):
         self.assertEqual(datetime(2008, 7, 11, 0, 0), MongoDbDriver._parse_datetime("2008-07-11"))
         self.assertEqual(datetime(2009, 8, 12, 11, 22, 41), MongoDbDriver._parse_datetime("2009-08-12T11:22:41"))
+
+    def test_to_geojson_empty(self):
+        geojson = MongoDbDriver._to_geojson({})
+        self.assertIsNone(geojson)
+
+    def test_to_geojson_one_ds_one_point(self):
+        locations = {"884728354": [(164.2,34.55)]}
+        geojson = MongoDbDriver._to_geojson(locations)
+        self.assertEqual("{'type':'FeatureCollection','features':[]}", geojson)
+        #@todo 1 tb/tb continue here with the features 2018-12-07
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):

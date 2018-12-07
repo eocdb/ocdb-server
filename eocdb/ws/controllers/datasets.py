@@ -51,6 +51,7 @@ def find_datasets(ctx: WsContext,
                   pmode: str = 'contains',
                   pgroup: List[str] = None,
                   pname: List[str] = None,
+                  geojson: bool = False,
                   offset: int = 1,
                   count: int = 1000) -> DatasetQueryResult:
     """Find datasets."""
@@ -70,10 +71,11 @@ def find_datasets(ctx: WsContext,
     query.pmode = pmode
     query.pgroup = pgroup
     query.pname = pname
+    query.geojson = geojson
     query.offset = offset
     query.count = count
 
-    result = DatasetQueryResult(0, [], query)
+    result = DatasetQueryResult("TODO->Tom", 0, [], query)
     for driver in ctx.db_drivers:
         result_part = driver.instance().find_datasets(query)
         result.total_count += result_part.total_count

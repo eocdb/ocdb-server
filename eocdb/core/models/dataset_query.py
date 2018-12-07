@@ -40,6 +40,7 @@ class DatasetQuery(Model):
                  pmode: str = 'all',
                  pgroup: List[str] = None,
                  pname: List[str] = None,
+                 geojson: bool=False,
                  offset: int = 1,
                  count: int = 1000):
         self._expr = expr
@@ -51,6 +52,7 @@ class DatasetQuery(Model):
         self._pmode = pmode
         self._pgroup = pgroup
         self._pname = pname
+        self._geojson = geojson
         self._offset = offset
         self._count = count
 
@@ -125,6 +127,14 @@ class DatasetQuery(Model):
     @pname.setter
     def pname(self, value: Optional[List[str]]):
         self._pname = value
+
+    @property
+    def geojson(self) -> bool:
+        return self._geojson
+
+    @geojson.setter
+    def geojson(self, value: bool):
+        self._geojson = value
 
     @property
     def offset(self) -> Optional[int]:

@@ -113,6 +113,7 @@ class StoreDownload(WsRequestHandler):
         pgroup = self.query.get_param_list('pgroup', default=None)
         pname = self.query.get_param_list('pname', default=None)
         docs = self.query.get_param_bool('docs', default=None)
+        geojson = self.query.get_param_bool('geojson', default=False)
         result = download_store_files(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth,
                                       mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
                                       pname=pname, docs=docs)
@@ -151,6 +152,7 @@ class Datasets(WsRequestHandler):
         pmode = self.query.get_param('pmode', default=PMODE_DEFAULT)
         pgroup = self.query.get_param_list('pgroup', default=None)
         pname = self.query.get_param_list('pname', default=None)
+        geojson = self.query.get_param_bool('geojson', default=False)
         offset = self.query.get_param_int('offset', default=None)
         count = self.query.get_param_int('count', default=None)
         result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,

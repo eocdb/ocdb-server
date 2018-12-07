@@ -57,7 +57,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.3", result["info"].get("version"))
+        self.assertEqual("0.1.0-dev.4", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -109,9 +109,10 @@ class StoreDownloadTest(WsTestCase):
         pgroup = None
         pname = None
         docs = None
+        geojson=False
         query = urllib.parse.urlencode(
             dict(expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow,
-                 pmode=pmode, pgroup=pgroup, pname=pname, docs=docs))
+                 pmode=pmode, pgroup=pgroup, pname=pname, docs=docs, geojson=geojson))
 
         response = self.fetch(API_URL_PREFIX + f"/store/download?{query}", method='GET')
         self.assertEqual(200, response.code)
@@ -153,8 +154,6 @@ class DatasetsValidateTest(WsTestCase):
 class DatasetsTest(WsTestCase):
 
     def test_get(self):
-        # test findDataset() operation
-
         add_dataset(self.ctx, new_test_dataset(0))
         add_dataset(self.ctx, new_test_dataset(1))
         add_dataset(self.ctx, new_test_dataset(2))
@@ -186,8 +185,6 @@ class DatasetsTest(WsTestCase):
         self.assertEqual(4, actual_response_data["total_count"])
 
     def test_get_multiple_pgroups(self):
-        # test findDataset() operation
-
         dataset = new_test_dataset(0)
         dataset.attributes = ['chl_a']
         add_dataset(self.ctx, dataset)
@@ -266,6 +263,38 @@ class DatasetsTest(WsTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertIn("total_count", actual_response_data)
         self.assertEqual(1, actual_response_data["total_count"])
+
+    def test_get_with_geojson(self):
+        dataset = new_test_dataset(0)
+        add_dataset(self.ctx, dataset)
+        dataset = new_test_dataset(2)
+        add_dataset(self.ctx, dataset)
+
+        query = 'geojson=true'
+
+        response = self.fetch(API_URL_PREFIX + f"/datasets?{query}", method='GET')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertIn("total_count", actual_response_data)
+        self.assertEqual(2, actual_response_data["total_count"])
+
+    def test_get_without_geojson(self):
+        dataset = new_test_dataset(0)
+        add_dataset(self.ctx, dataset)
+        dataset = new_test_dataset(2)
+        add_dataset(self.ctx, dataset)
+
+        query = 'geojson=false'
+
+        response = self.fetch(API_URL_PREFIX + f"/datasets?{query}", method='GET')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertIn("total_count", actual_response_data)
+        self.assertEqual(2, actual_response_data["total_count"])
 
     def test_put(self):
         # test addDataset() operation

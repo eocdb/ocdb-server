@@ -34,15 +34,26 @@ class DatasetQueryResult(Model):
     """
 
     def __init__(self,
+                 locations: str,
                  total_count: int,
                  datasets: List[DatasetRef],
                  query: DatasetQuery):
         assert_not_none(total_count, name='total_count')
         assert_not_none(datasets, name='datasets')
         assert_not_none(query, name='query')
+        self._locations = locations
         self._total_count = total_count
         self._datasets = datasets
         self._query = query
+
+    @property
+    def locations(self) -> str:
+        return self._locations
+
+    @locations.setter
+    def locations(self, value: str):
+        assert_not_none(value, name='value')
+        self._locations = value
 
     @property
     def total_count(self) -> int:
