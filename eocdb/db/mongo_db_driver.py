@@ -71,13 +71,18 @@ class MongoDbDriver(DbDriver):
         num_results = total_num_results - start_index
 
         if query.count == 0:
-            return DatasetQueryResult(num_results, [], query)
+            return DatasetQueryResult({}, num_results, [], query)
         else:
             dataset_refs = []
+            locations = {}
             for dataset_dict in cursor:
-                dataset_refs.append(self._to_dataset_ref(dataset_dict))
+                ds_ref, points = self._to_dataset_ref(dataset_dict, query.geojson)
+                dataset_refs.append(ds_ref)
+                if points is not None:
+                    feature_collection = self._to_geojson(points)
+                    locations.update({ds_ref.id: feature_collection})
 
-            return DatasetQueryResult(num_results, dataset_refs, query)
+            return DatasetQueryResult(locations, num_results, dataset_refs, query)
 
     @staticmethod
     def _get_start_index_and_count(query) -> (int, int):
@@ -169,10 +174,20 @@ class MongoDbDriver(DbDriver):
         self._config = config
 
     @staticmethod
-    def _to_dataset_ref(dataset_dict):
+    def _to_dataset_ref(dataset_dict, geojson=False):
         dataset_id = str(dataset_dict.get("_id"))
         path = dataset_dict.get("path")
-        return DatasetRef(dataset_id, path)
+        ds_ref = DatasetRef(dataset_id, path)
+
+        if geojson:
+            lons = dataset_dict.get("longitudes")
+            lats = dataset_dict.get("latitudes")
+            points = []
+            for lon, lat in zip(lons, lats):
+                points.append((lon, lat))
+        else:
+            points = None
+        return ds_ref, points
 
     @staticmethod
     def _convert_times(dataset_dict) -> dict:
@@ -199,6 +214,24 @@ class MongoDbDriver(DbDriver):
         np_datetime = np.datetime64(time_string)
         ts = (np_datetime - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
         return datetime.utcfromtimestamp(ts)
+
+    @staticmethod
+    def _to_geojson(locations):
+        if len(locations) == 0:
+            return None
+
+        geojson = "{'type':'FeatureCollection','features':["
+        for location in locations:
+            feature = "{'type':'Feature','geometry':{'type':'Point','coordinates':["
+            feature += str(location[0])
+            feature += ","
+            feature += str(location[1])
+            feature += "]}},"
+            geojson += feature
+
+        geojson = geojson[:-1]
+        geojson+= "]}"
+        return geojson
 
     class QueryConverter():
 

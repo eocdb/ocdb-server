@@ -329,6 +329,83 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(1, result.total_count)
         self.assertEqual("archive/dataset-13.txt", result.datasets[0].path)
 
+    def test_insert_two_and_get_by_location_many_records_with_geojson_one_result(self):
+        dataset = helpers.new_test_db_dataset(15)
+        dataset.add_geo_location(lon=-69.8150, lat=42.7250)
+        dataset.add_geo_location(lon=-69.8167, lat=42.7158)
+        dataset.add_geo_location(lon=-69.7675, lat=43.1685)
+        dataset.add_geo_location(lon=-70.2030, lat=43.1400)
+        dataset.add_geo_location(lon=-70.2053, lat=42.5045)
+        dataset.add_geo_location(lon=-69.5458, lat=42.7790)
+        dataset.add_geo_location(lon=-69.1059, lat=42.5036)
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(16)
+        dataset.add_geo_location(lon=-158.750, lat=20.421)
+        dataset.add_geo_location(lon=-160.182, lat=18.892)
+        dataset.add_geo_location(lon=-161.317, lat=17.672)
+        dataset.add_geo_location(lon=-163.296, lat=15.519)
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(region=[-71.0, 43.0, -70.0, 43.5], geojson=True)  # covers first dataset tb 2018-12-10
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual("archive/dataset-15.txt", result.datasets[0].path)
+
+        self.assertEqual(1, len(result.locations))
+        ds_id = result.datasets[0].id
+        self.assertEqual("{'type':'FeatureCollection','features':["
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-69.815,42.725]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-69.8167,42.7158]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-69.7675,43.1685]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-70.203,43.14]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-70.2053,42.5045]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-69.5458,42.779]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-69.1059,42.5036]}}]}",
+                         result.locations[ds_id])
+
+    def test_insert_two_and_get_by_location_many_records_with_geojson_two_results(self):
+        dataset = helpers.new_test_db_dataset(17)
+        dataset.add_geo_location(lon=-69.8150, lat=42.7250)
+        dataset.add_geo_location(lon=-69.8167, lat=42.7158)
+        dataset.add_geo_location(lon=-69.7675, lat=43.1685)
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(18)
+        dataset.add_geo_location(lon=-158.750, lat=20.421)
+        dataset.add_geo_location(lon=-160.182, lat=18.892)
+        dataset.add_geo_location(lon=-161.317, lat=17.672)
+        self._driver.add_dataset(dataset)
+
+        dataset = helpers.new_test_db_dataset(19)
+        dataset.add_geo_location(lon=-70.2, lat=43.11)
+        dataset.add_geo_location(lon=-70.24, lat=43.22)
+        dataset.add_geo_location(lon=-70.31, lat=43.18)
+        self._driver.add_dataset(dataset)
+
+        query = DatasetQuery(region=[-71.0, 43.0, -69.0, 43.5], geojson=True)  # covers first and third dataset tb 2018-12-10
+
+        result = self._driver.find_datasets(query)
+        self.assertEqual(2, result.total_count)
+        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
+        self.assertEqual("archive/dataset-19.txt", result.datasets[1].path)
+
+        self.assertEqual(2, len(result.locations))
+        ds_id = result.datasets[0].id
+        self.assertEqual("{'type':'FeatureCollection','features':["
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-69.815,42.725]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-69.8167,42.7158]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-69.7675,43.1685]}}]}",
+                         result.locations[ds_id])
+
+        ds_id = result.datasets[1].id
+        self.assertEqual("{'type':'FeatureCollection','features':["
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-70.2,43.11]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-70.24,43.22]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[-70.31,43.18]}}]}",
+                         result.locations[ds_id])
+
     def test_insert_two_and_get_by_location_and_metadata(self):
         dataset = helpers.new_test_db_dataset(15)
         dataset.metadata["data_status"] = "final"
@@ -643,12 +720,22 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(1, result.total_count)
         self.assertEqual("archive/dataset-33.txt", result.datasets[0].path)
 
-    def test_to_dataset_ref(self):
-        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde"}
+    def test_to_dataset_ref_without_points(self):
+        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde", "longitudes": [-108.7, -107.92], "latitudes": [14.22, 14.64]}
 
-        dataset_ref = self._driver._to_dataset_ref(dataset_dict)
+        dataset_ref, points = self._driver._to_dataset_ref(dataset_dict, geojson=False)
         self.assertEqual("nasenmann.org", dataset_ref.id)
         self.assertEqual("/where/is/your/mama/gone/Rosamunde", dataset_ref.path)
+        self.assertIsNone(points)
+
+    def test_to_dataset_ref_with_points(self):
+        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde", "longitudes": [-108.7, -107.92], "latitudes": [14.22, 14.64]}
+
+        dataset_ref, points = self._driver._to_dataset_ref(dataset_dict, geojson=True)
+        self.assertEqual("nasenmann.org", dataset_ref.id)
+        self.assertEqual("/where/is/your/mama/gone/Rosamunde", dataset_ref.path)
+        self.assertEqual(2, len(points))
+        self.assertEqual((-107.92, 14.64), points[1])
 
     def test_convert_times_empty(self):
         dict = {'path': 'archive/dataset-17.txt',
@@ -667,6 +754,22 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_parse_time(self):
         self.assertEqual(datetime(2008, 7, 11, 0, 0), MongoDbDriver._parse_datetime("2008-07-11"))
         self.assertEqual(datetime(2009, 8, 12, 11, 22, 41), MongoDbDriver._parse_datetime("2009-08-12T11:22:41"))
+
+    def test_to_geojson_empty(self):
+        geojson = MongoDbDriver._to_geojson([])
+        self.assertIsNone(geojson)
+
+    def test_to_geojson_one_point(self):
+        locations = [(164.2,34.55)]
+        geojson = MongoDbDriver._to_geojson(locations)
+        self.assertEqual("{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}}]}", geojson)
+
+
+    def test_to_geojson_two_points(self):
+        locations = [(164.2,34.55), (164.82,34.67)]
+        geojson = MongoDbDriver._to_geojson(locations)
+        self.assertEqual("{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[164.82,34.67]}}]}", geojson)
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):
