@@ -141,6 +141,61 @@ class DatasetsTest(unittest.TestCase):
         self.assertIsInstance(result, DatasetQueryResult)
         self.assertEqual(1, result.total_count)
 
+    def test_find_datasets_with_geolocations(self):
+        dataset = new_test_dataset(1)
+        dataset.longitudes = [104, 105]
+        dataset.latitudes = [22, 23]
+        add_dataset(self.ctx, dataset=dataset)
+
+        dataset = new_test_dataset(2)
+        dataset.longitudes = [114, 115]
+        dataset.latitudes = [32, 33]
+        add_dataset(self.ctx, dataset=dataset)
+
+        dataset = new_test_dataset(3)
+        dataset.longitudes = [124, 125]
+        dataset.latitudes = [42, 43]
+        add_dataset(self.ctx, dataset=dataset)
+
+        expr = None
+        region = [110, 30, 120, 35]
+        time = None
+        wdepth = None
+        mtype = None
+        wlmode = 'all'
+        shallow = 'no'
+        pmode = 'contains'
+        pgroup = None
+        pname = None
+        offset = None
+        count = None
+        geojson = True
+
+        # noinspection PyTypeChecker
+        result = find_datasets(self.ctx,
+                               expr=expr,
+                               region=region,
+                               time=time,
+                               wdepth=wdepth,
+                               mtype=mtype,
+                               wlmode=wlmode,
+                               shallow=shallow,
+                               pmode=pmode,
+                               pgroup=pgroup,
+                               pname=pname,
+                               offset=offset,
+                               count=count,
+                               geojson=geojson)
+
+        self.assertIsInstance(result, DatasetQueryResult)
+        self.assertEqual(1, result.total_count)
+        self.assertEqual(1, len(result.locations))
+        ds_id = result.datasets[0].id
+        self.assertEqual("{'type':'FeatureCollection','features':["
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[114,32]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[115,33]}}]}",
+                         result.locations[ds_id])
+
     def test_get_dataset_by_id(self):
         dataset_id_1 = add_dataset(self.ctx, dataset=new_test_dataset(1)).id
         dataset_id_2 = add_dataset(self.ctx, dataset=new_test_dataset(2)).id

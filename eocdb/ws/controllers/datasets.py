@@ -75,11 +75,12 @@ def find_datasets(ctx: WsContext,
     query.offset = offset
     query.count = count
 
-    result = DatasetQueryResult("TODO->Tom", 0, [], query)
+    result = DatasetQueryResult({}, 0, [], query)
     for driver in ctx.db_drivers:
         result_part = driver.instance().find_datasets(query)
         result.total_count += result_part.total_count
         result.datasets += result_part.datasets
+        result.locations.update(result_part.locations)
 
     return result
 
