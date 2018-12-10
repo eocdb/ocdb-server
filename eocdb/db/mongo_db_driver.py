@@ -220,11 +220,15 @@ class MongoDbDriver(DbDriver):
             return None
 
         geojson = "{'type':'FeatureCollection','features':["
-        for key, value in locations.items():
-            feature = "{'type':'Feature','id':"
-            feature += key
-            feature += ",'geometry':{'type':'Point'"
+        for location in locations:
+            feature = "{'type':'Feature','geometry':{'type':'Point','coordinates':["
+            feature += str(location[0])
+            feature += ","
+            feature += str(location[1])
+            feature += "]}},"
+            geojson += feature
 
+        geojson = geojson[:-1]
         geojson+= "]}"
         return geojson
 

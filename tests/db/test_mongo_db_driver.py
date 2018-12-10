@@ -679,14 +679,20 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(datetime(2009, 8, 12, 11, 22, 41), MongoDbDriver._parse_datetime("2009-08-12T11:22:41"))
 
     def test_to_geojson_empty(self):
-        geojson = MongoDbDriver._to_geojson({})
+        geojson = MongoDbDriver._to_geojson([])
         self.assertIsNone(geojson)
 
-    def test_to_geojson_one_ds_one_point(self):
-        locations = {"884728354": [(164.2,34.55)]}
+    def test_to_geojson_one_point(self):
+        locations = [(164.2,34.55)]
         geojson = MongoDbDriver._to_geojson(locations)
-        self.assertEqual("{'type':'FeatureCollection','features':[]}", geojson)
-        #@todo 1 tb/tb continue here with the features 2018-12-07
+        self.assertEqual("{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}}]}", geojson)
+
+
+    def test_to_geojson_two_points(self):
+        locations = [(164.2,34.55), (164.82,34.67)]
+        geojson = MongoDbDriver._to_geojson(locations)
+        self.assertEqual("{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}},"
+                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[164.82,34.67]}}]}", geojson)
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):
