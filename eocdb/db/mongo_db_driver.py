@@ -71,7 +71,7 @@ class MongoDbDriver(DbDriver):
         num_results = total_num_results - start_index
 
         if query.count == 0:
-            return DatasetQueryResult("", num_results, [], query)
+            return DatasetQueryResult({}, num_results, [], query)
         else:
             dataset_refs = []
             locations = {}
@@ -79,9 +79,10 @@ class MongoDbDriver(DbDriver):
                 ds_ref, points = self._to_dataset_ref(dataset_dict, query.geojson)
                 dataset_refs.append(ds_ref)
                 if points is not None:
-                    locations.update({ds_ref.id: points})
+                    feature_collection = self._to_geojson(points)
+                    locations.update({ds_ref.id: feature_collection})
 
-            return DatasetQueryResult("TODO->Tom", num_results, dataset_refs, query)
+            return DatasetQueryResult(locations, num_results, dataset_refs, query)
 
     @staticmethod
     def _get_start_index_and_count(query) -> (int, int):
