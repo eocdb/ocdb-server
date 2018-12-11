@@ -1,0 +1,34 @@
+{
+  "header": [
+    {
+      "type": "field_compare",
+      "reference": "north_latitude",
+      "compare": "south_latitude",
+      "operation": ">=",
+      "data_type": "number",
+      "error": "@south_north_mismatch"
+    },
+    {
+      "type": "field_compare",
+      "reference": "east_longitude",
+      "compare": "west_longitude",
+      "operation": ">=",
+      "data_type": "number",
+      "warning": "@crossing_date_line"
+    }
+  ],
+  "record": [
+  ],
+  "errors": [
+    {
+      "name": "south_north_mismatch",
+      "message": "South_latitude is larger than north_latitude"
+    }
+  ],
+  "warnings": [
+    {
+      "name": "crossing_date_line",
+      "message": "The measurement locations cross the dateline"
+    }
+  ]
+}

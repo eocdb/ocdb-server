@@ -157,7 +157,7 @@ class Datasets(WsRequestHandler):
         count = self.query.get_param_int('count', default=None)
         result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
                                wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
-                               offset=offset, count=count)
+                               offset=offset, count=count, geojson=geojson)
         # transform result of type DatasetQueryResult into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
