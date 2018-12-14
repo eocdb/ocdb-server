@@ -19,6 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import datetime
+import time
 
 import tornado.escape
 import tornado.httputil
@@ -104,7 +105,7 @@ class StoreDownload(WsRequestHandler):
         # noinspection PyBroadException,PyUnusedLocal
         expr = self.query.get_param('expr', default=None)
         region = self.query.get_param_float_list('region', default=None)
-        time = self.query.get_param_list('time', default=None)
+        s_time = self.query.get_param_list('time', default=None)
         wdepth = self.query.get_param_float_list('wdepth', default=None)
         mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
         wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)
@@ -114,7 +115,7 @@ class StoreDownload(WsRequestHandler):
         pname = self.query.get_param_list('pname', default=None)
         docs = self.query.get_param_bool('docs', default=None)
 
-        result = download_store_files(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth,
+        result = download_store_files(self.ws_context, expr=expr, region=region, time=s_time, wdepth=wdepth,
                                       mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
                                       pname=pname, docs=docs)
 
