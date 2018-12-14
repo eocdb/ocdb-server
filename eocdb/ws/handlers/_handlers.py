@@ -115,7 +115,7 @@ class StoreDownload(WsRequestHandler):
         pname = self.query.get_param_list('pname', default=None)
         docs = self.query.get_param_bool('docs', default=None)
 
-        result = download_store_files(self.ws_context, expr=expr, region=region, time=s_time, wdepth=wdepth,
+        result = download_store_files(self.ws_context, expr=expr, region=region, s_time=s_time, wdepth=wdepth,
                                       mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
                                       pname=pname, docs=docs)
 

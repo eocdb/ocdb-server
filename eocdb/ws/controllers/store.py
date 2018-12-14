@@ -18,11 +18,11 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-
+import datetime
 import io
 import os
 import tempfile
+import time
 import zipfile
 from typing import Dict, List
 
@@ -123,7 +123,7 @@ def upload_store_files(ctx: WsContext,
 def download_store_files(ctx: WsContext,
                          expr: str = None,
                          region: List[float] = None,
-                         time: List[str] = None,
+                         s_time: List[str] = None,
                          wdepth: List[float] = None,
                          mtype: str = 'all',
                          wlmode: str = 'all',
@@ -135,7 +135,7 @@ def download_store_files(ctx: WsContext,
     result = find_datasets(ctx,
                            expr=expr,
                            region=region,
-                           time=time,
+                           time=s_time,
                            wdepth=wdepth,
                            mtype=mtype,
                            wlmode=wlmode,
@@ -153,7 +153,10 @@ def download_store_files(ctx: WsContext,
 
     tmp_dir = tempfile.gettempdir()
     # @todo 1 tb/tb assemble meaningful zip-archive name from query 2018-12-13
-    zip_file_path = os.path.join(tmp_dir, "test_archive.zip")
+    now = datetime.datetime.now()
+    now_secs = int(time.mktime(now.timetuple()))
+    zip_name = str(now_secs) + ".zip"
+    zip_file_path = os.path.join(tmp_dir, zip_name)
     with zipfile.ZipFile(zip_file_path, "w") as zip_file:
         for dataset_ref in result.datasets:
             dataset = get_dataset_by_id(ctx, dataset_ref.id)
