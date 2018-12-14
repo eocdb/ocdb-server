@@ -18,7 +18,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
+import datetime
 
 import tornado.escape
 import tornado.httputil
@@ -113,12 +113,17 @@ class StoreDownload(WsRequestHandler):
         pgroup = self.query.get_param_list('pgroup', default=None)
         pname = self.query.get_param_list('pname', default=None)
         docs = self.query.get_param_bool('docs', default=None)
-        geojson = self.query.get_param_bool('geojson', default=False)
+
         result = download_store_files(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth,
                                       mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
                                       pname=pname, docs=docs)
-        # transform result of type str into response with mime-type application/octet-stream
-        # TODO (generated): transform result first
+
+        self.set_header('Content-Type', 'application/zip')
+        # @todo 1 tb/tb make a real file name
+        now = datetime.datetime.now()
+        now_secs = int(time.mktime(now.timetuple()))
+        zip_name = str(now_secs) + ".zip"
+        self.set_header("Content-Disposition", "attachment; filename=%s" % zip_name)
         self.finish(result)
 
 

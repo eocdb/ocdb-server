@@ -22,17 +22,20 @@
 
 import io
 import os
+import tempfile
+import zipfile
 from typing import Dict, List
 
-from ...core.file_helper import FileHelper
 from ..context import WsContext
-from ...core.asserts import assert_not_none, assert_one_of
+from ...core.asserts import assert_not_none
+from ...core.file_helper import FileHelper
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.uploaded_file import UploadedFile
 from ...core.seabass.sb_file_reader import SbFileReader, SbFormatError
 from ...core.val import validator
 from ...db.static_data import get_product_groups, get_products
+from ...ws.controllers.datasets import find_datasets, get_dataset_by_id
 
 
 # noinspection PyUnusedLocal
@@ -129,13 +132,65 @@ def download_store_files(ctx: WsContext,
                          pgroup: List[str] = None,
                          pname: List[str] = None,
                          docs: bool = False) -> str:
-    assert_not_none(mtype, name='mtype')
-    assert_not_none(wlmode, name='wlmode')
-    assert_one_of(wlmode, ['all', 'multispectral', 'hyperspectral'], name='wlmode')
-    assert_not_none(shallow, name='shallow')
-    assert_one_of(shallow, ['no', 'yes', 'exclusively'], name='shallow')
-    assert_not_none(pmode, name='pmode')
-    assert_one_of(pmode, ['contains', 'same_cruise', 'dont_apply'], name='pmode')
-    assert_not_none(docs, name='docs')
-    # TODO (generated): implement operation download_store_files()
-    raise NotImplementedError('operation download_store_files() not yet implemented')
+    result = find_datasets(ctx,
+                           expr=expr,
+                           region=region,
+                           time=time,
+                           wdepth=wdepth,
+                           mtype=mtype,
+                           wlmode=wlmode,
+                           shallow=shallow,
+                           pmode=pmode,
+                           pgroup=pgroup,
+                           pname=pname,
+                           offset=None,
+                           count=None,
+                           geojson=False)
+
+    if result.total_count < 1:
+        # @todo 2 tb/tb is this correct? Or raise exception? 2018-12-13
+        return None
+
+    tmp_dir = tempfile.gettempdir()
+    # @todo 1 tb/tb assemble meaningful zip-archive name from query 2018-12-13
+    zip_file_path = os.path.join(tmp_dir, "test_archive.zip")
+    with zipfile.ZipFile(zip_file_path, "w") as zip_file:
+        for dataset_ref in result.datasets:
+            dataset = get_dataset_by_id(ctx, dataset_ref.id)
+            full_file_path = os.path.join(ctx.store_path, dataset.path)
+            zip_file.write(full_file_path, dataset.path)
+
+            if not docs:
+                continue
+
+            if "documents" in dataset.metadata:
+                doc_root_path = get_document_root_path(dataset.path)
+                doc_archive_path = ctx.get_doc_files_store_path(doc_root_path)
+                zip_store_path = os.path.join(doc_root_path, "documents")
+
+                documents_string = dataset.metadata["documents"]
+                document_names = documents_string.split(",")
+                for document_name in document_names:
+                    document_path = os.path.join(doc_archive_path, document_name)
+                    document_zip_path = os.path.join(zip_store_path, document_name)
+                    if os.path.isfile(document_path):
+                        zip_file.write(document_path, document_zip_path)
+
+    return zip_file
+
+
+def get_document_root_path(dataset_path):
+    segments = dataset_path.split(os.sep)
+    valid_segments = []
+    for segment in segments:
+        if segment == "archive":
+            break
+        valid_segments.append(segment)
+
+    if len(valid_segments) > 1:
+        path = os.path.join(valid_segments[0], valid_segments[1])
+        for idx in range(2, len(valid_segments)):
+            path = os.path.join(path, valid_segments[idx])
+        return path
+    else:
+        return valid_segments[0]

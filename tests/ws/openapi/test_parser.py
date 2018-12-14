@@ -17,7 +17,7 @@ class ParserTest(unittest.TestCase):
         self.assertIsNotNone(openapi.components.schemas)
         self.assertEqual(10, len(openapi.components.schemas))
         self.assertIsNotNone(openapi.components.parameters)
-        self.assertEqual(20, len(openapi.components.parameters))
+        self.assertEqual(21, len(openapi.components.parameters))
         self.assertIsNotNone(openapi.components.request_bodies)
         self.assertEqual(4, len(openapi.components.request_bodies))
         self.assertIsNotNone(openapi.components.responses)
