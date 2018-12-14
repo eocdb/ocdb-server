@@ -113,7 +113,7 @@ class StoreDownload(WsRequestHandler):
         pgroup = self.query.get_param_list('pgroup', default=None)
         pname = self.query.get_param_list('pname', default=None)
         docs = self.query.get_param_bool('docs', default=None)
-        geojson = self.query.get_param_bool('geojson', default=False)
+
         result = download_store_files(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth,
                                       mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
                                       pname=pname, docs=docs)

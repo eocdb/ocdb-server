@@ -3,7 +3,7 @@ servers:
   - url: 'http://eocdb.io/api/v01'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.4"
+  version: "0.1.0-dev.5"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -99,7 +99,7 @@ paths:
         - $ref: "#/components/parameters/pmodeParam"
         - $ref: "#/components/parameters/pgroupParam"
         - $ref: "#/components/parameters/pnameParam"
-        - $ref: "#/components/parameters/geojsonParam"
+        - $ref: "#/components/parameters/docsParam"
         # }}}
         - name: docs
           in: query
@@ -707,6 +707,15 @@ components:
       name: geojson
       in: query
       description: return geolocations as geoJOSN.
+      required: false
+      schema:
+        type: boolean
+        default: false
+        nullable: true
+    docsParam:
+      name: docs
+      in: query
+      description: add additional documents to result.
       required: false
       schema:
         type: boolean

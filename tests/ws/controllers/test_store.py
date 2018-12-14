@@ -21,6 +21,7 @@
 
 
 import unittest
+from zipfile import ZipFile
 
 from eocdb.ws.controllers.store import *
 from tests.helpers import new_test_service_context
@@ -68,8 +69,7 @@ class StoreTest(unittest.TestCase):
             if os.path.isfile(target_file):
                 os.remove(target_file)
 
-    def test_download_store_files(self):
-
+    def test_up_and_download_store_files(self):
         try:
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
@@ -108,7 +108,69 @@ class StoreTest(unittest.TestCase):
                                           docs=docs)
 
             self.assertIsNotNone(result)
+            self.assertTrue(isinstance(result, ZipFile))
+            info_list = result.infolist()
+            self.assertEqual(1, len(info_list))
+            self.assertEqual("test_files/archive/DEL1012_Station_097_CTD_Data.txt", info_list[0].filename)
 
+        finally:
+            target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"), "DEL1012_Station_097_CTD_Data.txt")
+            if os.path.isfile(target_file):
+                os.remove(target_file)
+
+            tmp_dir = tempfile.gettempdir()
+            zip_file_path = os.path.join(tmp_dir, "test_archive.zip")
+            if os.path.isfile(zip_file_path):
+                os.remove(zip_file_path)
+
+    def test_up_and_download_store_files_with_doc_files(self):
+        try:
+            data_file_text = ("/begin_header\n"
+                              "/received=20120330\n"
+                              "/delimiter = comma\n"
+                              "/north_latitude=42.598[DEG]\n"
+                              "/east_longitude=-67.105[DEG]\n"
+                              "/start_date=20101117\n"
+                              "/end_date=20101117\n"
+                              "/start_time=20:14:00[GMT]\n"
+                              "/end_time=20:14:00[GMT]\n"
+                              "/documents=NSPRT_223_calib.txt\n"
+                              "/fields = station, SN, lat, lon, year, month, day, hour, minute, pressure, wt, sal, CHL, Epar, oxygen\n"
+                              "/units = none, none, degrees, degrees, yyyy, mo, dd, hh, mn, dbar, degreesC, PSU, mg/m^3, uE/cm^2s, ml/L\n"
+                              "/end_header\n"
+                              "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
+            uploaded_fie = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
+
+            document_file_content = "This is test content and does not reflect the opinion of the development team."
+            document_file = UploadedFile("NSPRT_223_calib.txt", "text", document_file_content.encode("utf-8"))
+
+            result = upload_store_files(self.ctx, path="test_files", dataset_files=[uploaded_fie], doc_files=[document_file])
+            self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
+            self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
+
+            expr = None
+            region = [-70, 40, -60, 50]
+            time = None
+            wdepth = None
+            mtype = None
+            wlmode = 'all'
+            shallow = 'no'
+            pmode = 'contains'
+            pgroup = None
+            pname = None
+            docs = True
+
+            # noinspection PyTypeChecker
+            result = download_store_files(self.ctx, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
+                                          wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
+                                          docs=docs)
+
+            self.assertIsNotNone(result)
+            self.assertTrue(isinstance(result, ZipFile))
+            info_list = result.infolist()
+            self.assertEqual(2, len(info_list))
+            self.assertEqual("test_files/archive/DEL1012_Station_097_CTD_Data.txt", info_list[0].filename)
+            self.assertEqual("test_files/documents/NSPRT_223_calib.txt", info_list[1].filename)
 
         finally:
             target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"), "DEL1012_Station_097_CTD_Data.txt")

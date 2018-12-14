@@ -35,7 +35,7 @@ from ...core.models.uploaded_file import UploadedFile
 from ...core.seabass.sb_file_reader import SbFileReader, SbFormatError
 from ...core.val import validator
 from ...db.static_data import get_product_groups, get_products
-from ...ws.controllers.datasets import find_datasets
+from ...ws.controllers.datasets import find_datasets, get_dataset_by_id
 
 
 # noinspection PyUnusedLocal
@@ -155,8 +155,42 @@ def download_store_files(ctx: WsContext,
     # @todo 1 tb/tb assemble meaningful zip-archive name from query 2018-12-13
     zip_file_path = os.path.join(tmp_dir, "test_archive.zip")
     with zipfile.ZipFile(zip_file_path, "w") as zip_file:
-        for dataset in result.datasets:
+        for dataset_ref in result.datasets:
+            dataset = get_dataset_by_id(ctx, dataset_ref.id)
             full_file_path = os.path.join(ctx.store_path, dataset.path)
             zip_file.write(full_file_path, dataset.path)
 
+            if not docs:
+                continue
+
+            if "documents" in dataset.metadata:
+                doc_root_path = get_document_root_path(dataset.path)
+                doc_archive_path = ctx.get_doc_files_store_path(doc_root_path)
+                zip_store_path = os.path.join(doc_root_path, "documents")
+
+                documents_string = dataset.metadata["documents"]
+                document_names = documents_string.split(",")
+                for document_name in document_names:
+                    document_path = os.path.join(doc_archive_path, document_name)
+                    document_zip_path = os.path.join(zip_store_path, document_name)
+                    if os.path.isfile(document_path):
+                        zip_file.write(document_path, document_zip_path)
+
     return zip_file
+
+
+def get_document_root_path(dataset_path):
+    segments = dataset_path.split(os.sep)
+    valid_segments = []
+    for segment in segments:
+        if segment == "archive":
+            break
+        valid_segments.append(segment)
+
+    if len(valid_segments) > 1:
+        path = os.path.join(valid_segments[0], valid_segments[1])
+        for idx in range(2, len(valid_segments)):
+            path = os.path.join(path, valid_segments[idx])
+        return path
+    else:
+        return valid_segments[0]
