@@ -18,8 +18,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-
+import datetime
+import time
 import unittest
 from zipfile import ZipFile
 
@@ -65,7 +65,8 @@ class StoreTest(unittest.TestCase):
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
         finally:
-            target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"), "DEL1012_Station_097_CTD_Data.txt")
+            target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"),
+                                       "DEL1012_Station_097_CTD_Data.txt")
             if os.path.isfile(target_file):
                 os.remove(target_file)
 
@@ -114,7 +115,8 @@ class StoreTest(unittest.TestCase):
             self.assertEqual("test_files/archive/DEL1012_Station_097_CTD_Data.txt", info_list[0].filename)
 
         finally:
-            target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"), "DEL1012_Station_097_CTD_Data.txt")
+            target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"),
+                                       "DEL1012_Station_097_CTD_Data.txt")
             if os.path.isfile(target_file):
                 os.remove(target_file)
 
@@ -144,7 +146,8 @@ class StoreTest(unittest.TestCase):
             document_file_content = "This is test content and does not reflect the opinion of the development team."
             document_file = UploadedFile("NSPRT_223_calib.txt", "text", document_file_content.encode("utf-8"))
 
-            result = upload_store_files(self.ctx, path="test_files", dataset_files=[uploaded_fie], doc_files=[document_file])
+            result = upload_store_files(self.ctx, path="test_files", dataset_files=[uploaded_fie],
+                                        doc_files=[document_file])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
@@ -173,7 +176,8 @@ class StoreTest(unittest.TestCase):
             self.assertEqual("test_files/documents/NSPRT_223_calib.txt", info_list[1].filename)
 
         finally:
-            target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"), "DEL1012_Station_097_CTD_Data.txt")
+            target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"),
+                                       "DEL1012_Station_097_CTD_Data.txt")
             if os.path.isfile(target_file):
                 os.remove(target_file)
 
@@ -181,7 +185,3 @@ class StoreTest(unittest.TestCase):
             zip_file_path = os.path.join(tmp_dir, "test_archive.zip")
             if os.path.isfile(zip_file_path):
                 os.remove(zip_file_path)
-
-
-
-
