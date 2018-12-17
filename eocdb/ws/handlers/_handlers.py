@@ -18,8 +18,6 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-import datetime
-import time
 
 import tornado.escape
 import tornado.httputil
@@ -120,12 +118,21 @@ class StoreDownload(WsRequestHandler):
                                       pname=pname, docs=docs)
 
         self.set_header('Content-Type', 'application/zip')
-        # @todo 1 tb/tb make a real file name
-        now = datetime.datetime.now()
-        now_secs = int(time.mktime(now.timetuple()))
-        zip_name = str(now_secs) + ".zip"
-        self.set_header("Content-Disposition", "attachment; filename=%s" % zip_name)
-        self.finish(result)
+        path, filename = os.path.split(result.filename)
+        self.set_header("Content-Disposition", "attachment; filename=%s" % filename)
+
+        self.stream_file_content(result)
+        os.remove(result.filename)
+        
+        self.finish()
+
+    def stream_file_content(self, result):
+        with open(result.filename, 'rb') as f:
+            while True:
+                data = f.read(32768)
+                if not data:
+                    break
+                self.write(data)
 
 
 # noinspection PyAbstractClass

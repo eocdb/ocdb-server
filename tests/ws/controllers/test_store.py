@@ -71,6 +71,7 @@ class StoreTest(unittest.TestCase):
                 os.remove(target_file)
 
     def test_up_and_download_store_files(self):
+        result = None
         try:
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
@@ -121,11 +122,13 @@ class StoreTest(unittest.TestCase):
                 os.remove(target_file)
 
             tmp_dir = tempfile.gettempdir()
-            zip_file_path = os.path.join(tmp_dir, "test_archive.zip")
-            if os.path.isfile(zip_file_path):
-                os.remove(zip_file_path)
+            if result is not None:
+                zip_file_path = os.path.join(tmp_dir, result.filename)
+                if os.path.isfile(zip_file_path):
+                    os.remove(zip_file_path)
 
     def test_up_and_download_store_files_with_doc_files(self):
+        result = None
         try:
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
@@ -181,7 +184,8 @@ class StoreTest(unittest.TestCase):
             if os.path.isfile(target_file):
                 os.remove(target_file)
 
-            tmp_dir = tempfile.gettempdir()
-            zip_file_path = os.path.join(tmp_dir, "test_archive.zip")
-            if os.path.isfile(zip_file_path):
-                os.remove(zip_file_path)
+            if result is not None:
+                tmp_dir = tempfile.gettempdir()
+                zip_file_path = os.path.join(tmp_dir, result.filename)
+                if os.path.isfile(zip_file_path):
+                    os.remove(zip_file_path)

@@ -131,7 +131,7 @@ def download_store_files(ctx: WsContext,
                          pmode: str = 'contains',
                          pgroup: List[str] = None,
                          pname: List[str] = None,
-                         docs: bool = False) -> str:
+                         docs: bool = False) -> zipfile.ZipFile:
     result = find_datasets(ctx,
                            expr=expr,
                            region=region,
@@ -152,10 +152,7 @@ def download_store_files(ctx: WsContext,
         return None
 
     tmp_dir = tempfile.gettempdir()
-    # @todo 1 tb/tb assemble meaningful zip-archive name from query 2018-12-13
-    now = datetime.datetime.now()
-    now_secs = int(time.mktime(now.timetuple()))
-    zip_name = str(now_secs) + ".zip"
+    zip_name = create_zip_file_name()
     zip_file_path = os.path.join(tmp_dir, zip_name)
     with zipfile.ZipFile(zip_file_path, "w") as zip_file:
         for dataset_ref in result.datasets:
@@ -180,6 +177,14 @@ def download_store_files(ctx: WsContext,
                         zip_file.write(document_path, document_zip_path)
 
     return zip_file
+
+
+def create_zip_file_name():
+    # @todo 1 tb/tb assemble meaningful zip-archive name from query 2018-12-13
+    now = datetime.datetime.now()
+    now_secs = int(time.mktime(now.timetuple()))
+    zip_name = str(now_secs) + ".zip"
+    return zip_name
 
 
 def get_document_root_path(dataset_path):
