@@ -123,7 +123,7 @@ class StoreDownload(WsRequestHandler):
 
         self.stream_file_content(result)
         os.remove(result.filename)
-        
+
         self.finish()
 
     def stream_file_content(self, result):
