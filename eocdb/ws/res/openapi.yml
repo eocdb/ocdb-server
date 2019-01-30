@@ -1,6 +1,6 @@
 openapi: 3.0.0
 servers:
-  - url: 'http://eocdb.io/api/v01'
+  - url: 'http://10.2.0.57:4000/eocdb/api/v0.1.0/'
 info:
   title: eocdb-server
   version: "0.1.0-dev.5"
@@ -499,7 +499,7 @@ paths:
       description: Return an existing registry entry
       operationId: getSubmission
       parameters:
-        - '#/components/parameters/submissionIdParam'
+        - $ref: '#/components/parameters/submissionIdParam'
       responses:
         '200':
           $ref: '#/components/responses/Submission'
@@ -516,7 +516,7 @@ paths:
       requestBody:
         $ref: '#/components/requestBodies/Submission'
       parameters:
-        - '#/components/parameters/submissionIdParam'
+        - $ref: '#/components/parameters/submissionIdParam'
       responses:
         '200':
           description: Update successfull
@@ -531,7 +531,7 @@ paths:
       description: Delete an existing registry entry
       operationId: deleteSubmission
       parameters:
-        - '#/components/parameters/submissionIdParam'
+        - $ref: '#/components/parameters/submissionIdParam'
       responses:
         '200':
           description: Deletion successfull
