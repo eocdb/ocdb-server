@@ -113,6 +113,61 @@ paths:
           $ref: '#/components/responses/BinaryFileContent'
         '400':
           description: Invalid query value(s).
+  '/store/download/{ids}/ids':
+    get:
+      tags:
+      - Store
+      summary: Batch mode download of files
+      description: Download a ZIP file of datasets and optionally documentaion files for the given ids from the store.
+      operationId: downloadStoreFilesByIDs
+      parameters:
+      - name: ids
+        in: query
+        description: Whether to include data files with the matching ids
+        required: true
+        schema:
+          type: array
+          items:
+            type: string
+          minItems: 1
+          uniqueItems: true
+      - name: docs
+        in: query
+        description: Weather to include documentation files. Defaults to docs=0 (do not include files).
+        required: false
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          $ref: '#/components/responses/BinaryFileContent'
+        '400':
+          description: Invalid ids.
+        '404':
+          description: IDs not found
+  '/store/download/{id}/id':
+    get:
+      tags:
+      - Store
+      summary: Batch mode download of files
+      description: Download a ZIP file of datasets and optionally documentaion files for the given id from the store.
+      operationId: downloadStoreFilesByID
+      parameters:
+      - $ref: "#/components/parameters/datasetIdParam"
+      - name: docs
+        in: query
+        description: Weather to include documentation files. Defaults to docs=0 (do not include files).
+        required: false
+        schema:
+          type: boolean
+          default: false
+      responses:
+        '200':
+          $ref: '#/components/responses/BinaryFileContent'
+        '400':
+          description: Invalid id.
+        '404':
+          description: ID not found
   # TODO by forman: address publishing/hiding datasets
   # '/datasets/publish/{id}':
   '/datasets/validate':
@@ -422,6 +477,85 @@ paths:
         - eocdb_auth:
             - 'write:docFiles'
             - 'read:docFiles'
+  '/submission':
+    post:
+      tags:
+        - Submission
+      summary: Add submission register entry
+      description: Register a new submission. This can only be done by a logged in user
+      operationId: registerSubmission
+      requestBody:
+        $ref: '#/components/requestBodies/Submission'
+      responses:
+        '200':
+          description: Submission successfully registered
+        '400':
+          description: Invalid request
+  '/submission/{submissionid}':
+    get:
+      tags:
+        - Submission
+      summary: Return a submission registry entry
+      description: Return an existing registry entry
+      operationId: getSubmission
+      parameters:
+        - '#/components/parameters/submissionIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/Submission'
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission not found in registry
+    put:
+      tags:
+        - Submission
+      summary: Update a submission registry entry
+      description: Update an existing registry entry
+      operationId: updateSubmission
+      requestBody:
+        $ref: '#/components/requestBodies/Submission'
+      parameters:
+        - '#/components/parameters/submissionIdParam'
+      responses:
+        '200':
+          description: Update successfull
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission not found in registry
+    delete:
+      tags:
+      - Submission
+      summary: Delete a submission registry entry
+      description: Delete an existing registry entry
+      operationId: deleteSubmission
+      parameters:
+        - '#/components/parameters/submissionIdParam'
+      responses:
+        '200':
+          description: Deletion successfull
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission not found in registry
+
+  '/submission/user/{userid}':
+    get:
+      tags:
+        - Submission
+      summary: Get Submission for user
+      description: Get list of submissions for user from submission registry
+      operationId: getSubmissionsForUser
+      parameters:
+        - $ref: '#/components/parameters/userIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/Submissions'
+        '400':
+          description: Invalid request
+        '404':
+          description: No submissions foudn in registry
   '/users':
     post:
       tags:
@@ -430,7 +564,7 @@ paths:
       description: Registers a new user. This can only be done by the logged in user.
       operationId: createUser
       requestBody:
-        $ref: '#/components/requestBodies/User'
+        $ref: '#/components/requestBodies/userIdParam'
       responses:
         '200':
           description: Successful operation.
@@ -728,6 +862,13 @@ components:
       required: true
       schema:
         type: integer
+    submissionIdParam:
+      name: id
+      in: path
+      description: The ID of the submission.
+      required: true
+      schema:
+        type: integer
   schemas:
     DatasetQuery:
       type: object
@@ -843,6 +984,24 @@ components:
         description:
           type: string
           description: Type of issue.
+    Submission:
+      type: object
+      required:
+        - id
+        - userid
+        - date
+        - status
+      properties:
+        id:
+          type: integer
+          format: int64
+        userid:
+          type: integer
+          format: int64
+        date:
+          type: string
+        status:
+          type: string
     User:
       type: object
       required:
@@ -931,6 +1090,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/QcInfo'
+    Submission:
+      description: Entry of the submission registry
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Submission'
     User:
       description: User object.
       required: true
@@ -1011,6 +1177,20 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/DocFileRef'
+    Submission:
+      description: Submission registry entry
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Submission'
+    Submissions:
+      description: List of submission registry entries
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/Submission'
     User:
       description: Successful operation.
       content:
