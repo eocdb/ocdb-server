@@ -89,6 +89,7 @@ paths:
         # Important: keep following parameters in sync with findDatasets() operation
         # {{{
         - $ref: "#/components/parameters/exprParam"
+        - $ref: "#/components/parameters/datasetIdsParam"
         - $ref: "#/components/parameters/regionParam"
         - $ref: "#/components/parameters/startTimeParam"
         - $ref: "#/components/parameters/endTimeParam"
@@ -113,61 +114,24 @@ paths:
           $ref: '#/components/responses/BinaryFileContent'
         '400':
           description: Invalid query value(s).
-  '/store/download/{ids}/ids':
+  '/store/download/{id}':
     get:
       tags:
-      - Store
-      summary: Batch mode download of files
-      description: Download a ZIP file of datasets and optionally documentaion files for the given ids from the store.
-      operationId: downloadStoreFilesByIDs
-      parameters:
-      - name: ids
-        in: query
-        description: Whether to include data files with the matching ids
-        required: true
-        schema:
-          type: array
-          items:
-            type: string
-          minItems: 1
-          uniqueItems: true
-      - name: docs
-        in: query
-        description: Weather to include documentation files. Defaults to docs=0 (do not include files).
-        required: false
-        schema:
-          type: boolean
-          default: false
-      responses:
-        '200':
-          $ref: '#/components/responses/BinaryFileContent'
-        '400':
-          description: Invalid ids.
-        '404':
-          description: IDs not found
-  '/store/download/{id}/id':
-    get:
-      tags:
-      - Store
-      summary: Batch mode download of files
-      description: Download a ZIP file of datasets and optionally documentaion files for the given id from the store.
-      operationId: downloadStoreFilesByID
+      - Datasets
+      summary: Download a dataset by ID
+      description: Returns a single dataset's files by ID.
+      operationId: downloadDatasetById
       parameters:
       - $ref: "#/components/parameters/datasetIdParam"
-      - name: docs
-        in: query
-        description: Weather to include documentation files. Defaults to docs=0 (do not include files).
-        required: false
-        schema:
-          type: boolean
-          default: false
       responses:
         '200':
           $ref: '#/components/responses/BinaryFileContent'
         '400':
-          description: Invalid id.
+          description: Invalid dataset ID.
         '404':
-          description: ID not found
+          description: Dataset not found.
+      security:
+      - api_key: []
   # TODO by forman: address publishing/hiding datasets
   # '/datasets/publish/{id}':
   '/datasets/validate':
@@ -193,6 +157,7 @@ paths:
         # Important: keep following parameters in sync with downloadStoreFiles() operation
         # {{{
         - $ref: "#/components/parameters/exprParam"
+        - $ref: "#/components/parameters/datasetIdsParam"
         - $ref: "#/components/parameters/regionParam"
         - $ref: "#/components/parameters/startTimeParam"
         - $ref: "#/components/parameters/endTimeParam"
@@ -718,6 +683,15 @@ components:
       required: true
       schema:
         type: string
+    datasetIdsParam:
+      name: ids
+      in: query
+      description: IDs of datasets.
+      required: false
+      schema:
+        type: array
+        items:
+          type: string
     exprParam:
       name: expr
       in: query
