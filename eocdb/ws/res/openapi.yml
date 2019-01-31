@@ -1,9 +1,9 @@
 openapi: 3.0.0
 servers:
-  - url: 'http://10.2.0.57:4000/eocdb/api/v0.1.0/'
+  - url: 'http://ocdb-test:4000/eocdb/api/v0.1.0/'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.5"
+  version: "0.1.0-dev.6"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -104,7 +104,7 @@ paths:
         # }}}
         - name: docs
           in: query
-          description: Weather to include documentation files. Defaults to docs=0 (do not include files).
+          description: Whether to include documentation files. Defaults to docs=0 (do not include files).
           required: false
           schema:
             type: boolean
