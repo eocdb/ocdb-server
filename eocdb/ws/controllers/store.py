@@ -29,6 +29,7 @@ from typing import Dict, List
 from ..context import WsContext
 from ...core.asserts import assert_not_none
 from ...core.file_helper import FileHelper
+from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.uploaded_file import UploadedFile
@@ -122,6 +123,7 @@ def upload_store_files(ctx: WsContext,
 # noinspection PyUnusedLocal,PyTypeChecker
 def download_store_files(ctx: WsContext,
                          expr: str = None,
+                         datasetIds: List[str] = None,
                          region: List[float] = None,
                          s_time: List[str] = None,
                          wdepth: List[float] = None,
@@ -132,20 +134,29 @@ def download_store_files(ctx: WsContext,
                          pgroup: List[str] = None,
                          pname: List[str] = None,
                          docs: bool = False) -> zipfile.ZipFile:
-    result = find_datasets(ctx,
-                           expr=expr,
-                           region=region,
-                           time=s_time,
-                           wdepth=wdepth,
-                           mtype=mtype,
-                           wlmode=wlmode,
-                           shallow=shallow,
-                           pmode=pmode,
-                           pgroup=pgroup,
-                           pname=pname,
-                           offset=None,
-                           count=None,
-                           geojson=False)
+
+    if datasetIds is None:
+        result = find_datasets(ctx,
+                               expr=expr,
+                               region=region,
+                               time=s_time,
+                               wdepth=wdepth,
+                               mtype=mtype,
+                               wlmode=wlmode,
+                               shallow=shallow,
+                               pmode=pmode,
+                               pgroup=pgroup,
+                               pname=pname,
+                               offset=None,
+                               count=None,
+                               geojson=False)
+    else:
+        result_list = []
+        for dsId in datasetIds:
+            dataset_ref = DatasetRef(dsId, "fake_path")
+            result_list.append(dataset_ref)
+
+        result = DatasetQueryResult(locations=[], total_count=len(result_list), datasets=result_list, query=DatasetQuery())
 
     if result.total_count < 1:
         # @todo 2 tb/tb is this correct? Or raise exception? 2018-12-13

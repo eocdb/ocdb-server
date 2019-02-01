@@ -1,10 +1,10 @@
 from abc import abstractmethod
 from typing import List, Optional
 
+from ..models import DatasetQueryResult
 from ..models.dataset import Dataset
 from .. import Service
 from ..models.dataset_query import DatasetQuery
-from ..models.dataset_ref import DatasetRef
 
 
 class DbDriver(Service):
@@ -26,5 +26,5 @@ class DbDriver(Service):
         """Get existing dataset by ID."""
 
     @abstractmethod
-    def find_datasets(self, query: DatasetQuery) -> List[DatasetRef]:
+    def find_datasets(self, query: DatasetQuery) -> DatasetQueryResult:
         """Find datasets for given query and return list of dataset references."""
