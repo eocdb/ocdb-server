@@ -126,6 +126,10 @@ class StoreDownload(WsRequestHandler):
 
         self.finish()
 
+    def post(self):
+        tornado.escape.json_decode(self.request.body)
+        self.finish()
+
     def stream_file_content(self, result):
         with open(result.filename, 'rb') as f:
             while True:
