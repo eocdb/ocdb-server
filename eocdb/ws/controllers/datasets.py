@@ -84,7 +84,6 @@ def find_datasets(ctx: WsContext,
 
     return result
 
-
 def add_dataset(ctx: WsContext,
                 dataset: Dataset) -> DatasetRef:
     """Add a new dataset."""
