@@ -222,6 +222,10 @@ class WsRequestHandler(RequestHandler):
         self.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
         self.set_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
 
+    def options(self):
+        self.set_status(204)
+        self.finish()
+
     def on_finish(self):
         """
         Store time of last activity so we can measure time of inactivity and then optionally auto-exit.

@@ -22,6 +22,7 @@
 import tornado.escape
 import tornado.httputil
 
+from eocdb.core.models.dataset_ids import DatasetIds
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.service import *
@@ -117,16 +118,28 @@ class StoreDownload(WsRequestHandler):
                                       mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
                                       pname=pname, docs=docs)
 
+        self._return_zip_file(result)
+        self.finish()
+
+    def post(self):
+        id_list_dict = tornado.escape.json_decode(self.request.body)
+        dataset_ids = DatasetIds.from_dict(id_list_dict)
+        result = download_store_files_by_id(self.ws_context, dataset_ids=dataset_ids.id_list, docs=dataset_ids.docs)
+
+        self._return_zip_file(result)
+        self.finish()
+
+    def _return_zip_file(self, result):
+        if result is None:
+            return
+
         self.set_header('Content-Type', 'application/zip')
         path, filename = os.path.split(result.filename)
         self.set_header("Content-Disposition", "attachment; filename=%s" % filename)
-
-        self.stream_file_content(result)
+        self._stream_file_content(result)
         os.remove(result.filename)
 
-        self.finish()
-
-    def stream_file_content(self, result):
+    def _stream_file_content(self, result):
         with open(result.filename, 'rb') as f:
             while True:
                 data = f.read(32768)
@@ -210,7 +223,7 @@ class DatasetsId(WsRequestHandler):
     def get(self, id: str):
         """Provide API operation getDatasetById()."""
         dataset_id = id
-        result = get_dataset_by_id(self.ws_context, dataset_id=dataset_id)
+        result = get_dataset_by_id_strict(self.ws_context, dataset_id=dataset_id)
         # transform result of type Dataset into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))

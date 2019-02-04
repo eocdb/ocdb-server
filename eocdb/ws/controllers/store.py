@@ -120,10 +120,9 @@ def upload_store_files(ctx: WsContext,
     return validation_results
 
 
-# noinspection PyUnusedLocal,PyTypeChecker
+# noinspection PyTypeChecker
 def download_store_files(ctx: WsContext,
                          expr: str = None,
-                         datasetIds: List[str] = None,
                          region: List[float] = None,
                          s_time: List[str] = None,
                          wdepth: List[float] = None,
@@ -134,40 +133,54 @@ def download_store_files(ctx: WsContext,
                          pgroup: List[str] = None,
                          pname: List[str] = None,
                          docs: bool = False) -> zipfile.ZipFile:
-
-    if datasetIds is None:
-        result = find_datasets(ctx,
-                               expr=expr,
-                               region=region,
-                               time=s_time,
-                               wdepth=wdepth,
-                               mtype=mtype,
-                               wlmode=wlmode,
-                               shallow=shallow,
-                               pmode=pmode,
-                               pgroup=pgroup,
-                               pname=pname,
-                               offset=None,
-                               count=None,
-                               geojson=False)
-    else:
-        result_list = []
-        for dsId in datasetIds:
-            dataset_ref = DatasetRef(dsId, "fake_path")
-            result_list.append(dataset_ref)
-
-        result = DatasetQueryResult(locations=[], total_count=len(result_list), datasets=result_list, query=DatasetQuery())
+    result = find_datasets(ctx,
+                           expr=expr,
+                           region=region,
+                           time=s_time,
+                           wdepth=wdepth,
+                           mtype=mtype,
+                           wlmode=wlmode,
+                           shallow=shallow,
+                           pmode=pmode,
+                           pgroup=pgroup,
+                           pname=pname,
+                           geojson=False)
 
     if result.total_count < 1:
         # @todo 2 tb/tb is this correct? Or raise exception? 2018-12-13
         return None
 
+    return _assemble_zip_archive(ctx, docs, result)
+
+
+# noinspection PyTypeChecker
+def download_store_files_by_id(ctx: WsContext,
+                               dataset_ids: List[str] = None,
+                               docs: bool = False) -> zipfile.ZipFile:
+    result_list = []
+    for dsId in dataset_ids:
+        dataset_ref = DatasetRef(dsId, "fake_path")
+        result_list.append(dataset_ref)
+
+    result = DatasetQueryResult(locations={}, total_count=len(result_list), datasets=result_list, query=DatasetQuery())
+
+    if result.total_count < 1:
+        # @todo 2 tb/tb is this correct? Or raise exception? 2018-12-13
+        return None
+
+    return _assemble_zip_archive(ctx, docs, result)
+
+
+def _assemble_zip_archive(ctx, docs, result):
     tmp_dir = tempfile.gettempdir()
     zip_name = create_zip_file_name()
     zip_file_path = os.path.join(tmp_dir, zip_name)
     with zipfile.ZipFile(zip_file_path, "w") as zip_file:
         for dataset_ref in result.datasets:
             dataset = get_dataset_by_id(ctx, dataset_ref.id)
+            if dataset is None:
+                continue
+
             full_file_path = os.path.join(ctx.store_path, dataset.path)
             zip_file.write(full_file_path, dataset.path)
 
@@ -186,7 +199,6 @@ def download_store_files(ctx: WsContext,
                     document_zip_path = os.path.join(zip_store_path, document_name)
                     if os.path.isfile(document_path):
                         zip_file.write(document_path, document_zip_path)
-
     return zip_file
 
 

@@ -84,6 +84,7 @@ def find_datasets(ctx: WsContext,
 
     return result
 
+
 def add_dataset(ctx: WsContext,
                 dataset: Dataset) -> DatasetRef:
     """Add a new dataset."""
@@ -122,14 +123,22 @@ def delete_dataset(ctx: WsContext,
     return deleted
 
 
-def get_dataset_by_id(ctx: WsContext,
-                      dataset_id: str) -> Dataset:
+def get_dataset_by_id_strict(ctx: WsContext,
+                             dataset_id: str) -> Dataset:
     """Get dataset by ID."""
     assert_not_none(dataset_id, name='dataset_id')
     dataset = ctx.db_driver.instance().get_dataset(dataset_id)
     if dataset is not None:
         return dataset
     raise WsResourceNotFoundError(f"Dataset with ID {dataset_id} not found")
+
+
+def get_dataset_by_id(ctx: WsContext,
+                      dataset_id: str) -> Dataset:
+    """Get dataset by ID."""
+    assert_not_none(dataset_id, name='dataset_id')
+    dataset = ctx.db_driver.instance().get_dataset(dataset_id)
+    return dataset
 
 
 # noinspection PyUnusedLocal,PyTypeChecker

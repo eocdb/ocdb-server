@@ -229,7 +229,7 @@ class StoreTest(unittest.TestCase):
 
 
             # noinspection PyTypeChecker
-            result = download_store_files(self.ctx, datasetIds=id_list)
+            result = download_store_files_by_id(self.ctx, dataset_ids=id_list)
 
             self.assertIsNotNone(result)
             self.assertTrue(isinstance(result, ZipFile))

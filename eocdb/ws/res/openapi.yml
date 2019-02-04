@@ -3,7 +3,7 @@ servers:
   - url: 'http://ocdb-test:4000/eocdb/api/v0.1.0/'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.6"
+  version: "0.1.0-dev.7"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -89,7 +89,6 @@ paths:
         # Important: keep following parameters in sync with findDatasets() operation
         # {{{
         - $ref: "#/components/parameters/exprParam"
-        - $ref: "#/components/parameters/datasetIdsParam"
         - $ref: "#/components/parameters/regionParam"
         - $ref: "#/components/parameters/startTimeParam"
         - $ref: "#/components/parameters/endTimeParam"
@@ -109,6 +108,19 @@ paths:
           schema:
             type: boolean
             default: false
+      responses:
+        '200':
+          $ref: '#/components/responses/BinaryFileContent'
+        '400':
+          description: Invalid query value(s).
+    post:
+      tags:
+        - Store
+      summary: Batch mode download of files
+      description: Download a ZIP file of datasets and optionally documentaion files for the given list of dataset ids.
+      operationId: downloadStoreFiles
+      requestBody:
+        $ref: '#/components/requestBodies/DatasetIds'
       responses:
         '200':
           $ref: '#/components/responses/BinaryFileContent'
@@ -157,7 +169,6 @@ paths:
         # Important: keep following parameters in sync with downloadStoreFiles() operation
         # {{{
         - $ref: "#/components/parameters/exprParam"
-        - $ref: "#/components/parameters/datasetIdsParam"
         - $ref: "#/components/parameters/regionParam"
         - $ref: "#/components/parameters/startTimeParam"
         - $ref: "#/components/parameters/endTimeParam"
@@ -683,15 +694,6 @@ components:
       required: true
       schema:
         type: string
-    datasetIdsParam:
-      name: ids
-      in: query
-      description: IDs of datasets.
-      required: false
-      schema:
-        type: array
-        items:
-          type: string
     exprParam:
       name: expr
       in: query
@@ -1037,6 +1039,17 @@ components:
           type: string
         path:
           type: string
+    DatasetIds:
+      type: object
+      required:
+        - id_list
+      properties:
+        id_list:
+          type: array
+          items:
+            type: string
+        docs:
+          type: boolean
     DocFileRef:
       type: object
       required:
@@ -1066,6 +1079,14 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Dataset'
+    DatasetIds:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/DatasetIds'
     QcInfo:
       description: Quality control information.
       required: true
