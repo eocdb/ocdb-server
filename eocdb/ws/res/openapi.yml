@@ -1048,6 +1048,8 @@ components:
           type: array
           items:
             type: string
+        docs:
+          type: boolean
     DocFileRef:
       type: object
       required:

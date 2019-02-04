@@ -19,20 +19,24 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import datetime
+import io
+import os
 import unittest
 import urllib.parse
+import zipfile
 
 import tornado.escape
 import tornado.testing
 
 from eocdb.core.models.qc_info import QcInfo, QC_INFO_STATUS_PASSED
 from eocdb.ws.app import new_application
-from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id, get_dataset_qc_info
+from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id_strict, get_dataset_qc_info
 from eocdb.ws.handlers import API_URL_PREFIX
 from tests.helpers import new_test_service_context, new_test_dataset
 
 
 class WsTestCase(tornado.testing.AsyncHTTPTestCase):
+
     def get_app(self):
         """Implements AsyncHTTPTestCase.get_app()."""
         application = new_application()
@@ -122,6 +126,82 @@ class StoreDownloadTest(WsTestCase):
         expected_response_data = None
         actual_response_data = response.body
         self.assertEqual(expected_response_data, actual_response_data)
+
+    def test_post_empty_list(self):
+        id_dict = {"id_list": [], "docs": False}
+        body = tornado.escape.json_encode(id_dict)
+        response = self.fetch(API_URL_PREFIX + "/store/download", method='POST', body=body)
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        self.assertIsNone(response._body)
+
+    def test_post_valid_list(self):
+        target_dir = None
+        target_file_1 = None
+        target_file_2 = None
+        try:
+            target_dir = os.path.join(self.ctx.store_path, "archive")
+            os.makedirs(target_dir)
+
+            ds_ref_1 = add_dataset(self.ctx, new_test_dataset(0))
+            target_file_1 = os.path.join(self.ctx.store_path, ds_ref_1.path)
+            with open(target_file_1, "w") as fp:
+                fp.write("firlefanz")
+
+            ds_ref_2 = add_dataset(self.ctx, new_test_dataset(1))
+            target_file_2 = os.path.join(self.ctx.store_path, ds_ref_2.path)
+            with open(target_file_2, "w") as fp:
+                fp.write("schnickschnack")
+
+            id_dict = {"id_list": [ds_ref_1.id, ds_ref_2.id], "docs": False}
+            body = tornado.escape.json_encode(id_dict)
+            response = self.fetch(API_URL_PREFIX + "/store/download", method='POST', body=body)
+
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            zf = zipfile.ZipFile(io.BytesIO(response.body), "r")
+            info_list = zf.infolist()
+            self.assertEqual(2, len(info_list))
+            self.assertEqual("archive/dataset-0.txt", info_list[0].filename)
+            self.assertEqual("archive/dataset-1.txt", info_list[1].filename)
+        finally:
+            if target_file_1 is not None:
+                os.remove(target_file_1)
+            if target_file_2 is not None:
+                os.remove(target_file_2)
+            if target_dir is not None:
+                os.rmdir(target_dir)
+
+    def test_post_one_invalid_ds_id(self):
+        target_dir = None
+        target_file_1 = None
+        try:
+            target_dir = os.path.join(self.ctx.store_path, "archive")
+            os.makedirs(target_dir)
+
+            ds_ref_1 = add_dataset(self.ctx, new_test_dataset(0))
+            target_file_1 = os.path.join(self.ctx.store_path, ds_ref_1.path)
+            with open(target_file_1, "w") as fp:
+                fp.write("firlefanz")
+
+            id_dict = {"id_list": [ds_ref_1.id, "does_not_exist"], "docs": False}
+            body = tornado.escape.json_encode(id_dict)
+            response = self.fetch(API_URL_PREFIX + "/store/download", method='POST', body=body)
+
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            zf = zipfile.ZipFile(io.BytesIO(response.body), "r")
+            info_list = zf.infolist()
+            self.assertEqual(1, len(info_list))
+            self.assertEqual("archive/dataset-0.txt", info_list[0].filename)
+        finally:
+            if target_file_1 is not None:
+                os.remove(target_file_1)
+            if target_dir is not None:
+                os.rmdir(target_dir)
 
 
 class DatasetsValidateTest(WsTestCase):
@@ -320,7 +400,7 @@ class DatasetsTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + "/datasets", method='POST', body=body)
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-        updated_dataset = get_dataset_by_id(self.ctx, dataset_id=dataset_id)
+        updated_dataset = get_dataset_by_id_strict(self.ctx, dataset_id=dataset_id)
         self.assertEqual(update_dataset, updated_dataset)
 
 
