@@ -203,6 +203,25 @@ paths:
       - eocdb_auth:
         - 'write:datasets'
         - 'read:datasets'
+  '/store/upload/user/{userid}':
+    get:
+      tags:
+        - Submission
+      summary: Get Submission files for user
+      description: Get list of submissions files for a user
+      operationId: getSubmissionFilesForUser
+      parameters:
+      - $ref: '#/components/parameters/userIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/SubmissionFiles'
+        '400':
+          description: Invalid request
+        '404':
+          description: No submission files found in registry
+      security:
+      - eocdb_auth:
+        - 'read:datasets'
   '/store/upload/submission/{submissionid}':
     get:
       tags:
