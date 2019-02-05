@@ -385,7 +385,8 @@ class TestMongoDbDriver(unittest.TestCase):
         dataset.add_geo_location(lon=-70.31, lat=43.18)
         self._driver.add_dataset(dataset)
 
-        query = DatasetQuery(region=[-71.0, 43.0, -69.0, 43.5], geojson=True)  # covers first and third dataset tb 2018-12-10
+        query = DatasetQuery(region=[-71.0, 43.0, -69.0, 43.5],
+                             geojson=True)  # covers first and third dataset tb 2018-12-10
 
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
@@ -722,7 +723,8 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual("archive/dataset-33.txt", result.datasets[0].path)
 
     def test_to_dataset_ref_without_points(self):
-        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde", "longitudes": [-108.7, -107.92], "latitudes": [14.22, 14.64]}
+        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde",
+                        "longitudes": [-108.7, -107.92], "latitudes": [14.22, 14.64]}
 
         dataset_ref, points = self._driver._to_dataset_ref(dataset_dict, geojson=False)
         self.assertEqual("nasenmann.org", dataset_ref.id)
@@ -730,7 +732,8 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertIsNone(points)
 
     def test_to_dataset_ref_with_points(self):
-        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde", "longitudes": [-108.7, -107.92], "latitudes": [14.22, 14.64]}
+        dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde",
+                        "longitudes": [-108.7, -107.92], "latitudes": [14.22, 14.64]}
 
         dataset_ref, points = self._driver._to_dataset_ref(dataset_dict, geojson=True)
         self.assertEqual("nasenmann.org", dataset_ref.id)
@@ -761,18 +764,22 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertIsNone(geojson)
 
     def test_to_geojson_one_point(self):
-        locations = [(164.2,34.55)]
+        locations = [(164.2, 34.55)]
         geojson = MongoDbDriver._to_geojson(locations)
-        self.assertEqual("{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}}]}", geojson)
+        self.assertEqual(
+            "{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}}]}",
+            geojson)
 
     def test_to_geojson_two_points(self):
-        locations = [(164.2,34.55), (164.82,34.67)]
+        locations = [(164.2, 34.55), (164.82, 34.67)]
         geojson = MongoDbDriver._to_geojson(locations)
-        self.assertEqual("{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}},"
-                         "{'type':'Feature','geometry':{'type':'Point','coordinates':[164.82,34.67]}}]}", geojson)
+        self.assertEqual(
+            "{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}},"
+            "{'type':'Feature','geometry':{'type':'Point','coordinates':[164.82,34.67]}}]}", geojson)
 
     def test_add_submission_and_get_by_id(self):
-        sf = SubmissionFile(submission_id="the_first_test")
+        date = datetime(2018, 4, 23, 12, 15, 34)
+        sf = SubmissionFile(submission_id="the_first_test", date=date, user_id="hannes_pimpernell")
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -780,6 +787,8 @@ class TestMongoDbDriver(unittest.TestCase):
         result = self._driver.get_submission("the_first_test")
         self.assertIsNotNone(result)
         self.assertEqual("the_first_test", result.submission_id)
+        self.assertEqual(date, result.date)
+        self.assertEqual("hannes_pimpernell", result.user_id)
         self.assertEqual(sf_id, result.id)
 
     def _add_test_datasets_to_db(self):
