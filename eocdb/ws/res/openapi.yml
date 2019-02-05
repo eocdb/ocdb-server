@@ -28,6 +28,22 @@ tags:
   - name: Users
     description: Access to users.
 paths:
+  '/':
+    get:
+      tags:
+        - Service
+      summary: Get service information
+      description: Returns information about the service as a dictionary of key-value pairs.
+      operationId: getServiceInfo
+      responses:
+        '200':
+          description: Successful operation.
+          content:
+            application/json:
+              schema:
+                type: object
+      security:
+        - api_key: []
   '/service/info':
     get:
       tags:
@@ -60,24 +76,6 @@ paths:
                 type: object
       security:
         - api_key: []
-  '/store/upload':
-    post:
-      tags:
-        - Store
-      summary: Batch mode upload of files
-      description: Upload datasets and documentation files and insert them into the store.
-      operationId: uploadStoreFiles
-      requestBody:
-        $ref: '#/components/requestBodies/FileUpload'
-      responses:
-        '200':
-          $ref: '#/components/responses/DatasetValidationResults'
-        '400':
-          description: Invalid request.
-      security:
-        - eocdb_auth:
-            - 'write:datasets'
-            - 'read:datasets'
   '/store/download':
     get:
       tags:
@@ -129,12 +127,12 @@ paths:
   '/store/download/{id}':
     get:
       tags:
-      - Datasets
+        - Datasets
       summary: Download a dataset by ID
       description: Returns a single dataset's files by ID.
       operationId: downloadDatasetById
       parameters:
-      - $ref: "#/components/parameters/datasetIdParam"
+        - $ref: "#/components/parameters/datasetIdParam"
       responses:
         '200':
           $ref: '#/components/responses/BinaryFileContent'
@@ -143,7 +141,124 @@ paths:
         '404':
           description: Dataset not found.
       security:
-      - api_key: []
+        - api_key: []
+  '/store/upload':
+    post:
+      tags:
+      - Store
+      summary: Batch mode upload of files
+      description: Upload datasets and documentation files and insert them into the store.
+      operationId: uploadStoreFiles
+      requestBody:
+        $ref: '#/components/requestBodies/FileUpload'
+      responses:
+        '200':
+          $ref: '#/components/responses/DatasetValidationResults'
+        '400':
+          description: Invalid request.
+      security:
+      - eocdb_auth:
+        - 'write:datasets'
+        - 'read:datasets'
+  '/store/upload/{submissionfileid}':
+    get:
+      tags:
+      - Submission files
+      summary: Return a submission file entry
+      description: Return an existing submission file entry
+      operationId: getSubmissionFile
+      parameters:
+      - $ref: '#/components/parameters/submissionFileIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/SubmissionFile'
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission file not found in registry
+      security:
+      - eocdb_auth:
+        - 'read:datasets'
+    put:
+      tags:
+      - Submission File
+      summary: Update a submission file entry
+      description: Update an existing submisison file entry
+      operationId: updateSubmissionFile
+      requestBody:
+        $ref: '#/components/requestBodies/SubmissionFile'
+      parameters:
+      - $ref: '#/components/parameters/submissionFileIdParam'
+      responses:
+        '200':
+          description: Update successfull
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission File not found in registry
+      security:
+      - eocdb_auth:
+        - 'write:datasets'
+        - 'read:datasets'
+    delete:
+      tags:
+        - Submission File
+      summary: Delete a submission file entry
+      description: Delete an existing submission file entry
+      operationId: deleteSubmissionFile
+      parameters:
+      - $ref: '#/components/parameters/submissionFileIdParam'
+      responses:
+        '200':
+          description: Deletion successfull
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission file not found in registry
+      security:
+      - eocdb_auth:
+        - 'write:datasets'
+        - 'read:datasets'
+  '/store/upload/submission/{submissionid}':
+    get:
+      tags:
+      - Submission
+      summary: Get Submission files for submission
+      description: Get list of submissions files for a subission registry entry
+      operationId: getSubmissionFilesForSubmission
+      parameters:
+      - $ref: '#/components/parameters/submissionIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/SubmissionFiles'
+        '400':
+          description: Invalid request
+        '404':
+          description: No submission files found in registry
+      security:
+      - eocdb_auth:
+        - 'read:datasets'
+  '/store/upload/status/{submissionfileid}/{status}':
+    put:
+      tags:
+        - Set Submission File Status
+      summary: Set the status of a submission file
+      description: Set the status of a submission file
+      operationId: setSubmissionFileStatus
+      parameters:
+      - $ref: '#/components/parameters/submissionFileIdParam'
+      - $ref: '#/components/parameters/submissionFileStatusParam'
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission File not found in registry
+      security:
+        - eocdb_auth:
+          - 'write:datasets'
+          - 'read:datasets'
   # TODO by forman: address publishing/hiding datasets
   # '/datasets/publish/{id}':
   '/datasets/validate':
@@ -467,6 +582,10 @@ paths:
           description: Submission successfully registered
         '400':
           description: Invalid request
+      security:
+        - eocdb_auth:
+          - 'write:datasets'
+          - 'read:datasets'
   '/submission/{submissionid}':
     get:
       tags:
@@ -483,6 +602,9 @@ paths:
           description: Invalid request
         '404':
           description: Submission not found in registry
+      security:
+        - eocdb_auth:
+          - 'read:datasets'
     put:
       tags:
         - Submission
@@ -500,6 +622,10 @@ paths:
           description: Invalid request
         '404':
           description: Submission not found in registry
+      security:
+        - eocdb_auth:
+          - 'write:datasets'
+          - 'read:datasets'
     delete:
       tags:
       - Submission
@@ -515,87 +641,10 @@ paths:
           description: Invalid request
         '404':
           description: Submission not found in registry
-  '/submissionfile/{submissionfileid}':
-    get:
-      tags:
-        - Submission files
-      summary: Return a submission file entry
-      description: Return an existing submission file entry
-      operationId: getSubmissionFile
-      parameters:
-      - $ref: '#/components/parameters/submissionFileIdParam'
-      responses:
-        '200':
-          $ref: '#/components/responses/SubmissionFile'
-        '400':
-          description: Invalid request
-        '404':
-          description: Submission file not found in registry
-    put:
-      tags:
-        - Submission File
-      summary: Update a submission file entry
-      description: Update an existing submisison file entry
-      operationId: updateSubmissionFile
-      requestBody:
-        $ref: '#/components/requestBodies/SubmissionFile'
-      parameters:
-        - $ref: '#/components/parameters/submissionFileIdParam'
-      responses:
-        '200':
-          description: Update successfull
-        '400':
-          description: Invalid request
-        '404':
-          description: Submission File not found in registry
-    delete:
-      tags:
-        - Submission File
-      summary: Delete a submission file entry
-      description: Delete an existing submission file entry
-      operationId: deleteSubmissionFile
-      parameters:
-        - $ref: '#/components/parameters/submissionFileIdParam'
-      responses:
-        '200':
-          description: Deletion successfull
-        '400':
-          description: Invalid request
-        '404':
-          description: Submission file not found in registry
-  '/submissionfile/submission/{submissionid}':
-    get:
-      tags:
-        - Submission
-      summary: Get Submission files for submission
-      description: Get list of submissions files for a subission registry entry
-      operationId: getSubmissionFilesForSubmission
-      parameters:
-      - $ref: '#/components/parameters/submissionIdParam'
-      responses:
-        '200':
-          $ref: '#/components/responses/SubmissionFiles'
-        '400':
-          description: Invalid request
-        '404':
-          description: No submission files found in registry
-  '/submissionfile/status/{submissionfileid}/{status}':
-    put:
-      tags:
-        - Set Submission File Status
-      summary: Set the status of a submission file
-      description: Set the status of a submission file
-      operationId: setSubmissionFileStatus
-      parameters:
-        - $ref: '#/components/parameters/submissionFileIdParam'
-        - $ref: '#/components/parameters/submissionFileStatusParam'
-      responses:
-        '200':
-          description: Successful operation.
-        '400':
-          description: Invalid request
-        '404':
-          description: Submission File not found in registry
+      security:
+        - eocdb_auth:
+          - 'write:datasets'
+          - 'read:datasets'
   '/submission/user/{userid}':
     get:
       tags:
@@ -612,6 +661,9 @@ paths:
           description: Invalid request
         '404':
           description: No submissions foudn in registry
+      security:
+        - eocdb_auth:
+          - 'read:datasets'
   '/users':
     post:
       tags:
@@ -939,7 +991,7 @@ components:
       required: true
       schema:
         type: string
-        enum: ['SUBMITTED', 'VALIDATED', 'APPROVED']
+        enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
   schemas:
     DatasetQuery:
       type: object
@@ -1098,7 +1150,7 @@ components:
             type: string
         status:
           type: string
-          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED']
+          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
     User:
       type: object
       required:
@@ -1374,6 +1426,10 @@ components:
             'read:datasets': read your datasets
             'write:docFiles': modify documentation files in your account
             'read:docFiles': read your documentation files
+            'write:submissions': modify submissions
+            'read:submissions': read submissions
+            'write:submissionfiles': modify submissionfiles
+            'read:submissionfiles': read submissionfiles
             'write:users': modify users
             'read:users': read users
     api_key:
