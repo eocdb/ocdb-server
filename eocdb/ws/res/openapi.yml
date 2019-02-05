@@ -515,23 +515,87 @@ paths:
           description: Invalid request
         '404':
           description: Submission not found in registry
-  '/submission/status/{submissionid}/{status}':
+  '/submissionfile/{submissionfileid}':
+    get:
+      tags:
+        - Submission files
+      summary: Return a submission file entry
+      description: Return an existing submission file entry
+      operationId: getSubmissionFile
+      parameters:
+      - $ref: '#/components/parameters/submissionFileIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/SubmissionFile'
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission file not found in registry
     put:
       tags:
-      - Set Submission Status
-      summary: Set the status of a submission
-      description: Set the status of a submission
-      operationId: setSubmissionStatus
+        - Submission File
+      summary: Update a submission file entry
+      description: Update an existing submisison file entry
+      operationId: updateSubmissionFile
+      requestBody:
+        $ref: '#/components/requestBodies/SubmissionFile'
       parameters:
-        - $ref: '#/components/parameters/submissionIdParam'
-        - $ref: '#/components/parameters/submissionStatusParam'
+        - $ref: '#/components/parameters/submissionFileIdParam'
+      responses:
+        '200':
+          description: Update successfull
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission File not found in registry
+    delete:
+      tags:
+        - Submission File
+      summary: Delete a submission file entry
+      description: Delete an existing submission file entry
+      operationId: deleteSubmissionFile
+      parameters:
+        - $ref: '#/components/parameters/submissionFileIdParam'
+      responses:
+        '200':
+          description: Deletion successfull
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission file not found in registry
+  '/submissionfile/submission/{submissionid}':
+    get:
+      tags:
+        - Submission
+      summary: Get Submission files for submission
+      description: Get list of submissions files for a subission registry entry
+      operationId: getSubmissionFilesForSubmission
+      parameters:
+      - $ref: '#/components/parameters/submissionIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/SubmissionFiles'
+        '400':
+          description: Invalid request
+        '404':
+          description: No submission files found in registry
+  '/submissionfile/status/{submissionfileid}/{status}':
+    put:
+      tags:
+        - Set Submission File Status
+      summary: Set the status of a submission file
+      description: Set the status of a submission file
+      operationId: setSubmissionFileStatus
+      parameters:
+        - $ref: '#/components/parameters/submissionFileIdParam'
+        - $ref: '#/components/parameters/submissionFileStatusParam'
       responses:
         '200':
           description: Successful operation.
         '400':
           description: Invalid request
         '404':
-          description: Submission not found in registry
+          description: Submission File not found in registry
   '/submission/user/{userid}':
     get:
       tags:
@@ -861,6 +925,13 @@ components:
       required: true
       schema:
         type: integer
+    submissionFileIdParam:
+      name: id
+      in: path
+      description: The ID of the submission file.
+      required: true
+      schema:
+        type: integer
     submissionStatusParam:
       name: status
       in: path
@@ -868,7 +939,7 @@ components:
       required: true
       schema:
         type: string
-        enum: ['submitted', 'validated', 'approved', 'rejected']
+        enum: ['SUBMITTED', 'VALIDATED', 'APPROVED']
   schemas:
     DatasetQuery:
       type: object
@@ -1002,6 +1073,32 @@ components:
           type: string
         status:
           type: string
+    SubmissionFile:
+      type: object
+      required:
+        - id
+        - submissionid
+        - date
+        - filename
+        - filetype
+        - status
+        - submissionlog
+      properties:
+        id:
+          type: integer
+          format: int64
+        submissionid:
+          type: integer
+          format: int64
+        date:
+          type: string
+        filename:
+            type: string
+        filetype:
+            type: string
+        status:
+          type: string
+          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED']
     User:
       type: object
       required:
