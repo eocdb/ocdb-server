@@ -515,7 +515,23 @@ paths:
           description: Invalid request
         '404':
           description: Submission not found in registry
-
+  '/submission/status/{submissionid}/{status}':
+    put:
+      tags:
+      - Set Submission Status
+      summary: Set the status of a submission
+      description: Set the status of a submission
+      operationId: setSubmissionStatus
+      parameters:
+        - $ref: '#/components/parameters/submissionIdParam'
+        - $ref: '#/components/parameters/submissionStatusParam'
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission not found in registry
   '/submission/user/{userid}':
     get:
       tags:
@@ -845,6 +861,14 @@ components:
       required: true
       schema:
         type: integer
+    submissionStatusParam:
+      name: status
+      in: path
+      description: The status of the submission.
+      required: true
+      schema:
+        type: string
+        enum: ['submitted', 'validated', 'approved', 'rejected']
   schemas:
     DatasetQuery:
       type: object
