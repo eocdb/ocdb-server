@@ -28,22 +28,6 @@ tags:
   - name: Users
     description: Access to users.
 paths:
-  '/':
-    get:
-      tags:
-        - Service
-      summary: Get service information
-      description: Returns information about the service as a dictionary of key-value pairs.
-      operationId: getServiceInfo
-      responses:
-        '200':
-          description: Successful operation.
-          content:
-            application/json:
-              schema:
-                type: object
-      security:
-        - api_key: []
   '/service/info':
     get:
       tags:
