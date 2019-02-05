@@ -2,6 +2,7 @@ import unittest
 from datetime import datetime
 
 from eocdb.core.db.errors import OperationalError
+from eocdb.core.db.submission_file import SubmissionFile
 from eocdb.core.models.dataset_query import DatasetQuery
 from eocdb.core.models.qc_info import QC_INFO_STATUS_ONGOING, QC_INFO_STATUS_PASSED
 from eocdb.db.mongo_db_driver import MongoDbDriver
@@ -764,12 +765,22 @@ class TestMongoDbDriver(unittest.TestCase):
         geojson = MongoDbDriver._to_geojson(locations)
         self.assertEqual("{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}}]}", geojson)
 
-
     def test_to_geojson_two_points(self):
         locations = [(164.2,34.55), (164.82,34.67)]
         geojson = MongoDbDriver._to_geojson(locations)
         self.assertEqual("{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}},"
                          "{'type':'Feature','geometry':{'type':'Point','coordinates':[164.82,34.67]}}]}", geojson)
+
+    def test_add_submission_and_get_by_id(self):
+        sf = SubmissionFile(submission_id="the_first_test")
+
+        sf_id = self._driver.add_submission(sf)
+        self.assertIsNotNone(sf_id)
+
+        result = self._driver.get_submission("the_first_test")
+        self.assertIsNotNone(result)
+        self.assertEqual("the_first_test", result.submission_id)
+        self.assertEqual(sf_id, result.id)
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):

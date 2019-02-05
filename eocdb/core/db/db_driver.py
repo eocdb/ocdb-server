@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import List, Optional
 
+from .submission_file import SubmissionFile
 from ..models import DatasetQueryResult
 from ..models.dataset import Dataset
 from .. import Service
@@ -28,3 +29,11 @@ class DbDriver(Service):
     @abstractmethod
     def find_datasets(self, query: DatasetQuery) -> DatasetQueryResult:
         """Find datasets for given query and return list of dataset references."""
+
+    @abstractmethod
+    def add_submission(self, submission_file: SubmissionFile) -> str:
+        """Add new submission file and return ID."""
+
+    @abstractmethod
+    def get_submission(self, file_id: str) -> Optional[SubmissionFile]:
+        """Get existing submission_file by ID."""
