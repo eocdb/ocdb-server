@@ -3,7 +3,7 @@ servers:
   - url: 'http://ocdb-test:4000/eocdb/api/v0.1.0/'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.8"
+  version: "0.1.0-dev.9"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -202,6 +202,25 @@ paths:
       security:
       - eocdb_auth:
         - 'write:datasets'
+        - 'read:datasets'
+  '/store/upload/user/{userid}':
+    get:
+      tags:
+        - Submission
+      summary: Get Submission files for user
+      description: Get list of submissions files for a user
+      operationId: getSubmissionFilesForUser
+      parameters:
+      - $ref: '#/components/parameters/userIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/SubmissionFiles'
+        '400':
+          description: Invalid request
+        '404':
+          description: No submission files found in registry
+      security:
+      - eocdb_auth:
         - 'read:datasets'
   '/store/upload/submission/{submissionid}':
     get:
