@@ -15,13 +15,13 @@ class ParserTest(unittest.TestCase):
         # So far, this is just a smoke test
         self.assertIsNotNone(openapi.components)
         self.assertIsNotNone(openapi.components.schemas)
-        self.assertEqual(13, len(openapi.components.schemas))
+        self.assertEqual(14, len(openapi.components.schemas))
         self.assertIsNotNone(openapi.components.parameters)
-        self.assertEqual(23, len(openapi.components.parameters))
+        self.assertEqual(24, len(openapi.components.parameters))
         self.assertIsNotNone(openapi.components.request_bodies)
-        self.assertEqual(7, len(openapi.components.request_bodies))
+        self.assertEqual(8, len(openapi.components.request_bodies))
         self.assertIsNotNone(openapi.components.responses)
-        self.assertEqual(13, len(openapi.components.responses))
+        self.assertEqual(15, len(openapi.components.responses))
 
         self.assertIsNotNone(openapi.path_items)
-        self.assertEqual(22, len(openapi.path_items))
+        self.assertEqual(24, len(openapi.path_items))
