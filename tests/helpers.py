@@ -16,6 +16,8 @@ def new_test_service_context() -> WsContext:
     config_file = os.path.join(ctx.base_dir, 'config.yml')
     with open(config_file) as fp:
         ctx.configure(yaml.load(fp))
+
+    ctx.config.update({"mock_validation": True})
     return ctx
 
 

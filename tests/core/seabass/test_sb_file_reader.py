@@ -280,7 +280,7 @@ class SbFileReaderTest(unittest.TestCase):
         dataset.add_metadatum('east_longitude', '22.7')
         dataset.add_metadatum('north_latitude', '-17.09')
 
-        self.reader._extract_geo_location_form_header(dataset)
+        self.reader._extract_geo_location_from_header(dataset)
 
         self.assertEqual(1, len(dataset.longitudes))
         self.assertEqual(1, len(dataset.latitudes))

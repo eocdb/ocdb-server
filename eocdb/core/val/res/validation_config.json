@@ -1,6 +1,26 @@
 {
   "header": [
     {
+      "type": "field_required",
+      "name": "investigators",
+      "error": "@required_field_missing"
+    },
+    {
+      "type": "field_required",
+      "name": "affiliations",
+      "error": "@required_field_missing"
+    },
+    {
+      "type": "field_optional",
+      "name": "station",
+      "warning": "@field_value_missing"
+    },
+    {
+      "type": "field_required",
+      "name": "north_latitude",
+      "error": "@required_field_missing"
+    },
+    {
       "type": "field_compare",
       "reference": "north_latitude",
       "compare": "south_latitude",
@@ -23,12 +43,20 @@
     {
       "name": "south_north_mismatch",
       "message": "South_latitude is larger than north_latitude"
+    },
+    {
+      "name": "required_field_missing",
+      "message": "The required header field ${name} is not present"
     }
   ],
   "warnings": [
     {
       "name": "crossing_date_line",
       "message": "The measurement locations cross the dateline"
+    },
+    {
+      "name": "field_value_missing",
+      "message": "The value of the header field ${name} is missing"
     }
   ]
 }

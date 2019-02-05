@@ -81,7 +81,7 @@ def upload_store_files(ctx: WsContext,
         # Validate the datasets that could be successfully parsed:
         if file.filename in datasets:
             dataset = datasets[file.filename]
-            dataset_validation_result = validator.validate_dataset(dataset)
+            dataset_validation_result = validator.validate_dataset(dataset, ctx.config)
             validation_results[file.filename] = dataset_validation_result
             if dataset_validation_result.status == "ERROR":
                 has_errors = True
