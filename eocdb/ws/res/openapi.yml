@@ -932,7 +932,7 @@ components:
       required: true
       schema:
         type: integer
-    submissionStatusParam:
+    submissionFileStatusParam:
       name: status
       in: path
       description: The status of the submission.
@@ -1222,6 +1222,13 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Submission'
+    SubmissionFile:
+      description: Entry of the submission file
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubmissionFile'
     User:
       description: User object.
       required: true
@@ -1315,6 +1322,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/Submission'
+    SubmissionFile:
+      description: Submission File entry
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/SubmissionFile'
     Submissions:
       description: List of submission registry entries
       content:
@@ -1323,6 +1336,14 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/Submission'
+    SubmissionFiles:
+      description: List of submission file of registry entries
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/SubmissionFile'
     User:
       description: Successful operation.
       content:
