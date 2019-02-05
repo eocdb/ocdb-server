@@ -17,11 +17,11 @@ class ParserTest(unittest.TestCase):
         self.assertIsNotNone(openapi.components.schemas)
         self.assertEqual(13, len(openapi.components.schemas))
         self.assertIsNotNone(openapi.components.parameters)
-        self.assertEqual(22, len(openapi.components.parameters))
+        self.assertEqual(23, len(openapi.components.parameters))
         self.assertIsNotNone(openapi.components.request_bodies)
         self.assertEqual(7, len(openapi.components.request_bodies))
         self.assertIsNotNone(openapi.components.responses)
         self.assertEqual(13, len(openapi.components.responses))
 
         self.assertIsNotNone(openapi.path_items)
-        self.assertEqual(21, len(openapi.path_items))
+        self.assertEqual(22, len(openapi.path_items))
