@@ -84,11 +84,11 @@ class StoreUpload(WsRequestHandler):
             path = path.decode("utf-8")
 
         dataset_files = []
-        for file in files.get("dataset_files", []):
+        for file in files.get("datasetfiles", []):
             dataset_files.append(UploadedFile.from_dict(file))
 
         doc_files = []
-        for file in files.get("doc_files", []):
+        for file in files.get("docfiles", []):
             doc_files.append(UploadedFile.from_dict(file))
 
         result = upload_store_files(self.ws_context, path, dataset_files, doc_files)
