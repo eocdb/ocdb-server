@@ -2,7 +2,7 @@ import unittest
 from datetime import datetime
 
 from eocdb.core.db.errors import OperationalError
-from eocdb.core.db.submission_file import SubmissionFile
+from eocdb.core.db.db_submission_file import DbSubmissionFile
 from eocdb.core.models.dataset_query import DatasetQuery
 from eocdb.core.models.qc_info import QC_INFO_STATUS_ONGOING, QC_INFO_STATUS_PASSED
 from eocdb.db.mongo_db_driver import MongoDbDriver
@@ -779,7 +779,7 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def test_add_submission_and_get_by_id(self):
         date = datetime(2018, 4, 23, 12, 15, 34)
-        sf = SubmissionFile(submission_id="the_first_test", date=date, user_id="hannes_pimpernell")
+        sf = DbSubmissionFile(submission_id="the_first_test", date=date, user_id="hannes_pimpernell")
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)

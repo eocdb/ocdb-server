@@ -1113,14 +1113,21 @@ components:
     SubmissionFile:
       type: object
       required:
+        - index
         - submissionId
         - filename
+        - status
         - result
       properties:
+        index:
+          type: integer
         submissionId:
           type: string
         filename:
           type: string
+        status:
+          type: string
+          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
         result:
           $ref: '#/components/schemas/DatasetValidationResult'
     SubmissionFileRef:
@@ -1131,7 +1138,7 @@ components:
         - filename
         - status
       properties:
-        indexd:
+        index:
           type: integer
         submissionid:
           type: string

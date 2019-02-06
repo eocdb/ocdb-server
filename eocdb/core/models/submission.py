@@ -9,7 +9,7 @@ class Submission(Model):
 
     def __init__(self, id: str,
                  submission_id: str,
-                 user_id: str,
+                 user_id: int,
                  date: datetime,
                  status: str,
                  files: List[SubmissionFileRef]):
@@ -41,7 +41,7 @@ class Submission(Model):
         return self._user_id
 
     @user_id.setter
-    def user_id(self, value: str):
+    def user_id(self, value: int):
         self._user_id = value
 
     @property

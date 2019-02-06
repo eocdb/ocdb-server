@@ -9,7 +9,7 @@ import pymongo.errors
 from ..core import QueryParser
 from ..core.db.db_driver import DbDriver
 from ..core.db.errors import OperationalError
-from ..core.db.submission_file import SubmissionFile
+from ..core.db.db_submission_file import DbSubmissionFile
 from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
@@ -85,18 +85,18 @@ class MongoDbDriver(DbDriver):
 
             return DatasetQueryResult(locations, num_results, dataset_refs, query)
 
-    def add_submission(self, submission_file: SubmissionFile):
+    def add_submission(self, submission_file: DbSubmissionFile):
         sf_dict = submission_file.to_dict()
         result = self._submit_collection.insert_one(sf_dict)
         return str(result.inserted_id)
 
-    def get_submission(self, file_id: str) -> Optional[SubmissionFile]:
+    def get_submission(self, file_id: str) -> Optional[DbSubmissionFile]:
         sf_dict = self._submit_collection.find_one({"submission_id": file_id})
         if sf_dict is not None:
             sf_id = sf_dict["_id"]
             del sf_dict["_id"]
             sf_dict["id"] = str(sf_id)
-            return SubmissionFile.from_dict(sf_dict)
+            return DbSubmissionFile.from_dict(sf_dict)
         return None
 
     @staticmethod

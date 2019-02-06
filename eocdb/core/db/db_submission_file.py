@@ -4,7 +4,7 @@ from typing import Optional
 from ..model import Model
 
 
-class SubmissionFile(Model):
+class DbSubmissionFile(Model):
 
     def __init__(self,
                  submission_id: str,
