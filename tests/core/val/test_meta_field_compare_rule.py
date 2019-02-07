@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 
 from eocdb.core.models import Dataset, ISSUE_TYPE_ERROR, ISSUE_TYPE_WARNING
 from eocdb.core.val._meta_field_compare_rule import MetaFieldCompareRule
@@ -52,3 +53,51 @@ class MetaFieldCompareRuleTest(unittest.TestCase):
         self.assertIsNotNone(issue)
         self.assertEqual(ISSUE_TYPE_ERROR, issue.type)
         self.assertEqual("Requested field not contained in metadata: int_2", issue.description)
+
+    def test_date_smaller_equal_success(self):
+        rule = MetaFieldCompareRule("start_date", "end_date", "<=", error="end date before start date")
+
+        dataset = Dataset({"start_date": "20080416", "end_date": "20080416"}, [])
+
+        self.assertIsNone(rule.eval(dataset))
+
+    def test_date_smaller_equal_failure(self):
+        rule = MetaFieldCompareRule("start_date", "end_date", "<", error="end date before start date")
+
+        dataset = Dataset({"start_date": "20080416", "end_date": "20080416"}, [])
+
+        issue = rule.eval(dataset)
+        self.assertIsNotNone(issue)
+        self.assertEqual("end date before start date", issue.description)
+        self.assertEqual("ERROR", issue.type)
+
+    def test_extract_value_not_present(self):
+        metadata = {"bla": "whocares"}
+
+        rule = MetaFieldCompareRule("north_lat", "south_lat", ">=", error="@south_north_mismatch")
+
+        self.assertIsNone(rule._extract_value("north_lat", metadata))
+
+    def test_extract_value_number(self):
+        metadata = {"south_lat": "67.555"}
+
+        rule = MetaFieldCompareRule("north_lat", "south_lat", ">=", error="@south_north_mismatch")
+
+        self.assertEqual(67.555, rule._extract_value("south_lat", metadata))
+
+    def test_extract_value_number_with_unit(self):
+        metadata = {"south_lat": "68.666[DEG]"}
+
+        rule = MetaFieldCompareRule("north_lat", "south_lat", ">=", error="@south_north_mismatch")
+
+        self.assertEqual(68.666, rule._extract_value("south_lat", metadata))
+
+    def test_extract_value_date(self):
+        metadata = {"start_date": "20121113"}
+
+        rule = MetaFieldCompareRule("end_date", "start_date", ">=", error="@whatever")
+
+        self.assertEqual(datetime(2012, 11, 13), rule._extract_value("start_date", metadata))
+
+    def test_convert_date_string(self):
+        self.assertEqual("2008-09-23", MetaFieldCompareRule._convert_date_string("20080923"))

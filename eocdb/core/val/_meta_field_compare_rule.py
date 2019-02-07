@@ -1,6 +1,10 @@
 import operator
+from datetime import datetime
+
+import numpy as np
 
 from eocdb.core.models import Dataset, Issue, ISSUE_TYPE_ERROR, ISSUE_TYPE_WARNING
+from eocdb.core.time_helper import TimeHelper
 from eocdb.core.val._rule import Rule
 
 
@@ -28,30 +32,44 @@ class MetaFieldCompareRule(Rule):
             raise ValueError("operator is not valid: " + operation)
 
     def eval(self, dataset: Dataset):
-        if self._reference_name in dataset.metadata:
-            reference_value = dataset.metadata[self._reference_name]
-            if '[' in reference_value:
-                unit_index = reference_value.find('[')
-                reference_value = reference_value[0:unit_index]
-        else:
+        metadata = dataset.metadata
+        reference_value = MetaFieldCompareRule._extract_value(self._reference_name, metadata)
+        if reference_value is None:
             return Issue(ISSUE_TYPE_ERROR, "Requested field not contained in metadata: " + self._reference_name)
 
-        ref = float(reference_value)
-
-        if self._compare_name in dataset.metadata:
-            compare_value = dataset.metadata[self._compare_name]
-            if '[' in compare_value:
-                unit_index = compare_value.find('[')
-                compare_value = compare_value[0:unit_index]
-        else:
+        compare_value = MetaFieldCompareRule._extract_value(self._compare_name, metadata)
+        if compare_value is None:
             return Issue(ISSUE_TYPE_ERROR, "Requested field not contained in metadata: " + self._compare_name)
 
-        comp = float(compare_value)
-
-        if self._operator(ref, comp):
+        if self._operator(reference_value, compare_value):
             return None
         else:
             if self._error is not None:
                 return Issue(ISSUE_TYPE_ERROR, self._error)
             if self._warning is not None:
                 return Issue(ISSUE_TYPE_WARNING, self._warning)
+
+    @staticmethod
+    def _extract_value(name: str, metadata: dict):
+        if not name in metadata:
+            return None
+
+        value = metadata[name]
+        if "date" in name:
+            converted_value = MetaFieldCompareRule._convert_date_string(value)
+            return TimeHelper.parse_datetime(converted_value)
+
+        if '[' in value:
+            unit_index = value.find('[')
+            value = value[0:unit_index]
+
+        return float(value)
+
+    @staticmethod
+    def _convert_date_string(value: str) -> str:
+        year = value[0:4]
+        month = value[4:6]
+        day = value[6:8]
+
+        return year + "-" + month + "-" + day
+

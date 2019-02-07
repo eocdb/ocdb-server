@@ -1,19 +1,18 @@
-import numpy as np
-from datetime import datetime
 from typing import Any, Dict, Optional
 
 import bson.objectid
 import pymongo
 import pymongo.errors
 
+from eocdb.core.time_helper import TimeHelper
 from ..core import QueryParser
-from ..db.mongo_query_generator import MongoQueryGenerator
 from ..core.db.db_driver import DbDriver
 from ..core.db.errors import OperationalError
 from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
+from ..db.mongo_query_generator import MongoQueryGenerator
 
 LAT_INDEX_NAME = "_latitudes_"
 LON_INDEX_NAME = "_longitudes_"
@@ -194,7 +193,7 @@ class MongoDbDriver(DbDriver):
         times_array = dataset_dict["times"]
         converted_times = []
         for time in times_array:
-            converted_times.append(MongoDbDriver._parse_datetime(time))
+            converted_times.append(TimeHelper.parse_datetime(time))
         dataset_dict["times"] = converted_times
         return dataset_dict
 
@@ -208,12 +207,6 @@ class MongoDbDriver(DbDriver):
             self._collection.create_index("attributes", name=ATTRIBUTES_INDEX_NAME, background=True)
         if not TIMES_INDEX_NAME in index_information:
             self._collection.create_index("times", name=TIMES_INDEX_NAME, background=True)
-
-    @staticmethod
-    def _parse_datetime(time_string) -> datetime:
-        np_datetime = np.datetime64(time_string)
-        ts = (np_datetime - np.datetime64('1970-01-01T00:00:00Z')) / np.timedelta64(1, 's')
-        return datetime.utcfromtimestamp(ts)
 
     @staticmethod
     def _to_geojson(locations):
@@ -230,7 +223,7 @@ class MongoDbDriver(DbDriver):
             geojson += feature
 
         geojson = geojson[:-1]
-        geojson+= "]}"
+        geojson += "]}"
         return geojson
 
     class QueryConverter():
@@ -253,10 +246,10 @@ class MongoDbDriver(DbDriver):
                 start_date = None
                 end_date = None
                 if query.time[0] is not None:
-                    start_date = MongoDbDriver._parse_datetime(query.time[0])
+                    start_date = TimeHelper.parse_datetime(query.time[0])
 
                 if query.time[1] is not None:
-                    end_date = MongoDbDriver._parse_datetime(query.time[1])
+                    end_date = TimeHelper.parse_datetime(query.time[1])
 
                 if start_date is None and end_date is None:
                     raise ValueError("Both time values are none.")
@@ -274,7 +267,7 @@ class MongoDbDriver(DbDriver):
 
             if query.shallow is not None:
                 if query.shallow == 'no':
-                    query_dict.update({'metadata.optical_depth_warning': {'$not' : {'$eq': 'true'}}})
+                    query_dict.update({'metadata.optical_depth_warning': {'$not': {'$eq': 'true'}}})
                 elif query.shallow == 'exclusively':
                     query_dict.update({'metadata.optical_depth_warning': 'true'})
 
