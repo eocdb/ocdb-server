@@ -1,3 +1,5 @@
+from typing import Optional
+
 from eocdb.core.models.submission_file_ref import SubmissionFileRef
 from ...core.model import Model
 from ...core.models import DatasetValidationResult
@@ -9,7 +11,7 @@ class SubmissionFile(Model):
                  submission_id: str,
                  filename: str,
                  status: str,
-                 result: DatasetValidationResult):
+                 result: Optional[DatasetValidationResult]):
         self._index = index
         self._submission_id = submission_id
         self._filename = filename

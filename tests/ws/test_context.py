@@ -1,5 +1,7 @@
 # import os
+import os
 import unittest
+from datetime import datetime
 
 from eocdb.core.db.db_driver import DbDriver
 from tests.helpers import new_test_service_context
@@ -27,6 +29,12 @@ class WsContextTest(unittest.TestCase):
         self.assertIsInstance(path, str)
         self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/store"))
 
+    def test_upload_path(self):
+        ctx = new_test_service_context()
+        path = ctx.upload_path
+        self.assertIsInstance(path, str)
+        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/uploads"))
+
     def test_get_datasets_store_path(self):
         ctx = new_test_service_context()
         path = ctx.get_datasets_store_path("BIGELOW/BALCH/gnats")
@@ -38,6 +46,18 @@ class WsContextTest(unittest.TestCase):
         path = ctx.get_doc_files_store_path("BIGELOW/BALCH/gnats")
         self.assertIsInstance(path, str)
         self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/store/BIGELOW/BALCH/gnats/documents"))
+
+    def test_get_datasets_upload_path(self):
+        ctx = new_test_service_context()
+        path = ctx.get_datasets_upload_path("INPE/Ubatuba")
+        self.assertIsInstance(path, str)
+        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/uploads/INPE/Ubatuba/archive"))
+
+    def test_get_doc_files_upload_path(self):
+        ctx = new_test_service_context()
+        path = ctx.get_doc_files_upload_path("INPE/Ubatuba")
+        self.assertIsInstance(path, str)
+        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/uploads/INPE/Ubatuba/documents"))
 
     def test_db_driver(self):
         ctx = new_test_service_context()

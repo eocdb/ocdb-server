@@ -64,6 +64,15 @@ class StoreUpload(WsRequestHandler):
 
     def post(self):
         """Provide API operation uploadStoreFiles()."""
+
+        # @todo 1 tb/tb fetch current user ID and assemble path into temp-storage
+        # return if user not set - prevent from unauthorized uploads
+        # self.current_user
+        user_id = 8877827454
+        now = datetime.datetime.now().strftime("%Y_%m_%dT%H_%M_%S")
+        temp_area_path = str(user_id) + "_" + now
+        target_path = temp_area_path
+
         arguments = dict()
         files = dict()
         # transform body with mime-type multipart/form-data into arguments and files Dict
@@ -82,6 +91,7 @@ class StoreUpload(WsRequestHandler):
 
         if isinstance(path, bytes):
             path = path.decode("utf-8")
+            target_path = os.path.join(temp_area_path, path)
 
         dataset_files = []
         for file in files.get("datasetfiles", []):
@@ -91,7 +101,7 @@ class StoreUpload(WsRequestHandler):
         for file in files.get("docfiles", []):
             doc_files.append(UploadedFile.from_dict(file))
 
-        result = upload_store_files(self.ws_context, path, dataset_files, doc_files)
+        result = upload_store_files(self.ws_context, target_path, dataset_files, doc_files)
         # Note, result is a Dict[filename, DatasetValidationResult]
         self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
 
