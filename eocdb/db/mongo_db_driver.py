@@ -1,19 +1,21 @@
-import numpy as np
 from datetime import datetime
 from typing import Any, Dict, Optional
 
 import bson.objectid
+import numpy as np
 import pymongo
 import pymongo.errors
 
+from eocdb.core.db.db_submission import DbSubmission
+from eocdb.core.models.submission import Submission
 from ..core import QueryParser
-from ..db.mongo_query_generator import MongoQueryGenerator
 from ..core.db.db_driver import DbDriver
 from ..core.db.errors import OperationalError
 from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
+from ..db.mongo_query_generator import MongoQueryGenerator
 
 LAT_INDEX_NAME = "_latitudes_"
 LON_INDEX_NAME = "_longitudes_"
@@ -84,6 +86,20 @@ class MongoDbDriver(DbDriver):
 
             return DatasetQueryResult(locations, num_results, dataset_refs, query)
 
+    def add_submission(self, submission: Submission):
+        sf_dict = submission.to_dict()
+        result = self._submit_collection.insert_one(sf_dict)
+        return str(result.inserted_id)
+
+    def get_submission(self, submission_id: str) -> Optional[DbSubmission]:
+        subm_dict = self._submit_collection.find_one({"submission_id": submission_id})
+        if subm_dict is not None:
+            sf_id = subm_dict["_id"]
+            del subm_dict["_id"]
+            subm_dict["id"] = str(sf_id)
+            return DbSubmission.from_dict(subm_dict)
+        return None
+
     @staticmethod
     def _get_start_index_and_count(query) -> (int, int):
         if query.offset is None:
@@ -111,6 +127,7 @@ class MongoDbDriver(DbDriver):
         self._db = None
         self._client = None
         self._collection = None
+        self._submit_collection = None
         self._config = None
         self._query_converter = MongoDbDriver.QueryConverter()
 
@@ -146,6 +163,7 @@ class MongoDbDriver(DbDriver):
         self._db = self._client.eocdb
         # Create collection "eocdb.sb_datasets"
         self._collection = self._client.eocdb.sb_datasets
+        self._submit_collection = self._client.eocdb.submission_files
         self._ensure_indices()
 
     def close(self):
@@ -155,6 +173,7 @@ class MongoDbDriver(DbDriver):
     def clear(self):
         if self._client is not None:
             self._collection.drop()
+            self._submit_collection.drop()
 
     def _set_config(self, config: Dict[str, Any]):
         for key in ("url", "uri"):
@@ -230,7 +249,7 @@ class MongoDbDriver(DbDriver):
             geojson += feature
 
         geojson = geojson[:-1]
-        geojson+= "]}"
+        geojson += "]}"
         return geojson
 
     class QueryConverter():
@@ -274,7 +293,7 @@ class MongoDbDriver(DbDriver):
 
             if query.shallow is not None:
                 if query.shallow == 'no':
-                    query_dict.update({'metadata.optical_depth_warning': {'$not' : {'$eq': 'true'}}})
+                    query_dict.update({'metadata.optical_depth_warning': {'$not': {'$eq': 'true'}}})
                 elif query.shallow == 'exclusively':
                     query_dict.update({'metadata.optical_depth_warning': 'true'})
 

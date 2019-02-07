@@ -3,7 +3,7 @@ servers:
   - url: 'http://ocdb-test:4000/eocdb/api/v0.1.0/'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.10"
+  version: "0.1.0-dev.11"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -1110,17 +1110,54 @@ components:
         description:
           type: string
           description: Type of issue.
+    SubmissionFile:
+      type: object
+      required:
+        - index
+        - submissionId
+        - filename
+        - status
+        - result
+      properties:
+        index:
+          type: integer
+        submissionId:
+          type: string
+        filename:
+          type: string
+        status:
+          type: string
+          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
+        result:
+          $ref: '#/components/schemas/DatasetValidationResult'
+    SubmissionFileRef:
+      type: object
+      required:
+        - index
+        - submissionId
+        - filename
+        - status
+      properties:
+        index:
+          type: integer
+        submissionid:
+          type: string
+        date:
+          type: string
+        status:
+          type: string
+          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
     Submission:
       type: object
       required:
-        - id
-        - userid
+        - submissionId
+        - userId
         - date
         - status
+        - files
       properties:
-        id:
-          type: integer
-          format: int64
+        submissionId:
+          type: string
         userid:
           type: integer
           format: int64
@@ -1128,32 +1165,11 @@ components:
           type: string
         status:
           type: string
-    SubmissionFile:
-      type: object
-      required:
-        - id
-        - submissionid
-        - date
-        - filename
-        - filetype
-        - status
-        - submissionlog
-      properties:
-        id:
-          type: integer
-          format: int64
-        submissionid:
-          type: integer
-          format: int64
-        date:
-          type: string
-        filename:
-            type: string
-        filetype:
-            type: string
-        status:
-          type: string
           enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
+        files:
+          type: array
+          items:
+            $ref: '#/components/schemas/SubmissionFileRef'
     User:
       type: object
       required:
@@ -1240,11 +1256,7 @@ components:
       properties:
         status:
           type: string
-          enum:
-          - waiting
-          - ongoing
-          - passed
-          - failed
+          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
         result:
           type: object
   requestBodies:

@@ -15,7 +15,7 @@ class ParserTest(unittest.TestCase):
         # So far, this is just a smoke test
         self.assertIsNotNone(openapi.components)
         self.assertIsNotNone(openapi.components.schemas)
-        self.assertEqual(14, len(openapi.components.schemas))
+        self.assertEqual(15, len(openapi.components.schemas))
         self.assertIsNotNone(openapi.components.parameters)
         self.assertEqual(24, len(openapi.components.parameters))
         self.assertIsNotNone(openapi.components.request_bodies)
