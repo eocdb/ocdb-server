@@ -7,18 +7,19 @@ from ...core.model import Model
 
 class Submission(Model):
 
-    def __init__(self, id: str,
+    def __init__(self,
                  submission_id: str,
                  user_id: int,
                  date: datetime,
                  status: str,
-                 files: List[SubmissionFileRef]):
+                 file_refs: List[SubmissionFileRef],
+                 id: str = None):
         self._id = id
         self._submission_id = submission_id
         self._user_id = user_id
         self._date = date
         self._status = status
-        self._files = files
+        self._file_refs = file_refs
 
     @property
     def id(self):
@@ -61,9 +62,9 @@ class Submission(Model):
         self._status = value
 
     @property
-    def files(self):
-        return self._files
+    def file_refs(self):
+        return self._file_refs
 
-    @files.setter
-    def files(self, value: List[SubmissionFileRef]):
-        self._files = value
+    @file_refs.setter
+    def file_refs(self, value: List[SubmissionFileRef]):
+        self._file_refs = value

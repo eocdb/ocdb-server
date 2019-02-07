@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from eocdb.core.models import DatasetValidationResult
+from eocdb.core.models import DatasetValidationResult, Issue
 from eocdb.core.models.submission_file import SubmissionFile
 
 
@@ -30,3 +30,17 @@ class SubmissionFileTest(TestCase):
         self.assertEqual('file_in_c_sharp', sf.filename)
         self.assertEqual("OK", sf.result["status"])
         self.assertEqual("VALIDATED", sf.status)
+
+    def test_to_ref(self):
+        dsvr = DatasetValidationResult(status="ERROR", issues=[Issue(type="ERROR", description="Yo, not like that my son")])
+        sf = SubmissionFile(index=11,
+                            submission_id="yeswecan",
+                            filename="is_a_secret",
+                            status="SUBMITTED",
+                            result=dsvr)
+
+        sfr = sf.to_ref()
+        self.assertEqual(11, sfr.index)
+        self.assertEqual("yeswecan", sfr.submission_id)
+        self.assertEqual("is_a_secret", sfr.filename)
+        self.assertEqual("SUBMITTED", sfr.status)

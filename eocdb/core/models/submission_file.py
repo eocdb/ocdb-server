@@ -1,3 +1,4 @@
+from eocdb.core.models.submission_file_ref import SubmissionFileRef
 from ...core.model import Model
 from ...core.models import DatasetValidationResult
 
@@ -54,3 +55,9 @@ class SubmissionFile(Model):
     @result.setter
     def result(self, value: DatasetValidationResult):
         self._result = value
+
+    def to_ref(self) -> SubmissionFileRef:
+        return SubmissionFileRef(index=self._index,
+                                 submission_id=self._submission_id,
+                                 filename=self._filename,
+                                 status=self._status)

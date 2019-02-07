@@ -6,10 +6,11 @@ import numpy as np
 import pymongo
 import pymongo.errors
 
+from eocdb.core.db.db_submission import DbSubmission
+from eocdb.core.models.submission import Submission
 from ..core import QueryParser
 from ..core.db.db_driver import DbDriver
 from ..core.db.errors import OperationalError
-from ..core.db.db_submission_file import DbSubmissionFile
 from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
@@ -85,18 +86,18 @@ class MongoDbDriver(DbDriver):
 
             return DatasetQueryResult(locations, num_results, dataset_refs, query)
 
-    def add_submission(self, submission_file: DbSubmissionFile):
-        sf_dict = submission_file.to_dict()
+    def add_submission(self, submission: Submission):
+        sf_dict = submission.to_dict()
         result = self._submit_collection.insert_one(sf_dict)
         return str(result.inserted_id)
 
-    def get_submission(self, file_id: str) -> Optional[DbSubmissionFile]:
-        sf_dict = self._submit_collection.find_one({"submission_id": file_id})
-        if sf_dict is not None:
-            sf_id = sf_dict["_id"]
-            del sf_dict["_id"]
-            sf_dict["id"] = str(sf_id)
-            return DbSubmissionFile.from_dict(sf_dict)
+    def get_submission(self, submission_id: str) -> Optional[DbSubmission]:
+        subm_dict = self._submit_collection.find_one({"submission_id": submission_id})
+        if subm_dict is not None:
+            sf_id = subm_dict["_id"]
+            del subm_dict["_id"]
+            subm_dict["id"] = str(sf_id)
+            return DbSubmission.from_dict(subm_dict)
         return None
 
     @staticmethod

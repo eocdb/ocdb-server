@@ -14,10 +14,10 @@ class SubmissionTest(TestCase):
                                 user_id=6789,
                                 date=datetime(2016, 2, 21, 10, 13, 32),
                                 status='SUBMITTED',
-                                files=sfrs)
+                                file_refs=sfrs)
 
         self.assertEqual({'date': datetime(2016, 2, 21, 10, 13, 32),
-                          'files': [{'filename': 'bla',
+                          'file_refs': [{'filename': 'bla',
                                      'index': 7,
                                      'status': 'who_knows',
                                      'submission_id': '12'}],
@@ -32,7 +32,7 @@ class SubmissionTest(TestCase):
                    'user_id': 834569982763,
                    'date': datetime(2015, 1, 20, 9, 12, 31),
                    'status': 'VALIDATED',
-                   'files': [{'filename': 'jepp',
+                   'file_refs': [{'filename': 'jepp',
                               'index': 8,
                               'status': 'happy',
                               'submission_id': 'argonaut'}],
