@@ -43,6 +43,7 @@ class StoreTest(unittest.TestCase):
         self.assertIsInstance(result["productGroups"][0], dict)
 
     def test_upload_store_files(self):
+        user_id = 77618
         try:
             data_file_text = ("/begin_header\n"
                               "/investigators=Marks and Spencer\n"
@@ -66,6 +67,7 @@ class StoreTest(unittest.TestCase):
             result = upload_store_files(ctx=self.ctx,
                                         path="test_files",
                                         submission_id="an_id",
+                                        user_id=user_id,
                                         dataset_files=[uploaded_file],
                                         doc_files=[])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
@@ -75,6 +77,7 @@ class StoreTest(unittest.TestCase):
 
     def test_up_and_download_store_files(self):
         try:
+            user_id = 77615
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
                               "/delimiter = comma\n"
@@ -93,48 +96,26 @@ class StoreTest(unittest.TestCase):
             result = upload_store_files(ctx=self.ctx,
                                         path="test_files",
                                         submission_id="an_id",
+                                        user_id=user_id,
                                         dataset_files=[uploaded_file],
                                         doc_files=[])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
-            expr = None
-            region = [-70, 40, -60, 50]
-            time = None
-            wdepth = None
-            mtype = None
-            wlmode = 'all'
-            shallow = 'no'
-            pmode = 'contains'
-            pgroup = None
-            pname = None
-            docs = None
+            result = get_submissions(ctx=self.ctx, user_id=user_id)
+            self.assertIsNotNone(result)
+            self.assertEqual(1, len(result))
+            self.assertEqual("an_id", result[0].submission_id)
 
-            # @todo 1 tb/tb reactivate 2019-02-07
-            # # noinspection PyTypeChecker
-            # result = download_store_files(self.ctx, expr=expr, region=region, s_time=time, wdepth=wdepth, mtype=mtype,
-            #                               wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
-            #                               docs=docs)
-            #
-            # self.assertIsNotNone(result)
-            # self.assertTrue(isinstance(result, ZipFile))
-            # info_list = result.infolist()
-            # self.assertEqual(1, len(info_list))
-            # self.assertEqual("test_files/archive/DEL1012_Station_097_CTD_Data.txt", info_list[0].filename)
+            file_refs = result[0].file_refs
+            self.assertEqual(1, len(file_refs))
 
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
-            # @todo 1 tb/tb reactivate 2019-02-07
-            # tmp_dir = tempfile.gettempdir()
-            # if result is not None:
-            #     zip_file_path = os.path.join(tmp_dir, result.filename)
-            #     if os.path.isfile(zip_file_path):
-            #         os.remove(zip_file_path)
-
     def test_up_and_download_store_files_with_doc_files(self):
-        result = None
         try:
+            user_id = 77616
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
                               "/delimiter = comma\n"
@@ -157,124 +138,23 @@ class StoreTest(unittest.TestCase):
             result = upload_store_files(ctx=self.ctx,
                                         path="test_files",
                                         submission_id="an_id",
+                                        user_id=user_id,
                                         dataset_files=[uploaded_file],
                                         doc_files=[document_file])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
-            expr = None
-            region = [-70, 40, -60, 50]
-            time = None
-            wdepth = None
-            mtype = None
-            wlmode = 'all'
-            shallow = 'no'
-            pmode = 'contains'
-            pgroup = None
-            pname = None
-            docs = True
+            result = get_submissions(ctx=self.ctx, user_id=user_id)
+            self.assertIsNotNone(result)
+            self.assertEqual(1, len(result))
+            self.assertEqual("an_id", result[0].submission_id)
 
-            # noinspection PyTypeChecker
-            result = download_store_files(self.ctx, expr=expr, region=region, s_time=time, wdepth=wdepth, mtype=mtype,
-                                          wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
-                                          docs=docs)
-            # @todo 1 tb/tb reactivate 2019-02-07
-            # self.assertIsNotNone(result)
-            # self.assertTrue(isinstance(result, ZipFile))
-            # info_list = result.infolist()
-            # self.assertEqual(2, len(info_list))
-            # self.assertEqual("test_files/archive/DEL1012_Station_097_CTD_Data.txt", info_list[0].filename)
-            # self.assertEqual("test_files/documents/NSPRT_223_calib.txt", info_list[1].filename)
+            file_refs = result[0].file_refs
+            self.assertEqual(2, len(file_refs))
 
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
-            # @todo 1 tb/tb reactivate 2019-02-07
-            # if result is not None:
-            #     tmp_dir = tempfile.gettempdir()
-            #     zip_file_path = os.path.join(tmp_dir, result.filename)
-            #     if os.path.isfile(zip_file_path):
-            #         os.remove(zip_file_path)
-
-    def test_up_and_download_store_files_by_id_list(self):
-        result = None
-        try:
-            data_file_text = ("/begin_header\n"
-                              "/delimiter = tab\n"
-                              "/north_latitude=54.0859[DEG]\n"
-                              "/east_longitude=-35.7178[DEG]\n"
-                              "/start_date=20151108\n"
-                              "/end_date=20151130\n"
-                              "/start_time=03:09:02[GMT]\n"
-                              "/end_time=01:18:23[GMT]\n"
-                              "/fields=date,time,lat,lon,SST,sal,F-initial,Fm,Fv_Fm,Sigma_PSII,PAR\n"
-                              "/units=yyyymmdd,hh:mm:ss,degrees,degrees,degreesC,PSU,unitless,unitless,unitless,angstrom^2,uE/cm^2/s\n"
-                              "/end_header\n"
-                              "20151108	03:09:02	42.39	-62.92	15.836	33.404	44.802	71.669	0.375	921.720	0\n"
-                              "20151108	03:12:11	42.39	-62.91	15.815	33.397	44.533	72.709	0.388	910.600	0\n")
-            uploaded_file = UploadedFile("Campaign01_FRR_PAR_SST_SAL.txt", "text", data_file_text.encode("utf-8"))
-
-            result = upload_store_files(ctx=self.ctx,
-                                        path="test_files",
-                                        submission_id="an_id",
-                                        dataset_files=[uploaded_file],
-                                        doc_files=[])
-            self.assertEqual([], result["Campaign01_FRR_PAR_SST_SAL.txt"].issues)
-            self.assertEqual("OK", result["Campaign01_FRR_PAR_SST_SAL.txt"].status)
-
-            data_file_text = ("/begin_header\n"
-                              "/delimiter = comma\n"
-                              "/north_latitude=33.077[DEG]\n"
-                              "/east_longitude=-78.211[DEG]\n"
-                              "/start_date=20151212\n"
-                              "/end_date=20151212\n"
-                              "/start_time=20:22:07[GMT]\n"
-                              "/end_time=20:22:07[GMT]\n"
-                              "/fields=nadir,relaz,Lu436/Lu436(nadir),Lu436/Lu436(nadir)_CV\n"
-                              "/units=degrees,degrees,dimensionless,dimensionless\n"
-                              "/end_header\n"
-                              "0,0,1.00E+00,1.68E-02\n"
-                              "5,0,9.88E-01,1.65E-02\n")
-            uploaded_file = UploadedFile("d25b1.002", "text", data_file_text.encode("utf-8"))
-
-            result = upload_store_files(ctx=self.ctx,
-                                        path="test_files",
-                                        submission_id="an_id",
-                                        dataset_files=[uploaded_file],
-                                        doc_files=[])
-            self.assertEqual([], result["d25b1.002"].issues)
-            self.assertEqual("OK", result["d25b1.002"].status)
-
-            # we need to make some effort to fetch the dataset ids from here tb 2019-02-01
-            query_result = self.ctx.db_driver.find_datasets(DatasetQuery())
-
-            # @todo 1 tb/tb reactivate 2019-02-07
-            # self.assertEqual(2, len(query_result.datasets))
-            # id_list = []
-            # for dataset in query_result.datasets:
-            #     id_list.append(dataset.id)
-            #
-            #
-            # # noinspection PyTypeChecker
-            # result = download_store_files_by_id(self.ctx, dataset_ids=id_list)
-            #
-            # self.assertIsNotNone(result)
-            # self.assertTrue(isinstance(result, ZipFile))
-            # info_list = result.infolist()
-            # self.assertEqual(2, len(info_list))
-            # self.assertEqual("test_files/archive/Campaign01_FRR_PAR_SST_SAL.txt", info_list[0].filename)
-            # self.assertEqual("test_files/archive/d25b1.002", info_list[1].filename)
-
-        finally:
-            self.delete_test_file("Campaign01_FRR_PAR_SST_SAL.txt")
-            self.delete_test_file("d25b1.002")
-
-            # @todo 1 tb/tb reactivate 2019-02-07
-            # tmp_dir = tempfile.gettempdir()
-            # if result is not None:
-            #     zip_file_path = os.path.join(tmp_dir, result.filename)
-            #     if os.path.isfile(zip_file_path):
-            #         os.remove(zip_file_path)
 
     def delete_test_file(self, filename: str):
         target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"),
