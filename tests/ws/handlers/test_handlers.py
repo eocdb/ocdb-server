@@ -32,7 +32,7 @@ from eocdb.core.models.qc_info import QcInfo, QC_INFO_STATUS_PASSED
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id_strict, get_dataset_qc_info
 from eocdb.ws.handlers import API_URL_PREFIX
-from eocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument
+from eocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument, Submission
 from tests.helpers import new_test_service_context, new_test_dataset
 
 
@@ -62,7 +62,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.12", result["info"].get("version"))
+        self.assertEqual("0.1.0-dev.13", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -96,6 +96,32 @@ class StoreUploadTest(WsTestCase):
         expected_response_data = {}
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
+
+# @todo 2 tb/tb tests deactivated. Need to assemble a proper multipart body! 2019-02-08
+    # def test_post_invalid_submission_id(self):
+    #     body_dict = {"submissionid": ""}
+    #     body = tornado.escape.json_encode(body_dict)
+    #
+    #     response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=body)
+    #     self.assertEqual(400, response.code)
+    #     self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+    #
+    # def test_post_submission_id_already_present(self):
+    #     submission_id = "I_DO_EXIST"
+    #     submission = Submission(submission_id=submission_id,
+    #                             user_id=12,
+    #                             date=datetime.datetime.now(),
+    #                             status="who_knows",
+    #                             file_refs=[])
+    #     self.ctx.db_driver.add_submission(submission)
+    #
+    #     body_dict = {"submissionid": submission_id}
+    #     body = tornado.escape.json_encode(body_dict)
+    #
+    #     response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=body)
+    #     self.assertEqual(400, response.code)
+    #     self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+
 
 class StoreUploadUserTest(WsTestCase):
 
@@ -721,7 +747,7 @@ class HelpersTest(unittest.TestCase):
     def test_ensure_string_argument_list(self):
         arg_value = ["heffalump"]
 
-        string_value = _ensure_string_argument(arg_value)
+        string_value = _ensure_string_argument(arg_value, "name")
         self.assertTrue(isinstance(string_value, str))
         self.assertEqual("heffalump", string_value)
 
@@ -729,25 +755,25 @@ class HelpersTest(unittest.TestCase):
         arg_value = ["heffalump", "winnie"]
 
         try:
-            _ensure_string_argument(arg_value)
+            _ensure_string_argument(arg_value, "name")
             self.fail("WsBadRequestError expected")
         except WsBadRequestError:
             pass
 
         try:
-            _ensure_string_argument([])
+            _ensure_string_argument([], "name")
             self.fail("WsBadRequestError expected")
         except WsBadRequestError:
             pass
 
     def test_ensure_string_argument(self):
-        string_value = _ensure_string_argument("nasenmann")
+        string_value = _ensure_string_argument("nasenmann", "name")
         self.assertTrue(isinstance(string_value, str))
         self.assertEqual("nasenmann", string_value)
 
     def test_ensure_string_argument_wrong_type(self):
         try:
-            _ensure_string_argument(118876)
+            _ensure_string_argument(118876, "name")
             self.fail("WsBadRequestError expected")
         except WsBadRequestError:
             pass
@@ -755,13 +781,13 @@ class HelpersTest(unittest.TestCase):
     def test_ensure_string_argument_decodes_byte_array(self):
         string_as_bytes = "hampelmann".encode()
 
-        str_val = _ensure_string_argument(string_as_bytes)
+        str_val = _ensure_string_argument(string_as_bytes, "name")
         self.assertEqual("hampelmann", str_val)
 
     def test_ensure_integer_argument_list(self):
         arg_value = [95523]
 
-        int_value = _ensure_int_argument(arg_value)
+        int_value = _ensure_int_argument(arg_value, "name")
         self.assertTrue(isinstance(int_value, int))
         self.assertEqual(95523, int_value)
 
@@ -769,25 +795,25 @@ class HelpersTest(unittest.TestCase):
         arg_value = [99, 100]
 
         try:
-            _ensure_int_argument(arg_value)
+            _ensure_int_argument(arg_value, "name")
             self.fail("WsBadRequestError expected")
         except WsBadRequestError:
             pass
 
         try:
-            _ensure_int_argument([])
+            _ensure_int_argument([], "name")
             self.fail("WsBadRequestError expected")
         except WsBadRequestError:
             pass
 
     def test_ensure_integer_argument(self):
-        int_value = _ensure_int_argument(101)
+        int_value = _ensure_int_argument(101, "name")
         self.assertTrue(isinstance(int_value, int))
         self.assertEqual(101, int_value)
 
     def test_ensure_int_argument_wrong_type(self):
         try:
-            _ensure_int_argument("hoppla!")
+            _ensure_int_argument("hoppla!", "name")
             self.fail("WsBadRequestError expected")
         except WsBadRequestError:
             pass
