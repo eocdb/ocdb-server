@@ -108,8 +108,13 @@ class StoreUpload(WsRequestHandler):
 # noinspection PyAbstractClass
 class StoreUploadUser(WsRequestHandler):
 
-    def get(self, userid: int):
-        result = get_submissions(ctx=self.ws_context, user_id=userid)
+    def get(self, userid: str):
+        user_id = int(userid)
+        result = get_submissions(ctx=self.ws_context, user_id=user_id)
+
+        result_list = []
+        for submission in result:
+            result_list.append(submission.to_dict())
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result))
