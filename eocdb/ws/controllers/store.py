@@ -48,6 +48,7 @@ def get_store_info(ctx: WsContext) -> Dict:
 
 def upload_store_files(ctx: WsContext,
                        path: str,
+                       submission_id: str,
                        dataset_files: List[UploadedFile],
                        doc_files: List[UploadedFile]) -> Dict[str, DatasetValidationResult]:
     """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
@@ -57,7 +58,6 @@ def upload_store_files(ctx: WsContext,
 
     datasets = dict()
     validation_results = dict()
-    has_errors = False
 
     # Read dataset files and make sure their format is ok.
     for file in dataset_files:
@@ -66,13 +66,11 @@ def upload_store_files(ctx: WsContext,
             dataset = SbFileReader().read(io.StringIO(text))
         except SbFormatError as e:
             dataset = None
-            has_errors = True
             validation_results[file.filename] = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
                                                                         [Issue(ISSUE_TYPE_ERROR,
                                                                                f"Invalid format: {e}")])
         except OSError as e:
             dataset = None
-            has_errors = True
             validation_results[file.filename] = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
                                                                         [Issue(ISSUE_TYPE_ERROR, f"OSError: {e}")])
         if dataset is not None:
@@ -85,8 +83,6 @@ def upload_store_files(ctx: WsContext,
             dataset = datasets[file.filename]
             dataset_validation_result = validator.validate_dataset(dataset, ctx.config)
             validation_results[file.filename] = dataset_validation_result
-            if dataset_validation_result.status == "ERROR":
-                has_errors = True
 
     # Write dataset files into upload space and record as submission files
     submission_files = []
@@ -101,7 +97,7 @@ def upload_store_files(ctx: WsContext,
         dataset = datasets[file.filename]
         dataset.path = str(FileHelper.create_relative_path(ctx.upload_path, file_path))
         submission_files.append(
-            SubmissionFile(index=index, submission_id="TODO", filename=file.filename, status='SUBMITTED', result=None))
+            SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED', result=None))
         index += 1
 
     # Write documentation files into store
@@ -112,11 +108,11 @@ def upload_store_files(ctx: WsContext,
         with open(file_path, "wb") as fp:
             fp.write(file.body)
         submission_files.append(
-            SubmissionFile(index=index, submission_id="TODO", filename=file.filename, status='SUBMITTED', result=None))
+            SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED', result=None))
         index += 1
 
     # Insert submission into database
-    submission = DbSubmission(submission_id="TODO",
+    submission = DbSubmission(submission_id=submission_id,
                               user_id=999999999,
                               date=datetime.datetime.now(),
                               status='SUBMITTED',

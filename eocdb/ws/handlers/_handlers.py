@@ -69,9 +69,6 @@ class StoreUpload(WsRequestHandler):
         # return if user not set - prevent from unauthorized uploads
         # self.current_user
         user_id = 8877827454
-        now = datetime.datetime.now().strftime("%Y_%m_%dT%H_%M_%S")
-        temp_area_path = str(user_id) + "_" + now
-        target_path = temp_area_path
 
         arguments = dict()
         files = dict()
@@ -81,17 +78,14 @@ class StoreUpload(WsRequestHandler):
                                               arguments,
                                               files)
 
-        path = arguments.get("path")
-        if isinstance(path, list):
-            if len(path) != 1:
-                raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
-            path = path[0]
-        elif not isinstance(path, str):
-            raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
+        submission_id = arguments.get("submissionid")
+        submission_id = self._ensure_string_argument(submission_id)
 
-        if isinstance(path, bytes):
-            path = path.decode("utf-8")
-            target_path = os.path.join(temp_area_path, path)
+        temp_area_path = str(user_id) + "_" + submission_id
+
+        path = arguments.get("path")
+        path = self._ensure_string_argument(path)
+        target_path = os.path.join(temp_area_path, path)
 
         dataset_files = []
         for file in files.get("datasetfiles", []):
@@ -101,9 +95,25 @@ class StoreUpload(WsRequestHandler):
         for file in files.get("docfiles", []):
             doc_files.append(UploadedFile.from_dict(file))
 
-        result = upload_store_files(self.ws_context, target_path, dataset_files, doc_files)
+        result = upload_store_files(ctx=self.ws_context,
+                                    path=target_path,
+                                    submission_id=submission_id,
+                                    dataset_files=dataset_files,
+                                    doc_files=doc_files)
         # Note, result is a Dict[filename, DatasetValidationResult]
         self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
+
+    @staticmethod
+    def _ensure_string_argument(path):
+        if isinstance(path, list):
+            if len(path) != 1:
+                raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
+            path = path[0]
+        elif not isinstance(path, str):
+            raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
+        if isinstance(path, bytes):
+            path = path.decode("utf-8")
+        return path
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
