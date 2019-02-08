@@ -79,12 +79,12 @@ class StoreUpload(WsRequestHandler):
                                               files)
 
         submission_id = arguments.get("submissionid")
-        submission_id = self._ensure_string_argument(submission_id)
+        submission_id = _ensure_string_argument(submission_id)
 
         temp_area_path = str(user_id) + "_" + submission_id
 
         path = arguments.get("path")
-        path = self._ensure_string_argument(path)
+        path = _ensure_string_argument(path)
         target_path = os.path.join(temp_area_path, path)
 
         dataset_files = []
@@ -103,17 +103,15 @@ class StoreUpload(WsRequestHandler):
         # Note, result is a Dict[filename, DatasetValidationResult]
         self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
 
-    @staticmethod
-    def _ensure_string_argument(path):
-        if isinstance(path, list):
-            if len(path) != 1:
-                raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
-            path = path[0]
-        elif not isinstance(path, str):
-            raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
-        if isinstance(path, bytes):
-            path = path.decode("utf-8")
-        return path
+
+# noinspection PyAbstractClass
+class StoreUploadUser(WsRequestHandler):
+
+    def get(self, userid: int):
+        result = get_submissions(ctx=self.ws_context, user_id=userid)
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -217,7 +215,6 @@ class Datasets(WsRequestHandler):
         # transform result of type DatasetRef into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
-        self.finish()
 
     def post(self):
         """Provide API operation updateDataset()."""
@@ -405,3 +402,28 @@ class UsersId(WsRequestHandler):
         user_id = RequestParams.to_int('id', id)
         delete_user(self.ws_context, user_id)
         self.finish()
+
+
+def _ensure_string_argument(arg_value):
+    if isinstance(arg_value, list):
+        if len(arg_value) != 1:
+            raise WsBadRequestError(f"Invalid argument in body: {repr(arg_value)}")
+        arg_value = arg_value[0]
+    elif not (isinstance(arg_value, str) or isinstance(arg_value, bytes)):
+        raise WsBadRequestError(f"Invalid argument in body: {repr(arg_value)}")
+
+    if isinstance(arg_value, bytes):
+        arg_value = arg_value.decode("utf-8")
+
+    return arg_value
+
+def _ensure_int_argument(arg_value):
+    if isinstance(arg_value, list):
+        if len(arg_value) != 1:
+            raise WsBadRequestError(f"Invalid argument in body: {repr(arg_value)}")
+        arg_value = arg_value[0]
+    elif not isinstance(arg_value, int):
+        raise WsBadRequestError(f"Invalid argument in body: {repr(arg_value)}")
+
+    return arg_value
+

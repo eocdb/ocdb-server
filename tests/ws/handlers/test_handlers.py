@@ -32,6 +32,7 @@ from eocdb.core.models.qc_info import QcInfo, QC_INFO_STATUS_PASSED
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id_strict, get_dataset_qc_info
 from eocdb.ws.handlers import API_URL_PREFIX
+from eocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument
 from tests.helpers import new_test_service_context, new_test_dataset
 
 
@@ -93,6 +94,19 @@ class StoreUploadTest(WsTestCase):
 
         # TODO (generated): set expected_response correctly
         expected_response_data = {}
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertEqual(expected_response_data, actual_response_data)
+
+class StoreUploadUserTest(WsTestCase):
+
+    def test_get_no_results(self):
+        userid = 227654487
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/{userid}", method='GET')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        expected_response_data = []
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
@@ -701,3 +715,79 @@ class UsersIdTest(WsTestCase):
         expected_response_data = {}
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
+
+class HelpersTest(unittest.TestCase):
+
+    def test_ensure_string_argument_list(self):
+        arg_value = ["heffalump"]
+
+        string_value = _ensure_string_argument(arg_value)
+        self.assertTrue(isinstance(string_value, str))
+        self.assertEqual("heffalump", string_value)
+
+    def test_ensure_string_argument_list_wrong_size(self):
+        arg_value = ["heffalump", "winnie"]
+
+        try:
+            _ensure_string_argument(arg_value)
+            self.fail("WsBadRequestError expected")
+        except WsBadRequestError:
+            pass
+
+        try:
+            _ensure_string_argument([])
+            self.fail("WsBadRequestError expected")
+        except WsBadRequestError:
+            pass
+
+    def test_ensure_string_argument(self):
+        string_value = _ensure_string_argument("nasenmann")
+        self.assertTrue(isinstance(string_value, str))
+        self.assertEqual("nasenmann", string_value)
+
+    def test_ensure_string_argument_wrong_type(self):
+        try:
+            _ensure_string_argument(118876)
+            self.fail("WsBadRequestError expected")
+        except WsBadRequestError:
+            pass
+
+    def test_ensure_string_argument_decodes_byte_array(self):
+        string_as_bytes = "hampelmann".encode()
+
+        str_val = _ensure_string_argument(string_as_bytes)
+        self.assertEqual("hampelmann", str_val)
+
+    def test_ensure_integer_argument_list(self):
+        arg_value = [95523]
+
+        int_value = _ensure_int_argument(arg_value)
+        self.assertTrue(isinstance(int_value, int))
+        self.assertEqual(95523, int_value)
+
+    def test_ensure_integer_argument_list_wrong_size(self):
+        arg_value = [99, 100]
+
+        try:
+            _ensure_int_argument(arg_value)
+            self.fail("WsBadRequestError expected")
+        except WsBadRequestError:
+            pass
+
+        try:
+            _ensure_int_argument([])
+            self.fail("WsBadRequestError expected")
+        except WsBadRequestError:
+            pass
+
+    def test_ensure_integer_argument(self):
+        int_value = _ensure_int_argument(101)
+        self.assertTrue(isinstance(int_value, int))
+        self.assertEqual(101, int_value)
+
+    def test_ensure_int_argument_wrong_type(self):
+        try:
+            _ensure_int_argument("hoppla!")
+            self.fail("WsBadRequestError expected")
+        except WsBadRequestError:
+            pass

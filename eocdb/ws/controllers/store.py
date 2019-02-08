@@ -27,6 +27,7 @@ import zipfile
 from typing import Dict, List
 
 from eocdb.core.db.db_submission import DbSubmission
+from eocdb.core.models.submission import Submission
 from eocdb.core.models.submission_file import SubmissionFile
 from ..context import WsContext
 from ...core.asserts import assert_not_none
@@ -120,6 +121,12 @@ def upload_store_files(ctx: WsContext,
     ctx.db_driver.add_submission(submission)
 
     return validation_results
+
+
+def get_submissions(ctx: WsContext,
+                    user_id: int) -> List[Submission]:
+    # ctx.db_driver.get_submission()
+    return []
 
 
 # noinspection PyTypeChecker
