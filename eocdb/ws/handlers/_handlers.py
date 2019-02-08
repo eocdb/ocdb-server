@@ -98,6 +98,7 @@ class StoreUpload(WsRequestHandler):
         result = upload_store_files(ctx=self.ws_context,
                                     path=target_path,
                                     submission_id=submission_id,
+                                    user_id=user_id,
                                     dataset_files=dataset_files,
                                     doc_files=doc_files)
         # Note, result is a Dict[filename, DatasetValidationResult]

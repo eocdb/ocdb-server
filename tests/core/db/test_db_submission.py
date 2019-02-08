@@ -63,8 +63,10 @@ class DbSubmissionTest(TestCase):
         subm = DbSubmission.from_dict(subm_dict)
         self.assertEqual(datetime(2002, 3, 4, 5, 6, 7), subm.date)
         self.assertEqual(2, len(subm.files))
-        self.assertEqual("Werner", subm.files[0]["filename"])
-        self.assertEqual(0, subm.files[0]["index"])
+        self.assertEqual("Werner", subm.files[0].filename)
+        self.assertEqual(0, subm.files[0].index)
+        self.assertEqual("Warburga", subm.files[1].filename)
+        self.assertEqual(1, subm.files[1].index)
 
     def test_to_submission(self):
         files = [SubmissionFile(submission_id="submitme",
