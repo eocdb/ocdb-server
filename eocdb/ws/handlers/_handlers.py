@@ -117,7 +117,7 @@ class StoreUploadUser(WsRequestHandler):
             result_list.append(submission.to_dict())
 
         self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result))
+        self.finish(tornado.escape.json_encode(result_list))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
