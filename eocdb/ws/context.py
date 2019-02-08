@@ -33,7 +33,9 @@ _LOG = logging.getLogger('eocdb')
 Config = Dict[str, Any]
 
 STORE_PATH_CONFIG_NAME = "store_path"
+UPLOAD_PATH_CONFIG_NAME = "upload_path"
 DEFAULT_STORE_PATH = "~/.eocdb/store"
+DEFAULT_UPLOAD_PATH = "~/.eocdb/uploads"
 
 DB_DRIVERS_CONFIG_NAME = "databases"
 
@@ -61,11 +63,11 @@ class WsContext:
 
     @property
     def store_path(self) -> str:
-        store_path = self.config.get(STORE_PATH_CONFIG_NAME, DEFAULT_STORE_PATH)
-        store_path = os.path.expanduser(store_path)
-        if not os.path.isabs(store_path):
-            store_path = os.path.join(self.base_dir, store_path)
-        return store_path
+        return self._extract_path(STORE_PATH_CONFIG_NAME, DEFAULT_STORE_PATH)
+
+    @property
+    def upload_path(self) -> str:
+        return self._extract_path(UPLOAD_PATH_CONFIG_NAME, DEFAULT_UPLOAD_PATH)
 
     @property
     def db_drivers(self) -> Sequence[DbDriver]:
@@ -103,8 +105,14 @@ class WsContext:
     def get_datasets_store_path(self, sub_path: str) -> str:
         return os.path.join(self.store_path, sub_path, DATASETS_DIR_NAME)
 
+    def get_datasets_upload_path(self, sub_path: str) -> str:
+        return os.path.join(self.upload_path, sub_path, DATASETS_DIR_NAME)
+
     def get_doc_files_store_path(self, sub_path: str) -> str:
         return os.path.join(self.store_path, sub_path, DOC_FILES_DIR_NAME)
+
+    def get_doc_files_upload_path(self, sub_path: str) -> str:
+        return os.path.join(self.upload_path, sub_path, DOC_FILES_DIR_NAME)
 
     def configure(self, new_config: Config):
         old_config = self._config
@@ -119,3 +127,10 @@ class WsContext:
 
     def dispose(self):
         self._db_drivers.dispose()
+
+    def _extract_path(self, property_name, default_path):
+        path = self.config.get(property_name, default_path)
+        path = os.path.expanduser(path)
+        if not os.path.isabs(path):
+            path = os.path.join(self.base_dir, path)
+        return path

@@ -33,12 +33,12 @@ class Issue(Model):
     """
 
     def __init__(self,
-                 type_: str,
+                 type: str,
                  description: str):
-        assert_not_none(type_, name='type_')
-        assert_one_of(type_, ['WARNING', 'ERROR'], name='type_')
+        assert_not_none(type, name='type_')
+        assert_one_of(type, ['WARNING', 'ERROR'], name='type_')
         assert_not_none(description, name='description')
-        self._type = type_
+        self._type = type
         self._description = description
 
     @property
