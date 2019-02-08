@@ -79,20 +79,13 @@ class StoreUpload(WsRequestHandler):
                                               files)
 
         submission_id = arguments.get("submissionid")
+        submission_id = self._ensure_string_argument(submission_id)
+
         temp_area_path = str(user_id) + "_" + submission_id
-        target_path = temp_area_path
 
         path = arguments.get("path")
-        if isinstance(path, list):
-            if len(path) != 1:
-                raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
-            path = path[0]
-        elif not isinstance(path, str):
-            raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
-
-        if isinstance(path, bytes):
-            path = path.decode("utf-8")
-            target_path = os.path.join(temp_area_path, path)
+        path = self._ensure_string_argument(path)
+        target_path = os.path.join(temp_area_path, path)
 
         dataset_files = []
         for file in files.get("datasetfiles", []):
@@ -109,6 +102,18 @@ class StoreUpload(WsRequestHandler):
                                     doc_files=doc_files)
         # Note, result is a Dict[filename, DatasetValidationResult]
         self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
+
+    @staticmethod
+    def _ensure_string_argument(path):
+        if isinstance(path, list):
+            if len(path) != 1:
+                raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
+            path = path[0]
+        elif not isinstance(path, str):
+            raise WsBadRequestError(f"Invalid path argument in body: {repr(path)}")
+        if isinstance(path, bytes):
+            path = path.decode("utf-8")
+        return path
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins

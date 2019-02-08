@@ -108,7 +108,7 @@ def upload_store_files(ctx: WsContext,
         with open(file_path, "wb") as fp:
             fp.write(file.body)
         submission_files.append(
-            SubmissionFile(index=index, submission_id="TODO", filename=file.filename, status='SUBMITTED', result=None))
+            SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED', result=None))
         index += 1
 
     # Insert submission into database
