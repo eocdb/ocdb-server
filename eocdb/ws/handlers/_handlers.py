@@ -114,7 +114,9 @@ class StoreUploadUser(WsRequestHandler):
 
         result_list = []
         for submission in result:
-            result_list.append(submission.to_dict())
+            sub_dict = submission.to_dict()
+            sub_dict["date"] = sub_dict["date"].isoformat()
+            result_list.append(sub_dict)
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result_list))
