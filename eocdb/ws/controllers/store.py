@@ -26,6 +26,8 @@ import time
 import zipfile
 from typing import Dict, List
 
+from eocdb.core.db.db_submission import DbSubmission
+from eocdb.core.models.submission_file import SubmissionFile
 from ..context import WsContext
 from ...core.asserts import assert_not_none
 from ...core.file_helper import FileHelper
@@ -86,13 +88,10 @@ def upload_store_files(ctx: WsContext,
             if dataset_validation_result.status == "ERROR":
                 has_errors = True
 
-    if has_errors:
-        # Don't copy any files into store
-        # Don't insert anything into database
-        return validation_results
-
-    # Write dataset files into store
-    datasets_dir_path = ctx.get_datasets_store_path(path)
+    # Write dataset files into upload space and record as submission files
+    submission_files = []
+    index = 0
+    datasets_dir_path = ctx.get_datasets_upload_path(path)
     os.makedirs(datasets_dir_path, exist_ok=True)
     for file in dataset_files:
         file_path = os.path.join(datasets_dir_path, file.filename)
@@ -100,7 +99,10 @@ def upload_store_files(ctx: WsContext,
             text = file.body.decode("utf-8")
             fp.write(text)
         dataset = datasets[file.filename]
-        dataset.path = str(FileHelper.create_relative_path(ctx.store_path, file_path))
+        dataset.path = str(FileHelper.create_relative_path(ctx.upload_path, file_path))
+        submission_files.append(
+            SubmissionFile(index=index, submission_id="TODO", filename=file.filename, status='SUBMITTED', result=None))
+        index += 1
 
     # Write documentation files into store
     docs_dir_path = ctx.get_doc_files_store_path(path)
@@ -109,13 +111,17 @@ def upload_store_files(ctx: WsContext,
         file_path = os.path.join(docs_dir_path, file.filename)
         with open(file_path, "wb") as fp:
             fp.write(file.body)
+        submission_files.append(
+            SubmissionFile(index=index, submission_id="TODO", filename=file.filename, status='SUBMITTED', result=None))
+        index += 1
 
-    # Insert datasets into database after all files are in the store
-    for file in dataset_files:
-        dataset = datasets[file.filename]
-        dataset.name = file.filename
-        dataset.metadata["qc_status"] = "todo"
-        ctx.db_driver.add_dataset(dataset)
+    # Insert submission into database
+    submission = DbSubmission(submission_id="TODO",
+                              user_id=999999999,
+                              date=datetime.datetime.now(),
+                              status='SUBMITTED',
+                              files=submission_files)
+    ctx.db_driver.add_submission(submission)
 
     return validation_results
 
