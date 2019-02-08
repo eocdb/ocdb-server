@@ -6,6 +6,8 @@ import numpy as np
 import pymongo
 import pymongo.errors
 
+from eocdb.core.db.db_submission import DbSubmission
+from eocdb.core.models.submission import Submission
 from eocdb.core.time_helper import TimeHelper
 from ..core import QueryParser
 from ..db.mongo_query_generator import MongoQueryGenerator
@@ -213,7 +215,7 @@ class MongoDbDriver(DbDriver):
         times_array = dataset_dict["times"]
         converted_times = []
         for time in times_array:
-            converted_times.append(MongoDbDriver._parse_datetime(time))
+            converted_times.append(TimeHelper.parse_datetime(time))
         dataset_dict["times"] = converted_times
         return dataset_dict
 
