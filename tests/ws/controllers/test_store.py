@@ -59,14 +59,17 @@ class StoreTest(unittest.TestCase):
                               "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
             uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
 
-            result = upload_store_files(self.ctx, path="test_files", dataset_files=[uploaded_file], doc_files=[])
+            result = upload_store_files(ctx=self.ctx,
+                                        path="test_files",
+                                        submission_id="an_id",
+                                        dataset_files=[uploaded_file],
+                                        doc_files=[])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
     def test_up_and_download_store_files(self):
-        result = None
         try:
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
@@ -83,7 +86,11 @@ class StoreTest(unittest.TestCase):
                               "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
             uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
 
-            result = upload_store_files(self.ctx, path="test_files", dataset_files=[uploaded_file], doc_files=[])
+            result = upload_store_files(ctx=self.ctx,
+                                        path="test_files",
+                                        submission_id="an_id",
+                                        dataset_files=[uploaded_file],
+                                        doc_files=[])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
@@ -143,7 +150,10 @@ class StoreTest(unittest.TestCase):
             document_file_content = "This is test content and does not reflect the opinion of the development team."
             document_file = UploadedFile("NSPRT_223_calib.txt", "text", document_file_content.encode("utf-8"))
 
-            result = upload_store_files(self.ctx, path="test_files", dataset_files=[uploaded_file],
+            result = upload_store_files(ctx=self.ctx,
+                                        path="test_files",
+                                        submission_id="an_id",
+                                        dataset_files=[uploaded_file],
                                         doc_files=[document_file])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
@@ -198,9 +208,13 @@ class StoreTest(unittest.TestCase):
                               "/end_header\n"
                               "20151108	03:09:02	42.39	-62.92	15.836	33.404	44.802	71.669	0.375	921.720	0\n"
                               "20151108	03:12:11	42.39	-62.91	15.815	33.397	44.533	72.709	0.388	910.600	0\n")
-            uploaded_fie = UploadedFile("Campaign01_FRR_PAR_SST_SAL.txt", "text", data_file_text.encode("utf-8"))
+            uploaded_file = UploadedFile("Campaign01_FRR_PAR_SST_SAL.txt", "text", data_file_text.encode("utf-8"))
 
-            result = upload_store_files(self.ctx, path="test_files", dataset_files=[uploaded_fie], doc_files=[])
+            result = upload_store_files(ctx=self.ctx,
+                                        path="test_files",
+                                        submission_id="an_id",
+                                        dataset_files=[uploaded_file],
+                                        doc_files=[])
             self.assertEqual([], result["Campaign01_FRR_PAR_SST_SAL.txt"].issues)
             self.assertEqual("OK", result["Campaign01_FRR_PAR_SST_SAL.txt"].status)
 
@@ -217,9 +231,13 @@ class StoreTest(unittest.TestCase):
                               "/end_header\n"
                               "0,0,1.00E+00,1.68E-02\n"
                               "5,0,9.88E-01,1.65E-02\n")
-            uploaded_fie = UploadedFile("d25b1.002", "text", data_file_text.encode("utf-8"))
+            uploaded_file = UploadedFile("d25b1.002", "text", data_file_text.encode("utf-8"))
 
-            result = upload_store_files(self.ctx, path="test_files", dataset_files=[uploaded_fie], doc_files=[])
+            result = upload_store_files(ctx=self.ctx,
+                                        path="test_files",
+                                        submission_id="an_id",
+                                        dataset_files=[uploaded_file],
+                                        doc_files=[])
             self.assertEqual([], result["d25b1.002"].issues)
             self.assertEqual("OK", result["d25b1.002"].status)
 
