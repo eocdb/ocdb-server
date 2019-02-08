@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, List
 
 import bson.objectid
 import numpy as np
@@ -99,6 +99,16 @@ class MongoDbDriver(DbDriver):
             subm_dict["id"] = str(sf_id)
             return DbSubmission.from_dict(subm_dict)
         return None
+
+    def get_submissions(self, user_id: int) -> List[DbSubmission]:
+        submissions = []
+        cursor = self._submit_collection.find({"user_id": user_id})
+        for subm_dict in cursor:
+            del subm_dict["_id"]
+            subm = DbSubmission.from_dict(subm_dict)
+            submissions.append(subm)
+
+        return submissions
 
     @staticmethod
     def _get_start_index_and_count(query) -> (int, int):

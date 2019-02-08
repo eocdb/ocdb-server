@@ -1,6 +1,7 @@
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, List
 
+from eocdb.core.db.db_submission import DbSubmission
 from ..models.submission import Submission
 from .. import Service
 from ..models import DatasetQueryResult
@@ -35,5 +36,9 @@ class DbDriver(Service):
         """Add new submission file and return ID."""
 
     @abstractmethod
-    def get_submission(self, submission_id: str) -> Optional[Submission]:
+    def get_submission(self, submission_id: str) -> Optional[DbSubmission]:
         """Get existing submission_file by ID."""
+
+    @abstractmethod
+    def get_submissions(self, user_id: int) -> List[DbSubmission]:
+        """Get existing submissions for user."""

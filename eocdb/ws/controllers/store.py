@@ -26,14 +26,15 @@ import time
 import zipfile
 from typing import Dict, List
 
-from eocdb.core.db.db_submission import DbSubmission
-from eocdb.core.models.submission_file import SubmissionFile
 from ..context import WsContext
 from ...core.asserts import assert_not_none
+from ...core.db.db_submission import DbSubmission
 from ...core.file_helper import FileHelper
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
+from ...core.models.submission import Submission
+from ...core.models.submission_file import SubmissionFile
 from ...core.models.uploaded_file import UploadedFile
 from ...core.seabass.sb_file_reader import SbFileReader, SbFormatError
 from ...core.val import validator
@@ -49,6 +50,7 @@ def get_store_info(ctx: WsContext) -> Dict:
 def upload_store_files(ctx: WsContext,
                        path: str,
                        submission_id: str,
+                       user_id: int,
                        dataset_files: List[UploadedFile],
                        doc_files: List[UploadedFile]) -> Dict[str, DatasetValidationResult]:
     """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
@@ -97,7 +99,8 @@ def upload_store_files(ctx: WsContext,
         dataset = datasets[file.filename]
         dataset.path = str(FileHelper.create_relative_path(ctx.upload_path, file_path))
         submission_files.append(
-            SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED', result=None))
+            SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED',
+                           result=None))
         index += 1
 
     # Write documentation files into store
@@ -108,18 +111,31 @@ def upload_store_files(ctx: WsContext,
         with open(file_path, "wb") as fp:
             fp.write(file.body)
         submission_files.append(
-            SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED', result=None))
+            SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED',
+                           result=None))
         index += 1
 
     # Insert submission into database
     submission = DbSubmission(submission_id=submission_id,
-                              user_id=999999999,
+                              user_id=user_id,
                               date=datetime.datetime.now(),
                               status='SUBMITTED',
                               files=submission_files)
     ctx.db_driver.add_submission(submission)
 
     return validation_results
+
+
+def get_submissions(ctx: WsContext,
+                    user_id: int) -> List[Submission]:
+    result = ctx.db_driver.get_submissions(user_id)
+
+    submissions = []
+    for db_subm in result:
+        subm = db_subm.to_submission()
+        submissions.append(subm)
+
+    return submissions
 
 
 # noinspection PyTypeChecker

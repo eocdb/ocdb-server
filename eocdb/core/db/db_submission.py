@@ -1,8 +1,9 @@
 from datetime import datetime
-from typing import List
+from typing import List, Type, Dict, Any
 
-from ...core.models.submission_file import SubmissionFile
+from eocdb.core.model import T
 from ...core.models.submission import Submission
+from ...core.models.submission_file import SubmissionFile
 
 
 class DbSubmission(Submission):
@@ -12,8 +13,9 @@ class DbSubmission(Submission):
                  user_id: int,
                  date: datetime,
                  status: str,
-                 files: List[SubmissionFile]):
-        super().__init__(submission_id, user_id, date, status, [])
+                 files: List[SubmissionFile],
+                 id: str = None):
+        super().__init__(submission_id, user_id, date, status, [], id)
 
         self._files = files
 
@@ -24,6 +26,23 @@ class DbSubmission(Submission):
     @files.setter
     def files(self, value: SubmissionFile):
         self._files = value
+
+    @classmethod
+    def from_dict(cls: Type[T], dictionary: Dict[str, Any]):
+        subm = super().from_dict(dictionary)
+
+        subm_files_array = []
+        files_array = dictionary["files"]
+        for file_dict in files_array:
+            submf = SubmissionFile.from_dict(file_dict)
+            subm_files_array.append(submf)
+
+        return DbSubmission(submission_id=subm.submission_id,
+                            user_id=subm.user_id,
+                            date=subm.date,
+                            status=subm.status,
+                            files=subm_files_array,
+                            id=subm.id)
 
     def to_submission(self):
         file_refs = []

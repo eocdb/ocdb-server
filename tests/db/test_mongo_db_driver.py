@@ -5,6 +5,7 @@ from eocdb.core.db.db_submission import DbSubmission
 from eocdb.core.db.errors import OperationalError
 from eocdb.core.models.dataset_query import DatasetQuery
 from eocdb.core.models.qc_info import QC_INFO_STATUS_ONGOING, QC_INFO_STATUS_PASSED
+from eocdb.core.models.submission_file import SubmissionFile
 from eocdb.db.mongo_db_driver import MongoDbDriver
 from tests import helpers
 
@@ -791,6 +792,88 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(5876123, result.user_id)
         self.assertEqual("SUBMITTED", result.status)
         self.assertEqual(sf_id, result.id)
+
+    def test_get_submissions_no_results(self):
+        result = self._driver.get_submissions(887620)
+        self.assertEqual([], result)
+
+    def test_add_submission_and_get_one_by_userid(self):
+        date = datetime(2018, 4, 23, 12, 15, 34)
+        sf = DbSubmission(submission_id="the_first_test", date=date, user_id=5876123, status="SUBMITTED", files=[])
+
+        sf_id = self._driver.add_submission(sf)
+        self.assertIsNotNone(sf_id)
+
+        result = self._driver.get_submissions(5876123)
+        self.assertIsNotNone(result)
+        self.assertEqual(1, len(result))
+
+        result_sub = result[0]
+        self.assertEqual("the_first_test", result_sub.submission_id)
+        self.assertEqual(date, result_sub.date)
+        self.assertEqual(5876123, result_sub.user_id)
+        self.assertEqual("SUBMITTED", result_sub.status)
+        self.assertEqual(0, len(result_sub.files))
+        self.assertEqual(0, len(result_sub.file_refs))
+
+    def test_add_submission_with_files_get_one_by_userid(self):
+        submission_id = "the_next_test"
+        date = datetime(2017, 3, 22, 11, 14, 33)
+        sf_0 = SubmissionFile(index=0, submission_id=submission_id, filename="Number one", status="SUBMITTED", result=None)
+        sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", status="SUBMITTED", result=None)
+        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED", files=[sf_0, sf_1])
+
+        sf_id = self._driver.add_submission(sf)
+        self.assertIsNotNone(sf_id)
+
+        result = self._driver.get_submissions(5876123)
+        self.assertIsNotNone(result)
+        self.assertEqual(1, len(result))
+
+        result_sub = result[0]
+        self.assertEqual(submission_id, result_sub.submission_id)
+        self.assertEqual(date, result_sub.date)
+        self.assertEqual(5876123, result_sub.user_id)
+        self.assertEqual("SUBMITTED", result_sub.status)
+        self.assertEqual(2, len(result_sub.files))
+        self.assertEqual(0, len(result_sub.file_refs))
+
+        self.assertEqual("Number one", result_sub.files[0].filename)
+        self.assertEqual("Number two", result_sub.files[1].filename)
+
+    def test_add_three_submission_and_get_two_by_userid(self):
+        sf = DbSubmission(submission_id="the_first_test", date=datetime(2018, 4, 23, 12, 15, 34), user_id=5876123, status="SUBMITTED", files=[])
+        sf_id = self._driver.add_submission(sf)
+        self.assertIsNotNone(sf_id)
+
+        sf = DbSubmission(submission_id="the_other_user_thing", date=datetime(2017, 4, 23, 12, 15, 34), user_id=999999, status="VALIDATED", files=[])
+        sf_id = self._driver.add_submission(sf)
+        self.assertIsNotNone(sf_id)
+
+        sf = DbSubmission(submission_id="the_second_one", date=datetime(2011, 1, 22, 12, 15, 34), user_id=5876123, status="PUBLISHED", files=[])
+
+        sf_id = self._driver.add_submission(sf)
+        self.assertIsNotNone(sf_id)
+
+        result = self._driver.get_submissions(5876123)
+        self.assertIsNotNone(result)
+        self.assertEqual(2, len(result))
+
+        result_sub = result[0]
+        self.assertEqual("the_first_test", result_sub.submission_id)
+        self.assertEqual(datetime(2018, 4, 23, 12, 15, 34), result_sub.date)
+        self.assertEqual(5876123, result_sub.user_id)
+        self.assertEqual("SUBMITTED", result_sub.status)
+        self.assertEqual(0, len(result_sub.files))
+        self.assertEqual(0, len(result_sub.file_refs))
+
+        result_sub = result[1]
+        self.assertEqual("the_second_one", result_sub.submission_id)
+        self.assertEqual(datetime(2011, 1, 22, 12, 15, 34), result_sub.date)
+        self.assertEqual(5876123, result_sub.user_id)
+        self.assertEqual("PUBLISHED", result_sub.status)
+        self.assertEqual(0, len(result_sub.files))
+        self.assertEqual(0, len(result_sub.file_refs))
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):
