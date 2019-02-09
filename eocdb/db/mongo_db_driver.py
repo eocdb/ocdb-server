@@ -6,21 +6,23 @@ import numpy as np
 import pymongo
 import pymongo.errors
 
-from eocdb.core.db.db_submission import DbSubmission
-from eocdb.core.models.submission import Submission
 from ..core import QueryParser
 from ..core.db.db_driver import DbDriver
+from ..core.db.db_submission import DbSubmission
 from ..core.db.errors import OperationalError
 from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
+from ..core.models.submission import Submission
+from ..core.models.submission_file import SubmissionFile
 from ..db.mongo_query_generator import MongoQueryGenerator
 
 LAT_INDEX_NAME = "_latitudes_"
 LON_INDEX_NAME = "_longitudes_"
 ATTRIBUTES_INDEX_NAME = "_attributes_"
 TIMES_INDEX_NAME = "_times_"
+USER_ID_INDEX_NAME = "_userid_"
 
 
 class MongoDbDriver(DbDriver):
@@ -91,14 +93,19 @@ class MongoDbDriver(DbDriver):
         result = self._submit_collection.insert_one(sf_dict)
         return str(result.inserted_id)
 
-    def get_submission(self, submission_id: str) -> Optional[DbSubmission]:
+    def get_submission_file(self, submission_id: str, index: int) -> Optional[SubmissionFile]:
         subm_dict = self._submit_collection.find_one({"submission_id": submission_id})
-        if subm_dict is not None:
-            sf_id = subm_dict["_id"]
-            del subm_dict["_id"]
-            subm_dict["id"] = str(sf_id)
-            return DbSubmission.from_dict(subm_dict)
-        return None
+        if subm_dict is None:
+            return None
+
+        del subm_dict["_id"]
+        db_submission = DbSubmission.from_dict(subm_dict)
+
+        num_files = len(db_submission.files)
+        if index < 0 or index >= num_files:
+            return None
+
+        return db_submission.files[index]
 
     def get_submissions(self, user_id: int) -> List[DbSubmission]:
         submissions = []
@@ -228,6 +235,7 @@ class MongoDbDriver(DbDriver):
         return dataset_dict
 
     def _ensure_indices(self):
+        # the main collection
         index_information = self._collection.index_information()
         if not LON_INDEX_NAME in index_information:
             self._collection.create_index("longitude", name=LON_INDEX_NAME, background=True)
@@ -237,6 +245,11 @@ class MongoDbDriver(DbDriver):
             self._collection.create_index("attributes", name=ATTRIBUTES_INDEX_NAME, background=True)
         if not TIMES_INDEX_NAME in index_information:
             self._collection.create_index("times", name=TIMES_INDEX_NAME, background=True)
+
+        # the quarantane collection
+        index_information = self._submit_collection.index_information()
+        if not USER_ID_INDEX_NAME in index_information:
+            self._submit_collection.create_index("user_id", name=USER_ID_INDEX_NAME, background=True)
 
     @staticmethod
     def _parse_datetime(time_string) -> datetime:

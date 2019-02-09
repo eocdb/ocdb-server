@@ -778,21 +778,6 @@ class TestMongoDbDriver(unittest.TestCase):
             "{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}},"
             "{'type':'Feature','geometry':{'type':'Point','coordinates':[164.82,34.67]}}]}", geojson)
 
-    def test_add_submission_and_get_by_id(self):
-        date = datetime(2018, 4, 23, 12, 15, 34)
-        sf = DbSubmission(submission_id="the_first_test", date=date, user_id=5876123, status="SUBMITTED", files=[])
-
-        sf_id = self._driver.add_submission(sf)
-        self.assertIsNotNone(sf_id)
-
-        result = self._driver.get_submission("the_first_test")
-        self.assertIsNotNone(result)
-        self.assertEqual("the_first_test", result.submission_id)
-        self.assertEqual(date, result.date)
-        self.assertEqual(5876123, result.user_id)
-        self.assertEqual("SUBMITTED", result.status)
-        self.assertEqual(sf_id, result.id)
-
     def test_get_submissions_no_results(self):
         result = self._driver.get_submissions(887620)
         self.assertEqual([], result)
@@ -874,6 +859,68 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual("PUBLISHED", result_sub.status)
         self.assertEqual(0, len(result_sub.files))
         self.assertEqual(0, len(result_sub.file_refs))
+
+    def test_add_submission_and_get_file(self):
+        date = datetime(2017, 3, 22, 11, 14, 33)
+        submission_id = "her_we_go"
+        sf_0 = SubmissionFile(index=0, submission_id=submission_id, filename="Number one", status="SUBMITTED",
+                              result=None)
+        sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", status="SUBMITTED",
+                              result=None)
+        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED", files=[sf_0, sf_1])
+
+        sf_id = self._driver.add_submission(sf)
+        self.assertIsNotNone(sf_id)
+
+        result = self._driver.get_submission_file(submission_id=submission_id, index=0)
+        self.assertIsNotNone(result)
+        self.assertEqual(submission_id, result.submission_id)
+        self.assertEqual("SUBMITTED", result.status)
+        self.assertEqual(0, result.index)
+        self.assertEqual("Number one", result.filename)
+
+        result = self._driver.get_submission_file(submission_id=submission_id, index=1)
+        self.assertIsNotNone(result)
+        self.assertEqual(submission_id, result.submission_id)
+        self.assertEqual("SUBMITTED", result.status)
+        self.assertEqual(1, result.index)
+        self.assertEqual("Number two", result.filename)
+
+    def test_add_submission_and_get_file_invalid_index(self):
+        date = datetime(2017, 3, 22, 11, 14, 33)
+        submission_id = "her_we_go"
+        sf_0 = SubmissionFile(index=0, submission_id=submission_id, filename="Number one", status="SUBMITTED",
+                              result=None)
+        sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", status="SUBMITTED",
+                              result=None)
+        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED",
+                          files=[sf_0, sf_1])
+
+        sf_id = self._driver.add_submission(sf)
+        self.assertIsNotNone(sf_id)
+
+        result = self._driver.get_submission_file(submission_id=submission_id, index=2)
+        self.assertIsNone(result)
+
+        result = self._driver.get_submission_file(submission_id=submission_id, index=-1)
+        self.assertIsNone(result)
+
+    def test_add_submission_and_get_file_no_files(self):
+        date = datetime(2017, 3, 22, 11, 14, 33)
+        submission_id = "her_we_go"
+
+        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED",
+                          files=[])
+
+        sf_id = self._driver.add_submission(sf)
+        self.assertIsNotNone(sf_id)
+
+        result = self._driver.get_submission_file(submission_id=submission_id, index=0)
+        self.assertIsNone(result)
+
+    def test_get_submission_files_invalid_submission_id(self):
+        result = self._driver.get_submission_file(submission_id="not_in_db", index=0)
+        self.assertIsNone(result)
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):
