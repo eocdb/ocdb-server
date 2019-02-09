@@ -43,3 +43,6 @@ class DbDriver(Service):
     @abstractmethod
     def get_submissions(self, user_id: int) -> List[DbSubmission]:
         """Get existing submissions for user."""
+
+    def get_submission(self, submission_id: str) -> Optional[DbSubmission]:
+        """Get existing submission_file by ID."""

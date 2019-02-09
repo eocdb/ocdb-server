@@ -117,6 +117,15 @@ class MongoDbDriver(DbDriver):
 
         return submissions
 
+    def get_submission(self, submission_id: str) -> Optional[DbSubmission]:
+        subm_dict = self._submit_collection.find_one({"submission_id": submission_id})
+        if subm_dict is not None:
+            sf_id = subm_dict["_id"]
+            del subm_dict["_id"]
+            subm_dict["id"] = str(sf_id)
+            return DbSubmission.from_dict(subm_dict)
+        return None
+
     @staticmethod
     def _get_start_index_and_count(query) -> (int, int):
         if query.offset is None:
