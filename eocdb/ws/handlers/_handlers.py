@@ -122,6 +122,13 @@ class StoreUploadUser(WsRequestHandler):
         self.finish(tornado.escape.json_encode(result_list))
 
 
+# noinspection PyAbstractClass
+class StoreUploadSubmissionFile(WsRequestHandler):
+
+    def get(self, submission_id: str, index: int):
+        return get_submission_file(ctx=self.ws_context, submission_id=submission_id, index=index)
+
+
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class StoreDownload(WsRequestHandler):
 
