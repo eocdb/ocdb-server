@@ -143,6 +143,13 @@ def get_submissions(ctx: WsContext,
     return submissions
 
 
+def get_submission_file(ctx: WsContext,
+                        submission_id: str,
+                        index: int):
+    result = ctx.db_driver.get_submission_file(submission_id=submission_id, index=index)
+    return result
+
+
 # noinspection PyTypeChecker
 def download_store_files(ctx: WsContext,
                          expr: str = None,
