@@ -22,7 +22,6 @@
 import tornado.escape
 import tornado.httputil
 
-from eocdb.core.models.dataset_ids import DatasetIds
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.service import *
@@ -31,6 +30,7 @@ from ..controllers.users import *
 from ..reqparams import RequestParams
 from ..webservice import WsRequestHandler
 from ...core.models.dataset import Dataset
+from ...core.models.dataset_ids import DatasetIds
 from ...core.models.user import User
 
 MTYPE_DEFAULT = 'all'
@@ -79,12 +79,12 @@ class StoreUpload(WsRequestHandler):
                                               files)
 
         submission_id = arguments.get("submissionid")
-        submission_id = _ensure_string_argument(submission_id)
+        submission_id = _ensure_string_argument(submission_id, "submissionid")
 
         temp_area_path = str(user_id) + "_" + submission_id
 
         path = arguments.get("path")
-        path = _ensure_string_argument(path)
+        path = _ensure_string_argument(path, "path")
         target_path = os.path.join(temp_area_path, path)
 
         dataset_files = []
@@ -419,26 +419,26 @@ class UsersId(WsRequestHandler):
         self.finish()
 
 
-def _ensure_string_argument(arg_value):
+def _ensure_string_argument(arg_value, arg_name: str):
     if isinstance(arg_value, list):
         if len(arg_value) != 1:
-            raise WsBadRequestError(f"Invalid argument in body: {repr(arg_value)}")
+            raise WsBadRequestError(f"Invalid argument '{arg_name}' in body: {repr(arg_value)}")
         arg_value = arg_value[0]
     elif not (isinstance(arg_value, str) or isinstance(arg_value, bytes)):
-        raise WsBadRequestError(f"Invalid argument in body: {repr(arg_value)}")
+        raise WsBadRequestError(f"Invalid argument '{arg_name}' in body: {repr(arg_value)}")
 
     if isinstance(arg_value, bytes):
         arg_value = arg_value.decode("utf-8")
 
     return arg_value
 
-def _ensure_int_argument(arg_value):
+
+def _ensure_int_argument(arg_value, arg_name: str):
     if isinstance(arg_value, list):
         if len(arg_value) != 1:
-            raise WsBadRequestError(f"Invalid argument in body: {repr(arg_value)}")
+            raise WsBadRequestError(f"Invalid argument '{arg_name}' in body: {repr(arg_value)}")
         arg_value = arg_value[0]
     elif not isinstance(arg_value, int):
-        raise WsBadRequestError(f"Invalid argument in body: {repr(arg_value)}")
+        raise WsBadRequestError(f"Invalid argument '{arg_name}' in body: {repr(arg_value)}")
 
     return arg_value
-
