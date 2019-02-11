@@ -1,49 +1,359 @@
 {
   "header": [
     {
-      "type": "field_required",
       "name": "investigators",
+      "type": "field_required",
       "error": "@required_field_missing"
     },
     {
-      "type": "field_required",
       "name": "affiliations",
+      "type": "field_required",
       "error": "@required_field_missing"
     },
     {
-      "type": "field_required",
       "name": "contact",
+      "type": "field_required",
       "error": "@required_field_missing"
     },
     {
-      "type": "field_required",
       "name": "experiment",
-      "error": "@required_field_missing"
-    },
-    {
       "type": "field_required",
-      "name": "cruise",
       "error": "@required_field_missing"
     },
     {
-      "type": "field_optional",
+      "name": "cruise",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
       "name": "station",
+      "type": "field_optional",
       "warning": "@field_value_missing"
     },
     {
-      "type": "field_required",
       "name": "north_latitude",
+      "type": "field_required",
       "error": "@required_field_missing"
     },
     {
+      "name": "south_latitude",
       "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "east_longitude",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "west_longitude",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
       "name": "start_date",
+      "type": "field_required",
       "error": "@required_field_missing"
     },
     {
-      "type": "field_required",
       "name": "end_date",
+      "type": "field_required",
       "error": "@required_field_missing"
+    },
+    {
+      "name": "start_time",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "end_time",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "station_alt_id",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "data_file_name",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "associated_archives",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "associated_archive_types",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "associated_files",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "associated_file_types",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "original_file_name",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "documents",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "calibration_files",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "data_type",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "missing",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "delimiter",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "fields",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "units",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "data_status",
+      "type": "field_optional",
+      "warning": "@field_value_missing"
+    },
+    {
+      "name": "parameters",
+      "type": "field_obsolete",
+      "warning": "Header /parameters is no longer required, just use /fields."
+    },
+    {
+      "name": "water_depth",
+      "type": "field_required",
+      "error": "@required_field_missing"
+    },
+    {
+      "name": "measurement_depth",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "secchi_depth",
+      "type": "field_optional",
+      "warning": "@field_value_missing"
+    },
+    {
+      "name": "cloud_percent",
+      "type": "field_optional",
+      "warning": "@field_value_missing"
+    },
+    {
+      "name": "wave_height",
+      "type": "field_optional",
+      "warning": "@field_value_missing"
+    },
+    {
+      "name": "wind_speed",
+      "type": "field_optional",
+      "warning": "@field_value_missing"
+    },
+    {
+      "name": "volfilt",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "begin_header",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "end_header",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "end_header@",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "received",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "identifier_product_doi",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "below_detection_limit",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "above_detection_limit",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "optical_depth_warning",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "area",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "null_correction",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "biotic_setting",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "biotic_class",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "biotic_subclass",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "biotic_group",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "biotic_community",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "geoform_tectonic_setting",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "geoform_physiographic_setting",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "geoform_origin",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "geoform",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "geoform_type",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "substrate_origin",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "substrate_class",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "substrate_subclass",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "substrate_group",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "substrate_subgroup",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "water_column_biogeochemical_feature",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "water_column_hydroform_class",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "water_column_hydroform",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "water_column_hydroform_type",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "water_column_layer",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "water_column_salinity",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "water_column_temperature",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "chemical_formula",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
+    {
+      "name": "mass_to_charge",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
     },
     {
       "type": "field_compare",
@@ -76,11 +386,6 @@
       "operation": "!=",
       "data_type": "string",
       "error": "@cruise_same_as_experiment"
-    },
-    {
-      "type": "field_obsolete",
-      "name": "station_alt_id",
-      "warning": "@obsolete_field"
     }
   ],
   "record": [

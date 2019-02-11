@@ -16,10 +16,21 @@ class ValidatorTest(TestCase):
                            "contact": "Dagobert",
                            "experiment": "check WQ",
                            "cruise": "Aida II",
+                           "data_file_name": "the_old_file",
+                           "documents": "yes, we have them",
+                           "calibration_files": "we have them, too",
+                           "data_type": "test data",
+                           "water_depth": "80cm",
+                           "missing": "where_are_you?",
+                           "delimiter": "slash",
+                           "fields": "corn and wheat",
+                           "units": "square feet per degree",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "108.24",
                            "west_longitude": "88.25",
+                           "start_time": "01:12:06[GMT]",
+                           "end_time": "02:12:06[GMT]",
                            "start_date": "20110624",
                            "end_date": "20110726"}, [], path="archive/chl01.csv")
 
@@ -34,10 +45,21 @@ class ValidatorTest(TestCase):
                            "contact": "Dagobert",
                            "experiment": "check WQ",
                            "cruise": "Aida II",
+                           "data_file_name": "the_old_file",
+                           "documents": "yes, we have them",
+                           "calibration_files": "we have them, too",
+                           "data_type": "test data",
+                           "water_depth": "80cm",
+                           "missing": "where_are_you?",
+                           "delimiter": "slash",
+                           "fields": "corn and wheat",
+                           "units": "square feet per degree",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "77.24",
                            "west_longitude": "88.25",
+                           "start_time": "01:12:06[GMT]",
+                           "end_time": "02:12:06[GMT]",
                            "start_date": "20110624",
                            "end_date": "20110726"}, [], path="archive/chl01.csv")
 
@@ -53,19 +75,33 @@ class ValidatorTest(TestCase):
         dataset = Dataset({"experiment": "check WQ",
                            "contact": "Dagobert",
                            "cruise": "Aida II",
+                           "data_file_name": "the_old_file",
+                           "documents": "yes, we have them",
+                           "calibration_files": "we have them, too",
+                           "data_type": "test data",
+                           "water_depth": "80cm",
+                           "missing": "where_are_you?",
+                           "delimiter": "slash",
+                           "fields": "corn and wheat",
+                           "units": "square feet per degree",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "108.24",
                            "west_longitude": "88.25",
+                           "start_time": "01:12:06[GMT]",
+                           "end_time": "02:12:06[GMT]",
                            "start_date": "20110624",
                            "end_date": "20110726"
                            }, [], path="archive/chl01.csv")
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
+        self.assertEqual(2, len(result.issues))
         self.assertEqual("ERROR", result.status)
         self.assertEqual({'description': 'The required header field /investigators is not present', 'type': 'ERROR'},
                          result.issues[0].to_dict())
+        self.assertEqual({'description': 'The required header field /affiliations is not present', 'type': 'ERROR'},
+                         result.issues[1].to_dict())
 
     def test_validate_dataset_header_enddate_before_startdate(self):
         dataset = Dataset({"investigators": "Daniel_Duesentrieb",
@@ -73,16 +109,28 @@ class ValidatorTest(TestCase):
                            "contact": "Dagobert",
                            "experiment": "check WQ",
                            "cruise": "Aida II",
+                           "data_file_name": "the_old_file",
+                           "documents": "yes, we have them",
+                           "calibration_files": "we have them, too",
+                           "data_type": "test data",
+                           "water_depth": "80cm",
+                           "missing": "where_are_you?",
+                           "delimiter": "slash",
+                           "fields": "corn and wheat",
+                           "units": "square feet per degree",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "108.24",
                            "west_longitude": "88.25",
-                           "start_date": "20110630",
+                           "start_time": "01:12:06[GMT]",
+                           "end_time": "02:12:06[GMT]",
+                           "start_date": "20110630",    # <- later than end_date
                            "end_date": "20110626"
                            }, [], path="archive/chl01.csv")
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
+        self.assertEqual(1, len(result.issues))
         self.assertEqual("ERROR", result.status)
         self.assertEqual({'description': 'End date is before start date', 'type': 'ERROR'}, result.issues[0].to_dict())
 
@@ -90,18 +138,30 @@ class ValidatorTest(TestCase):
         dataset = Dataset({"investigators": "Daniel_Duesentrieb",
                            "affiliations": "Entenhausen",
                            "contact": "Dagobert",
-                           "experiment": "Aida II",
-                           "cruise": "Aida II",
+                           "experiment": "Aida II", # <- are the same but shouldn't
+                           "cruise": "Aida II",     # <-
+                           "data_file_name": "the_old_file",
+                           "documents": "yes, we have them",
+                           "calibration_files": "we have them, too",
+                           "data_type": "test data",
+                           "water_depth": "80cm",
+                           "missing": "where_are_you?",
+                           "delimiter": "slash",
+                           "fields": "corn and wheat",
+                           "units": "square feet per degree",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "108.24",
                            "west_longitude": "88.25",
+                           "start_time": "01:12:06[GMT]",
+                           "end_time": "02:12:06[GMT]",
                            "start_date": "20110630",
                            "end_date": "20110726"
                            }, [], path="archive/chl01.csv")
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
+        self.assertEqual(1, len(result.issues))
         self.assertEqual("ERROR", result.status)
         self.assertEqual({'description': "Header /cruise should not be the same as /experiment, please "
                                          "make /cruise a 'subset' of /experiment.", 'type': 'ERROR'},
@@ -113,16 +173,28 @@ class ValidatorTest(TestCase):
                            "contact": "Dagobert",
                            "experiment": "check WQ",
                            "cruise": "Aida II",
+                           "data_file_name": "the_old_file",
+                           "documents": "yes, we have them",
+                           "calibration_files": "we have them, too",
                            "station_alt_id": "we do not care about this value",  # <- triggers the warning
+                           "data_type": "test data",
+                           "water_depth": "80cm",
+                           "missing": "where_are_you?",
+                           "delimiter": "slash",
+                           "fields": "corn and wheat",
+                           "units": "square feet per degree",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "108.24",
                            "west_longitude": "88.25",
+                           "start_time": "01:12:06[GMT]",
+                           "end_time": "02:12:06[GMT]",
                            "start_date": "20110624",
                            "end_date": "20110726"}, [], path="archive/chl01.csv")
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
+        self.assertEqual(1, len(result.issues))
         self.assertEqual("WARNING", result.status)
         self.assertEqual({'description': "The header field /station_alt_id is marked as obsolete, "
                                          "please check the documentation.", 'type': 'WARNING'},
