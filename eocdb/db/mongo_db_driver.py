@@ -6,10 +6,7 @@ import numpy as np
 import pymongo
 import pymongo.errors
 
-from eocdb.core.db.db_submission import DbSubmission
-from eocdb.core.models.submission import Submission
 from ..core import QueryParser
-from ..db.mongo_query_generator import MongoQueryGenerator
 from ..core.db.db_driver import DbDriver
 from ..core.db.db_submission import DbSubmission
 from ..core.db.errors import OperationalError
@@ -19,6 +16,7 @@ from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
 from ..core.models.submission import Submission
 from ..core.models.submission_file import SubmissionFile
+from ..core.time_helper import TimeHelper
 from ..db.mongo_query_generator import MongoQueryGenerator
 
 LAT_INDEX_NAME = "_latitudes_"
