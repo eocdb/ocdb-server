@@ -26,6 +26,7 @@ import time
 import zipfile
 from typing import Dict, List
 
+from eocdb.ws.errors import WsBadRequestError
 from ..context import WsContext
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
@@ -60,6 +61,10 @@ def upload_store_files(ctx: WsContext,
 
     datasets = dict()
     validation_results = dict()
+
+    result = ctx.db_driver.get_submission(submission_id)
+    if result is not None:
+        raise WsBadRequestError(f"Submission identifier already exists: {submission_id}")
 
     # Read dataset files and make sure their format is ok.
     for file in dataset_files:
@@ -136,6 +141,13 @@ def get_submissions(ctx: WsContext,
         submissions.append(subm)
 
     return submissions
+
+
+def get_submission_file(ctx: WsContext,
+                        submission_id: str,
+                        index: int):
+    result = ctx.db_driver.get_submission_file(submission_id=submission_id, index=index)
+    return result
 
 
 # noinspection PyTypeChecker

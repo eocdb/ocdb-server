@@ -155,6 +155,49 @@ class StoreTest(unittest.TestCase):
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
+    def test_upload_and_download_submission_file(self):
+        try:
+            user_id = 77616
+            data_file_text = ("/begin_header\n"
+                              "/received=20120330\n"
+                              "/delimiter = comma\n"
+                              "/north_latitude=42.598[DEG]\n"
+                              "/east_longitude=-67.105[DEG]\n"
+                              "/start_date=20101117\n"
+                              "/end_date=20101117\n"
+                              "/start_time=20:14:00[GMT]\n"
+                              "/end_time=20:14:00[GMT]\n"
+                              "/documents=NSPRT_223_calib.txt\n"
+                              "/fields = station, SN, lat, lon, year, month, day, hour, minute, pressure, wt, sal, CHL, Epar, oxygen\n"
+                              "/units = none, none, degrees, degrees, yyyy, mo, dd, hh, mn, dbar, degreesC, PSU, mg/m^3, uE/cm^2s, ml/L\n"
+                              "/end_header\n"
+                              "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
+            uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
+
+            document_file_content = "This is test content and does not reflect the opinion of the development team."
+            document_file = UploadedFile("NSPRT_223_calib.txt", "text", document_file_content.encode("utf-8"))
+
+            result = upload_store_files(ctx=self.ctx,
+                                        path="test_files",
+                                        submission_id="an_id",
+                                        user_id=user_id,
+                                        dataset_files=[uploaded_file],
+                                        doc_files=[document_file])
+            self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
+            self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
+
+            result = get_submission_file(ctx=self.ctx, submission_id="an_id", index=0)
+            self.assertIsNotNone(result)
+            self.assertEqual("DEL1012_Station_097_CTD_Data.txt", result.filename)
+
+            result = get_submission_file(ctx=self.ctx, submission_id="an_id", index=1)
+            self.assertIsNotNone(result)
+            self.assertEqual("NSPRT_223_calib.txt", result.filename)
+
+            result = get_submission_file(ctx=self.ctx, submission_id="an_id", index=2)
+            self.assertIsNone(result)
+        finally:
+            self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
     def delete_test_file(self, filename: str):
         target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"),

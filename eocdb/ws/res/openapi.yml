@@ -3,7 +3,7 @@ servers:
   - url: 'http://ocdb-test:4000/eocdb/api/v0.1.0/'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.12"
+  version: "0.1.0-dev.13"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -144,22 +144,21 @@ paths:
       - eocdb_auth:
         - 'write:datasets'
         - 'read:datasets'
-  '/store/upload/{submissionfileid}':
+  '/store/upload/submissionfile':
     get:
       tags:
-      - Submission files
+      - Submission file
       summary: Return a submission file entry
       description: Return an existing submission file entry
       operationId: getSubmissionFile
       parameters:
-      - $ref: '#/components/parameters/submissionFileIdParam'
+      - $ref: '#/components/parameters/submissionIdParam'
+      - $ref: '#/components/parameters/indexParam'
       responses:
         '200':
           $ref: '#/components/responses/SubmissionFile'
         '400':
           description: Invalid request
-        '404':
-          description: Submission file not found in registry
       security:
       - eocdb_auth:
         - 'read:datasets'
@@ -207,8 +206,8 @@ paths:
     get:
       tags:
         - Submission
-      summary: Get Submission files for user
-      description: Get list of submissions files for a user
+      summary: Get Submissions for user
+      description: Get list of submissions for a user
       operationId: getSubmissionFilesForUser
       parameters:
       - $ref: '#/components/parameters/userIdParam'
@@ -217,8 +216,6 @@ paths:
           $ref: '#/components/responses/SubmissionFiles'
         '400':
           description: Invalid request
-        '404':
-          description: No submission files found in registry
       security:
       - eocdb_auth:
         - 'read:datasets'
@@ -974,12 +971,12 @@ components:
       schema:
         type: integer
     submissionIdParam:
-      name: id
+      name: submission_id
       in: path
       description: The ID of the submission.
       required: true
       schema:
-        type: integer
+        type: string
     submissionFileIdParam:
       name: id
       in: path
@@ -995,6 +992,13 @@ components:
       schema:
         type: string
         enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
+    indexParam:
+      name: index
+      in: path
+      description: an index parameter
+      required: true
+      schema:
+        type: integer
   schemas:
     DatasetQuery:
       type: object
