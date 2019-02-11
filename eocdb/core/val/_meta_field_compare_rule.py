@@ -9,9 +9,10 @@ from eocdb.core.val._rule import Rule
 
 class MetaFieldCompareRule(Rule):
 
-    def __init__(self, reference_name: str, compare_name: str, operation: str, error=None, warning=None):
+    def __init__(self, reference_name: str, compare_name: str, operation: str, data_type: str, error=None, warning=None):
         self._reference_name = reference_name
         self._compare_name = compare_name
+        self._data_type = data_type
         self._error = error
         self._warning = warning
 
@@ -32,11 +33,11 @@ class MetaFieldCompareRule(Rule):
 
     def eval(self, dataset: Dataset, library: MessageLibrary):
         metadata = dataset.metadata
-        reference_value = MetaFieldCompareRule._extract_value(self._reference_name, metadata)
+        reference_value = self._extract_value(self._reference_name, metadata)
         if reference_value is None:
             return Issue(ISSUE_TYPE_ERROR, "Requested field not contained in metadata: " + self._reference_name)
 
-        compare_value = MetaFieldCompareRule._extract_value(self._compare_name, metadata)
+        compare_value = self._extract_value(self._compare_name, metadata)
         if compare_value is None:
             return Issue(ISSUE_TYPE_ERROR, "Requested field not contained in metadata: " + self._compare_name)
 
@@ -51,21 +52,26 @@ class MetaFieldCompareRule(Rule):
                 warning_message = library.resolve_warning(self._warning, message_dict)
                 return Issue(ISSUE_TYPE_WARNING, warning_message)
 
-    @staticmethod
-    def _extract_value(name: str, metadata: dict):
+    def _extract_value(self, name: str, metadata: dict):
         if not name in metadata:
             return None
 
         value = metadata[name]
-        if "date" in name:
+        if self._data_type == "date" in name:
             converted_value = MetaFieldCompareRule._convert_date_string(value)
             return TimeHelper.parse_datetime(converted_value)
 
-        if '[' in value:
-            unit_index = value.find('[')
-            value = value[0:unit_index]
+        if self._data_type == "number":
+            if '[' in value:
+                unit_index = value.find('[')
+                value = value[0:unit_index]
 
-        return float(value)
+            return float(value)
+
+        if self._data_type == "string":
+            return value
+
+        raise ValueError("Invalid data_type for rule: " + self._data_type)
 
     @staticmethod
     def _convert_date_string(value: str) -> str:

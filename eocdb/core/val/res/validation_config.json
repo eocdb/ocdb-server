@@ -12,6 +12,11 @@
     },
     {
       "type": "field_required",
+      "name": "contact",
+      "error": "@required_field_missing"
+    },
+    {
+      "type": "field_required",
       "name": "experiment",
       "error": "@required_field_missing"
     },
@@ -45,6 +50,7 @@
       "reference": "north_latitude",
       "compare": "south_latitude",
       "operation": ">=",
+      "data_type": "number",
       "error": "@south_north_mismatch"
     },
     {
@@ -52,6 +58,7 @@
       "reference": "east_longitude",
       "compare": "west_longitude",
       "operation": ">=",
+      "data_type": "number",
       "warning": "@crossing_date_line"
     },
     {
@@ -59,7 +66,21 @@
       "reference": "start_date",
       "compare": "end_date",
       "operation": "<=",
+      "data_type": "date",
       "error": "End date is before start date"
+    },
+    {
+      "type": "field_compare",
+      "reference": "experiment",
+      "compare": "cruise",
+      "operation": "!=",
+      "data_type": "string",
+      "error": "@cruise_same_as_experiment"
+    },
+    {
+      "type": "field_obsolete",
+      "name": "station_alt_id",
+      "warning": "@obsolete_field"
     }
   ],
   "record": [
@@ -72,6 +93,10 @@
     {
       "name": "required_field_missing",
       "message": "The required header field /{reference} is not present"
+    },
+    {
+      "name": "cruise_same_as_experiment",
+      "message": "Header /cruise should not be the same as /experiment, please make /cruise a 'subset' of /experiment."
     }
   ],
   "warnings": [
@@ -82,6 +107,10 @@
     {
       "name": "field_value_missing",
       "message": "The value of the header field /{reference} is missing"
+    },
+    {
+      "name": "obsolete_field",
+      "message": "The header field /{reference} is marked as obsolete, please check the documentation."
     }
   ]
 }

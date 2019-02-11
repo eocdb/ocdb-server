@@ -1,11 +1,11 @@
-import unittest
+from unittest import TestCase
 
 from eocdb.core.models import Dataset, ISSUE_TYPE_WARNING
 from eocdb.core.val._meta_field_optional_rule import MetaFieldOptionalRule
 from tests.core.val._mock_library import MockLibrary
 
 
-class MetaFieldOptionalRuleTest(unittest.TestCase):
+class MetaFieldOptionalRuleTest(TestCase):
 
     def setUp(self):
         self._lib = MockLibrary()

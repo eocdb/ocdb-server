@@ -2,6 +2,7 @@ import json
 import os
 
 from eocdb.core.val._gap_aware_dict import GapAwareDict
+from eocdb.core.val._meta_field_obsolete_rule import MetaFieldObsoleteRule
 from ..models.dataset import Dataset
 from ..models.dataset_validation_result import DatasetValidationResult
 from ..models.issue import ISSUE_TYPE_WARNING, ISSUE_TYPE_ERROR
@@ -88,6 +89,11 @@ class Validator(MessageLibrary):
                 warning = header_rule["warning"]
                 rule = MetaFieldOptionalRule(name, warning)
                 self._header_rules.append(rule)
+            elif "field_obsolete" == rule_type:
+                name = header_rule["name"]
+                warning = header_rule["warning"]
+                rule = MetaFieldObsoleteRule(name, warning)
+                self._header_rules.append(rule)
             else:
                 raise ValueError("Invalid type of validation rule: " + rule_type)
 
@@ -106,6 +112,7 @@ class Validator(MessageLibrary):
         reference = header_rule["reference"]
         compare = header_rule["compare"]
         operation = header_rule["operation"]
+        data_type = header_rule["data_type"]
         if "error" in header_rule:
             error = header_rule["error"]
         else:
@@ -114,6 +121,6 @@ class Validator(MessageLibrary):
             warning = header_rule["warning"]
         else:
             warning = None
-        rule = MetaFieldCompareRule(reference, compare, operation, error=error, warning=warning)
+        rule = MetaFieldCompareRule(reference, compare, operation, error=error, warning=warning, data_type=data_type)
         return rule
 
