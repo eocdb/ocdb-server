@@ -1,10 +1,9 @@
 import operator
-from datetime import datetime
-
-import numpy as np
 
 from eocdb.core.models import Dataset, Issue, ISSUE_TYPE_ERROR, ISSUE_TYPE_WARNING
 from eocdb.core.time_helper import TimeHelper
+from eocdb.core.val._gap_aware_dict import GapAwareDict
+from eocdb.core.val._message_library import MessageLibrary
 from eocdb.core.val._rule import Rule
 
 
@@ -31,7 +30,7 @@ class MetaFieldCompareRule(Rule):
         else:
             raise ValueError("operator is not valid: " + operation)
 
-    def eval(self, dataset: Dataset):
+    def eval(self, dataset: Dataset, library: MessageLibrary):
         metadata = dataset.metadata
         reference_value = MetaFieldCompareRule._extract_value(self._reference_name, metadata)
         if reference_value is None:
@@ -44,10 +43,13 @@ class MetaFieldCompareRule(Rule):
         if self._operator(reference_value, compare_value):
             return None
         else:
+            message_dict = GapAwareDict({"reference": self._reference_name, "ref_val": reference_value, "compare": self._compare_name, "comp_val": compare_value})
             if self._error is not None:
-                return Issue(ISSUE_TYPE_ERROR, self._error)
+                error_message = library.resolve_error(self._error, message_dict)
+                return Issue(ISSUE_TYPE_ERROR, error_message)
             if self._warning is not None:
-                return Issue(ISSUE_TYPE_WARNING, self._warning)
+                warning_message = library.resolve_warning(self._warning, message_dict)
+                return Issue(ISSUE_TYPE_WARNING, warning_message)
 
     @staticmethod
     def _extract_value(name: str, metadata: dict):
@@ -72,4 +74,3 @@ class MetaFieldCompareRule(Rule):
         day = value[6:8]
 
         return year + "-" + month + "-" + day
-

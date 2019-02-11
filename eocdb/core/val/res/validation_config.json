@@ -11,6 +11,16 @@
       "error": "@required_field_missing"
     },
     {
+      "type": "field_required",
+      "name": "experiment",
+      "error": "@required_field_missing"
+    },
+    {
+      "type": "field_required",
+      "name": "cruise",
+      "error": "@required_field_missing"
+    },
+    {
       "type": "field_optional",
       "name": "station",
       "warning": "@field_value_missing"
@@ -21,11 +31,20 @@
       "error": "@required_field_missing"
     },
     {
+      "type": "field_required",
+      "name": "start_date",
+      "error": "@required_field_missing"
+    },
+    {
+      "type": "field_required",
+      "name": "end_date",
+      "error": "@required_field_missing"
+    },
+    {
       "type": "field_compare",
       "reference": "north_latitude",
       "compare": "south_latitude",
       "operation": ">=",
-      "data_type": "number",
       "error": "@south_north_mismatch"
     },
     {
@@ -33,8 +52,14 @@
       "reference": "east_longitude",
       "compare": "west_longitude",
       "operation": ">=",
-      "data_type": "number",
       "warning": "@crossing_date_line"
+    },
+    {
+      "type": "field_compare",
+      "reference": "start_date",
+      "compare": "end_date",
+      "operation": "<=",
+      "error": "End date is before start date"
     }
   ],
   "record": [
@@ -46,17 +71,17 @@
     },
     {
       "name": "required_field_missing",
-      "message": "The required header field ${name} is not present"
+      "message": "The required header field /{reference} is not present"
     }
   ],
   "warnings": [
     {
       "name": "crossing_date_line",
-      "message": "The measurement locations cross the dateline"
+      "message": "/east_longitude [{ref_val}] < west_longitude [{comp_val}], implies crossing the dateline! If you did not do so, please check these values"
     },
     {
       "name": "field_value_missing",
-      "message": "The value of the header field ${name} is missing"
+      "message": "The value of the header field /{reference} is missing"
     }
   ]
 }
