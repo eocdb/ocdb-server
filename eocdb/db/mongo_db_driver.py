@@ -16,6 +16,7 @@ from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
 from ..core.models.submission import Submission
 from ..core.models.submission_file import SubmissionFile
+from ..core.time_helper import TimeHelper
 from ..db.mongo_query_generator import MongoQueryGenerator
 
 LAT_INDEX_NAME = "_latitudes_"
@@ -239,7 +240,7 @@ class MongoDbDriver(DbDriver):
         times_array = dataset_dict["times"]
         converted_times = []
         for time in times_array:
-            converted_times.append(MongoDbDriver._parse_datetime(time))
+            converted_times.append(TimeHelper.parse_datetime(time))
         dataset_dict["times"] = converted_times
         return dataset_dict
 
@@ -304,10 +305,10 @@ class MongoDbDriver(DbDriver):
                 start_date = None
                 end_date = None
                 if query.time[0] is not None:
-                    start_date = MongoDbDriver._parse_datetime(query.time[0])
+                    start_date = TimeHelper.parse_datetime(query.time[0])
 
                 if query.time[1] is not None:
-                    end_date = MongoDbDriver._parse_datetime(query.time[1])
+                    end_date = TimeHelper.parse_datetime(query.time[1])
 
                 if start_date is None and end_date is None:
                     raise ValueError("Both time values are none.")

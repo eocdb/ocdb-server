@@ -88,7 +88,7 @@ def upload_store_files(ctx: WsContext,
         # Validate the datasets that could be successfully parsed:
         if file.filename in datasets:
             dataset = datasets[file.filename]
-            dataset_validation_result = validator.validate_dataset(dataset)
+            dataset_validation_result = validator.validate_dataset(dataset, ctx.config)
             validation_results[file.filename] = dataset_validation_result
 
     # Write dataset files into upload space and record as submission files
@@ -101,8 +101,6 @@ def upload_store_files(ctx: WsContext,
         with open(file_path, "w") as fp:
             text = file.body.decode("utf-8")
             fp.write(text)
-        dataset = datasets[file.filename]
-        dataset.path = str(FileHelper.create_relative_path(ctx.upload_path, file_path))
         submission_files.append(
             SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED',
                            result=None))

@@ -34,10 +34,8 @@ from ...core.val import validator
 from ...ws.errors import WsResourceNotFoundError, WsBadRequestError, WsNotImplementedError
 
 
-# noinspection PyUnusedLocal
 def validate_dataset(ctx: WsContext, dataset: Dataset) -> DatasetValidationResult:
-    """Validate a dataset."""
-    return validator.validate_dataset(dataset)
+    return validator.validate_dataset(dataset, ctx.config)
 
 
 def find_datasets(ctx: WsContext,
@@ -89,9 +87,11 @@ def add_dataset(ctx: WsContext,
                 dataset: Dataset) -> DatasetRef:
     """Add a new dataset."""
     assert_not_none(dataset)
-    validation_result = validator.validate_dataset(dataset)
+
+    validation_result = validator.validate_dataset(dataset, ctx.config)
     if validation_result.status == "ERROR":
         raise WsBadRequestError(f"Invalid dataset.")
+
     dataset_id = ctx.db_driver.instance().add_dataset(dataset)
     if not dataset_id:
         raise WsBadRequestError(f"Could not add dataset {dataset.path}")
@@ -102,9 +102,11 @@ def update_dataset(ctx: WsContext,
                    dataset: Dataset):
     """Update an existing dataset."""
     assert_not_none(dataset)
-    validation_result = validator.validate_dataset(dataset)
+
+    validation_result = validator.validate_dataset(dataset, ctx.config)
     if validation_result.status == "ERROR":
         raise WsBadRequestError(f"Invalid dataset.")
+
     updated = ctx.db_driver.instance().update_dataset(dataset)
     if not updated:
         raise WsResourceNotFoundError(f"Dataset with ID {dataset.id} not found")

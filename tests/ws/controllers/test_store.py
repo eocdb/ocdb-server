@@ -46,10 +46,14 @@ class StoreTest(unittest.TestCase):
         user_id = 77618
         try:
             data_file_text = ("/begin_header\n"
+                              "/investigators=Marks and Spencer\n"
+                              "/affiliations=the Institute\n"
                               "/received=20120330\n"
                               "/delimiter = comma\n"
                               "/north_latitude=42.598[DEG]\n"
+                              "/south_latitude=42.598[DEG]\n"
                               "/east_longitude=-67.105[DEG]\n"
+                              "/west_longitude=-67.105[DEG][DEG]\n"
                               "/start_date=20101117\n"
                               "/end_date=20101117\n"
                               "/start_time=20:14:00[GMT]\n"

@@ -204,12 +204,12 @@ class SbFileReader:
                 dataset.add_geo_location(lon, lat)
 
         elif 'north_latitude' in dataset.metadata:
-            self._extract_geo_location_form_header(dataset)
+            self._extract_geo_location_from_header(dataset)
 
         else:
             raise SbFormatError("Geolocation not properly encoded")
 
-    def _extract_geo_location_form_header(self, dataset):
+    def _extract_geo_location_from_header(self, dataset):
         east_lon_string = dataset.metadata['east_longitude']
         lon = self._extract_angle(east_lon_string)
         north_lat_string = dataset.metadata['north_latitude']
