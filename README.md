@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/bcdev/eocdb-server.svg?branch=master)](https://travis-ci.org/bcdev/eocdb-server)
+
 [![swagger-api validator-badge]({https://github.com/bcdev/eocdb-server/tree/master/eocdb/ws/res/openapi.yml}task-list-api-swagger-definition.yaml)](./eocdb/ws/res/openapi.yml)
 
 # eocdb-server
