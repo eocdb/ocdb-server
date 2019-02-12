@@ -201,15 +201,19 @@ class DatasetsTest(unittest.TestCase):
         dataset_id_1 = add_dataset(self.ctx, dataset=new_test_dataset(1)).id
         dataset_id_2 = add_dataset(self.ctx, dataset=new_test_dataset(2)).id
         dataset_id_3 = add_dataset(self.ctx, dataset=new_test_dataset(3)).id
+
         dataset_1 = get_dataset_by_id_strict(self.ctx, dataset_id_1)
         self.assertIsNotNone(dataset_1)
         self.assertEqual(dataset_id_1, dataset_1.id)
+
         dataset_2 = get_dataset_by_id_strict(self.ctx, dataset_id_2)
         self.assertIsNotNone(dataset_2)
         self.assertEqual(dataset_id_2, dataset_2.id)
+
         dataset_3 = get_dataset_by_id_strict(self.ctx, dataset_id_3)
         self.assertIsNotNone(dataset_3)
         self.assertEqual(dataset_id_3, dataset_3.id)
+
         with self.assertRaises(WsResourceNotFoundError):
             get_dataset_by_id_strict(self.ctx, "gnarz")
 
@@ -220,6 +224,7 @@ class DatasetsTest(unittest.TestCase):
         dataset_update.id = dataset_id
         dataset_update.path = "a/b/c/archive/x/x-01.csv"
         update_dataset(self.ctx, dataset=dataset_update)
+
         updated_dataset = get_dataset_by_id_strict(self.ctx, dataset_id)
         self.assertEqual(dataset_update, updated_dataset)
 
@@ -229,6 +234,7 @@ class DatasetsTest(unittest.TestCase):
         dataset = get_dataset_by_id_strict(self.ctx, dataset_id)
         self.assertEqual(dataset_id, dataset.id)
         delete_dataset(self.ctx, "api_key", dataset_id)
+
         with self.assertRaises(WsResourceNotFoundError):
             delete_dataset(self.ctx, "api_key", dataset_id)
 

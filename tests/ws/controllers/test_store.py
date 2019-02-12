@@ -19,9 +19,10 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import unittest
-from zipfile import ZipFile
 
+from eocdb.core.models import DATASET_VALIDATION_RESULT_STATUS_OK, DATASET_VALIDATION_RESULT_STATUS_WARNING
 from eocdb.ws.controllers.store import *
+from eocdb.ws.controllers.store import _get_summary_vaidation_status
 from tests.helpers import new_test_service_context
 
 
@@ -72,6 +73,52 @@ class StoreTest(unittest.TestCase):
                                         doc_files=[])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
+        finally:
+            self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
+
+    def test_upload_store_files_corrupt_file(self):
+        user_id = 77618
+        try:
+            data_file_text = ("/begin_header\n"
+                              "/end_header\n"
+                              "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
+            uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
+
+            result = upload_store_files(ctx=self.ctx,
+                                        path="test_files",
+                                        submission_id="an_id",
+                                        user_id=user_id,
+                                        dataset_files=[uploaded_file],
+                                        doc_files=[])
+
+            issues = result["DEL1012_Station_097_CTD_Data.txt"].issues
+            self.assertEqual(1, len(issues))
+            self.assertEqual("ERROR", issues[0].type)
+            self.assertEqual('Invalid format: Missing header tag "fields"', issues[0].description)
+            self.assertEqual("ERROR", result["DEL1012_Station_097_CTD_Data.txt"].status)
+        finally:
+            self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
+
+    def test_upload_store_files_file_without_header(self):
+        user_id = 77618
+        try:
+            data_file_text = ("0.99	26.0464	0.055836	36.222\n"
+                              "1.99	26.0497	0.0558524	36.2311\n"
+                              "2.98	26.0498	0.05586		36.2363")
+            uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
+
+            result = upload_store_files(ctx=self.ctx,
+                                        path="test_files",
+                                        submission_id="an_id",
+                                        user_id=user_id,
+                                        dataset_files=[uploaded_file],
+                                        doc_files=[])
+
+            issues = result["DEL1012_Station_097_CTD_Data.txt"].issues
+            self.assertEqual(1, len(issues))
+            self.assertEqual("ERROR", issues[0].type)
+            self.assertEqual('Invalid format: Missing header tag "fields"', issues[0].description)
+            self.assertEqual("ERROR", result["DEL1012_Station_097_CTD_Data.txt"].status)
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
@@ -198,6 +245,32 @@ class StoreTest(unittest.TestCase):
             self.assertIsNone(result)
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
+
+    def test_get_summary_vaidation_status_no_results(self):
+        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_OK, _get_summary_vaidation_status({}))
+
+    def test_get_summary_vaidation_status_no_errors(self):
+        validation_results = {"wilhelm": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, []),
+                              "herta": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, [])}
+        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_OK, _get_summary_vaidation_status(validation_results))
+
+    def test_get_summary_vaidation_status_warning(self):
+        validation_results = {"wilhelm": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, []),
+                              "herta": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_WARNING, [])}
+        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_WARNING, _get_summary_vaidation_status(validation_results))
+
+    def test_get_summary_vaidation_status_error(self):
+        validation_results = {"wilhelm": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR, []),
+                              "herta": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, [])}
+        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_ERROR, _get_summary_vaidation_status(validation_results))
+
+    def test_get_summary_vaidation_status_all_mixed(self):
+        validation_results = {"wilhelm": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR, []),
+                              "herta": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, []),
+                              "gerda": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_WARNING, []),
+                              "Fritz": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, []),
+                              "heffalump": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, [])}
+        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_ERROR, _get_summary_vaidation_status(validation_results))
 
     def delete_test_file(self, filename: str):
         target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"),
