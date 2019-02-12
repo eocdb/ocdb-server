@@ -1,8 +1,8 @@
 from datetime import datetime
 from typing import List
 
-from ...core.models.submission_file_ref import SubmissionFileRef
 from ...core.model import Model
+from ...core.models.submission_file_ref import SubmissionFileRef
 
 
 class Submission(Model):
@@ -12,6 +12,7 @@ class Submission(Model):
                  user_id: int,
                  date: datetime,
                  status: str,
+                 qc_status: str,
                  file_refs: List[SubmissionFileRef],
                  id: str = None):
         self._id = id
@@ -19,6 +20,7 @@ class Submission(Model):
         self._user_id = user_id
         self._date = date
         self._status = status
+        self._qc_status = qc_status
         self._file_refs = file_refs
 
     @property
@@ -60,6 +62,14 @@ class Submission(Model):
     @status.setter
     def status(self, value: str):
         self._status = value
+
+    @property
+    def qc_status(self):
+        return self._qc_status
+
+    @qc_status.setter
+    def qc_status(self, value: str):
+        self._qc_status = value
 
     @property
     def file_refs(self):

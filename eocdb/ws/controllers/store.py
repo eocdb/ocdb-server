@@ -124,12 +124,13 @@ def upload_store_files(ctx: WsContext,
                                                result=None))
         index += 1
 
-    summary_status = _get_summary_vaidation_status(validation_results)
+    qc_status = _get_summary_vaidation_status(validation_results)
     # Insert submission into database
     submission = DbSubmission(submission_id=submission_id,
                               user_id=user_id,
                               date=datetime.datetime.now(),
-                              status=summary_status,
+                              status="SUBMITTED",
+                              qc_status=qc_status,
                               files=submission_files)
     ctx.db_driver.add_submission(submission)
 

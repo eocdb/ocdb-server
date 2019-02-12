@@ -13,9 +13,10 @@ class DbSubmission(Submission):
                  user_id: int,
                  date: datetime,
                  status: str,
+                 qc_status: str,
                  files: List[SubmissionFile],
                  id: str = None):
-        super().__init__(submission_id, user_id, date, status, [], id)
+        super().__init__(submission_id, user_id, date, status, qc_status, [], id)
 
         self._files = files
 
@@ -41,6 +42,7 @@ class DbSubmission(Submission):
                             user_id=subm.user_id,
                             date=subm.date,
                             status=subm.status,
+                            qc_status=subm.qc_status,
                             files=subm_files_array,
                             id=subm.id)
 
@@ -52,6 +54,7 @@ class DbSubmission(Submission):
         subm = Submission(submission_id=self._submission_id,
                           user_id=self._user_id,
                           date=self._date,
+                          qc_status=self._qc_status,
                           status=self._status,
                           file_refs=file_refs)
         return subm
