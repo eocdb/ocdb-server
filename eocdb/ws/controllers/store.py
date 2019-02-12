@@ -101,8 +101,6 @@ def upload_store_files(ctx: WsContext,
         with open(file_path, "w") as fp:
             text = file.body.decode("utf-8")
             fp.write(text)
-        dataset = datasets[file.filename]
-        dataset.path = str(FileHelper.create_relative_path(ctx.upload_path, file_path))
         submission_files.append(
             SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED',
                            result=None))
