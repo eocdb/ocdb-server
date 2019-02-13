@@ -8,7 +8,7 @@ from eocdb.core.models.submission_file_ref import SubmissionFileRef
 class SubmissionTest(TestCase):
 
     def test_to_dict(self):
-        sfrs = [SubmissionFileRef(submission_id="12", index=7, filename="bla", status="who_knows")]
+        sfrs = [SubmissionFileRef(submission_id="12", index=7, filename="bla", filetype="blubb", status="who_knows")]
         submission = Submission(id="ei_dih",
                                 submission_id="submit_me",
                                 user_id=6789,
@@ -19,6 +19,7 @@ class SubmissionTest(TestCase):
 
         self.assertEqual({'date': datetime(2016, 2, 21, 10, 13, 32),
                           'file_refs': [{'filename': 'bla',
+                                         'filetype': 'blubb',
                                          'index': 7,
                                          'status': 'who_knows',
                                          'submission_id': '12'}],
@@ -36,6 +37,7 @@ class SubmissionTest(TestCase):
                    'status': 'VALIDATED',
                    'qc_status': 'WARNING',
                    'file_refs': [{'filename': 'jepp',
+                                  'filetype': 'holla',
                                   'index': 8,
                                   'status': 'happy',
                                   'submission_id': 'argonaut'}],

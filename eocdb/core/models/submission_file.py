@@ -1,6 +1,6 @@
 from typing import Optional
 
-from eocdb.core.models.submission_file_ref import SubmissionFileRef
+from ...core.models.submission_file_ref import SubmissionFileRef
 from ...core.model import Model
 from ...core.models import DatasetValidationResult
 
@@ -10,11 +10,13 @@ class SubmissionFile(Model):
     def __init__(self, index: int,
                  submission_id: str,
                  filename: str,
+                 filetype: str,
                  status: str,
                  result: Optional[DatasetValidationResult]):
         self._index = index
         self._submission_id = submission_id
         self._filename = filename
+        self._filetype = filetype
         self._status = status
         self._result = result
 
@@ -43,6 +45,14 @@ class SubmissionFile(Model):
         self._filename = value
 
     @property
+    def filetype(self):
+        return self._filetype
+
+    @filetype.setter
+    def filetype(self, value: str):
+        self._filetype = value
+
+    @property
     def status(self):
         return self._status
 
@@ -62,4 +72,5 @@ class SubmissionFile(Model):
         return SubmissionFileRef(index=self._index,
                                  submission_id=self._submission_id,
                                  filename=self._filename,
+                                 filetype=self._filetype,
                                  status=self._status)
