@@ -780,7 +780,8 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def test_add_submission_and_get_one_by_userid(self):
         date = datetime(2018, 4, 23, 12, 15, 34)
-        sf = DbSubmission(submission_id="the_first_test", date=date, user_id=5876123, status="SUBMITTED", qc_status="OK", files=[])
+        sf = DbSubmission(submission_id="the_first_test", date=date, user_id=5876123, status="SUBMITTED",
+                          qc_status="OK", files=[])
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -800,10 +801,10 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_add_submission_with_files_get_one_by_userid(self):
         submission_id = "the_next_test"
         date = datetime(2017, 3, 22, 11, 14, 33)
-        sf_0 = SubmissionFile(index=0, submission_id=submission_id, filename="Number one", status="SUBMITTED",
-                              result=None)
-        sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", status="SUBMITTED",
-                              result=None)
+        sf_0 = SubmissionFile(index=0, submission_id=submission_id, filename="Number one", filetype="first",
+                              status="SUBMITTED", result=None)
+        sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", filetype="second",
+                              status="SUBMITTED", result=None)
         sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED", qc_status="OK",
                           files=[sf_0, sf_1])
 
@@ -865,10 +866,10 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_add_submission_and_get_file(self):
         date = datetime(2017, 3, 22, 11, 14, 33)
         submission_id = "her_we_go"
-        sf_0 = SubmissionFile(index=0, submission_id=submission_id, filename="Number one", status="SUBMITTED",
-                              result=None)
-        sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", status="SUBMITTED",
-                              result=None)
+        sf_0 = SubmissionFile(index=0, submission_id=submission_id, filename="Number one", filetype="yepp",
+                              status="SUBMITTED", result=None)
+        sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", filetype="sure",
+                              status="SUBMITTED", result=None)
         sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED", qc_status="OK",
                           files=[sf_0, sf_1])
 
@@ -892,10 +893,10 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_add_submission_and_get_file_invalid_index(self):
         date = datetime(2017, 3, 22, 11, 14, 33)
         submission_id = "her_we_go"
-        sf_0 = SubmissionFile(index=0, submission_id=submission_id, filename="Number one", status="SUBMITTED",
-                              result=None)
-        sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", status="SUBMITTED",
-                              result=None)
+        sf_0 = SubmissionFile(index=0, submission_id=submission_id, filename="Number one", filetype="first",
+                              status="SUBMITTED", result=None)
+        sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", filetype="second",
+                              status="SUBMITTED", result=None)
         sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED", qc_status="OK",
                           files=[sf_0, sf_1])
 

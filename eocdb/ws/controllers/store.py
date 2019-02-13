@@ -106,6 +106,7 @@ def upload_store_files(ctx: WsContext,
         submission_files.append(SubmissionFile(index=index,
                                                submission_id=submission_id,
                                                filename=file.filename,
+                                               filetype="MEASUREMENT",
                                                status=result.status,
                                                result=result))
         index += 1
@@ -120,6 +121,7 @@ def upload_store_files(ctx: WsContext,
         submission_files.append(SubmissionFile(index=index,
                                                submission_id=submission_id,
                                                filename=file.filename,
+                                               filetype="DOCUMENT",
                                                status='SUBMITTED',
                                                result=None))
         index += 1

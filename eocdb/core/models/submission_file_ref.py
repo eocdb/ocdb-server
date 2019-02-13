@@ -6,10 +6,12 @@ class SubmissionFileRef(Model):
     def __init__(self, index: int,
                  submission_id: str,
                  filename: str,
+                 filetype: str,
                  status: str):
         self._index = index
         self._submission_id=submission_id
         self._filename = filename
+        self._filetype = filetype
         self._status = status
 
     @property
@@ -35,6 +37,14 @@ class SubmissionFileRef(Model):
     @filename.setter
     def filename(self, value: str):
         self._filename = value
+
+    @property
+    def filetype(self):
+        return self._filetype
+
+    @filetype.setter
+    def filetype(self, value: str):
+        self._filetype = value
 
     @property
     def status(self):

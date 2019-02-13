@@ -3,7 +3,7 @@ servers:
   - url: 'http://ocdb-test:4000/eocdb/api/v0.1.0/'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.14"
+  version: "0.1.0-dev.15"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -247,7 +247,7 @@ paths:
       operationId: setSubmissionFileStatus
       parameters:
       - $ref: '#/components/parameters/submissionFileIdParam'
-      - $ref: '#/components/parameters/submissionFileStatusParam'
+      - $ref: '#/components/parameters/submissionStatusParam'
       responses:
         '200':
           description: Successful operation.
@@ -984,7 +984,7 @@ components:
       required: true
       schema:
         type: integer
-    submissionFileStatusParam:
+    submissionStatusParam:
       name: status
       in: path
       description: The status of the submission.
@@ -1120,6 +1120,7 @@ components:
         - index
         - submissionId
         - filename
+        - filetype
         - status
         - result
       properties:
@@ -1129,9 +1130,12 @@ components:
           type: string
         filename:
           type: string
+        filetype:
+          type: string
+          enum: ['MEASUREMENT', 'DOCUMENT']
         status:
           type: string
-          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
+          enum: ["OK", "WARNING", "ERROR"]
         result:
           $ref: '#/components/schemas/DatasetValidationResult'
     SubmissionFileRef:
@@ -1140,17 +1144,21 @@ components:
         - index
         - submissionId
         - filename
+        - filetype
         - status
       properties:
         index:
           type: integer
         submissionid:
           type: string
-        date:
+        filename:
           type: string
+        filetype:
+          type: string
+          enum: ['MEASUREMENT', 'DOCUMENT']
         status:
           type: string
-          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
+          enum: ["OK", "WARNING", "ERROR"]
     Submission:
       type: object
       required:
