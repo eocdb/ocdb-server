@@ -26,12 +26,11 @@ import time
 import zipfile
 from typing import Dict, List
 
-from eocdb.ws.errors import WsBadRequestError
 from ..context import WsContext
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
-from ...core.file_helper import FileHelper
-from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery
+from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
+    DATASET_VALIDATION_RESULT_STATUS_WARNING
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.submission import Submission
@@ -41,6 +40,7 @@ from ...core.seabass.sb_file_reader import SbFileReader, SbFormatError
 from ...core.val import validator
 from ...db.static_data import get_product_groups, get_products
 from ...ws.controllers.datasets import find_datasets, get_dataset_by_id
+from ...ws.errors import WsBadRequestError
 
 
 # noinspection PyUnusedLocal
@@ -59,12 +59,12 @@ def upload_store_files(ctx: WsContext,
     assert_not_none(dataset_files)
     assert_not_none(doc_files)
 
-    datasets = dict()
-    validation_results = dict()
-
     result = ctx.db_driver.get_submission(submission_id)
     if result is not None:
         raise WsBadRequestError(f"Submission identifier already exists: {submission_id}")
+
+    datasets = dict()
+    validation_results = dict()
 
     # Read dataset files and make sure their format is ok.
     for file in dataset_files:
@@ -101,9 +101,13 @@ def upload_store_files(ctx: WsContext,
         with open(file_path, "w") as fp:
             text = file.body.decode("utf-8")
             fp.write(text)
-        submission_files.append(
-            SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED',
-                           result=None))
+
+        result = validation_results[file.filename]
+        submission_files.append(SubmissionFile(index=index,
+                                               submission_id=submission_id,
+                                               filename=file.filename,
+                                               status=result.status,
+                                               result=result))
         index += 1
 
     # Write documentation files into store
@@ -113,16 +117,20 @@ def upload_store_files(ctx: WsContext,
         file_path = os.path.join(docs_dir_path, file.filename)
         with open(file_path, "wb") as fp:
             fp.write(file.body)
-        submission_files.append(
-            SubmissionFile(index=index, submission_id=submission_id, filename=file.filename, status='SUBMITTED',
-                           result=None))
+        submission_files.append(SubmissionFile(index=index,
+                                               submission_id=submission_id,
+                                               filename=file.filename,
+                                               status='SUBMITTED',
+                                               result=None))
         index += 1
 
+    qc_status = _get_summary_vaidation_status(validation_results)
     # Insert submission into database
     submission = DbSubmission(submission_id=submission_id,
                               user_id=user_id,
                               date=datetime.datetime.now(),
-                              status='SUBMITTED',
+                              status="SUBMITTED",
+                              qc_status=qc_status,
                               files=submission_files)
     ctx.db_driver.add_submission(submission)
 
@@ -253,3 +261,19 @@ def get_document_root_path(dataset_path):
         return path
     else:
         return valid_segments[0]
+
+def _get_summary_vaidation_status(validation_results: dict) -> str:
+    errors = 0
+    warnings = 0
+    for key, value in validation_results.items():
+        if value.status == DATASET_VALIDATION_RESULT_STATUS_ERROR:
+            errors+=1
+        if value.status == DATASET_VALIDATION_RESULT_STATUS_WARNING:
+            warnings+=1
+
+    if errors > 0:
+        return DATASET_VALIDATION_RESULT_STATUS_ERROR
+    if warnings > 0:
+        return DATASET_VALIDATION_RESULT_STATUS_WARNING
+
+    return DATASET_VALIDATION_RESULT_STATUS_OK

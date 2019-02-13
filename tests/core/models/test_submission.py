@@ -14,14 +14,16 @@ class SubmissionTest(TestCase):
                                 user_id=6789,
                                 date=datetime(2016, 2, 21, 10, 13, 32),
                                 status='SUBMITTED',
+                                qc_status='OK',
                                 file_refs=sfrs)
 
         self.assertEqual({'date': datetime(2016, 2, 21, 10, 13, 32),
                           'file_refs': [{'filename': 'bla',
-                                     'index': 7,
-                                     'status': 'who_knows',
-                                     'submission_id': '12'}],
+                                         'index': 7,
+                                         'status': 'who_knows',
+                                         'submission_id': '12'}],
                           'id': 'ei_dih',
+                          'qc_status': 'OK',
                           'status': 'SUBMITTED',
                           'submission_id': 'submit_me',
                           'user_id': 6789}, submission.to_dict())
@@ -32,10 +34,11 @@ class SubmissionTest(TestCase):
                    'user_id': 834569982763,
                    'date': datetime(2015, 1, 20, 9, 12, 31),
                    'status': 'VALIDATED',
+                   'qc_status': 'WARNING',
                    'file_refs': [{'filename': 'jepp',
-                              'index': 8,
-                              'status': 'happy',
-                              'submission_id': 'argonaut'}],
+                                  'index': 8,
+                                  'status': 'happy',
+                                  'submission_id': 'argonaut'}],
                    }
 
         submission = Submission.from_dict(sm_dict)
