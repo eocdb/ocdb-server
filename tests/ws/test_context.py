@@ -59,6 +59,12 @@ class WsContextTest(unittest.TestCase):
         self.assertIsInstance(path, str)
         self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/uploads/INPE/Ubatuba/documents"))
 
+    def test_submission_path(self):
+        ctx = new_test_service_context()
+        path = ctx.get_submission_path("LAVAL_U/babin/ICESCAPE")
+        self.assertIsInstance(path, str)
+        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/uploads/LAVAL_U/babin/ICESCAPE"))
+
     def test_db_driver(self):
         ctx = new_test_service_context()
         self.assertIsInstance(ctx.db_driver, DbDriver)

@@ -22,9 +22,8 @@ class DbSubmissionTest(TestCase):
                                 status="VALIDATED",
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files,
-                            qc_status="warning",
-                            date=datetime(2001, 2, 3, 4, 5, 6))
+        subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", path="/the/archive/root/",
+                            files=files, qc_status="warning", date=datetime(2001, 2, 3, 4, 5, 6))
 
         self.assertEqual({'date': datetime(2001, 2, 3, 4, 5, 6),
                           'file_refs': [],
@@ -43,6 +42,7 @@ class DbSubmissionTest(TestCase):
                                      'status': 'VALIDATED',
                                      'submission_id': 'submitme'}],
                           'id': None,
+                          'path': '/the/archive/root/',
                           'qc_status': 'warning',
                           'status': 'Hellyeah',
                           'submission_id': 'submitme',
@@ -67,6 +67,7 @@ class DbSubmissionTest(TestCase):
                      'status': 'Yo!',
                      'qc_status': 'Very good',
                      'submission_id': 'submitme',
+                     'path': 'up where we belong',
                      'user_id': 88764}
 
         subm = DbSubmission.from_dict(subm_dict)
@@ -92,7 +93,7 @@ class DbSubmissionTest(TestCase):
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
         db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
-                               date=datetime(2001, 2, 3, 4, 5, 6))
+                               path="/root/hell/yeah", date=datetime(2001, 2, 3, 4, 5, 6))
 
         subm = db_subm.to_submission()
 
