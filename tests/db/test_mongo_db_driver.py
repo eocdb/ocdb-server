@@ -781,7 +781,7 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_add_submission_and_get_one_by_userid(self):
         date = datetime(2018, 4, 23, 12, 15, 34)
         sf = DbSubmission(submission_id="the_first_test", date=date, user_id=5876123, status="SUBMITTED",
-                          qc_status="OK", files=[])
+                          qc_status="OK", path="walking", files=[])
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -795,6 +795,7 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(date, result_sub.date)
         self.assertEqual(5876123, result_sub.user_id)
         self.assertEqual("SUBMITTED", result_sub.status)
+        self.assertEqual("walking", result_sub.path)
         self.assertEqual(0, len(result_sub.files))
         self.assertEqual(0, len(result_sub.file_refs))
 
@@ -806,7 +807,7 @@ class TestMongoDbDriver(unittest.TestCase):
         sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", filetype="second",
                               status="SUBMITTED", result=None)
         sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED", qc_status="OK",
-                          files=[sf_0, sf_1])
+                          path="/the/cool/path", files=[sf_0, sf_1])
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -820,6 +821,7 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(date, result_sub.date)
         self.assertEqual(5876123, result_sub.user_id)
         self.assertEqual("SUBMITTED", result_sub.status)
+        self.assertEqual("/the/cool/path", result_sub.path)
         self.assertEqual(2, len(result_sub.files))
         self.assertEqual(0, len(result_sub.file_refs))
 
@@ -828,17 +830,17 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def test_add_three_submission_and_get_two_by_userid(self):
         sf = DbSubmission(submission_id="the_first_test", date=datetime(2018, 4, 23, 12, 15, 34), user_id=5876123,
-                          status="SUBMITTED", qc_status="OK", files=[])
+                          status="SUBMITTED", qc_status="OK", path="/hey/yes/", files=[])
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
 
         sf = DbSubmission(submission_id="the_other_user_thing", date=datetime(2017, 4, 23, 12, 15, 34), user_id=999999,
-                          status="VALIDATED", qc_status="OK", files=[])
+                          status="VALIDATED", qc_status="OK", path="some/where/else", files=[])
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
 
         sf = DbSubmission(submission_id="the_second_one", date=datetime(2011, 1, 22, 12, 15, 34), user_id=5876123,
-                          status="PUBLISHED", qc_status="OK", files=[])
+                          status="PUBLISHED", path="whatever", qc_status="OK", files=[])
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -852,6 +854,7 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(datetime(2018, 4, 23, 12, 15, 34), result_sub.date)
         self.assertEqual(5876123, result_sub.user_id)
         self.assertEqual("SUBMITTED", result_sub.status)
+        self.assertEqual("/hey/yes/", result_sub.path)
         self.assertEqual(0, len(result_sub.files))
         self.assertEqual(0, len(result_sub.file_refs))
 
@@ -860,6 +863,7 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(datetime(2011, 1, 22, 12, 15, 34), result_sub.date)
         self.assertEqual(5876123, result_sub.user_id)
         self.assertEqual("PUBLISHED", result_sub.status)
+        self.assertEqual("whatever", result_sub.path)
         self.assertEqual(0, len(result_sub.files))
         self.assertEqual(0, len(result_sub.file_refs))
 
@@ -871,7 +875,7 @@ class TestMongoDbDriver(unittest.TestCase):
         sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", filetype="sure",
                               status="SUBMITTED", result=None)
         sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED", qc_status="OK",
-                          files=[sf_0, sf_1])
+                          path="/some/where/", files=[sf_0, sf_1])
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -898,7 +902,7 @@ class TestMongoDbDriver(unittest.TestCase):
         sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", filetype="second",
                               status="SUBMITTED", result=None)
         sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED", qc_status="OK",
-                          files=[sf_0, sf_1])
+                          path="p/a/th/", files=[sf_0, sf_1])
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -914,7 +918,7 @@ class TestMongoDbDriver(unittest.TestCase):
         submission_id = "her_we_go"
 
         sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED", qc_status="OK",
-                          files=[])
+                          path="/root", files=[])
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)

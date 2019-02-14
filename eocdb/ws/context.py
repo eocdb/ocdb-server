@@ -108,6 +108,9 @@ class WsContext:
     def get_datasets_upload_path(self, sub_path: str) -> str:
         return os.path.join(self.upload_path, sub_path, DATASETS_DIR_NAME)
 
+    def get_submission_path(self, sub_path: str) -> str:
+        return os.path.join(self.upload_path, sub_path)
+
     def get_doc_files_store_path(self, sub_path: str) -> str:
         return os.path.join(self.store_path, sub_path, DOC_FILES_DIR_NAME)
 

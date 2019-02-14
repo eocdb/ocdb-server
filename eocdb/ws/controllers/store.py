@@ -127,12 +127,14 @@ def upload_store_files(ctx: WsContext,
         index += 1
 
     qc_status = _get_summary_vaidation_status(validation_results)
+    archive_path = ctx.get_submission_path(path)
     # Insert submission into database
     submission = DbSubmission(submission_id=submission_id,
                               user_id=user_id,
                               date=datetime.datetime.now(),
                               status="SUBMITTED",
                               qc_status=qc_status,
+                              path=archive_path,
                               files=submission_files)
     ctx.db_driver.add_submission(submission)
 

@@ -14,10 +14,12 @@ class DbSubmission(Submission):
                  date: datetime,
                  status: str,
                  qc_status: str,
+                 path: str,
                  files: List[SubmissionFile],
                  id: str = None):
         super().__init__(submission_id, user_id, date, status, qc_status, [], id)
 
+        self._path = path
         self._files = files
 
     @property
@@ -27,6 +29,14 @@ class DbSubmission(Submission):
     @files.setter
     def files(self, value: SubmissionFile):
         self._files = value
+
+    @property
+    def path(self):
+        return self._path
+
+    @path.setter
+    def path(self, value: str):
+        self._path = value
 
     @classmethod
     def from_dict(cls: Type[T], dictionary: Dict[str, Any]):
@@ -38,11 +48,14 @@ class DbSubmission(Submission):
             submf = SubmissionFile.from_dict(file_dict)
             subm_files_array.append(submf)
 
+        path = dictionary["path"]
+
         return DbSubmission(submission_id=subm.submission_id,
                             user_id=subm.user_id,
                             date=subm.date,
                             status=subm.status,
                             qc_status=subm.qc_status,
+                            path=path,
                             files=subm_files_array,
                             id=subm.id)
 
