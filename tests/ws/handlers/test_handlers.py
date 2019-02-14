@@ -28,11 +28,11 @@ import zipfile
 import tornado.escape
 import tornado.testing
 
-from eocdb.core.models.qc_info import QcInfo, QC_INFO_STATUS_PASSED
+from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, QC_STATUS_APPROVED
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id_strict, get_dataset_qc_info
 from eocdb.ws.handlers import API_URL_PREFIX
-from eocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument, Submission
+from eocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument
 from tests.helpers import new_test_service_context, new_test_dataset
 
 
@@ -97,30 +97,31 @@ class StoreUploadTest(WsTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
+
 # @todo 2 tb/tb tests deactivated. Need to assemble a proper multipart body! 2019-02-08
-    # def test_post_invalid_submission_id(self):
-    #     body_dict = {"submissionid": ""}
-    #     body = tornado.escape.json_encode(body_dict)
-    #
-    #     response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=body)
-    #     self.assertEqual(400, response.code)
-    #     self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
-    #
-    # def test_post_submission_id_already_present(self):
-    #     submission_id = "I_DO_EXIST"
-    #     submission = Submission(submission_id=submission_id,
-    #                             user_id=12,
-    #                             date=datetime.datetime.now(),
-    #                             status="who_knows",
-    #                             file_refs=[])
-    #     self.ctx.db_driver.add_submission(submission)
-    #
-    #     body_dict = {"submissionid": submission_id}
-    #     body = tornado.escape.json_encode(body_dict)
-    #
-    #     response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=body)
-    #     self.assertEqual(400, response.code)
-    #     self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+# def test_post_invalid_submission_id(self):
+#     body_dict = {"submissionid": ""}
+#     body = tornado.escape.json_encode(body_dict)
+#
+#     response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=body)
+#     self.assertEqual(400, response.code)
+#     self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+#
+# def test_post_submission_id_already_present(self):
+#     submission_id = "I_DO_EXIST"
+#     submission = Submission(submission_id=submission_id,
+#                             user_id=12,
+#                             date=datetime.datetime.now(),
+#                             status="who_knows",
+#                             file_refs=[])
+#     self.ctx.db_driver.add_submission(submission)
+#
+#     body_dict = {"submissionid": submission_id}
+#     body = tornado.escape.json_encode(body_dict)
+#
+#     response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=body)
+#     self.assertEqual(400, response.code)
+#     self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
 
 
 class StoreUploadUserTest(WsTestCase):
@@ -153,7 +154,7 @@ class StoreDownloadTest(WsTestCase):
         pgroup = None
         pname = None
         docs = None
-        geojson=False
+        geojson = False
         query = urllib.parse.urlencode(
             dict(expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype, wlmode=wlmode, shallow=shallow,
                  pmode=pmode, pgroup=pgroup, pname=pname, docs=docs, geojson=geojson))
@@ -530,7 +531,7 @@ class DatasetsIdQcinfoTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}/qcinfo", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-        expected_response_data = {'result': None, 'status': 'waiting'}
+        expected_response_data = {'result': None, 'status': QC_STATUS_SUBMITTED}
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
@@ -538,7 +539,7 @@ class DatasetsIdQcinfoTest(WsTestCase):
         dataset_ref = add_dataset(self.ctx, new_test_dataset(42))
         dataset_id = dataset_ref.id
 
-        expected_qc_info = QcInfo(QC_INFO_STATUS_PASSED,
+        expected_qc_info = QcInfo(QC_STATUS_APPROVED,
                                   dict(by='Illaria',
                                        when="2019-02-01",
                                        doc_files=["qc-report.docx"]))
@@ -742,6 +743,7 @@ class UsersIdTest(WsTestCase):
         expected_response_data = {}
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
+
 
 class HelpersTest(unittest.TestCase):
 

@@ -1,5 +1,6 @@
 from unittest import TestCase
 
+from eocdb.core.models import QC_STATUS_APPROVED, QC_STATUS_PUBLISHED
 from eocdb.core.models.submission_file_ref import SubmissionFileRef
 
 
@@ -10,20 +11,20 @@ class SubmissionFileRefTest(TestCase):
                                 submission_id="suppe",
                                 filename="Margarete",
                                 filetype="mixed",
-                                status="APPROVED")
+                                status=QC_STATUS_APPROVED)
 
         self.assertEqual({'filename': 'Margarete',
                           'filetype': 'mixed',
                           'index': 12,
-                          'status': 'APPROVED',
+                          'status': QC_STATUS_APPROVED,
                           'submission_id': 'suppe'}, sfr.to_dict())
 
     def test_from_dict(self):
-        sfr_dict={'index': 13, 'submission_id': 'moin!', "filename": "Franz", 'filetype': 'blue', 'status': 'PUBLISHED'}
+        sfr_dict={'index': 13, 'submission_id': 'moin!', "filename": "Franz", 'filetype': 'blue', 'status': QC_STATUS_PUBLISHED}
 
         sfr = SubmissionFileRef.from_dict(sfr_dict)
         self.assertEqual(13, sfr.index)
         self.assertEqual("moin!", sfr.submission_id)
         self.assertEqual("Franz", sfr.filename)
         self.assertEqual("blue", sfr.filetype)
-        self.assertEqual("PUBLISHED", sfr.status)
+        self.assertEqual(QC_STATUS_PUBLISHED, sfr.status)

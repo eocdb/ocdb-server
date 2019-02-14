@@ -22,8 +22,7 @@
 
 import unittest
 
-from eocdb.core.models.issue import Issue
-from eocdb.core.models.qc_info import QC_INFO_STATUS_ONGOING, QC_INFO_STATUS_PASSED
+from eocdb.core.models.qc_info import QC_STATUS_VALIDATED, QC_STATUS_APPROVED
 from eocdb.ws.controllers.datasets import *
 from tests.helpers import new_test_service_context, new_test_dataset
 
@@ -269,14 +268,14 @@ class DatasetsTest(unittest.TestCase):
         dataset_id = dataset_ref.id
 
         qc_info = get_dataset_qc_info(self.ctx, dataset_id)
-        self.assertEqual(QcInfo(QC_INFO_STATUS_WAITING), qc_info)
+        self.assertEqual(QcInfo(QC_STATUS_SUBMITTED), qc_info)
 
-        expected_qc_info = QcInfo(QC_INFO_STATUS_ONGOING)
+        expected_qc_info = QcInfo(QC_STATUS_VALIDATED)
         set_dataset_qc_info(self.ctx, dataset_id, expected_qc_info)
         qc_info = get_dataset_qc_info(self.ctx, dataset_id)
         self.assertEqual(expected_qc_info, qc_info)
 
-        expected_qc_info = QcInfo(QC_INFO_STATUS_PASSED,
+        expected_qc_info = QcInfo(QC_STATUS_APPROVED,
                                   dict(by='Illaria',
                                        when="2019-02-01",
                                        doc_files=["qc-report.docx"]))
