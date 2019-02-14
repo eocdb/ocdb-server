@@ -28,7 +28,7 @@ class TestMongoDbDriver(unittest.TestCase):
             pass
 
     def test_insert_one_and_get(self):
-        dataset = helpers.new_test_dataset(1)
+        dataset = helpers.new_test_db_dataset(1)
         dataset.metadata["affiliations"] = "UCSB"
         dataset.metadata["received"] = "20160829"
         dataset.metadata["investigators"] = "Norm_Nelson"

@@ -94,7 +94,7 @@ class StoreTest(unittest.TestCase):
             issues = result["DEL1012_Station_097_CTD_Data.txt"].issues
             self.assertEqual(1, len(issues))
             self.assertEqual("ERROR", issues[0].type)
-            self.assertEqual('Invalid format: Missing header tag "fields"', issues[0].description)
+            self.assertEqual('Invalid format: Missing delimiter tag in header', issues[0].description)
             self.assertEqual("ERROR", result["DEL1012_Station_097_CTD_Data.txt"].status)
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
@@ -117,7 +117,7 @@ class StoreTest(unittest.TestCase):
             issues = result["DEL1012_Station_097_CTD_Data.txt"].issues
             self.assertEqual(1, len(issues))
             self.assertEqual("ERROR", issues[0].type)
-            self.assertEqual('Invalid format: Missing header tag "fields"', issues[0].description)
+            self.assertEqual('Invalid format: Missing delimiter tag in header', issues[0].description)
             self.assertEqual("ERROR", result["DEL1012_Station_097_CTD_Data.txt"].status)
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")

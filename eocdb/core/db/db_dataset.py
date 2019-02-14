@@ -39,5 +39,3 @@ class DbDataset(Dataset):
 
     def add_time(self, timestamp):
         self._times.append(timestamp)
-
-
