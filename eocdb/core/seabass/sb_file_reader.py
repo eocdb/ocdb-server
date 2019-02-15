@@ -124,7 +124,6 @@ class SbFileReader:
         for field in full_field_list:
             groups = get_groups_for_product(field)
             if len(groups) == 0:
-                group_list.append(field)
                 continue
 
             for group in groups:

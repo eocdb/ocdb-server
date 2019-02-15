@@ -1,123 +1,217 @@
 [
   {
-    "name": "AOP",
-    "description": "...",
-    "products": []
-  },
-  {
-    "name": "PAR",
-    "description": "...",
-    "products": []
-  },
-  {
-    "name": "Kd",
-    "description": "...",
-    "products": []
-  },
-  {
     "name": "a",
-    "description": "...",
+    "description": "Any kind ob absorption coefficient",
     "products": [
       "a",
-      "a*ph",
-      "a*srfa",
+      "abs",
+      "abs_ad*",
+      "abs_ag*",
+      "abs_ap*",
+      "abs_blank*",
+      "abs_raw",
+      "absorbance",
+      "ad",
       "adg",
       "ag",
-      "agb",
-      "agp"
+      "agp*",
+      "ap",
+      "aph*",
+      "asrfa*",
+      "stdev_abs_*"
+    ]
+  },
+  {
+    "name": "AOP",
+    "description": "Aerosol Optical Properties",
+    "products": [
+      "ed",
+      "elw",
+      "es",
+      "esky",
+      "esun",
+      "esw",
+      "lsky",
+      "lt",
+      "lu",
+      "lw*",
+      "r",
+      "rl",
+      "rpi",
+      "rrs"
+    ]
+  },
+  {
+    "name": "AOT",
+    "description": "Aerosol Optical Thickness",
+    "products": [
+      "angstrom",
+      "aot",
+      "oz",
+      "wvp"
     ]
   },
   {
     "name": "b",
-    "description": "...",
+    "description": "Scattering coefficients",
     "products": [
-      "b"
+      "b",
+      "bp"
     ]
   },
   {
     "name": "bb",
-    "description": "...",
+    "description": "Backscattering coefficients",
     "products": [
       "bb",
       "bbp",
-      "bbw"
+      "bbw",
+      "vsf"
     ]
   },
   {
     "name": "c",
-    "description": "...",
+    "description": "Attenuation coefficients",
     "products": [
-      "c"
+      "c",
+      "cg",
+      "cgp*",
+      "cnw",
+      "cp"
     ]
   },
   {
-    "name": "DC",
-    "description": "...",
-    "products": []
-  },
-  {
-    "name": "PC",
-    "description": "...",
-    "products": []
-  },
-  {
-    "name": "SPM",
-    "description": "...",
-    "products": []
-  },
-  {
-    "name": "AOT",
-    "description": "...",
-    "products": []
-  },
-  {
-    "name": "nutrients",
-    "description": "...",
-    "products": []
+    "name": "Chl",
+    "description": "Chlorophyll",
+    "products": [
+      "Chl*",
+      "chl*",
+      "phaeo",
+      "tpg"
+    ]
   },
   {
     "name": "CTD",
-    "description": "...",
-    "products": []
+    "description": "Conductivity-Temperature-Depth",
+    "products": [
+      "cond",
+      "sal",
+      "sigma_theta",
+      "sigmat",
+      "wt"
+    ]
+  },
+   {
+    "name": "DC",
+    "description": "Dissolved carbon dioxide",
+    "products": [
+      "cdom",
+      "dic",
+      "doc",
+      "pco2",
+      "ta"
+    ]
   },
   {
     "name": "fluorescence",
     "description": "...",
-    "products": []
-  },
-  {
-    "name": "productivity",
-    "description": "...",
-    "products": []
-  },
-  {
-    "name": "Chl",
-    "description": "...",
     "products": [
-      "Chl",
-      "Chl_a",
-      "Chl_a_allom",
-      "Chl_a_prime",
-      "Chl_b",
-      "Chl_c",
-      "Chl_c1",
-      "Chl_c1c2",
-      "Chl_c2",
-      "Chl_c3",
-      "Chl_ex",
-      "Chl_stimf",
-      "Tchl",
-      "Tot_Chl_a",
-      "Tot_Chl_b",
-      "Tot_Chl_c"
+      "natf",
+      "stimf"
     ]
   },
   {
     "name": "HPLC",
-    "description": "...",
+    "description": "High-performance liquid chromatography variables",
     "products": [
-      "DV_Chl_a",
-      "DV_Chl_b"
+      "allo",
+      "alpha*",
+      "beta*",
+      "anth",
+      "asta",
+      "cantha",
+      "dia*",
+      "dino",
+      "echin",
+      "epi-epi-car",
+      "fuco",
+      "gyro",
+      "lut",
+      "lyco",
+      "mg_dvp",
+      "neo",
+      "other-car",
+      "perid",
+      "pp-car",
+      "pras",
+      "ps-car",
+      "tacc",
+      "tcar",
+      "tot-car",
+      "viola",
+      "zea"
+    ]
+  },
+  {
+    "name": "Kd",
+    "description": "Distribution Coefficient",
+    "products": [
+      "kd",
+      "kl",
+      "kpar",
+      "ku"
+    ]
+  },
+  {
+    "name": "nutrients",
+    "description": "Nutrients",
+    "products": [
+      "bsi",
+      "lsi",
+      "n2_fix",
+      "nh4",
+      "no2",
+      "no2_no3",
+      "no3",
+      "oxygen",
+      "pn",
+      "po4",
+      "pon",
+      "sio4",
+      "tdn",
+      "urea"
+    ]
+  },
+  {
+    "name": "PAR",
+    "description": "Photosynthetically Active Radiation",
+    "products": [
+      "epar",
+      "eupar",
+      "par"
+    ]
+  },
+  {
+    "name": "PC",
+    "description": "Particulated carbon",
+    "products": [
+      "pic",
+      "poc"
+    ]
+  },
+  {
+    "name": "productivity",
+    "description": "Productivity",
+    "products": [
+      "npp",
+      "pp"
+    ]
+  },
+  {
+    "name": "SPM",
+    "description": "Suspended Particulate Matter",
+    "products": [
+      "spm"
     ]
   }
 ]

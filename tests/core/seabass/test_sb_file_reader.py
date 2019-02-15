@@ -202,11 +202,10 @@ class SbFileReaderTest(unittest.TestCase):
                    '3.0	-1.672 	 30.473 	 0.140683 	 0.084343 	 0.035572 	 0.027182 	 0.020158 	 0.01573 	 0.005666 	 0.005809 	 0.002923 	 0.194957 	 0.124843 	 0.073786 	 0.059254 	 0.049095 	 0.041698 	 0.022461 	 0.018807 	 0.016752\n']
 
         dataset = self.reader._parse(sb_file)
-        self.assertEqual(13, len(dataset.groups))
-        self.assertEqual("depth", dataset.groups[0])
-        self.assertEqual("sal", dataset.groups[2])
-        self.assertEqual("a", dataset.groups[3])
-        self.assertEqual("cgp412", dataset.groups[4])
+        self.assertEqual(3, len(dataset.groups))
+        self.assertEqual("CTD", dataset.groups[0])
+        self.assertEqual("a", dataset.groups[1])
+        self.assertEqual("c", dataset.groups[2])
 
         self.assertEqual(21, len(dataset.attributes))
         self.assertEqual("depth", dataset.attributes[0])

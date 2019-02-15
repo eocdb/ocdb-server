@@ -45,14 +45,14 @@ class StaticDataTest(unittest.TestCase):
         self.assertIn('lat', names)
 
     def test_get_group_for_product(self):
-        self.assertEqual(["Chl"], get_groups_for_product("Chl_c1c2"))
-        self.assertEqual(["HPLC"], get_groups_for_product("DV_Chl_b"))
+        self.assertEqual(["Chl"], get_groups_for_product("phaeo"))
+        self.assertEqual(["HPLC"], get_groups_for_product("cantha"))
 
     def test_get_group_for_product_no_result(self):
-        self.assertEqual([], get_groups_for_product("cgp440"))
+        self.assertEqual([], get_groups_for_product("ungrouped_variable"))
 
     def test_get_group_for_product_numbers_stripped(self):
-        self.assertEqual(["a"], get_groups_for_product("agp676"))
+        self.assertEqual(["a"], get_groups_for_product("abs_ag676"))
 
     def assert_valid_field(self, field):
         self.assertIsInstance(field, dict)
