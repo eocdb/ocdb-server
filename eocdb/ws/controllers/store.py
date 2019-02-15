@@ -30,7 +30,7 @@ from ..context import WsContext
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
-    DATASET_VALIDATION_RESULT_STATUS_WARNING
+    DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.submission import Submission
@@ -122,7 +122,7 @@ def upload_store_files(ctx: WsContext,
                                                submission_id=submission_id,
                                                filename=file.filename,
                                                filetype="DOCUMENT",
-                                               status='SUBMITTED',
+                                               status=QC_STATUS_SUBMITTED,
                                                result=None))
         index += 1
 
@@ -132,7 +132,7 @@ def upload_store_files(ctx: WsContext,
     submission = DbSubmission(submission_id=submission_id,
                               user_id=user_id,
                               date=datetime.datetime.now(),
-                              status="SUBMITTED",
+                              status=QC_STATUS_SUBMITTED,
                               qc_status=qc_status,
                               path=archive_path,
                               files=submission_files)

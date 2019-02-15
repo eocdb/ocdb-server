@@ -2,7 +2,7 @@ from datetime import datetime
 from unittest import TestCase
 
 from eocdb.core.db.db_submission import DbSubmission
-from eocdb.core.models import DatasetValidationResult, Issue
+from eocdb.core.models import DatasetValidationResult, Issue, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
 from eocdb.core.models.submission_file import SubmissionFile
 
 
@@ -13,13 +13,13 @@ class DbSubmissionTest(TestCase):
                                 index=0,
                                 filename="Hans",
                                 filetype="DOC",
-                                status="SUBMITTED",
+                                status=QC_STATUS_SUBMITTED,
                                 result=DatasetValidationResult(status="OK", issues=[])),
                  SubmissionFile(submission_id="submitme",
                                 index=1,
                                 filename="Helga",
                                 filetype="MEAS",
-                                status="VALIDATED",
+                                status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
         subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", path="/the/archive/root/",
@@ -31,7 +31,7 @@ class DbSubmissionTest(TestCase):
                                      'filetype': 'DOC',
                                      'index': 0,
                                      'result': {'issues': [], 'status': 'OK'},
-                                     'status': 'SUBMITTED',
+                                     'status': QC_STATUS_SUBMITTED,
                                      'submission_id': 'submitme'},
                                     {'filename': 'Helga',
                                      'filetype': 'MEAS',
@@ -39,7 +39,7 @@ class DbSubmissionTest(TestCase):
                                      'result': {'issues': [{'description': 'This might be wrong',
                                                             'type': 'WARNING'}],
                                                 'status': 'WARNING'},
-                                     'status': 'VALIDATED',
+                                     'status': QC_STATUS_VALIDATED,
                                      'submission_id': 'submitme'}],
                           'id': None,
                           'path': '/the/archive/root/',
@@ -54,14 +54,14 @@ class DbSubmissionTest(TestCase):
                      'files': [{'filename': 'Werner',
                                 'index': 0,
                                 'result': {'issues': [], 'status': 'OK'},
-                                'status': 'SUBMITTED',
+                                'status': QC_STATUS_SUBMITTED,
                                 'submission_id': 'submitme'},
                                {'filename': 'Warburga',
                                 'index': 1,
                                 'result': {'issues': [{'description': 'This might be wrong',
                                                        'type': 'WARNING'}],
                                            'status': 'WARNING'},
-                                'status': 'VALIDATED',
+                                'status': QC_STATUS_VALIDATED,
                                 'submission_id': 'submitme'}],
                      'id': None,
                      'status': 'Yo!',
@@ -83,13 +83,13 @@ class DbSubmissionTest(TestCase):
                                 index=0,
                                 filename="Hans",
                                 filetype="black",
-                                status="SUBMITTED",
+                                status=QC_STATUS_SUBMITTED,
                                 result=DatasetValidationResult(status="OK", issues=[])),
                  SubmissionFile(submission_id="submitme",
                                 index=1,
                                 filename="Helga",
                                 filetype="green",
-                                status="VALIDATED",
+                                status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
         db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",

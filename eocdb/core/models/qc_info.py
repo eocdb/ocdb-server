@@ -25,10 +25,10 @@ from typing import Dict, Optional
 from ..model import Model
 from ...core.asserts import assert_not_none, assert_one_of
 
-QC_INFO_STATUS_WAITING = 'waiting'
-QC_INFO_STATUS_ONGOING = 'ongoing'
-QC_INFO_STATUS_PASSED = 'passed'
-QC_INFO_STATUS_FAILED = 'failed'
+QC_STATUS_SUBMITTED = 'SUBMITTED'
+QC_STATUS_VALIDATED = 'VALIDATED'
+QC_STATUS_APPROVED = 'APPROVED'
+QC_STATUS_PUBLISHED = 'PUBLISHED'
 
 
 class QcInfo(Model):
@@ -40,7 +40,7 @@ class QcInfo(Model):
                  status: str,
                  result: Dict = None):
         assert_not_none(status, name='status')
-        assert_one_of(status, ['waiting', 'ongoing', 'passed', 'failed'], name='status')
+        assert_one_of(status, [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_PUBLISHED], name='status')
         self._status = status
         self._result = result
 
@@ -51,7 +51,7 @@ class QcInfo(Model):
     @status.setter
     def status(self, value: str):
         assert_not_none(value, name='value')
-        assert_one_of(value, ['waiting', 'ongoing', 'passed', 'failed'], name='value')
+        assert_one_of(value, [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_PUBLISHED], name='value')
         self._status = value
 
     @property
