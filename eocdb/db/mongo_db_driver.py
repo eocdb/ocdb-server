@@ -322,7 +322,10 @@ class MongoDbDriver(DbDriver):
                 query_dict["times"] = times_dict
 
             if query.pgroup is not None:
-                query_dict.update({'attributes': {'$in': query.pgroup}})
+                query_dict.update({'groups': {'$in': query.pgroup}})
+
+            if query.pname is not None:
+                query_dict.update({'attributes': {'$in': query.pname}})
 
             if query.shallow is not None:
                 if query.shallow == 'no':

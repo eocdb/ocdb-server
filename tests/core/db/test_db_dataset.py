@@ -28,6 +28,7 @@ class DbDatsetTest(TestCase):
 
     def test_to_dict_empty(self):
         self.assertEqual({'attributes': [],
+                          'groups': [],
                           'latitudes': [],
                           'longitudes': [],
                           'id': None,
@@ -39,16 +40,19 @@ class DbDatsetTest(TestCase):
     def test_to_dict(self):
         record_1 = [-39.4, 110.8, 0.267612499]
         record_2 = [-39.5, 110.9, 0.367612499]
+        groups = ["Chl"]
 
         self.dataset.add_metadatum("key_1", "value_1")
         self.dataset.add_metadatum("key_2", "value_2")
         self.dataset.add_attributes(['lat', 'lon', 'chl'])
+        self.dataset.groups = groups
         self.dataset.add_geo_location(-107.23, 18.076)
         self.dataset.add_time(datetime.datetime(2008, 10, 4, 15, 22, 51))
         self.dataset.add_record(record_1)
         self.dataset.add_record(record_2)
 
         self.assertEqual({'attributes': ['lat', 'lon', 'chl'],
+                          'groups': ['Chl'],
                           'latitudes': [18.076],
                           'longitudes': [-107.23],
                           'id': None,

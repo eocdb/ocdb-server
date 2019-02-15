@@ -43,6 +43,7 @@ class Dataset(Model):
         self._longitudes = []
         self._latitudes = []
         self._attributes = []
+        self._groups = []
         self._times = []
 
     @property
@@ -105,6 +106,14 @@ class Dataset(Model):
     def attributes(self, value: List[str]):
         assert_not_none(value, name='attributes')
         self._attributes = value
+
+    @property
+    def groups(self) -> List[str]:
+        return self._groups
+
+    @groups.setter
+    def groups(self, value: List[str]):
+        self._groups = value
 
     @property
     def times(self) -> List[str]:

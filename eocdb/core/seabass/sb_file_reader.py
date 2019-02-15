@@ -23,9 +23,9 @@ import datetime
 import re
 from typing import List, Sequence, Any
 
-from ...db.static_data import get_groups_for_product
 from ..db.db_dataset import DbDataset
 from ..models.dataset import Dataset
+from ...db.static_data import get_groups_for_product
 
 EOF = 'end_of_file'
 
@@ -63,11 +63,11 @@ class SbFileReader:
             self.handle_header = True
             metadata = self._parse_header()
 
-        field_list = self._extract_field_list()
         delimiter_regex = self._extract_delimiter_regex(metadata)
         records = self._parse_records(delimiter_regex)
         dataset = DbDataset(metadata, records)
-        dataset.attributes = field_list
+        dataset.attributes = self._extract_field_list()
+        dataset.groups = self._extract_group_list()
         self._extract_searchfields(dataset)
 
         if self.handle_header is None or self.handle_header is True:
@@ -118,11 +118,8 @@ class SbFileReader:
 
         return metadata
 
-    def _extract_field_list(self):
-        if self._field_list is None:
-            raise SbFormatError('Missing header tag "fields"')
-
-        full_field_list = self._field_list.lower().split(',')
+    def _extract_group_list(self):
+        full_field_list = self._extract_field_list()
         group_list = []
         for field in full_field_list:
             groups = get_groups_for_product(field)
@@ -135,6 +132,12 @@ class SbFileReader:
                     group_list.append(group)
 
         return group_list
+
+    def _extract_field_list(self):
+        if self._field_list is None:
+            raise SbFormatError('Missing header tag "fields"')
+
+        return self._field_list.lower().split(',')
 
     def _extract_searchfields(self, dataset):
         self._extract_geo_locations(dataset)

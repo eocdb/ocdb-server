@@ -19,13 +19,13 @@ class SbFileReaderTest(unittest.TestCase):
         sb_file = ['/end_header\n']
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-        self.assertEqual('Missing header tag "fields"', f"{cm.exception}")
+        self.assertEqual('Missing delimiter tag in header', f"{cm.exception}")
 
     def test_parse_empty_header_missing_end(self):
         sb_file = ['/begin_header\n']
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-        self.assertEqual('Missing header tag "fields"', f"{cm.exception}")
+        self.assertEqual('Missing delimiter tag in header', f"{cm.exception}")
 
     def test_parse_location_in_header_time_info_in_header_and_records(self):
         sb_file = ['/begin_header\n',
@@ -202,11 +202,18 @@ class SbFileReaderTest(unittest.TestCase):
                    '3.0	-1.672 	 30.473 	 0.140683 	 0.084343 	 0.035572 	 0.027182 	 0.020158 	 0.01573 	 0.005666 	 0.005809 	 0.002923 	 0.194957 	 0.124843 	 0.073786 	 0.059254 	 0.049095 	 0.041698 	 0.022461 	 0.018807 	 0.016752\n']
 
         dataset = self.reader._parse(sb_file)
-        self.assertEqual(13, len(dataset.attributes))
+        self.assertEqual(13, len(dataset.groups))
+        self.assertEqual("depth", dataset.groups[0])
+        self.assertEqual("sal", dataset.groups[2])
+        self.assertEqual("a", dataset.groups[3])
+        self.assertEqual("cgp412", dataset.groups[4])
+
+        self.assertEqual(21, len(dataset.attributes))
         self.assertEqual("depth", dataset.attributes[0])
         self.assertEqual("sal", dataset.attributes[2])
-        self.assertEqual("a", dataset.attributes[3])
-        self.assertEqual("cgp412", dataset.attributes[4])
+        self.assertEqual("agp412", dataset.attributes[3])
+        self.assertEqual("agp440", dataset.attributes[4])
+        self.assertEqual("cgp488", dataset.attributes[14])
 
     def test_extract_delimiter_regex(self):
         metadata = {'delimiter': 'comma'}

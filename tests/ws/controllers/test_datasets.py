@@ -99,15 +99,15 @@ class DatasetsTest(unittest.TestCase):
 
     def test_find_datasets_pgroup(self):
         dataset = new_test_dataset(1)
-        dataset.attributes = ["a"]
+        dataset.groups = ["a"]
         add_dataset(self.ctx, dataset=dataset)
 
         dataset = new_test_dataset(2)
-        dataset.attributes = ["sal"]
+        dataset.groups = ["sal"]
         add_dataset(self.ctx, dataset=dataset)
 
         dataset = new_test_dataset(3)
-        dataset.attributes = ["Chl_a", "Chl_b"]
+        dataset.groups = ["Chl_a", "Chl_b"]
         add_dataset(self.ctx, dataset=dataset)
 
         expr = None
@@ -120,6 +120,50 @@ class DatasetsTest(unittest.TestCase):
         pmode = 'contains'
         pgroup = ['sal']
         pname = None
+        offset = None
+        count = None
+
+        # noinspection PyTypeChecker
+        result = find_datasets(self.ctx,
+                               expr=expr,
+                               region=region,
+                               time=time,
+                               wdepth=wdepth,
+                               mtype=mtype,
+                               wlmode=wlmode,
+                               shallow=shallow,
+                               pmode=pmode,
+                               pgroup=pgroup,
+                               pname=pname,
+                               offset=offset,
+                               count=count)
+
+        self.assertIsInstance(result, DatasetQueryResult)
+        self.assertEqual(1, result.total_count)
+
+    def test_find_datasets_pname(self):
+        dataset = new_test_dataset(1)
+        dataset.attributes = ["But-fuco"]
+        add_dataset(self.ctx, dataset=dataset)
+
+        dataset = new_test_dataset(2)
+        dataset.attributes = ["Hex-fuco"]
+        add_dataset(self.ctx, dataset=dataset)
+
+        dataset = new_test_dataset(3)
+        dataset.attributes = ["Allo", "Diadino"]
+        add_dataset(self.ctx, dataset=dataset)
+
+        expr = None
+        region = None
+        time = None
+        wdepth = None
+        mtype = None
+        wlmode = 'all'
+        shallow = 'no'
+        pmode = 'contains'
+        pgroup = None
+        pname = ['Allo', 'Diadino']
         offset = None
         count = None
 
