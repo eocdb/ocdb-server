@@ -34,7 +34,9 @@
       "lsky",
       "lt",
       "lu",
-      "lw*",
+      "lw",
+      "lwn",
+      "lwnex",
       "r",
       "rl",
       "rpi",
@@ -75,7 +77,6 @@
     "products": [
       "c",
       "cg",
-      "cgp*",
       "cnw",
       "cp"
     ]
@@ -126,11 +127,14 @@
     "products": [
       "allo",
       "alpha*",
-      "beta*",
+      "beta-*",
+      "beta_alpha-car",
       "anth",
       "asta",
       "cantha",
-      "dia*",
+      "diadchr",
+      "diadino",
+      "diato",
       "dino",
       "echin",
       "epi-epi-car",
