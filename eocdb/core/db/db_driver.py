@@ -33,7 +33,7 @@ class DbDriver(Service):
         """Find datasets for given query and return list of dataset references."""
 
     @abstractmethod
-    def add_submission(self, submission: Submission) -> str:
+    def add_submission(self, submission: DbSubmission) -> str:
         """Add new submission file and return ID."""
 
     @abstractmethod

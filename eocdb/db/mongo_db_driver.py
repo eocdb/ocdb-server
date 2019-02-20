@@ -89,7 +89,7 @@ class MongoDbDriver(DbDriver):
 
             return DatasetQueryResult(locations, num_results, dataset_refs, query)
 
-    def add_submission(self, submission: Submission):
+    def add_submission(self, submission: DbSubmission):
         sf_dict = submission.to_dict()
         result = self._submit_collection.insert_one(sf_dict)
         return str(result.inserted_id)
