@@ -28,11 +28,16 @@ import zipfile
 import tornado.escape
 import tornado.testing
 
-from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, QC_STATUS_APPROVED
+from eocdb.core.db.db_submission import DbSubmission
+from eocdb.core.models import DatasetValidationResult, Issue
+from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, QC_STATUS_APPROVED, QC_STATUS_VALIDATED
+from eocdb.core.models.submission import Submission
+from eocdb.core.models.submission_file import SubmissionFile
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id_strict, get_dataset_qc_info
 from eocdb.ws.handlers import API_URL_PREFIX
 from eocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument
+from tests.core.mpf import MultiPartForm
 from tests.helpers import new_test_service_context, new_test_dataset
 
 
@@ -82,46 +87,72 @@ class StoreInfoTest(WsTestCase):
 
 class StoreUploadTest(WsTestCase):
 
-    @unittest.skip('not implemented yet')
-    def test_post(self):
-        # TODO (generated): set data for request body to reasonable value
-        data = None
-        body = data
+    def test_post_invalid_submission_id(self):
+        mpf = MultiPartForm(boundary="HEFFALUMP")
+        mpf.add_field("submissionid", "")
 
-        response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=body)
+        response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=bytes(mpf))
+        self.assertEqual(400, response.code)
+        self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+
+    def test_post_submission_id_already_present(self):
+        submission_id = "I_DO_EXIST"
+        submission = Submission(submission_id=submission_id,
+                                user_id=12,
+                                date=datetime.datetime.now(),
+                                status="who_knows",
+                                qc_status="OK",
+                                file_refs=[])
+        self.ctx.db_driver.add_submission(submission)
+
+        mpf = MultiPartForm(boundary="HEFFALUMP")
+        mpf.add_field("submissionid", submission_id)
+
+        response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=bytes(mpf))
+        self.assertEqual(400, response.code)
+        self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+
+
+class StoreUploadSubmissionFileTest(WsTestCase):
+
+    def test_get_no_results(self):
+        parameter = "submission_id=ABCDEFGHI&index=0"
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile?{parameter}", method='GET')
+
+        self.assertEqual(400, response.code)
+        self.assertEqual('No result found', response.reason)
+
+    def test_get_one_result(self):
+        files = [SubmissionFile(submission_id="submitme",
+                                index=0,
+                                filename="Hans",
+                                filetype="black",
+                                status=QC_STATUS_SUBMITTED,
+                                result=DatasetValidationResult(status="OK", issues=[])),
+                 SubmissionFile(submission_id="submitme",
+                                index=1,
+                                filename="Helga",
+                                filetype="green",
+                                status=QC_STATUS_VALIDATED,
+                                result=DatasetValidationResult(status="WARNING", issues=[
+                                    Issue(type="WARNING", description="This might be wrong")]))]
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+        self.ctx.db_driver.add_submission(db_subm)
+
+        parameter = "submission_id=submitme&index=0"
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile?{parameter}", method='GET')
+
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        # TODO (generated): set expected_response correctly
-        expected_response_data = {}
         actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual(expected_response_data, actual_response_data)
-
-
-# @todo 2 tb/tb tests deactivated. Need to assemble a proper multipart body! 2019-02-08
-# def test_post_invalid_submission_id(self):
-#     body_dict = {"submissionid": ""}
-#     body = tornado.escape.json_encode(body_dict)
-#
-#     response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=body)
-#     self.assertEqual(400, response.code)
-#     self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
-#
-# def test_post_submission_id_already_present(self):
-#     submission_id = "I_DO_EXIST"
-#     submission = Submission(submission_id=submission_id,
-#                             user_id=12,
-#                             date=datetime.datetime.now(),
-#                             status="who_knows",
-#                             file_refs=[])
-#     self.ctx.db_driver.add_submission(submission)
-#
-#     body_dict = {"submissionid": submission_id}
-#     body = tornado.escape.json_encode(body_dict)
-#
-#     response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=body)
-#     self.assertEqual(400, response.code)
-#     self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+        self.assertEqual({'filename': 'Hans',
+                          'filetype': 'black',
+                          'index': 0,
+                          'result': {'issues': [], 'status': 'OK'},
+                          'status': 'SUBMITTED',
+                          'submission_id': 'submitme'}, actual_response_data)
 
 
 class StoreUploadUserTest(WsTestCase):
