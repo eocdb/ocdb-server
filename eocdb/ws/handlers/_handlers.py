@@ -125,8 +125,19 @@ class StoreUploadUser(WsRequestHandler):
 # noinspection PyAbstractClass
 class StoreUploadSubmissionFile(WsRequestHandler):
 
-    def get(self, submission_id: str, index: int):
-        return get_submission_file(ctx=self.ws_context, submission_id=submission_id, index=index)
+    def get(self):
+        submission_id = self.query.get_param("submission_id", default=None)
+        index_str = self.query.get_param("index", default=None)
+        index = int(index_str)
+
+        submission_file = get_submission_file(ctx=self.ws_context, submission_id=submission_id, index=index)
+        if submission_file is not None:
+            self.set_header('Content-Type', 'application/json')
+            self.finish(tornado.escape.json_encode(submission_file.to_dict()))
+        else:
+            self.set_status(400, reason="No result found")
+
+
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
