@@ -14,7 +14,6 @@ from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
 from ..core.models.dataset_query_result import DatasetQueryResult
 from ..core.models.dataset_ref import DatasetRef
-from ..core.models.submission import Submission
 from ..core.models.submission_file import SubmissionFile
 from ..core.time_helper import TimeHelper
 from ..db.mongo_query_generator import MongoQueryGenerator
