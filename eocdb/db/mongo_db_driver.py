@@ -287,15 +287,13 @@ class MongoDbDriver(DbDriver):
 
     class QueryConverter():
 
-        def __init__(self):
-            self._query_generator = MongoQueryGenerator()
-
         def to_dict(self, query: DatasetQuery) -> dict:
             query_dict = {}
             if query.expr is not None:
+                query_generator = MongoQueryGenerator()
                 q = QueryParser.parse(query.expr)
-                q.accept(self._query_generator)
-                query_dict = self._query_generator.query
+                q.accept(query_generator)
+                query_dict = query_generator.query
 
             if query.region is not None:
                 query_dict["longitudes"] = {'$gte': query.region[0], '$lte': query.region[2]}
