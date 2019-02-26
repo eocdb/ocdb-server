@@ -389,6 +389,36 @@
     }
   ],
   "record": [
+    {
+      "name": "a",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "a*ph",
+      "unit": "m^2/mg",
+      "lower_bound": -0.00001,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "a*srfa",
+      "unit": "m^2/mg",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "aaer",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    }
   ],
   "errors": [
     {
@@ -402,6 +432,14 @@
     {
       "name": "cruise_same_as_experiment",
       "message": "Header /cruise should not be the same as /experiment, please make /cruise a 'subset' of /experiment."
+    },
+    {
+      "name": "field_has_wrong_unit",
+      "message": "The units of '{field_name}', should be '{unit}', not '{bad_unit}'."
+    },
+    {
+      "name": "field_out_of_bounds",
+      "message": "Line {line}: The '{field_name}' field has value ({value}) outside expected range [{lower_bound} - {upper_bound}]."
     }
   ],
   "warnings": [

@@ -23,8 +23,8 @@ class ValidatorTest(TestCase):
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
                            "delimiter": "slash",
-                           "fields": "corn and wheat",
-                           "units": "square feet per degree",
+                           "fields": "a",
+                           "units": "1/m",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "108.24",
@@ -32,7 +32,7 @@ class ValidatorTest(TestCase):
                            "start_time": "01:12:06[GMT]",
                            "end_time": "02:12:06[GMT]",
                            "start_date": "20110624",
-                           "end_date": "20110726"}, [], path="archive/chl01.csv")
+                           "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -52,8 +52,8 @@ class ValidatorTest(TestCase):
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
                            "delimiter": "slash",
-                           "fields": "corn and wheat",
-                           "units": "square feet per degree",
+                           "fields": "a*ph",
+                           "units": "m^2/mg",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "77.24",
@@ -61,7 +61,7 @@ class ValidatorTest(TestCase):
                            "start_time": "01:12:06[GMT]",
                            "end_time": "02:12:06[GMT]",
                            "start_date": "20110624",
-                           "end_date": "20110726"}, [], path="archive/chl01.csv")
+                           "end_date": "20110726"}, [[7], [8]], path="archive/chl01.csv")
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -82,8 +82,8 @@ class ValidatorTest(TestCase):
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
                            "delimiter": "slash",
-                           "fields": "corn and wheat",
-                           "units": "square feet per degree",
+                           "fields": "a*srfa",
+                           "units": "m^2/mg",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "108.24",
@@ -92,7 +92,7 @@ class ValidatorTest(TestCase):
                            "end_time": "02:12:06[GMT]",
                            "start_date": "20110624",
                            "end_date": "20110726"
-                           }, [], path="archive/chl01.csv")
+                           }, [[9], [10]], path="archive/chl01.csv")
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -116,8 +116,8 @@ class ValidatorTest(TestCase):
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
                            "delimiter": "slash",
-                           "fields": "corn and wheat",
-                           "units": "square feet per degree",
+                           "fields": "aaer",
+                           "units": "1/m",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "108.24",
@@ -126,7 +126,7 @@ class ValidatorTest(TestCase):
                            "end_time": "02:12:06[GMT]",
                            "start_date": "20110630",    # <- later than end_date
                            "end_date": "20110626"
-                           }, [], path="archive/chl01.csv")
+                           }, [[11], [12]], path="archive/chl01.csv")
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -147,8 +147,8 @@ class ValidatorTest(TestCase):
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
                            "delimiter": "slash",
-                           "fields": "corn and wheat",
-                           "units": "square feet per degree",
+                           "fields": "abs",
+                           "units": "none",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "108.24",
@@ -157,7 +157,7 @@ class ValidatorTest(TestCase):
                            "end_time": "02:12:06[GMT]",
                            "start_date": "20110630",
                            "end_date": "20110726"
-                           }, [], path="archive/chl01.csv")
+                           }, [[13], [14]], path="archive/chl01.csv")
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
