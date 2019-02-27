@@ -6,7 +6,7 @@ from eocdb.core.val._gap_aware_dict import GapAwareDict
 from eocdb.core.val._message_library import MessageLibrary
 
 
-class NumberRecordRule():
+class NumberRecordRule:
 
     @staticmethod
     def from_dict(value_dict: dict):

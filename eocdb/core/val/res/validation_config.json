@@ -645,6 +645,16 @@
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "associated_files",
+      "data_type": "string",
+      "error": "@field_is_empty"
+    },
+    {
+      "name": "associated_file_types",
+      "data_type": "string",
+      "error": "@field_is_empty"
     }
   ],
   "errors": [
@@ -667,6 +677,10 @@
     {
       "name": "field_out_of_bounds",
       "message": "Measurement #{line}: The '{field_name}' field has value ({value}) outside expected range [{lower_bound} - {upper_bound}]."
+    },
+    {
+      "name": "field_is_empty",
+      "message": "Measurement #{line}: The value for '{field_name}' is empty."
     }
   ],
   "warnings": [

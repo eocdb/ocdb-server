@@ -299,6 +299,40 @@ class ValidatorTest(TestCase):
                                          'expected range [0.0 - nan].',
                           'type': 'ERROR'}, result.issues[0].to_dict())
 
+    def test_validate_dataset_mixed_types_error_empty_string(self):
+        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
+                           "affiliations": "Entenhausen",
+                           "contact": "Dagobert",
+                           "experiment": "check WQ",
+                           "cruise": "Aida II",
+                           "data_file_name": "the_old_file",
+                           "documents": "yes, we have them",
+                           "calibration_files": "we have them, too",
+                           "data_type": "test data",
+                           "water_depth": "80cm",
+                           "missing": "where_are_you?",
+                           "delimiter": "comma",
+                           "fields": "aph,associated_files,ap_unc",
+                           "units": "1/m,none,1/m",
+                           "north_latitude": "37.34",
+                           "south_latitude": "34.96",
+                           "east_longitude": "108.24",
+                           "west_longitude": "88.25",
+                           "start_time": "01:12:06[GMT]",
+                           "end_time": "02:12:06[GMT]",
+                           "start_date": "20110624",
+                           "end_date": "20110726"},
+                          [[5.0, "willi", 7.2],
+                           [6.1, "", 8.3],
+                           [6.2, "ottilie", 8.4]], path="archive/chl01.csv")
+
+        result = self._validator.validate_dataset(dataset)
+        self.assertIsNotNone(result)
+        self.assertEqual("ERROR", result.status)
+        self.assertEqual(1, len(result.issues))
+        self.assertEqual({'description': "Measurement #2: The value for 'associated_files' is empty.",
+                          'type': 'ERROR'}, result.issues[0].to_dict())
+
     def test_resolve_warning_clear_message(self):
         dict = GapAwareDict({"reference": "reffi",
                              "compare": "compi",
