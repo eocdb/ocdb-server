@@ -22,7 +22,7 @@ class ValidatorTest(TestCase):
                            "data_type": "test data",
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
-                           "delimiter": "slash",
+                           "delimiter": "comma",
                            "fields": "a",
                            "units": "1/m",
                            "north_latitude": "37.34",
@@ -51,7 +51,7 @@ class ValidatorTest(TestCase):
                            "data_type": "test data",
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
-                           "delimiter": "slash",
+                           "delimiter": "comma",
                            "fields": "a*ph",
                            "units": "m^2/mg",
                            "north_latitude": "37.34",
@@ -81,7 +81,7 @@ class ValidatorTest(TestCase):
                            "data_type": "test data",
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
-                           "delimiter": "slash",
+                           "delimiter": "comma",
                            "fields": "a*srfa",
                            "units": "m^2/mg",
                            "north_latitude": "37.34",
@@ -115,7 +115,7 @@ class ValidatorTest(TestCase):
                            "data_type": "test data",
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
-                           "delimiter": "slash",
+                           "delimiter": "comma",
                            "fields": "aaer",
                            "units": "1/m",
                            "north_latitude": "37.34",
@@ -124,7 +124,7 @@ class ValidatorTest(TestCase):
                            "west_longitude": "88.25",
                            "start_time": "01:12:06[GMT]",
                            "end_time": "02:12:06[GMT]",
-                           "start_date": "20110630",    # <- later than end_date
+                           "start_date": "20110630",  # <- later than end_date
                            "end_date": "20110626"
                            }, [[11], [12]], path="archive/chl01.csv")
 
@@ -138,15 +138,15 @@ class ValidatorTest(TestCase):
         dataset = Dataset({"investigators": "Daniel_Duesentrieb",
                            "affiliations": "Entenhausen",
                            "contact": "Dagobert",
-                           "experiment": "Aida II", # <- are the same but shouldn't
-                           "cruise": "Aida II",     # <-
+                           "experiment": "Aida II",  # <- are the same but shouldn't
+                           "cruise": "Aida II",  # <-
                            "data_file_name": "the_old_file",
                            "documents": "yes, we have them",
                            "calibration_files": "we have them, too",
                            "data_type": "test data",
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
-                           "delimiter": "slash",
+                           "delimiter": "comma",
                            "fields": "abs",
                            "units": "none",
                            "north_latitude": "37.34",
@@ -168,6 +168,8 @@ class ValidatorTest(TestCase):
                          result.issues[0].to_dict())
 
     def test_validate_dataset_obsolete_field(self):
+        metadata = {'delimiter': 'comma'}
+
         dataset = Dataset({"investigators": "Daniel_Duesentrieb",
                            "affiliations": "Entenhausen",
                            "contact": "Dagobert",
@@ -180,9 +182,9 @@ class ValidatorTest(TestCase):
                            "data_type": "test data",
                            "water_depth": "80cm",
                            "missing": "where_are_you?",
-                           "delimiter": "slash",
-                           "fields": "corn and wheat",
-                           "units": "square feet per degree",
+                           "delimiter": "comma",
+                           "fields": "abs_blank_ap",
+                           "units": "none",
                            "north_latitude": "37.34",
                            "south_latitude": "34.96",
                            "east_longitude": "108.24",
@@ -190,7 +192,7 @@ class ValidatorTest(TestCase):
                            "start_time": "01:12:06[GMT]",
                            "end_time": "02:12:06[GMT]",
                            "start_date": "20110624",
-                           "end_date": "20110726"}, [], path="archive/chl01.csv")
+                           "end_date": "20110726"}, [[13], [14]], path="archive/chl01.csv")
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -199,6 +201,68 @@ class ValidatorTest(TestCase):
         self.assertEqual({'description': "The header field /station_alt_id is marked as obsolete, "
                                          "please check the documentation.", 'type': 'WARNING'},
                          result.issues[0].to_dict())
+
+    def test_validate_dataset_field_units_mismatch(self):
+        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
+                           "affiliations": "Entenhausen",
+                           "contact": "Dagobert",
+                           "experiment": "check WQ",
+                           "cruise": "Aida II",
+                           "data_file_name": "the_old_file",
+                           "documents": "yes, we have them",
+                           "calibration_files": "we have them, too",
+                           "data_type": "test data",
+                           "water_depth": "80cm",
+                           "missing": "where_are_you?",
+                           "delimiter": "comma",
+                           "fields": "a,b",
+                           "units": "1/m",
+                           "north_latitude": "37.34",
+                           "south_latitude": "34.96",
+                           "east_longitude": "108.24",
+                           "west_longitude": "88.25",
+                           "start_time": "01:12:06[GMT]",
+                           "end_time": "02:12:06[GMT]",
+                           "start_date": "20110624",
+                           "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")
+
+        result = self._validator.validate_dataset(dataset)
+        self.assertIsNotNone(result)
+        self.assertEqual("ERROR", result.status)
+        self.assertEqual({'description': 'Number of fields and units does not match. Skipping parsing '
+                                         'of measurement records.',
+                          'type': 'ERROR'}, result.issues[0].to_dict())
+
+    def test_validate_dataset_unlisted_variable(self):
+        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
+                           "affiliations": "Entenhausen",
+                           "contact": "Dagobert",
+                           "experiment": "check WQ",
+                           "cruise": "Aida II",
+                           "data_file_name": "the_old_file",
+                           "documents": "yes, we have them",
+                           "calibration_files": "we have them, too",
+                           "data_type": "test data",
+                           "water_depth": "80cm",
+                           "missing": "where_are_you?",
+                           "delimiter": "comma",
+                           "fields": "heffalump",
+                           "units": "1/m",
+                           "north_latitude": "37.34",
+                           "south_latitude": "34.96",
+                           "east_longitude": "108.24",
+                           "west_longitude": "88.25",
+                           "start_time": "01:12:06[GMT]",
+                           "end_time": "02:12:06[GMT]",
+                           "start_date": "20110624",
+                           "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")
+
+        result = self._validator.validate_dataset(dataset)
+        self.assertIsNotNone(result)
+        self.assertEqual("WARNING", result.status)
+        self.assertEqual(1, len(result.issues))
+        self.assertEqual({'description': 'Variable not listed in valid variables: heffalump',
+                          'type': 'WARNING'}, result.issues[0].to_dict())
 
     def test_resolve_warning_clear_message(self):
         dict = GapAwareDict({"reference": "reffi",

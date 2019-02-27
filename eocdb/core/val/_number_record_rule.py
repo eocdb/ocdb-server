@@ -1,3 +1,4 @@
+import math
 from typing import Optional, List
 
 from eocdb.core.models import Issue, ISSUE_TYPE_ERROR
@@ -7,7 +8,37 @@ from eocdb.core.val._message_library import MessageLibrary
 
 class NumberRecordRule():
 
-    def __init__(self, name: str, unit: str, unit_error: str, value_error: str, lower_bound: float = None, upper_bound: float = None):
+    @staticmethod
+    def from_dict(value_dict: dict):
+        name = value_dict["name"]
+        unit = value_dict["unit"]
+
+        if "unit_error" in value_dict:
+            unit_error = value_dict["unit_error"]
+        else:
+            unit_error = None
+
+        if "value_error" in value_dict:
+            value_error = value_dict["value_error"]
+        else:
+            value_error = None
+
+        lower_bound = NumberRecordRule._extract_float("lower_bound", value_dict)
+        upper_bound = NumberRecordRule._extract_float("upper_bound", value_dict)
+
+        return NumberRecordRule(name, unit, unit_error, value_error, lower_bound, upper_bound)
+
+    @staticmethod
+    def _extract_float(key, value_dict):
+        if key in value_dict:
+            upper_str = value_dict[key]
+            upper_bound = float(upper_str)
+        else:
+            upper_bound = float('nan')
+        return upper_bound
+
+    def __init__(self, name: str, unit: str, unit_error: str, value_error: str, lower_bound: float = float('nan'),
+                 upper_bound: float = float('nan')):
         self._name = name
         self._unit = unit
         self._unit_error = unit_error
@@ -32,11 +63,11 @@ class NumberRecordRule():
 
         for value in values:
             out_of_bounds = False
-            if self._lower_bound is not None:
+            if not math.isnan(self._lower_bound):
                 if value < self._lower_bound:
                     out_of_bounds = True
 
-            if self._upper_bound is not None:
+            if not math.isnan(self._upper_bound):
                 if value > self._upper_bound:
                     out_of_bounds = True
 
@@ -52,3 +83,27 @@ class NumberRecordRule():
             return issues
 
         return None
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def unit(self) -> str:
+        return self._unit
+
+    @property
+    def unit_error(self) -> str:
+        return self._unit_error
+
+    @property
+    def value_error(self) -> str:
+        return self._value_error
+
+    @property
+    def lower_bound(self) -> float:
+        return self._lower_bound
+
+    @property
+    def upper_bound(self) -> float:
+        return self._upper_bound

@@ -418,6 +418,38 @@
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs_blank_ap",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs_blank_ad",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs_blank_ag",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
     }
   ],
   "errors": [
@@ -439,7 +471,7 @@
     },
     {
       "name": "field_out_of_bounds",
-      "message": "Line {line}: The '{field_name}' field has value ({value}) outside expected range [{lower_bound} - {upper_bound}]."
+      "message": "Measurement #{line}: The '{field_name}' field has value ({value}) outside expected range [{lower_bound} - {upper_bound}]."
     }
   ],
   "warnings": [

@@ -1,3 +1,4 @@
+import math
 import unittest
 
 from eocdb.core.models import ISSUE_TYPE_ERROR
@@ -53,5 +54,53 @@ class NumberRecordRuleTest(unittest.TestCase):
         self.assertEqual("@field_out_of_bounds", issues[0].description)
         self.assertEqual(ISSUE_TYPE_ERROR, issues[1].type)
         self.assertEqual("@field_out_of_bounds", issues[1].description)
+
+    def test_from_dict(self):
+        rule_dict = {"name": "Kalle", "unit": "%vol", "lower_bound": "17", "upper_bound": "189.45", "value_error": "plain_wrong", "unit_error": "wtf"}
+
+        rule = NumberRecordRule.from_dict(rule_dict)
+        self.assertIsNotNone(rule)
+        self.assertEqual("Kalle", rule.name)
+        self.assertEqual("%vol", rule.unit)
+        self.assertEqual("wtf", rule.unit_error)
+        self.assertEqual("plain_wrong", rule.value_error)
+        self.assertAlmostEqual(17.0, rule.lower_bound, 8)
+        self.assertAlmostEqual(189.45, rule.upper_bound, 8)
+
+    def test_from_dict_no_upper_bound(self):
+        rule_dict = {"name": "Lucy", "unit": "m^3", "lower_bound": "18.1", "value_error": "oha", "unit_error": "no_not_this_one"}
+
+        rule = NumberRecordRule.from_dict(rule_dict)
+        self.assertIsNotNone(rule)
+        self.assertEqual("Lucy", rule.name)
+        self.assertEqual("m^3", rule.unit)
+        self.assertEqual("no_not_this_one", rule.unit_error)
+        self.assertEqual("oha", rule.value_error)
+        self.assertAlmostEqual(18.1, rule.lower_bound, 8)
+        self.assertTrue(math.isnan(rule.upper_bound))
+
+    def test_from_dict_no_lower_bound(self):
+        rule_dict = {"name": "Herman", "unit": "unite", "upper_bound": "190.55", "value_error": "plain_wrong", "unit_error": "wtf"}
+
+        rule = NumberRecordRule.from_dict(rule_dict)
+        self.assertIsNotNone(rule)
+        self.assertEqual("Herman", rule.name)
+        self.assertEqual("unite", rule.unit)
+        self.assertEqual("wtf", rule.unit_error)
+        self.assertEqual("plain_wrong", rule.value_error)
+        self.assertTrue(math.isnan(rule.lower_bound))
+        self.assertAlmostEqual(190.55, rule.upper_bound, 8)
+
+    def test_from_dict_no_error_messages(self):
+        rule_dict = {"name": "Kalle", "unit": "%vol", "lower_bound": "17", "upper_bound": "189.45"}
+
+        rule = NumberRecordRule.from_dict(rule_dict)
+        self.assertIsNotNone(rule)
+        self.assertEqual("Kalle", rule.name)
+        self.assertEqual("%vol", rule.unit)
+        self.assertIsNone(rule.unit_error)
+        self.assertIsNone(rule.value_error)
+        self.assertAlmostEqual(17.0, rule.lower_bound, 8)
+        self.assertAlmostEqual(189.45, rule.upper_bound, 8)
 
 
