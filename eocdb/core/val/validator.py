@@ -104,7 +104,7 @@ class Validator(MessageLibrary):
 
             record_issues = rule.eval(units[index], values , self)
             if record_issues is not None:
-                issues.append(record_issues)
+                issues.extend(record_issues)
                 for record_issue in record_issues:
                     if ISSUE_TYPE_ERROR == record_issue.type:
                         errors +=1

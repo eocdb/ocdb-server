@@ -450,6 +450,201 @@
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs*",
+      "unit": "m^2/mg",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs_ad",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs_ag",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs_ap",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs_nacl",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abundance",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ad",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ad_unc",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "adg",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ag",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "agp",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "asrfa",
+      "unit": "1/m",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "allo",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "alpha-beta-car",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "altitude",
+      "unit": "m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "am",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "angstrom",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "anth",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "aot",
+      "unit": "none",
+      "lower_bound": 0.005,
+      "upper_bound": 2.0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "amc",
+      "unit": "umol",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "amc-leu",
+      "unit": "umol/l/hr",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ap",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ap_unc",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "aph",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "aph_unc",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
     }
   ],
   "errors": [

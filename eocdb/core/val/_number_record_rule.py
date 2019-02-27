@@ -40,7 +40,7 @@ class NumberRecordRule():
     def __init__(self, name: str, unit: str, unit_error: str, value_error: str, lower_bound: float = float('nan'),
                  upper_bound: float = float('nan')):
         self._name = name
-        self._unit = unit
+        self._units = unit.lower().split(",")
         self._unit_error = unit_error
         self._value_error = value_error
         self._lower_bound = lower_bound
@@ -49,12 +49,12 @@ class NumberRecordRule():
     def eval(self, unit: str, values: List[float], library: MessageLibrary) -> Optional[List[Issue]]:
         issues = []
 
-        if unit != self._unit:
-            message_dict = GapAwareDict({"field_name": self._name, "unit": self._unit, "bad_unit": unit})
+        if not unit in self._units:
+            message_dict = GapAwareDict({"field_name": self._name, "unit": self._units, "bad_unit": unit})
             error_message = library.resolve_error(self._unit_error, message_dict)
             issues.append(Issue(ISSUE_TYPE_ERROR, error_message))
 
-        line = 0
+        line = 1
         message_dict = GapAwareDict({"field_name": self._name,
                                      "line": line,
                                      "value": 0,
@@ -89,8 +89,8 @@ class NumberRecordRule():
         return self._name
 
     @property
-    def unit(self) -> str:
-        return self._unit
+    def units(self) -> List[str]:
+        return self._units
 
     @property
     def unit_error(self) -> str:
