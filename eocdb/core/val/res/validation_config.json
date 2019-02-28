@@ -655,6 +655,467 @@
       "name": "associated_file_types",
       "data_type": "string",
       "error": "@field_is_empty"
+    },
+    {
+      "name": "asta",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "at",
+      "unit": "degreesC",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "aw",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "b",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bb",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bbp",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bbp_bp",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bbw",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bchl_a",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bactp",
+      "unit": "pmol/L/hr",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bact_abun",
+      "unit": "cells/L",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "benthic_type",
+      "data_type": "string",
+      "error": "@field_is_empty"
+    },
+    {
+      "name": "beta-beta-car",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "beta-epi-car",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "beta-psi-car",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bin_depth",
+      "unit": "m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bincount",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bottle",
+      "data_type": "string",
+      "error": "@field_is_empty"
+    },
+    {
+      "name": "bp",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bsi",
+      "unit": "mmol/m^3",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "but-fuco",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "bw",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "c",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "c2h3n_h",
+      "unit": "ppbv",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "c2h4o_h",
+      "unit": "ppbv",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "c2h6s_h",
+      "unit": "ppbv",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "c3h6o_h",
+      "unit": "ppbv",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "c5h8_h",
+      "unit": "ppbv",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "c6h6_h",
+      "unit": "ppbv",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "cantha",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "cdmf",
+      "unit": "volts,ppb",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "cdom",
+      "unit": "mg/m^3,ug/l,ppb",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "cg",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "cgp",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ch4o_h",
+      "unit": "ppbv",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ch4s_h",
+      "unit": "ppbv",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "upper_bound": 100,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl_ex",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "upper_bound": 100,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl_a",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "upper_bound": 100,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl_a_allom",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl_a_prime",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl_b",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl_c",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl_c1",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl_c1c2",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl_c2",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chl_c3",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chlide_a",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chlide_b",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "chors_id",
+      "data_type": "string",
+      "error": "@field_is_empty"
+    },
+    {
+      "name": "cloud",
+      "unit": "%",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "cnw",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "comment",
+      "data_type": "string",
+      "error": "@field_is_empty"
+    },
+    {
+      "name": "cond",
+      "unit": "mmho/cm",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "cp",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "cp_gamma",
+      "unit": "none",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "croco",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "cw",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "cycle",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
     }
   ],
   "errors": [
