@@ -1,6 +1,7 @@
 import json
 import os
 
+from eocdb.core.val._date_record_rule import DateRecordRule
 from eocdb.core.val._gap_aware_dict import GapAwareDict
 from eocdb.core.val._meta_field_obsolete_rule import MetaFieldObsoleteRule
 from eocdb.core.val._number_record_rule import NumberRecordRule
@@ -114,7 +115,6 @@ class Validator(MessageLibrary):
 
         return errors
 
-
     def _parse_rules(self, rules_config):
         self._parse_header_rules(rules_config)
         self._parse_record_rules(rules_config)
@@ -171,6 +171,9 @@ class Validator(MessageLibrary):
                 self._record_rules.update({name: rule})
             elif "string" == data_type:
                 rule = StringRecordRule.from_dict(record_rule)
+                self._record_rules.update({name: rule})
+            elif "date" == data_type:
+                rule = DateRecordRule.from_dict(record_rule)
                 self._record_rules.update({name: rule})
             else:
                 raise ValueError("Invalid data type in field validation rule: " + data_type)

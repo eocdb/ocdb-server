@@ -11,57 +11,18 @@ class ValidatorTest(TestCase):
         self._validator = Validator()
 
     def test_validate_dataset_valid(self):
-        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
-                           "affiliations": "Entenhausen",
-                           "contact": "Dagobert",
-                           "experiment": "check WQ",
-                           "cruise": "Aida II",
-                           "data_file_name": "the_old_file",
-                           "documents": "yes, we have them",
-                           "calibration_files": "we have them, too",
-                           "data_type": "test data",
-                           "water_depth": "80cm",
-                           "missing": "where_are_you?",
-                           "delimiter": "comma",
-                           "fields": "a",
-                           "units": "1/m",
-                           "north_latitude": "37.34",
-                           "south_latitude": "34.96",
-                           "east_longitude": "108.24",
-                           "west_longitude": "88.25",
-                           "start_time": "01:12:06[GMT]",
-                           "end_time": "02:12:06[GMT]",
-                           "start_date": "20110624",
-                           "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")
+        dataset = self._create_valid_dataset()
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
         self.assertEqual("OK", result.status)
         self.assertEqual([], result.issues)
 
-    def test_validate_dataset_valid_header_warnings(self):
-        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
-                           "affiliations": "Entenhausen",
-                           "contact": "Dagobert",
-                           "experiment": "check WQ",
-                           "cruise": "Aida II",
-                           "data_file_name": "the_old_file",
-                           "documents": "yes, we have them",
-                           "calibration_files": "we have them, too",
-                           "data_type": "test data",
-                           "water_depth": "80cm",
-                           "missing": "where_are_you?",
-                           "delimiter": "comma",
-                           "fields": "a*ph",
-                           "units": "m^2/mg",
-                           "north_latitude": "37.34",
-                           "south_latitude": "34.96",
-                           "east_longitude": "77.24",
-                           "west_longitude": "88.25",
-                           "start_time": "01:12:06[GMT]",
-                           "end_time": "02:12:06[GMT]",
-                           "start_date": "20110624",
-                           "end_date": "20110726"}, [[7], [8]], path="archive/chl01.csv")
+    def test_validate_dataset_dateline_warning(self):
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["east_longitude"] = "77.24"
+        dataset.metadata["west_longitude"] = "88.25"
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -72,27 +33,10 @@ class ValidatorTest(TestCase):
                                          'these values', 'type': 'WARNING'}, result.issues[0].to_dict())
 
     def test_validate_dataset_header_error(self):
-        dataset = Dataset({"experiment": "check WQ",
-                           "contact": "Dagobert",
-                           "cruise": "Aida II",
-                           "data_file_name": "the_old_file",
-                           "documents": "yes, we have them",
-                           "calibration_files": "we have them, too",
-                           "data_type": "test data",
-                           "water_depth": "80cm",
-                           "missing": "where_are_you?",
-                           "delimiter": "comma",
-                           "fields": "a*srfa",
-                           "units": "m^2/mg",
-                           "north_latitude": "37.34",
-                           "south_latitude": "34.96",
-                           "east_longitude": "108.24",
-                           "west_longitude": "88.25",
-                           "start_time": "01:12:06[GMT]",
-                           "end_time": "02:12:06[GMT]",
-                           "start_date": "20110624",
-                           "end_date": "20110726"
-                           }, [[9], [10]], path="archive/chl01.csv")
+        dataset = self._create_valid_dataset()
+
+        del dataset.metadata["investigators"]
+        del dataset.metadata["affiliations"]
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -104,60 +48,24 @@ class ValidatorTest(TestCase):
                          result.issues[1].to_dict())
 
     def test_validate_dataset_header_enddate_before_startdate(self):
-        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
-                           "affiliations": "Entenhausen",
-                           "contact": "Dagobert",
-                           "experiment": "check WQ",
-                           "cruise": "Aida II",
-                           "data_file_name": "the_old_file",
-                           "documents": "yes, we have them",
-                           "calibration_files": "we have them, too",
-                           "data_type": "test data",
-                           "water_depth": "80cm",
-                           "missing": "where_are_you?",
-                           "delimiter": "comma",
-                           "fields": "aaer",
-                           "units": "1/m",
-                           "north_latitude": "37.34",
-                           "south_latitude": "34.96",
-                           "east_longitude": "108.24",
-                           "west_longitude": "88.25",
-                           "start_time": "01:12:06[GMT]",
-                           "end_time": "02:12:06[GMT]",
-                           "start_date": "20110630",  # <- later than end_date
-                           "end_date": "20110626"
-                           }, [[11], [12]], path="archive/chl01.csv")
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["start_date"] = "20110630"  # <- later than end_date
+        dataset.metadata["end_date"] = "20110626"
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
         self.assertEqual(1, len(result.issues))
         self.assertEqual("ERROR", result.status)
-        self.assertEqual({'description': 'End date is before start date', 'type': 'ERROR'}, result.issues[0].to_dict())
+        self.assertEqual({'description': 'Header error: start date/time (2011-06-30 00:00:00) must '
+                                         + 'occur before end date/time (2011-06-26 00:00:00)', 'type': 'ERROR'},
+                         result.issues[0].to_dict())
 
     def test_validate_dataset_header_experiment_equals_cruise(self):
-        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
-                           "affiliations": "Entenhausen",
-                           "contact": "Dagobert",
-                           "experiment": "Aida II",  # <- are the same but shouldn't
-                           "cruise": "Aida II",  # <-
-                           "data_file_name": "the_old_file",
-                           "documents": "yes, we have them",
-                           "calibration_files": "we have them, too",
-                           "data_type": "test data",
-                           "water_depth": "80cm",
-                           "missing": "where_are_you?",
-                           "delimiter": "comma",
-                           "fields": "abs",
-                           "units": "none",
-                           "north_latitude": "37.34",
-                           "south_latitude": "34.96",
-                           "east_longitude": "108.24",
-                           "west_longitude": "88.25",
-                           "start_time": "01:12:06[GMT]",
-                           "end_time": "02:12:06[GMT]",
-                           "start_date": "20110630",
-                           "end_date": "20110726"
-                           }, [[13], [14]], path="archive/chl01.csv")
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["experiment"] = "Aida II"
+        dataset.metadata["cruise"] = "Aida II"
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -168,31 +76,9 @@ class ValidatorTest(TestCase):
                          result.issues[0].to_dict())
 
     def test_validate_dataset_obsolete_field(self):
-        metadata = {'delimiter': 'comma'}
+        dataset = self._create_valid_dataset()
 
-        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
-                           "affiliations": "Entenhausen",
-                           "contact": "Dagobert",
-                           "experiment": "check WQ",
-                           "cruise": "Aida II",
-                           "data_file_name": "the_old_file",
-                           "documents": "yes, we have them",
-                           "calibration_files": "we have them, too",
-                           "station_alt_id": "we do not care about this value",  # <- triggers the warning
-                           "data_type": "test data",
-                           "water_depth": "80cm",
-                           "missing": "where_are_you?",
-                           "delimiter": "comma",
-                           "fields": "abs_blank_ap",
-                           "units": "none",
-                           "north_latitude": "37.34",
-                           "south_latitude": "34.96",
-                           "east_longitude": "108.24",
-                           "west_longitude": "88.25",
-                           "start_time": "01:12:06[GMT]",
-                           "end_time": "02:12:06[GMT]",
-                           "start_date": "20110624",
-                           "end_date": "20110726"}, [[13], [14]], path="archive/chl01.csv")
+        dataset.metadata["station_alt_id"] = "we do not care about this value"
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -203,28 +89,10 @@ class ValidatorTest(TestCase):
                          result.issues[0].to_dict())
 
     def test_validate_dataset_field_units_mismatch(self):
-        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
-                           "affiliations": "Entenhausen",
-                           "contact": "Dagobert",
-                           "experiment": "check WQ",
-                           "cruise": "Aida II",
-                           "data_file_name": "the_old_file",
-                           "documents": "yes, we have them",
-                           "calibration_files": "we have them, too",
-                           "data_type": "test data",
-                           "water_depth": "80cm",
-                           "missing": "where_are_you?",
-                           "delimiter": "comma",
-                           "fields": "a,b",
-                           "units": "1/m",
-                           "north_latitude": "37.34",
-                           "south_latitude": "34.96",
-                           "east_longitude": "108.24",
-                           "west_longitude": "88.25",
-                           "start_time": "01:12:06[GMT]",
-                           "end_time": "02:12:06[GMT]",
-                           "start_date": "20110624",
-                           "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["fields"] = "a,b"
+        dataset.metadata["units"] = "1/m"
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -234,28 +102,10 @@ class ValidatorTest(TestCase):
                           'type': 'ERROR'}, result.issues[0].to_dict())
 
     def test_validate_dataset_unlisted_variable(self):
-        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
-                           "affiliations": "Entenhausen",
-                           "contact": "Dagobert",
-                           "experiment": "check WQ",
-                           "cruise": "Aida II",
-                           "data_file_name": "the_old_file",
-                           "documents": "yes, we have them",
-                           "calibration_files": "we have them, too",
-                           "data_type": "test data",
-                           "water_depth": "80cm",
-                           "missing": "where_are_you?",
-                           "delimiter": "comma",
-                           "fields": "heffalump",
-                           "units": "1/m",
-                           "north_latitude": "37.34",
-                           "south_latitude": "34.96",
-                           "east_longitude": "108.24",
-                           "west_longitude": "88.25",
-                           "start_time": "01:12:06[GMT]",
-                           "end_time": "02:12:06[GMT]",
-                           "start_date": "20110624",
-                           "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["fields"] = "heffalump"
+        dataset.metadata["units"] = "1/m"
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -265,31 +115,13 @@ class ValidatorTest(TestCase):
                           'type': 'WARNING'}, result.issues[0].to_dict())
 
     def test_validate_dataset_value_below_lower_bound(self):
-        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
-                           "affiliations": "Entenhausen",
-                           "contact": "Dagobert",
-                           "experiment": "check WQ",
-                           "cruise": "Aida II",
-                           "data_file_name": "the_old_file",
-                           "documents": "yes, we have them",
-                           "calibration_files": "we have them, too",
-                           "data_type": "test data",
-                           "water_depth": "80cm",
-                           "missing": "where_are_you?",
-                           "delimiter": "comma",
-                           "fields": "abs_blank_ag,abs*,abs_ad",
-                           "units": "none,m^2/mg,none",
-                           "north_latitude": "37.34",
-                           "south_latitude": "34.96",
-                           "east_longitude": "108.24",
-                           "west_longitude": "88.25",
-                           "start_time": "01:12:06[GMT]",
-                           "end_time": "02:12:06[GMT]",
-                           "start_date": "20110624",
-                           "end_date": "20110726"},
-                          [[5.0, 6.1, 7.2],
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["fields"] = "abs_blank_ag,abs*,abs_ad"
+        dataset.metadata["units"] = "none,m^2/mg,none"
+        dataset.records = [[5.0, 6.1, 7.2],
                            [6.1, 7.2, 8.3],
-                           [6.2, -1.0, 8.4]], path="archive/chl01.csv")
+                           [6.2, -1.0, 8.4]]
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
@@ -299,38 +131,37 @@ class ValidatorTest(TestCase):
                                          'expected range [0.0 - nan].',
                           'type': 'ERROR'}, result.issues[0].to_dict())
 
-    def test_validate_dataset_mixed_types_error_empty_string(self):
-        dataset = Dataset({"investigators": "Daniel_Duesentrieb",
-                           "affiliations": "Entenhausen",
-                           "contact": "Dagobert",
-                           "experiment": "check WQ",
-                           "cruise": "Aida II",
-                           "data_file_name": "the_old_file",
-                           "documents": "yes, we have them",
-                           "calibration_files": "we have them, too",
-                           "data_type": "test data",
-                           "water_depth": "80cm",
-                           "missing": "where_are_you?",
-                           "delimiter": "comma",
-                           "fields": "aph,associated_files,ap_unc",
-                           "units": "1/m,none,1/m",
-                           "north_latitude": "37.34",
-                           "south_latitude": "34.96",
-                           "east_longitude": "108.24",
-                           "west_longitude": "88.25",
-                           "start_time": "01:12:06[GMT]",
-                           "end_time": "02:12:06[GMT]",
-                           "start_date": "20110624",
-                           "end_date": "20110726"},
-                          [[5.0, "willi", 7.2],
+    def test_validate_dataset_float_and_string_error_empty_string(self):
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["fields"] = "aph,associated_files,ap_unc"
+        dataset.metadata["units"] = "1/m,none,1/m"
+        dataset.records = [[5.0, "willi", 7.2],
                            [6.1, "", 8.3],
-                           [6.2, "ottilie", 8.4]], path="archive/chl01.csv")
+                           [6.2, "ottilie", 8.4]]
 
         result = self._validator.validate_dataset(dataset)
         self.assertIsNotNone(result)
         self.assertEqual("ERROR", result.status)
         self.assertEqual(1, len(result.issues))
         self.assertEqual({'description': "Measurement #2: The value for 'associated_files' is empty.",
+                          'type': 'ERROR'}, result.issues[0].to_dict())
+
+    def test_validate_dataset_float_and_date_error_invalid_month(self):
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["fields"] = "cond,cloud,date"
+        dataset.metadata["units"] = "mmho/cm,%,none"
+        dataset.records = [[5.0, 12.8, "20011103"],
+                           [6.1, 13.7, "20021204"],
+                           [6.2, 15.2, "20030016"]]
+
+        result = self._validator.validate_dataset(dataset)
+        self.assertIsNotNone(result)
+        self.assertEqual("ERROR", result.status)
+        self.assertEqual(1, len(result.issues))
+        self.assertEqual({'description': "Measurement #3: The value for 'date' is malformed (invalid "
+                                         "month detected)",
                           'type': 'ERROR'}, result.issues[0].to_dict())
 
     def test_resolve_warning_clear_message(self):
@@ -365,3 +196,28 @@ class ValidatorTest(TestCase):
                              "comp_val": "128"})
         self.assertEqual("The required header field /reffi is not present",
                          self._validator.resolve_error("@required_field_missing", dict))
+
+    @staticmethod
+    def _create_valid_dataset():
+        return Dataset({"investigators": "Daniel_Duesentrieb",
+                        "affiliations": "Entenhausen",
+                        "contact": "Dagobert",
+                        "experiment": "check WQ",
+                        "cruise": "Aida II",
+                        "data_file_name": "the_old_file",
+                        "documents": "yes, we have them",
+                        "calibration_files": "we have them, too",
+                        "data_type": "test data",
+                        "water_depth": "80cm",
+                        "missing": "where_are_you?",
+                        "delimiter": "comma",
+                        "fields": "a",
+                        "units": "1/m",
+                        "north_latitude": "37.34",
+                        "south_latitude": "34.96",
+                        "east_longitude": "108.24",
+                        "west_longitude": "88.25",
+                        "start_time": "01:12:06[GMT]",
+                        "end_time": "02:12:06[GMT]",
+                        "start_date": "20110624",
+                        "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")

@@ -377,7 +377,7 @@
       "compare": "end_date",
       "operation": "<=",
       "data_type": "date",
-      "error": "End date is before start date"
+      "error": "@header_start_after_finish"
     },
     {
       "type": "field_compare",
@@ -1116,12 +1116,49 @@
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "date",
+      "min_year": 1975,
+      "data_type": "date"
+    },
+    {
+      "name": "date_processed",
+      "min_year": 1975,
+      "data_type": "date"
+    },
+    {
+      "name": "day",
+      "unit": "dd",
+      "lower_bound": 1,
+      "opper_bound": 31,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "depth",
+      "unit": "m,meters",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "dewpoint",
+      "unit": "degreesC",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
     }
   ],
   "errors": [
     {
       "name": "south_north_mismatch",
       "message": "South_latitude is larger than north_latitude"
+    },
+    {
+      "name": "header_start_after_finish",
+      "message": "Header error: start date/time ({ref_val}) must occur before end date/time ({comp_val})"
     },
     {
       "name": "required_field_missing",
@@ -1142,6 +1179,22 @@
     {
       "name": "field_is_empty",
       "message": "Measurement #{line}: The value for '{field_name}' is empty."
+    },
+    {
+      "name": "data_invalid_date",
+      "message": "Measurement #{line}: The value for '{field_name}' is malformed (format is YYYYMMDD)"
+    },
+    {
+      "name": "data_date_bounds_error",
+      "message": "Measurement #{line}: The value for '{field_name}' is out of bounds [{lower_bound} - {upper_bound}]"
+    },
+    {
+      "name": "data_invalid_month",
+      "message": "Measurement #{line}: The value for '{field_name}' is malformed (invalid month detected)"
+    },
+    {
+      "name": "data_invalid_day_of_month",
+      "message": "Measurement #{line}: The value for '{field_name}' is malformed (invalid day of month detected)"
     }
   ],
   "warnings": [
