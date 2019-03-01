@@ -101,6 +101,21 @@ class ValidatorTest(TestCase):
                                          'of measurement records.',
                           'type': 'ERROR'}, result.issues[0].to_dict())
 
+    def test_validate_dataset_field_missing(self):
+        dataset = self._create_valid_dataset()
+
+        del dataset.metadata["fields"]
+
+        result = self._validator.validate_dataset(dataset)
+        self.assertIsNotNone(result)
+        self.assertEqual(2, len(result.issues))
+        self.assertEqual("ERROR", result.status)
+        self.assertEqual({'description': 'The required header field /fields is not present',
+                          'type': 'ERROR'}, result.issues[0].to_dict())
+        self.assertEqual({'description': 'Header tags /fields or /units missing. Skipping parsing of '
+                                         'measurement records.',
+                          'type': 'ERROR'}, result.issues[1].to_dict())
+
     def test_validate_dataset_unlisted_variable(self):
         dataset = self._create_valid_dataset()
 

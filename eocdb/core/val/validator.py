@@ -82,13 +82,19 @@ class Validator(MessageLibrary):
         return num_errors
 
     def _validate_measurements(self, dataset, issues) -> int:
+        if not "fields" in dataset.metadata or not "units" in dataset.metadata:
+            issues.append(Issue(ISSUE_TYPE_ERROR,
+                                "Header tags /fields or /units missing. Skipping parsing of measurement records."))
+            return 1
+
         var_names_list = dataset.metadata["fields"]
         var_names = var_names_list.lower().split(",")
         units_list = dataset.metadata["units"]
         units = units_list.lower().split(",")
 
         if len(var_names) != len(units):
-            issues.append(Issue(ISSUE_TYPE_ERROR, "Number of fields and units does not match. Skipping parsing of measurement records."))
+            issues.append(Issue(ISSUE_TYPE_ERROR,
+                                "Number of fields and units does not match. Skipping parsing of measurement records."))
             return 1
 
         index = 0
@@ -104,12 +110,12 @@ class Validator(MessageLibrary):
             for record in dataset.records:
                 values.append(record[index])
 
-            record_issues = rule.eval(units[index], values , self)
+            record_issues = rule.eval(units[index], values, self)
             if record_issues is not None:
                 issues.extend(record_issues)
                 for record_issue in record_issues:
                     if ISSUE_TYPE_ERROR == record_issue.type:
-                        errors +=1
+                        errors += 1
 
             index += 1
 
