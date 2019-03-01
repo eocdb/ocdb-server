@@ -144,7 +144,7 @@ class ValidatorTest(TestCase):
         self.assertEqual("ERROR", result.status)
         self.assertEqual(1, len(result.issues))
         self.assertEqual({'description': "Measurement #3: The 'abs*' field has value (-1.0) outside "
-                                         'expected range [0.0 - nan].',
+                                         'expected range [0.0 - inf].',
                           'type': 'ERROR'}, result.issues[0].to_dict())
 
     def test_validate_dataset_float_and_string_error_empty_string(self):

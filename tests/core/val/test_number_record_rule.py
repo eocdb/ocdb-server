@@ -98,7 +98,7 @@ class NumberRecordRuleTest(unittest.TestCase):
         self.assertEqual("no_not_this_one", rule.unit_error)
         self.assertEqual("oha", rule.value_error)
         self.assertAlmostEqual(18.1, rule.lower_bound, 8)
-        self.assertTrue(math.isnan(rule.upper_bound))
+        self.assertTrue(math.isinf(rule.upper_bound))
 
     def test_from_dict_no_lower_bound(self):
         rule_dict = {"name": "Herman", "unit": "unite", "upper_bound": "190.55", "value_error": "plain_wrong",
@@ -110,7 +110,7 @@ class NumberRecordRuleTest(unittest.TestCase):
         self.assertEqual(["unite"], rule.units)
         self.assertEqual("wtf", rule.unit_error)
         self.assertEqual("plain_wrong", rule.value_error)
-        self.assertTrue(math.isnan(rule.lower_bound))
+        self.assertTrue(math.isinf(rule.lower_bound))
         self.assertAlmostEqual(190.55, rule.upper_bound, 8)
 
     def test_from_dict_no_error_messages(self):

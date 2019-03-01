@@ -23,18 +23,27 @@ class NumberRecordRule:
         else:
             value_error = None
 
-        lower_bound = NumberRecordRule._extract_float("lower_bound", value_dict)
-        upper_bound = NumberRecordRule._extract_float("upper_bound", value_dict)
+        lower_bound = NumberRecordRule._extract_lower_bound(value_dict)
+        upper_bound = NumberRecordRule._extract_upper_bound(value_dict)
 
         return NumberRecordRule(name, unit, unit_error, value_error, lower_bound, upper_bound)
 
     @staticmethod
-    def _extract_float(key, value_dict):
-        if key in value_dict:
-            upper_str = value_dict[key]
+    def _extract_lower_bound(value_dict):
+        if "lower_bound" in value_dict:
+            lower_str = value_dict["lower_bound"]
+            lower_bound = float(lower_str)
+        else:
+            lower_bound = float('-inf')
+        return lower_bound
+
+    @staticmethod
+    def _extract_upper_bound(value_dict):
+        if "upper_bound" in value_dict:
+            upper_str = value_dict["upper_bound"]
             upper_bound = float(upper_str)
         else:
-            upper_bound = float('nan')
+            upper_bound = float('+inf')
         return upper_bound
 
     def __init__(self, name: str, unit: str, unit_error: str, value_error: str, lower_bound: float = float('nan'),
@@ -68,7 +77,7 @@ class NumberRecordRule:
                 message_dict["value"] = value
                 error_message = library.resolve_error("@field_number_not_a_number", message_dict)
                 issues.append(Issue(ISSUE_TYPE_ERROR, error_message))
-                line +=1
+                line += 1
                 continue
 
             if not math.isnan(self._lower_bound):
