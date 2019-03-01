@@ -180,6 +180,20 @@ class ValidatorTest(TestCase):
                                          "month detected)",
                           'type': 'ERROR'}, result.issues[0].to_dict())
 
+    def test_validate_dataset_float_with_missing_value(self):
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["missing"] = -117
+        dataset.metadata["fields"] = "abs_blank_ag,abs*,abs_ad"
+        dataset.metadata["units"] = "none,m^2/mg,none"
+        dataset.records = [[5.0, 6.1, 7.2],
+                           [-117, 7.2, 8.3],
+                           [6.2, -117, 8.4]]
+
+        result = self._validator.validate_dataset(dataset)
+        self.assertIsNotNone(result)
+        self.assertEqual("OK", result.status)
+
     def test_resolve_warning_clear_message(self):
         dict = GapAwareDict({"reference": "reffi",
                              "compare": "compi",
@@ -225,7 +239,7 @@ class ValidatorTest(TestCase):
                         "calibration_files": "we have them, too",
                         "data_type": "test data",
                         "water_depth": "80cm",
-                        "missing": "where_are_you?",
+                        "missing": "-999.0",
                         "delimiter": "comma",
                         "fields": "a",
                         "units": "1/m",
@@ -238,8 +252,8 @@ class ValidatorTest(TestCase):
                         "start_date": "20110624",
                         "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")
 
-    def test_delete_me(self):
-        reader = SbFileReader()
-        data_record = reader.read("/usr/local/data/OC_DB/seabass_extract/WHOI/LANEY/ICESCAPE/ICESCAPE2011/archive/ICESCAPE2011-HEALY1101_HPLC_31Oct2012.sb")
-        result = self._validator.validate_dataset(data_record)
-        print(result)
+    # def test_delete_me(self):
+    #     reader = SbFileReader()
+    #     data_record = reader.read("/usr/local/data/OC_DB/seabass_extract/WHOI/LANEY/ICESCAPE/ICESCAPE2011/archive/ICESCAPE2011-HEALY1101_HPLC_31Oct2012.sb")
+    #     result = self._validator.validate_dataset(data_record)
+    #     print(result)

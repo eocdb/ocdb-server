@@ -97,6 +97,10 @@ class Validator(MessageLibrary):
                                 "Number of fields and units does not match. Skipping parsing of measurement records."))
             return 1
 
+        missing_value = None
+        if "missing" in dataset.metadata:
+            missing_value = float(dataset.metadata["missing"])
+
         index = 0
         errors = 0
         for variable in var_names:
@@ -111,7 +115,7 @@ class Validator(MessageLibrary):
             for record in dataset.records:
                 values.append(record[index])
 
-            record_issues = rule.eval(units[index], values, self)
+            record_issues = rule.eval(units[index], values, self, missing_value)
             if record_issues is not None:
                 issues.extend(record_issues)
                 for record_issue in record_issues:

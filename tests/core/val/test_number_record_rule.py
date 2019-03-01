@@ -17,6 +17,12 @@ class NumberRecordRuleTest(unittest.TestCase):
         issues = rule.eval("1/m", [23.4, 23.6, 22, 7, 19.6], self._lib)
         self.assertIsNone(issues)
 
+    def test_pass_float_with_missing_value(self):
+        rule = NumberRecordRule("a", "1/m", "@field_has_wrong_unit", "@field_out_of_bounds", lower_bound=0.0)
+
+        issues = rule.eval("1/m", [23.4, -9999.0, 22, 7, 19.6], self._lib, missing_value=-9999)
+        self.assertIsNone(issues)
+
     def test_fail_wrong_unit(self):
         rule = NumberRecordRule("a", "1/inch", "@field_has_wrong_unit", "@field_out_of_bounds")
 

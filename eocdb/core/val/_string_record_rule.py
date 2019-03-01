@@ -18,7 +18,7 @@ class StringRecordRule:
         self._name = name
         self._error = error
 
-    def eval(self, unit: str, values: List[str], library: MessageLibrary) -> Optional[List[Issue]]:
+    def eval(self, unit: str, values: List[str], library: MessageLibrary, missing_value: float = None) -> Optional[List[Issue]]:
         empty = ""
         issues = []
 

@@ -61,7 +61,7 @@ class NumberRecordRule:
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
 
-    def eval(self, unit: str, values: List[float], library: MessageLibrary) -> Optional[List[Issue]]:
+    def eval(self, unit: str, values: List[float], library: MessageLibrary, missing_value: float = None) -> Optional[List[Issue]]:
         issues = []
 
         if not unit in self._units:
@@ -83,6 +83,10 @@ class NumberRecordRule:
                 message_dict["value"] = value
                 error_message = library.resolve_error("@field_number_not_a_number", message_dict)
                 issues.append(Issue(ISSUE_TYPE_ERROR, error_message))
+                line += 1
+                continue
+
+            if missing_value is not None and value == missing_value:
                 line += 1
                 continue
 

@@ -19,7 +19,7 @@ class DateRecordRule:
         self._name = name
         self._min_year = min_year
 
-    def eval(self, unit: str, values: List[str], library: MessageLibrary) -> Optional[List[Issue]]:
+    def eval(self, unit: str, values: List[str], library: MessageLibrary, missing_value: float = None) -> Optional[List[Issue]]:
         empty = ""
         issues = []
 
