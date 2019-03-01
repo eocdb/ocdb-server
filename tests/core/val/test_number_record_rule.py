@@ -44,6 +44,15 @@ class NumberRecordRuleTest(unittest.TestCase):
         self.assertEqual(ISSUE_TYPE_ERROR, issues[0].type)
         self.assertEqual("@field_out_of_bounds", issues[0].description)
 
+    def test_fail_value_not_a_number(self):
+        rule = NumberRecordRule("a", "1/m", "@field_has_wrong_unit", "@field_out_of_bounds", lower_bound=0)
+
+        issues = rule.eval("1/m", [23.4, 11.6, "hasi", 19.6], self._lib)
+        self.assertIsNotNone(issues)
+        self.assertEqual(1, len(issues))
+        self.assertEqual(ISSUE_TYPE_ERROR, issues[0].type)
+        self.assertEqual("@field_number_not_a_number", issues[0].description)
+
     def test_fail_value_out_of_upper_bound(self):
         rule = NumberRecordRule("a", "1/m", "@field_has_wrong_unit", "@field_out_of_bounds", upper_bound=30.0)
 

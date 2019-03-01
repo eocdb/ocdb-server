@@ -1177,6 +1177,10 @@
       "message": "Measurement #{line}: The '{field_name}' field has value ({value}) outside expected range [{lower_bound} - {upper_bound}]."
     },
     {
+      "name": "field_number_not_a_number",
+      "message": "Measurement #{line}: The '{field_name}' field has value ({value}) which does not evaluate to a number."
+    },
+    {
       "name": "field_is_empty",
       "message": "Measurement #{line}: The value for '{field_name}' is empty."
     },

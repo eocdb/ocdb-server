@@ -63,6 +63,14 @@ class NumberRecordRule:
 
         for value in values:
             out_of_bounds = False
+            if not (type(value) is float or type(value) is int):
+                message_dict["line"] = line
+                message_dict["value"] = value
+                error_message = library.resolve_error("@field_number_not_a_number", message_dict)
+                issues.append(Issue(ISSUE_TYPE_ERROR, error_message))
+                line +=1
+                continue
+
             if not math.isnan(self._lower_bound):
                 if value < self._lower_bound:
                     out_of_bounds = True
