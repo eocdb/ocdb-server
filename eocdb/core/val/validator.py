@@ -103,6 +103,7 @@ class Validator(MessageLibrary):
             if not variable in self._record_rules:
                 issues.append(Issue(ISSUE_TYPE_WARNING,
                                     "Variable not listed in valid variables: " + variable))
+                index += 1
                 continue
 
             rule = self._record_rules[variable]

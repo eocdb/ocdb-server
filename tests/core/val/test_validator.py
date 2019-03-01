@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from eocdb.core.models.dataset import Dataset
+from eocdb.core.seabass.sb_file_reader import SbFileReader
 from eocdb.core.val._gap_aware_dict import GapAwareDict
 from eocdb.core.val.validator import Validator
 
@@ -236,3 +237,9 @@ class ValidatorTest(TestCase):
                         "end_time": "02:12:06[GMT]",
                         "start_date": "20110624",
                         "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")
+
+    def test_delete_me(self):
+        reader = SbFileReader()
+        data_record = reader.read("/fs1/temp/Tom/test2.txt")
+        result = self._validator.validate_dataset(data_record)
+        print(result)
