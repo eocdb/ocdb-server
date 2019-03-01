@@ -9,7 +9,7 @@ class SbFileReaderTest(unittest.TestCase):
 
     # def test_read(self):
     #     reader = SbFileReader()
-    #     data_record = reader.read("/usr/local/data/OC_DB/bio_1535713657890739/AWI/PANGAEA/SO218/archive/SO218_pigments.sb")
+    #     data_record = reader.read("/fs1/temp/Tom/test2.txt")
     #     print(data_record)
 
     def setUp(self):
@@ -52,7 +52,9 @@ class SbFileReaderTest(unittest.TestCase):
         dataset = self.reader._parse(sb_file)
         self.assertEqual({'affiliations': 'IMARPE', 'data_file_name': 'pro_03_04AA_L2s.dat', 'data_type': 'cast',
                           'data_status': 'preliminary',
-                          'experiment': 'LAMONT_SCS', 'cruise': 'jun16scs', 'station': '03_04', 'delimiter': 'comma',
+                          'experiment': 'LAMONT_SCS',
+                          'fields': 'time,depth,ED379.9,ED412.1,ED442.6,ED470.4,ED490.5,ED510.8,ED532.4,ED555.3,ED589.6,ED619.7,ED669.8,ED683.3,ED704.9,ED779.4,LU380.3,LU470.4,LU510.1,LU589.8,LU619.7,LU704.8,LU779.9,tilt,COND,Wt,pvel',
+                          'cruise': 'jun16scs', 'station': '03_04', 'delimiter': 'comma',
                           'east_longitude': '109.587[DEG]', 'west_longitude': '109.587[DEG]',
                           'north_latitude': '11.713[DEG]', 'south_latitude': '11.713[DEG]', 'start_date': '20020616'},
                          dataset.metadata)
@@ -83,7 +85,8 @@ class SbFileReaderTest(unittest.TestCase):
                    '1992 03 01 23 04 00 12.00 -110.03 0.3600 70\n']
 
         dataset = self.reader._parse(sb_file)
-        self.assertEqual({'delimiter': 'space'}, dataset.metadata)
+        self.assertEqual({'delimiter': 'space', 'fields': 'year,month,day,hour,minute,second,lat,lon,CHL,depth'},
+                         dataset.metadata)
 
         self.assertEqual(10, dataset.attribute_count)
         self.assertEqual("month", dataset.attribute_names[1])
@@ -114,7 +117,8 @@ class SbFileReaderTest(unittest.TestCase):
                    '1992 03 01 23 04 12.00 -110.03 0.3600 70\n']
 
         dataset = self.reader._parse(sb_file)
-        self.assertEqual({'delimiter': 'space'}, dataset.metadata)
+        self.assertEqual({'delimiter': 'space', 'fields': 'year,month,day,hour,minute,lat,lon,CHL,depth'},
+                         dataset.metadata)
 
         self.assertEqual(9, dataset.attribute_count)
         self.assertEqual("month", dataset.attribute_names[1])
@@ -153,7 +157,8 @@ class SbFileReaderTest(unittest.TestCase):
 
         dataset = self.reader._parse(sb_file)
         self.assertEqual({'delimiter': 'space', 'east_longitude': '125.198[DEG]', 'end_date': '20010723',
-                          'end_time': '00:08:00[GMT]', 'north_latitude': '26.957[DEG]', 'start_date': '20010723',
+                          'end_time': '00:08:00[GMT]', 'fields': 'depth,CHL',
+                          'north_latitude': '26.957[DEG]', 'start_date': '20010723',
                           'start_time': '00:08:00[GMT]'}, dataset.metadata)
 
         self.assertEqual(1, len(dataset.times))
@@ -178,7 +183,8 @@ class SbFileReaderTest(unittest.TestCase):
 
         dataset = self.reader._parse(sb_file)
         self.assertEqual({'delimiter': 'space', 'east_longitude': '114.196[DEG]', 'end_date': '20010510',
-                          'end_time': '04:37:00[GMT]', 'north_latitude': '22.442[DEG]', 'start_date': '20010510',
+                          'end_time': '04:37:00[GMT]', 'fields': 'date,time,depth,ad,wavelength',
+                          'north_latitude': '22.442[DEG]', 'start_date': '20010510',
                           'start_time': '04:37:00[GMT]'}, dataset.metadata)
 
         self.assertEqual(5, len(dataset.times))
