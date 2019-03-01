@@ -238,8 +238,8 @@ class ValidatorTest(TestCase):
                         "start_date": "20110624",
                         "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")
 
-    # def test_delete_me(self):
-    #     reader = SbFileReader()
-    #     data_record = reader.read("/fs1/temp/Tom/test2.txt")
-    #     result = self._validator.validate_dataset(data_record)
-    #     print(result)
+    def test_delete_me(self):
+        reader = SbFileReader()
+        data_record = reader.read("/usr/local/data/OC_DB/seabass_extract/WHOI/LANEY/ICESCAPE/ICESCAPE2011/archive/ICESCAPE2011-HEALY1101_HPLC_31Oct2012.sb")
+        result = self._validator.validate_dataset(data_record)
+        print(result)

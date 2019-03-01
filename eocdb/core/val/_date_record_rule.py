@@ -25,6 +25,7 @@ class DateRecordRule:
 
         index = 0
         for value in values:
+            value = str(value)
             index += 1
             if value is empty:
                 self._append_error_issue("@data_invalid_date", index, issues, library)

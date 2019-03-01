@@ -35,6 +35,15 @@ class NumberRecordRuleTest(unittest.TestCase):
         issues = rule.eval("l", [23.4, 23.6, 22, 7, 19.6], self._lib)
         self.assertIsNone(issues)
 
+    def test_pass_none_unit_variations(self):
+        rule = NumberRecordRule("b", "none", "@field_has_wrong_unit", "@field_out_of_bounds")
+
+        issues = rule.eval("none", [23.4, 23.6, 22, 7, 19.6], self._lib)
+        self.assertIsNone(issues)
+
+        issues = rule.eval("unitless", [23.4, 23.6, 22, 7, 19.6], self._lib)
+        self.assertIsNone(issues)
+
     def test_fail_value_out_of_lower_bound(self):
         rule = NumberRecordRule("a", "1/m", "@field_has_wrong_unit", "@field_out_of_bounds", lower_bound=12.5)
 

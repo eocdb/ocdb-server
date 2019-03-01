@@ -5,6 +5,7 @@ from eocdb.core.models import Issue, ISSUE_TYPE_ERROR
 from eocdb.core.val._gap_aware_dict import GapAwareDict
 from eocdb.core.val._message_library import MessageLibrary
 
+no_units: List[str] = ["none", "unitless"]
 
 class NumberRecordRule:
 
@@ -49,7 +50,12 @@ class NumberRecordRule:
     def __init__(self, name: str, unit: str, unit_error: str, value_error: str, lower_bound: float = float('nan'),
                  upper_bound: float = float('nan')):
         self._name = name
-        self._units = unit.lower().split(",")
+
+        if unit in no_units:
+            self._units = no_units
+        else:
+            self._units = unit.lower().split(",")
+
         self._unit_error = unit_error
         self._value_error = value_error
         self._lower_bound = lower_bound

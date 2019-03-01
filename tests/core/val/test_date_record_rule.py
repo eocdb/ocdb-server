@@ -17,6 +17,14 @@ class DateRecordRuleTest(unittest.TestCase):
         issues = rule.eval("dontcare", values, self._lib)
         self.assertIsNone(issues)
 
+    # noinspection PyTypeChecker
+    def test_pass_values_as_int(self):
+        values = [20050321, 20050322, 20050324]
+        rule = DateRecordRule("Papa", 1982)
+
+        issues = rule.eval("dontcare", values, self._lib)
+        self.assertIsNone(issues)
+
     def test_fail_incorrect_string_length(self):
         values = ["wot?", "20050322", "20050324"]
         rule = DateRecordRule("Mama", 1976)
