@@ -194,6 +194,20 @@ class ValidatorTest(TestCase):
         self.assertIsNotNone(result)
         self.assertEqual("OK", result.status)
 
+    def test_validate_dataset_float_with_wavelength_in_varname(self):
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["missing"] = -117
+        dataset.metadata["fields"] = "depth,bw529,bw657"
+        dataset.metadata["units"] = "m,1/m,1/m"
+        dataset.records = [[3.068489, 0.003527, 0.001992],
+                           [4.076861, 0.003527, 0.001992],
+                           [5.047225, 0.003527, 0.001992]]
+
+        result = self._validator.validate_dataset(dataset)
+        self.assertIsNotNone(result)
+        self.assertEqual("OK", result.status)
+
     def test_resolve_warning_clear_message(self):
         dict = GapAwareDict({"reference": "reffi",
                              "compare": "compi",
@@ -227,6 +241,14 @@ class ValidatorTest(TestCase):
         self.assertEqual("The required header field /reffi is not present",
                          self._validator.resolve_error("@required_field_missing", dict))
 
+    def test_strip_wavelength_no_wavelength(self):
+        stripped = self._validator._strip_wavelength("absozytes")
+        self.assertEqual("absozytes", stripped)
+
+    def test_strip_wavelength(self):
+        stripped = self._validator._strip_wavelength("bzgd669")
+        self.assertEqual("bzgd", stripped)
+
     @staticmethod
     def _create_valid_dataset():
         return Dataset({"investigators": "Daniel_Duesentrieb",
@@ -254,6 +276,6 @@ class ValidatorTest(TestCase):
 
     # def test_delete_me(self):
     #     reader = SbFileReader()
-    #     data_record = reader.read("/usr/local/data/OC_DB/seabass_extract/WHOI/LANEY/ICESCAPE/ICESCAPE2011/archive/ICESCAPE2011-HEALY1101_HPLC_31Oct2012.sb")
+    #     data_record = reader.read("/usr/local/data/OC_DB/seabass_extract/USF/HU/Tampa_Bay/t1205/archive/T12050705_rrs.txt")
     #     result = self._validator.validate_dataset(data_record)
     #     print(result)

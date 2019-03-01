@@ -1,5 +1,6 @@
 import json
 import os
+import re
 
 from eocdb.core.val._date_record_rule import DateRecordRule
 from eocdb.core.val._gap_aware_dict import GapAwareDict
@@ -38,6 +39,8 @@ class Validator(MessageLibrary):
             rules_config = json.load(f)
 
         self._parse_rules(rules_config)
+
+        self._var_name_pattern = re.compile("[A-Za-z]*[0-9]*")
 
     def validate_dataset(self, dataset: Dataset) -> DatasetValidationResult:
         issues = []
@@ -104,6 +107,7 @@ class Validator(MessageLibrary):
         index = 0
         errors = 0
         for variable in var_names:
+            variable = self._strip_wavelength(variable)
             if not variable in self._record_rules:
                 issues.append(Issue(ISSUE_TYPE_WARNING,
                                     "Variable not listed in valid variables: " + variable))
@@ -205,3 +209,14 @@ class Validator(MessageLibrary):
             warning = None
         rule = MetaFieldCompareRule(reference, compare, operation, error=error, warning=warning, data_type=data_type)
         return rule
+
+    def _strip_wavelength(self, variable: str) -> str:
+        if self._var_name_pattern.match(variable):
+            index = len(variable)
+            for i in reversed(range(0, index)):
+                if variable[i].isdigit():
+                    continue
+
+                return variable[0:i + 1]
+
+        return variable
