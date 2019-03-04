@@ -15,6 +15,7 @@ class MetaFieldRequiredRule(Rule):
             return self.create_error_message(library)
 
         value = dataset.metadata[self._name]
+        value = str(value)
         if len(value) > 0:
             return None
         else:

@@ -113,8 +113,8 @@ class SbFileReader:
             value = value.strip()
             if key == 'fields':
                 self._field_list = value
-            else:
-                metadata.update({key: value})
+
+            metadata.update({key: value})
 
         return metadata
 
