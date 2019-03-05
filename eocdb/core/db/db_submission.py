@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import List, Type, Dict, Any
 
-from eocdb.core.model import T
+from ...core.model import T
 from ...core.models.submission import Submission
 from ...core.models.submission_file import SubmissionFile
 
@@ -16,8 +16,8 @@ class DbSubmission(Submission):
                  qc_status: str,
                  path: str,
                  files: List[SubmissionFile],
-                 id: str = None):
-        super().__init__(submission_id, user_id, date, status, qc_status, [], id)
+                 id_: str = None):
+        super().__init__(submission_id, user_id, date, status, qc_status, [], id_)
 
         self._path = path
         self._files = files
@@ -57,7 +57,7 @@ class DbSubmission(Submission):
                             qc_status=subm.qc_status,
                             path=path,
                             files=subm_files_array,
-                            id=subm.id)
+                            id_=subm.id)
 
     def to_submission(self):
         file_refs = []

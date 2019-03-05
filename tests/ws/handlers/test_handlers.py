@@ -67,7 +67,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.15", result["info"].get("version"))
+        self.assertEqual("0.1.0-dev.16", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -123,6 +123,47 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         self.assertEqual('No result found', response.reason)
 
     def test_get_one_result(self):
+        # --- add submission file ---
+        files = [SubmissionFile(submission_id="submitme",
+                                index=0,
+                                filename="Hans",
+                                filetype="black",
+                                status=QC_STATUS_SUBMITTED,
+                                result=DatasetValidationResult(status="OK", issues=[])),
+                 SubmissionFile(submission_id="submitme",
+                                index=1,
+                                filename="Helga",
+                                filetype="green",
+                                status=QC_STATUS_VALIDATED,
+                                result=DatasetValidationResult(status="WARNING", issues=[
+                                    Issue(type="WARNING", description="This might be wrong")]))]
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+        self.ctx.db_driver.add_submission(db_subm)
+
+        # --- get submission file ---
+        parameter = "submission_id=submitme&index=0"
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile?{parameter}", method='GET')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertEqual({'filename': 'Hans',
+                          'filetype': 'black',
+                          'index': 0,
+                          'result': {'issues': [], 'status': 'OK'},
+                          'status': 'SUBMITTED',
+                          'submission_id': 'submitme'}, actual_response_data)
+
+    def test_delete_no_submissions(self):
+        parameter = "submission_id=ABCDEFGHI&index=0"
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile?{parameter}", method='DELETE')
+
+        self.assertEqual(404, response.code)
+        self.assertEqual('No result found', response.reason)
+
+    def test_delete(self):
         files = [SubmissionFile(submission_id="submitme",
                                 index=0,
                                 filename="Hans",
@@ -141,19 +182,9 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         self.ctx.db_driver.add_submission(db_subm)
 
         parameter = "submission_id=submitme&index=0"
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile?{parameter}", method='GET')
-
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile?{parameter}", method='DELETE')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual({'filename': 'Hans',
-                          'filetype': 'black',
-                          'index': 0,
-                          'result': {'issues': [], 'status': 'OK'},
-                          'status': 'SUBMITTED',
-                          'submission_id': 'submitme'}, actual_response_data)
-
 
 class StoreUploadUserTest(WsTestCase):
 

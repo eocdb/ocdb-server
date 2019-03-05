@@ -10,7 +10,7 @@ class SubmissionTest(TestCase):
 
     def test_to_dict(self):
         sfrs = [SubmissionFileRef(submission_id="12", index=7, filename="bla", filetype="blubb", status="who_knows")]
-        submission = Submission(id="ei_dih",
+        submission = Submission(id_="ei_dih",
                                 submission_id="submit_me",
                                 user_id=6789,
                                 date=datetime(2016, 2, 21, 10, 13, 32),

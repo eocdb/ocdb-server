@@ -137,7 +137,25 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         else:
             self.set_status(400, reason="No result found")
 
+    def delete(self):
+        submission_id = self.query.get_param("submission_id", default=None)
+        index_str = self.query.get_param("index", default=None)
+        index = int(index_str)
 
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        if submission is None:
+            self.set_status(404, reason="No result found")
+            return
+
+        if index >= len(submission.files):
+            self.set_status(400, reason="Invalid submission file index")
+            return
+
+        result = delete_submission_file(ctx=self.ws_context, submission=submission, index=index)
+        if result:
+            self.set_status(200, reason="OK")
+        else:
+            self.set_status(400, reason="Database error")
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins

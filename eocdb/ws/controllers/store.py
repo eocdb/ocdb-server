@@ -24,9 +24,9 @@ import os
 import tempfile
 import time
 import zipfile
-from typing import Dict, List
+from typing import Dict, List, Optional
 
-from ..context import WsContext
+from ..context import WsContext, _LOG
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
@@ -141,8 +141,7 @@ def upload_store_files(ctx: WsContext,
     return validation_results
 
 
-def get_submissions(ctx: WsContext,
-                    user_id: int) -> List[Submission]:
+def get_submissions(ctx: WsContext, user_id: int) -> List[Submission]:
     result = ctx.db_driver.get_submissions(user_id)
 
     submissions = []
@@ -153,11 +152,34 @@ def get_submissions(ctx: WsContext,
     return submissions
 
 
+def get_submission(ctx: WsContext, submission_id: str) -> Optional[DbSubmission]:
+    return ctx.db_driver.get_submission(submission_id)
+
+
 def get_submission_file(ctx: WsContext,
                         submission_id: str,
                         index: int):
     result = ctx.db_driver.get_submission_file(submission_id=submission_id, index=index)
     return result
+
+
+def delete_submission_file(ctx: WsContext, submission: DbSubmission, index: int) -> bool:
+    file_to_delete = submission.files[index]
+
+    if file_to_delete.filetype == "MEASUREMENT":
+        root_path = ctx.get_datasets_upload_path(submission.path)
+    else:
+        root_path = ctx.get_doc_files_upload_path(submission.path)
+
+    file_path = os.path.join(root_path, file_to_delete.filename)
+    if os.path.isfile(file_path):
+        os.remove(file_path)
+    else:
+        _LOG.warning("File to delete des not exist: " + file_path)
+
+    del submission.files[index]
+
+    return ctx.db_driver.update_submission(submission)
 
 
 # noinspection PyTypeChecker
@@ -266,14 +288,15 @@ def get_document_root_path(dataset_path):
     else:
         return valid_segments[0]
 
+
 def _get_summary_vaidation_status(validation_results: dict) -> str:
     errors = 0
     warnings = 0
     for key, value in validation_results.items():
         if value.status == DATASET_VALIDATION_RESULT_STATUS_ERROR:
-            errors+=1
+            errors += 1
         if value.status == DATASET_VALIDATION_RESULT_STATUS_WARNING:
-            warnings+=1
+            warnings += 1
 
     if errors > 0:
         return DATASET_VALIDATION_RESULT_STATUS_ERROR
