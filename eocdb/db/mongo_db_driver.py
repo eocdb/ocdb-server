@@ -126,6 +126,18 @@ class MongoDbDriver(DbDriver):
             return DbSubmission.from_dict(subm_dict)
         return None
 
+    def update_submission(self, submission: DbSubmission) -> bool:
+        obj_id = self._obj_id(submission.id)
+        if obj_id is None:
+            return False
+
+        submission_dict = submission.to_dict()
+        if "id" in submission_dict:
+            del submission_dict["id"]
+
+        result = self._submit_collection.replace_one({"_id": obj_id}, submission_dict)
+        return result.modified_count == 1
+
     @staticmethod
     def _get_start_index_and_count(query) -> (int, int):
         if query.offset is None:

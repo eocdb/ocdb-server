@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List
+from typing import List, Optional
 
 from ...core.model import Model
 from ...core.models.submission_file_ref import SubmissionFileRef
@@ -14,8 +14,8 @@ class Submission(Model):
                  status: str,
                  qc_status: str,
                  file_refs: List[SubmissionFileRef],
-                 id: str = None):
-        self._id = id
+                 id_: str = None):
+        self._id = id_
         self._submission_id = submission_id
         self._user_id = user_id
         self._date = date
@@ -24,7 +24,7 @@ class Submission(Model):
         self._file_refs = file_refs
 
     @property
-    def id(self):
+    def id(self) -> Optional[str]:
         return self._id
 
     @id.setter

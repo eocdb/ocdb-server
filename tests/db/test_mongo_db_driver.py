@@ -672,6 +672,20 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(1, result.total_count)
         self.assertEqual("archive/dataset-43.txt", result.datasets[0].path)
 
+    def test_insert_one_and_update(self):
+        dataset = helpers.new_test_db_dataset(44)
+        ds_id = self._driver.add_dataset(dataset)
+
+        result = self._driver.get_dataset(ds_id)
+        self.assertEqual("archive/dataset-44.txt", result.path)
+
+        result.metadata["the_new"] = "a_thing_we_added"
+        success = self._driver.update_dataset(result)
+        self.assertTrue(success)
+
+        result = self._driver.get_dataset(ds_id)
+        self.assertEqual("a_thing_we_added", result.metadata["the_new"])
+
     def test_get_get_start_index_and_page_size(self):
         query = DatasetQuery()
         query.offset = 1
@@ -835,7 +849,8 @@ class TestMongoDbDriver(unittest.TestCase):
                               status=QC_STATUS_SUBMITTED, result=None)
         sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", filetype="second",
                               status=QC_STATUS_SUBMITTED, result=None)
-        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status=QC_STATUS_SUBMITTED, qc_status="OK",
+        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status=QC_STATUS_SUBMITTED,
+                          qc_status="OK",
                           path="/the/cool/path", files=[sf_0, sf_1])
 
         sf_id = self._driver.add_submission(sf)
@@ -903,7 +918,8 @@ class TestMongoDbDriver(unittest.TestCase):
                               status=QC_STATUS_SUBMITTED, result=None)
         sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", filetype="sure",
                               status=QC_STATUS_SUBMITTED, result=None)
-        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status=QC_STATUS_SUBMITTED, qc_status="OK",
+        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status=QC_STATUS_SUBMITTED,
+                          qc_status="OK",
                           path="/some/where/", files=[sf_0, sf_1])
 
         sf_id = self._driver.add_submission(sf)
@@ -930,7 +946,8 @@ class TestMongoDbDriver(unittest.TestCase):
                               status=QC_STATUS_SUBMITTED, result=None)
         sf_1 = SubmissionFile(index=1, submission_id=submission_id, filename="Number two", filetype="second",
                               status=QC_STATUS_SUBMITTED, result=None)
-        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status=QC_STATUS_SUBMITTED, qc_status="OK",
+        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status=QC_STATUS_SUBMITTED,
+                          qc_status="OK",
                           path="p/a/th/", files=[sf_0, sf_1])
 
         sf_id = self._driver.add_submission(sf)
@@ -946,10 +963,11 @@ class TestMongoDbDriver(unittest.TestCase):
         date = datetime(2017, 3, 22, 11, 14, 33)
         submission_id = "her_we_go"
 
-        sf = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED", qc_status="OK",
-                          path="/root", files=[])
+        submission = DbSubmission(submission_id=submission_id, date=date, user_id=5876123, status="SUBMITTED",
+                                  qc_status="OK",
+                                  path="/root", files=[])
 
-        sf_id = self._driver.add_submission(sf)
+        sf_id = self._driver.add_submission(submission)
         self.assertIsNotNone(sf_id)
 
         result = self._driver.get_submission_file(submission_id=submission_id, index=0)
@@ -958,6 +976,42 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_get_submission_files_invalid_submission_id(self):
         result = self._driver.get_submission_file(submission_id="not_in_db", index=0)
         self.assertIsNone(result)
+
+    def test_update_submission_invalid_id(self):
+        submission = DbSubmission(submission_id="dunno_", date=datetime(2018, 3, 22, 11, 14, 33), user_id=5876123,
+                                  status="SUBMITTED",
+                                  qc_status="OK",
+                                  path="/root", files=[], id_="nasenmann")
+
+        result = self._driver.update_submission(submission)
+        self.assertFalse(result)
+
+    def test_insert_submission_and_update(self):
+        # insert
+        submission = DbSubmission(submission_id="dunno_", date=datetime(2019, 2, 22, 11, 14, 33), user_id=5876123,
+                                  status="SUBMITTED",
+                                  qc_status="OK",
+                                  path="/root", files=[])
+
+        s_id = self._driver.add_submission(submission)
+        self.assertIsNotNone(s_id)
+
+        # retrieve
+        submission = self._driver.get_submission("dunno_")
+        self.assertIsNotNone(submission)
+
+        # modify and update
+        submission.status = QC_STATUS_APPROVED
+        submission.qc_status = QC_STATUS_VALIDATED
+
+        result = self._driver.update_submission(submission)
+        self.assertTrue(result)
+
+        # check updates
+        submission = self._driver.get_submission("dunno_")
+        self.assertIsNotNone(submission)
+        self.assertEqual(QC_STATUS_APPROVED, submission.status)
+        self.assertEqual(QC_STATUS_VALIDATED, submission.qc_status)
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):

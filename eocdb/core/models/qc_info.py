@@ -29,6 +29,7 @@ QC_STATUS_SUBMITTED = 'SUBMITTED'
 QC_STATUS_VALIDATED = 'VALIDATED'
 QC_STATUS_APPROVED = 'APPROVED'
 QC_STATUS_PUBLISHED = 'PUBLISHED'
+QC_STATUS_CANCELED = 'CANCELED'
 
 
 class QcInfo(Model):
@@ -40,7 +41,8 @@ class QcInfo(Model):
                  status: str,
                  result: Dict = None):
         assert_not_none(status, name='status')
-        assert_one_of(status, [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_PUBLISHED], name='status')
+        assert_one_of(status, [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_PUBLISHED, QC_STATUS_CANCELED],
+                      name='status')
         self._status = status
         self._result = result
 
@@ -51,7 +53,8 @@ class QcInfo(Model):
     @status.setter
     def status(self, value: str):
         assert_not_none(value, name='value')
-        assert_one_of(value, [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_PUBLISHED], name='value')
+        assert_one_of(value, [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_PUBLISHED],
+                      name='value')
         self._status = value
 
     @property
