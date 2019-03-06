@@ -17,8 +17,9 @@ class DbSubmission(Submission):
                  path: str,
                  files: List[SubmissionFile],
                  id_: str = None):
-        super().__init__(submission_id, user_id, date, status, qc_status, [], id_)
+        super().__init__(submission_id, user_id, date, status, qc_status, [])
 
+        self._id = id_
         self._path = path
         self._files = files
 
@@ -38,6 +39,14 @@ class DbSubmission(Submission):
     def path(self, value: str):
         self._path = value
 
+    @property
+    def id(self) -> str:
+        return self._id
+
+    @id.setter
+    def id(self, value: str):
+        self._id = value
+
     @classmethod
     def from_dict(cls: Type[T], dictionary: Dict[str, Any]):
         subm = super().from_dict(dictionary)
@@ -49,6 +58,9 @@ class DbSubmission(Submission):
             subm_files_array.append(submf)
 
         path = dictionary["path"]
+        id_ = None
+        if "id" in dictionary:
+            id_ = dictionary["id"]
 
         return DbSubmission(submission_id=subm.submission_id,
                             user_id=subm.user_id,
@@ -57,7 +69,7 @@ class DbSubmission(Submission):
                             qc_status=subm.qc_status,
                             path=path,
                             files=subm_files_array,
-                            id_=subm.id)
+                            id_=id_)
 
     def to_submission(self):
         file_refs = []
