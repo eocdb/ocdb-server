@@ -1268,6 +1268,12 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "edpitch",
+      "unit": "degrees",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "elapsed_time",
       "unit": "seconds",
       "lower_bound": 0,
@@ -1317,6 +1323,12 @@
     {
       "name": "esky",
       "unit": "uW/cm^2/nm,uWcm-2nm-1",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "espitch",
+      "unit": "degrees",
       "data_type": "number",
       "unit_error": "@field_has_wrong_unit"
     },
@@ -1780,6 +1792,525 @@
     {
       "name": "mz",
       "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "n2_fix",
+      "unit": "ug/m^3/d",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "nadir",
+      "unit": "degrees",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "nanoeukaryote_abun",
+      "unit": "cell/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "nanoeukaryote_biovol",
+      "unit": "m^3/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "nanoeukaryote_ug/l",
+      "unit": "m^3/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "natf",
+      "unit": "nE/m^2/sr/s",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "neo",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "nccb",
+      "unit": "nmol/m^2/hr",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ncpb",
+      "unit": "nmol/m^2/hr",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "nh4",
+      "unit": "nmol/m^3",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "no2",
+      "unit": "nmol/m^3",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "no2_no3",
+      "unit": "nmol/m^3",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "no3",
+      "unit": "nmol/m^3",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "npf",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "npp",
+      "unit": "mg/m^3/d,ug/l/d",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "nrb",
+      "unit": "photoelectrons/usec/shot",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "oxygen",
+      "unit": "ml/L",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "oxygen_saturation",
+      "unit": "%",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "oz",
+      "unit": "dobson",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "p-457",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "par",
+      "unit": "uE/cm^2/s",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pc",
+      "unit": "mg/m^3",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pco2",
+      "unit": "uatm",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "perid",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pdrift",
+      "unit": "mbar",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ph",
+      "unit": "none",
+      "lower_bound": 0,
+      "upper_bound": 14,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "phaeo",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "phide_a",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "phide_b",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "phide_c",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "phytin_a",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "phytin_b",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "phytin_c",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "phytyl-chl_c",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "phyto_carbon",
+      "unit": "ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pic",
+      "unit": "mol/m^3",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pim",
+      "unit": "mg/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "picoeukaryote_abun",
+      "unit": "cell/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "picoeukaryote_biovol",
+      "unit": "m^3/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "picoeukaryote_carbon",
+      "unit": "ug/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pitch",
+      "unit": "degrees",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pn",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "po4",
+      "unit": "nmol/m^3",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "poc",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pom",
+      "unit": "mg/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pon",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pp",
+      "unit": "mgC/mgchla/hr",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ppc",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ppc_tcar",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ppc_tpg",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "ppf",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pras",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pressure",
+      "unit": "dbar",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pressure_atm",
+      "unit": "mbar",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "prochlorococcus_abun",
+      "unit": "cell/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "prochlorococcus_biovol",
+      "unit": "m^3/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "prochlorococcus_carbon",
+      "unit": "ug/l",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "psc",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "psc_tcar",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "psd",
+      "unit": "ul/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "psp",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "psp_tpg",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pulse_width",
+      "unit": "seconds",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pvel",
+      "unit": "m/s",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pyrophide_a",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pyrophytin_a",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pyrophytin_b",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "pyrophytin_c",
+      "unit": "mg/m^3,ug/l",
       "lower_bound": 0,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",

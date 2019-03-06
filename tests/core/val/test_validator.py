@@ -276,6 +276,6 @@ class ValidatorTest(TestCase):
 
     # def test_delete_me(self):
     #     reader = SbFileReader()
-    #     data_record = reader.read("/usr/local/data/OC_DB/seabass_extract/USF/HU/Tampa_Bay/t1205/archive/T12050705_rrs.txt")
+    #     data_record = reader.read("/usr/local/data/OC_DB/seabass_extract/USF/HU/DISCOVER_AQ/archive/chl/DISCOVER_AQ_2011_chl.txt")
     #     result = self._validator.validate_dataset(data_record)
     #     print(result)
