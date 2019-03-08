@@ -67,7 +67,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.16", result["info"].get("version"))
+        self.assertEqual("0.1.0-dev.17", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -181,6 +181,22 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='DELETE')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
+
+        userid = 88763
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/{userid}", method='GET')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertEqual([{'date': '2001-02-03T04:05:06',
+                           'file_refs': [{'filename': 'Helga',
+                                          'filetype': 'green',
+                                          'index': 0,
+                                          'status': 'VALIDATED',
+                                          'submission_id': 'submitme'}],
+                           'qc_status': 'OK',
+                           'status': 'Hellyeah',
+                           'submission_id': 'submitme',
+                           'user_id': 88763}], actual_response_data)
 
 
 class StoreUploadUserTest(WsTestCase):

@@ -178,6 +178,10 @@ def delete_submission_file(ctx: WsContext, submission: DbSubmission, index: int)
         _LOG.warning("File to delete des not exist: " + file_path)
 
     del submission.files[index]
+    new_index = 0
+    for file_ref in submission.files:
+        file_ref.index = new_index
+        new_index += 1
 
     return ctx.db_driver.update_submission(submission)
 
