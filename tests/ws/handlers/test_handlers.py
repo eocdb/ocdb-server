@@ -116,8 +116,7 @@ class StoreUploadTest(WsTestCase):
 class StoreUploadSubmissionFileTest(WsTestCase):
 
     def test_get_no_results(self):
-        parameter = "submission_id=ABCDEFGHI&index=0"
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile?{parameter}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='GET')
 
         self.assertEqual(400, response.code)
         self.assertEqual('No result found', response.reason)
@@ -142,8 +141,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         self.ctx.db_driver.add_submission(db_subm)
 
         # --- get submission file ---
-        parameter = "submission_id=submitme&index=0"
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile?{parameter}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='GET')
 
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
@@ -157,11 +155,10 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                           'submission_id': 'submitme'}, actual_response_data)
 
     def test_delete_no_submissions(self):
-        parameter = "submission_id=ABCDEFGHI&index=0"
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile?{parameter}", method='DELETE')
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='DELETE')
 
         self.assertEqual(404, response.code)
-        self.assertEqual('No result found', response.reason)
+        self.assertEqual('Submission not found', response.reason)
 
     def test_delete(self):
         files = [SubmissionFile(submission_id="submitme",
@@ -181,10 +178,10 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
         self.ctx.db_driver.add_submission(db_subm)
 
-        parameter = "submission_id=submitme&index=0"
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile?{parameter}", method='DELETE')
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='DELETE')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
+
 
 class StoreUploadUserTest(WsTestCase):
 
