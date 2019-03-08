@@ -133,7 +133,7 @@ class MongoDbDriver(DbDriver):
 
         submission_dict = submission.to_dict()
         if "id" in submission_dict:
-            del submission_dict["id"]
+            submission_dict["id"] = None
 
         result = self._submit_collection.replace_one({"_id": obj_id}, submission_dict)
         return result.modified_count == 1

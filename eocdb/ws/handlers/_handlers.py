@@ -125,10 +125,8 @@ class StoreUploadUser(WsRequestHandler):
 # noinspection PyAbstractClass
 class StoreUploadSubmissionFile(WsRequestHandler):
 
-    def get(self):
-        submission_id = self.query.get_param("submission_id", default=None)
-        index_str = self.query.get_param("index", default=None)
-        index = int(index_str)
+    def get(self, submission_id: str, index: str):
+        index = int(index)
 
         submission_file = get_submission_file(ctx=self.ws_context, submission_id=submission_id, index=index)
         if submission_file is not None:
@@ -137,17 +135,15 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         else:
             self.set_status(400, reason="No result found")
 
-    def delete(self):
-        submission_id = self.query.get_param("submission_id", default=None)
-        index_str = self.query.get_param("index", default=None)
-        index = int(index_str)
+    def delete(self, submission_id: str, index: str):
+        index = int(index)
 
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
         if submission is None:
-            self.set_status(404, reason="No result found")
+            self.set_status(404, reason="Submission not found")
             return
 
-        if index >= len(submission.files):
+        if index >= len(submission.files) or index < 0:
             self.set_status(400, reason="Invalid submission file index")
             return
 
