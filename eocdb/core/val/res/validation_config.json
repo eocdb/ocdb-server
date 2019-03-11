@@ -1274,6 +1274,12 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "edroll",
+      "unit": "degrees",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "elapsed_time",
       "unit": "seconds",
       "lower_bound": 0,
@@ -1328,6 +1334,12 @@
     },
     {
       "name": "espitch",
+      "unit": "degrees",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "esroll",
       "unit": "degrees",
       "data_type": "number",
       "unit_error": "@field_has_wrong_unit"
@@ -2314,6 +2326,83 @@
       "lower_bound": 0,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "q",
+      "unit": "sr",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "quality",
+      "data_type": "string",
+      "error": "@field_is_empty"
+    },
+    {
+      "name": "r",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "relabundance",
+      "unit": "%",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "relaz",
+      "unit": "degrees",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "rf",
+      "unit": "uW/cm^2/nm/sr",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "rl",
+      "unit": "1/sr",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "roll",
+      "unit": "degrees",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "rpi",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "rrs",
+      "unit": "1/sr,sr^-1",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "rtilt",
+      "unit": "degrees",
+      "data_type": "number",
       "unit_error": "@field_has_wrong_unit"
     }
   ],
