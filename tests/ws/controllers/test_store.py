@@ -20,7 +20,6 @@
 # SOFTWARE.
 import unittest
 
-from eocdb.core.models import DATASET_VALIDATION_RESULT_STATUS_OK, DATASET_VALIDATION_RESULT_STATUS_WARNING
 from eocdb.ws.controllers.store import *
 from eocdb.ws.controllers.store import _get_summary_vaidation_status
 from tests.helpers import new_test_service_context

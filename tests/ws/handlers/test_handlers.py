@@ -67,7 +67,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.17", result["info"].get("version"))
+        self.assertEqual("0.1.0-dev.18", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -197,6 +197,88 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                            'status': 'Hellyeah',
                            'submission_id': 'submitme',
                            'user_id': 88763}], actual_response_data)
+
+
+class StoreUpdateSubmissionFileTest(WsTestCase):
+
+    def test_update_invalid_submissionfile(self):
+        submission_id = "not_stored"
+        index = 8
+        status = QC_STATUS_APPROVED
+        response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
+                              method='GET')
+
+        self.assertEqual(404, response.code)
+        self.assertEqual('Submission not found', response.reason)
+
+    def test_update_invalid_index(self):
+        files = [SubmissionFile(submission_id="submitme",
+                                index=0,
+                                filename="Hans",
+                                filetype="black",
+                                status=QC_STATUS_SUBMITTED,
+                                result=DatasetValidationResult(status="OK", issues=[])),
+                 SubmissionFile(submission_id="submitme",
+                                index=1,
+                                filename="Helga",
+                                filetype="green",
+                                status=QC_STATUS_VALIDATED,
+                                result=DatasetValidationResult(status="WARNING", issues=[
+                                    Issue(type="WARNING", description="This might be wrong")]))]
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+        self.ctx.db_driver.add_submission(db_subm)
+
+        submission_id = "submitme"
+        index = 8
+        status = QC_STATUS_APPROVED
+        response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
+                              method='GET')
+
+        self.assertEqual(400, response.code)
+        self.assertEqual('Invalid submission file index', response.reason)
+
+    def test_update_success(self):
+        files = [SubmissionFile(submission_id="submitme",
+                                index=0,
+                                filename="Hans",
+                                filetype="black",
+                                status=QC_STATUS_SUBMITTED,
+                                result=DatasetValidationResult(status="OK", issues=[])),
+                 SubmissionFile(submission_id="submitme",
+                                index=1,
+                                filename="Helga",
+                                filetype="green",
+                                status=QC_STATUS_VALIDATED,
+                                result=DatasetValidationResult(status="WARNING", issues=[
+                                    Issue(type="WARNING", description="This might be wrong")]))]
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+        self.ctx.db_driver.add_submission(db_subm)
+
+        submission_id = "submitme"
+        index = 1
+        status = QC_STATUS_APPROVED
+        response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
+                              method='GET')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/1", method='GET')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertEqual({'filename': 'Helga',
+                          'filetype': 'green',
+                          'index': 1,
+                          'result': {'issues': [{'description': 'This might be wrong',
+                                                 'type': 'WARNING'}],
+                                     'status': 'WARNING'},
+                          'status': 'APPROVED',
+                          'submission_id': 'submitme'}, actual_response_data)
 
 
 class StoreUploadUserTest(WsTestCase):
