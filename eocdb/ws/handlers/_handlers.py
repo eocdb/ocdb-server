@@ -135,6 +135,23 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         else:
             self.set_status(400, reason="No result found")
 
+    def put(self, submission_id: str, index: str):
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        if submission is None:
+            self.set_status(404, reason="Submission not found")
+            return
+
+        index = int(index)
+        if index >= len(submission.files) or index < 0:
+            self.set_status(400, reason="Invalid submission file index")
+            return
+
+        try:
+            updated_dataset = tornado.escape.json_decode(self.request.body)
+        except:
+            self.set_status(400, reason="Error decoding dataset")
+            return
+
     def delete(self, submission_id: str, index: str):
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
         if submission is None:

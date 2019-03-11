@@ -29,7 +29,7 @@ import tornado.escape
 import tornado.testing
 
 from eocdb.core.db.db_submission import DbSubmission
-from eocdb.core.models import DatasetValidationResult, Issue
+from eocdb.core.models import DatasetValidationResult, Issue, Dataset
 from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, QC_STATUS_APPROVED, QC_STATUS_VALIDATED
 from eocdb.core.models.submission import Submission
 from eocdb.core.models.submission_file import SubmissionFile
@@ -197,6 +197,99 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                            'status': 'Hellyeah',
                            'submission_id': 'submitme',
                            'user_id': 88763}], actual_response_data)
+
+    def test_put_invalid_submissionid(self):
+        submissionid = "rattelschneck"
+        index = 0
+        dataset = self._create_valid_dataset()
+        body = tornado.escape.json_encode(dataset.to_dict())
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                              body=body)
+
+        self.assertEqual(404, response.code)
+        self.assertEqual('Submission not found', response.reason)
+
+    def test_put_no_body(self):
+        submissionid = "rattelschneck"
+        files = [SubmissionFile(submission_id=submissionid,
+                                index=0,
+                                filename="Hans",
+                                filetype="black",
+                                status=QC_STATUS_SUBMITTED,
+                                result=DatasetValidationResult(status="OK", issues=[])),
+                 SubmissionFile(submission_id=submissionid,
+                                index=1,
+                                filename="Helga",
+                                filetype="green",
+                                status=QC_STATUS_VALIDATED,
+                                result=DatasetValidationResult(status="WARNING", issues=[
+                                    Issue(type="WARNING", description="This might be wrong")]))]
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files, qc_status="OK",
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+        self.ctx.db_driver.add_submission(db_subm)
+
+        index = 0
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                              body="")
+
+        self.assertEqual(400, response.code)
+        self.assertEqual('Error decoding dataset', response.reason)
+
+    def test_put_invalid_index(self):
+        submissionid = "rattelschneck"
+        files = [SubmissionFile(submission_id=submissionid,
+                                index=0,
+                                filename="Hans",
+                                filetype="black",
+                                status=QC_STATUS_SUBMITTED,
+                                result=DatasetValidationResult(status="OK", issues=[])),
+                 SubmissionFile(submission_id=submissionid,
+                                index=1,
+                                filename="Helga",
+                                filetype="green",
+                                status=QC_STATUS_VALIDATED,
+                                result=DatasetValidationResult(status="WARNING", issues=[
+                                    Issue(type="WARNING", description="This might be wrong")]))]
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files, qc_status="OK",
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+        self.ctx.db_driver.add_submission(db_subm)
+
+        index = -2
+        dataset = self._create_valid_dataset()
+        body = tornado.escape.json_encode(dataset.to_dict())
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                              body=body)
+
+        self.assertEqual(400, response.code)
+        self.assertEqual('Invalid submission file index', response.reason)
+
+    @staticmethod
+    def _create_valid_dataset():
+        return Dataset({"investigators": "Frank_Muller-Karger,Enrique_Montes",
+                        "affiliations": "University_of_South_Florida,USA",
+                        "contact": "emontesh@mail.usf.edu",
+                        "experiment": "SFP",
+                        "cruise": "WS15320",
+                        "data_file_name": "WS15320_1_ap_ad",
+                        "documents": "WS_cruises_report.pdf",
+                        "calibration_files": "CalReport_SPECTRIX_USF_Hu",
+                        "data_type": "scan",
+                        "water_depth": "-999",
+                        "missing": "-999",
+                        "delimiter": "space",
+                        "fields": "wavelength,abs_ap,ap,abs_ad,ad",
+                        "units": "nm,unitless,1/m,unitless,1/m",
+                        "north_latitude": "25.010[DEG]",
+                        "south_latitude": "25.010[DEG]",
+                        "east_longitude": "-80.380[DEG]",
+                        "west_longitude": "-80.380[DEG]",
+                        "start_time": "21:18:00[GMT]",
+                        "end_time": "21:18:00[GMT]",
+                        "start_date": "20151116",
+                        "end_date": "20151116"},
+                       [[400, 0.120725, 0.018486, 0.059251, 0.00714],
+                        [401, 0.121268, 0.018595, 0.058999, 0.007099]],
+                       path="archive/chl01.csv")
 
 
 class StoreUpdateSubmissionFileTest(WsTestCase):
