@@ -186,6 +186,12 @@ def delete_submission_file(ctx: WsContext, submission: DbSubmission, index: int)
     return ctx.db_driver.update_submission(submission)
 
 
+def update_submission_file_status(ctx: WsContext, submission: DbSubmission, index: int, status: str) -> bool:
+    submission.files[index].status = status
+
+    return ctx.db_driver.update_submission(submission)
+
+
 # noinspection PyTypeChecker
 def download_store_files(ctx: WsContext,
                          expr: str = None,

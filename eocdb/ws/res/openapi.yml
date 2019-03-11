@@ -3,7 +3,7 @@ servers:
   - url: 'http://ocdb-test:4000/eocdb/api/v0.1.0/'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.17"
+  version: "0.1.0-dev.18"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -240,7 +240,7 @@ paths:
       security:
       - eocdb_auth:
         - 'read:datasets'
-  '/store/upload/status/{submissionfileid}/{status}':
+  '/store/status/submissionfile/{submission_id}/{index}/{status}':
     put:
       tags:
         - Set Submission File Status
@@ -248,8 +248,9 @@ paths:
       description: Set the status of a submission file
       operationId: setSubmissionFileStatus
       parameters:
-      - $ref: '#/components/parameters/submissionFileIdParam'
-      - $ref: '#/components/parameters/submissionStatusParam'
+        - $ref: '#/components/parameters/submissionFileIdParam'
+        - $ref: '#/components/parameters/indexParam'
+        - $ref: '#/components/parameters/submissionStatusParam'
       responses:
         '200':
           description: Successful operation.
