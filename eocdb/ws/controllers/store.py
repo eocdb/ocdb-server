@@ -163,19 +163,59 @@ def get_submission_file(ctx: WsContext,
     return result
 
 
+def update_submission_file(ctx: WsContext, submission: DbSubmission,
+                           index: int, file: UploadedFile, type: str) -> Optional[DatasetValidationResult]:
+    validation_result = None
+
+    if type == "MEASUREMENT":
+        text = file.body.decode("utf-8")
+        try:
+            dataset = SbFileReader().read(io.StringIO(text))
+        except SbFormatError as e:
+            return DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
+                                           [Issue(ISSUE_TYPE_ERROR,
+                                                  f"Invalid format: {e}")])
+        except OSError as e:
+            return DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
+                                           [Issue(ISSUE_TYPE_ERROR, f"OSError: {e}")])
+
+        validation_result = validator.validate_dataset(dataset, ctx.config)
+        if DATASET_VALIDATION_RESULT_STATUS_ERROR == validation_result.status:
+            return validation_result
+
+        write_path = ctx.get_datasets_upload_path(submission.path)
+        os.makedirs(write_path, exist_ok=True)
+        file_path = os.path.join(write_path, file.filename)
+        with open(file_path, "w") as fp:
+            text = file.body.decode("utf-8")
+            fp.write(text)
+    else:
+        write_path = ctx.get_doc_files_upload_path(submission.path)
+        os.makedirs(write_path, exist_ok=True)
+        file_path = os.path.join(write_path, file.filename)
+        with open(file_path, "wb") as fp:
+            fp.write(file.body)
+
+    file_to_delete = submission.files[index]
+    _delete_submission_file(ctx, file_to_delete, submission)
+
+    submission.files[index].filename = file.filename
+    submission.files[index].filetype = type
+    submission.files[index].status = QC_STATUS_SUBMITTED
+    submission.files[index].result = validation_result
+
+    result = ctx.db_driver.update_submission(submission)
+    if not result:
+        return DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
+                                       [Issue(ISSUE_TYPE_ERROR, "Database access error")])
+
+    return validation_result
+
+
 def delete_submission_file(ctx: WsContext, submission: DbSubmission, index: int) -> bool:
     file_to_delete = submission.files[index]
 
-    if file_to_delete.filetype == "MEASUREMENT":
-        root_path = ctx.get_datasets_upload_path(submission.path)
-    else:
-        root_path = ctx.get_doc_files_upload_path(submission.path)
-
-    file_path = os.path.join(root_path, file_to_delete.filename)
-    if os.path.isfile(file_path):
-        os.remove(file_path)
-    else:
-        _LOG.warning("File to delete des not exist: " + file_path)
+    _delete_submission_file(ctx, file_to_delete, submission)
 
     del submission.files[index]
     new_index = 0
@@ -184,6 +224,18 @@ def delete_submission_file(ctx: WsContext, submission: DbSubmission, index: int)
         new_index += 1
 
     return ctx.db_driver.update_submission(submission)
+
+
+def _delete_submission_file(ctx, file_to_delete, submission):
+    if file_to_delete.filetype == "MEASUREMENT":
+        root_path = ctx.get_datasets_upload_path(submission.path)
+    else:
+        root_path = ctx.get_doc_files_upload_path(submission.path)
+    file_path = os.path.join(root_path, file_to_delete.filename)
+    if os.path.isfile(file_path):
+        os.remove(file_path)
+    else:
+        _LOG.warning("File to delete des not exist: " + file_path)
 
 
 def update_submission_file_status(ctx: WsContext, submission: DbSubmission, index: int, status: str) -> bool:

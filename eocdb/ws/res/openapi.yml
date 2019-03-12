@@ -169,13 +169,13 @@ paths:
       description: Update an existing submisison file entry
       operationId: updateSubmissionFile
       requestBody:
-        $ref: '#/components/requestBodies/SubmissionFile'
+        $ref: '#/components/requestBodies/FileUpload'
       parameters:
       - $ref: '#/components/parameters/submissionFileIdParam'
       - $ref: '#/components/parameters/indexParam'
       responses:
         '200':
-          description: Update successfull
+          $ref: '#/components/responses/DatasetValidationResults'
         '400':
           description: Invalid request
         '404':
