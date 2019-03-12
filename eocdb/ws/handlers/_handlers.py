@@ -146,11 +146,38 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             self.set_status(400, reason="Invalid submission file index")
             return
 
-        try:
-            updated_dataset = tornado.escape.json_decode(self.request.body)
-        except:
-            self.set_status(400, reason="Error decoding dataset")
+        arguments = dict()
+        files = dict()
+        # transform body with mime-type multipart/form-data into arguments and files Dict
+        tornado.httputil.parse_body_arguments(self.request.headers.get("Content-Type"),
+                                              self.request.body,
+                                              arguments,
+                                              files)
+        ds_files = files.get("datasetfiles", [])
+        doc_files = files.get("docfiles", [])
+        num_files = len(ds_files) + len(doc_files)
+
+        if num_files != 1:
+            self.set_status(400, reason="Invalid number of files supplied")
             return
+
+        if len(ds_files) == 1:
+            file = ds_files[0]
+            type = 'MEASUREMENT'
+        else:
+            file = doc_files[0]
+            type = 'DOCUMENT'
+
+        result = update_submission_file(ctx=self.ws_context, submission=submission, index=index, file=file,type=type)
+        if result is None:
+            return
+
+        if result.status is not "OK":
+            self.set_status(400, reason="Validation Error")
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result.to_dict()))
+
 
     def delete(self, submission_id: str, index: str):
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)

@@ -29,7 +29,7 @@ import tornado.escape
 import tornado.testing
 
 from eocdb.core.db.db_submission import DbSubmission
-from eocdb.core.models import DatasetValidationResult, Issue, Dataset
+from eocdb.core.models import DatasetValidationResult, Issue
 from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, QC_STATUS_APPROVED, QC_STATUS_VALIDATED
 from eocdb.core.models.submission import Submission
 from eocdb.core.models.submission_file import SubmissionFile
@@ -200,11 +200,11 @@ class StoreUploadSubmissionFileTest(WsTestCase):
 
     def test_put_invalid_submissionid(self):
         submissionid = "rattelschneck"
+        mpf = MultiPartForm(boundary="HEFFALUMP")
+        mpf.add_field("submissionid", submissionid)
         index = 0
-        dataset = self._create_valid_dataset()
-        body = tornado.escape.json_encode(dataset.to_dict())
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
-                              body=body)
+                              body=bytes(mpf))
 
         self.assertEqual(404, response.code)
         self.assertEqual('Submission not found', response.reason)
@@ -224,16 +224,19 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files, qc_status="OK",
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
+                               qc_status="OK",
                                path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
         self.ctx.db_driver.add_submission(db_subm)
 
+        mpf = MultiPartForm(boundary="HEFFALUMP")
+        mpf.add_field("submissionid", submissionid)
         index = 0
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
-                              body="")
+                              body=bytes(mpf), headers={"Content-Type": mpf.content_type})
 
         self.assertEqual(400, response.code)
-        self.assertEqual('Error decoding dataset', response.reason)
+        self.assertEqual('Invalid number of files supplied', response.reason)
 
     def test_put_invalid_index(self):
         submissionid = "rattelschneck"
@@ -250,46 +253,94 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files, qc_status="OK",
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
+                               qc_status="OK",
                                path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
         self.ctx.db_driver.add_submission(db_subm)
 
         index = -2
+        mpf = MultiPartForm(boundary="HEFFALUMP")
+        mpf.add_field("submissionid", submissionid)
         dataset = self._create_valid_dataset()
-        body = tornado.escape.json_encode(dataset.to_dict())
+        mpf.add_file(f'datasetfiles', "the_uploaded_file.sb", io.StringIO(dataset), mime_type="text/plain")
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
-                              body=body)
+                              body=bytes(mpf), headers={"Content-Type": mpf.content_type})
 
         self.assertEqual(400, response.code)
         self.assertEqual('Invalid submission file index', response.reason)
 
+    def test_put_success(self):
+        submissionid = "rabatz"
+        files = [SubmissionFile(submission_id=submissionid,
+                                index=0,
+                                filename="Hans",
+                                filetype="black",
+                                status=QC_STATUS_SUBMITTED,
+                                result=DatasetValidationResult(status="OK", issues=[])),
+                 SubmissionFile(submission_id=submissionid,
+                                index=1,
+                                filename="Helga",
+                                filetype="green",
+                                status=QC_STATUS_VALIDATED,
+                                result=DatasetValidationResult(status="WARNING", issues=[
+                                    Issue(type="WARNING", description="This might be wrong")]))]
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
+                               qc_status="OK",
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+        self.ctx.db_driver.add_submission(db_subm)
+
+        index = 1
+        mpf = MultiPartForm(boundary="HEFFALUMP")
+        mpf.add_field("submissionid", submissionid)
+        dataset = self._create_valid_dataset()
+        mpf.add_file(f'datasetfiles', "the_uploaded_file.sb", io.StringIO(dataset), mime_type="text/plain")
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                              body=bytes(mpf), headers={"Content-Type": mpf.content_type})
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='GET')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertEqual({'filename': 'the_uploaded_file.sb',
+                          'filetype': 'MEASUREMENT',
+                          'index': 1,
+                          'result': {'issues': [], 'status': 'OK'},
+                          'status': 'SUBMITTED',
+                          'submission_id': 'rabatz'}, actual_response_data)
+
     @staticmethod
-    def _create_valid_dataset():
-        return Dataset({"investigators": "Frank_Muller-Karger,Enrique_Montes",
-                        "affiliations": "University_of_South_Florida,USA",
-                        "contact": "emontesh@mail.usf.edu",
-                        "experiment": "SFP",
-                        "cruise": "WS15320",
-                        "data_file_name": "WS15320_1_ap_ad",
-                        "documents": "WS_cruises_report.pdf",
-                        "calibration_files": "CalReport_SPECTRIX_USF_Hu",
-                        "data_type": "scan",
-                        "water_depth": "-999",
-                        "missing": "-999",
-                        "delimiter": "space",
-                        "fields": "wavelength,abs_ap,ap,abs_ad,ad",
-                        "units": "nm,unitless,1/m,unitless,1/m",
-                        "north_latitude": "25.010[DEG]",
-                        "south_latitude": "25.010[DEG]",
-                        "east_longitude": "-80.380[DEG]",
-                        "west_longitude": "-80.380[DEG]",
-                        "start_time": "21:18:00[GMT]",
-                        "end_time": "21:18:00[GMT]",
-                        "start_date": "20151116",
-                        "end_date": "20151116"},
-                       [[400, 0.120725, 0.018486, 0.059251, 0.00714],
-                        [401, 0.121268, 0.018595, 0.058999, 0.007099]],
-                       path="archive/chl01.csv")
+    def _create_valid_dataset() -> str:
+        return "/begin_header\n" \
+               "/investigators=Frank_Muller-Karger,Enrique_Montes\n" \
+               "/affiliations=University_of_South_Florida,USA\n" \
+               "/contact=emontesh@mail.usf.edu\n" \
+               "/experiment=SFP\n" \
+               "/cruise=WS15320\n" \
+               "/data_file_name=WS15320_1_ap_ad\n" \
+               "/documents=WS_cruises_report.pdf\n" \
+               "/calibration_files=CalReport_SPECTRIX_USF_Hu\n" \
+               "/data_type=scan\n" \
+               "/water_depth=-999\n" \
+               "/missing=-999\n" \
+               "/delimiter=space\n" \
+               "/fields=wavelength,abs_ap,ap,abs_ad,ad\n" \
+               "/units=nm,unitless,1/m,unitless,1/m\n" \
+               "/north_latitude=25.010[DEG]\n" \
+               "/south_latitude=25.010[DEG]\n" \
+               "/east_longitude=-80.380[DEG]\n" \
+               "/west_longitude=-80.380[DEG]\n" \
+               "/start_time=21:18:00[GMT]\n" \
+               "/end_time=21:18:00[GMT]\n" \
+               "/start_date=20151116\n" \
+               "/end_date=20151116\n" \
+               "/end_header\n" \
+               "400 0.120725 0.018486 0.059251 0.00714\n" \
+               "401  0.121268  0.018595  0.058999  0.007099"
 
 
 class StoreUpdateSubmissionFileTest(WsTestCase):
