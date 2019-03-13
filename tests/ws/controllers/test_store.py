@@ -64,12 +64,12 @@ class StoreTest(unittest.TestCase):
                               "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
             uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
 
-            result = upload_store_files(ctx=self.ctx,
-                                        path="test_files",
-                                        submission_id="an_id",
-                                        user_id=user_id,
-                                        dataset_files=[uploaded_file],
-                                        doc_files=[])
+            result = upload_submission_files(ctx=self.ctx,
+                                             path="test_files",
+                                             submission_id="an_id",
+                                             user_id=user_id,
+                                             dataset_files=[uploaded_file],
+                                             doc_files=[])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
         finally:
@@ -83,12 +83,12 @@ class StoreTest(unittest.TestCase):
                               "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
             uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
 
-            result = upload_store_files(ctx=self.ctx,
-                                        path="test_files",
-                                        submission_id="an_id",
-                                        user_id=user_id,
-                                        dataset_files=[uploaded_file],
-                                        doc_files=[])
+            result = upload_submission_files(ctx=self.ctx,
+                                             path="test_files",
+                                             submission_id="an_id",
+                                             user_id=user_id,
+                                             dataset_files=[uploaded_file],
+                                             doc_files=[])
 
             issues = result["DEL1012_Station_097_CTD_Data.txt"].issues
             self.assertEqual(1, len(issues))
@@ -106,12 +106,12 @@ class StoreTest(unittest.TestCase):
                               "2.98	26.0498	0.05586		36.2363")
             uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
 
-            result = upload_store_files(ctx=self.ctx,
-                                        path="test_files",
-                                        submission_id="an_id",
-                                        user_id=user_id,
-                                        dataset_files=[uploaded_file],
-                                        doc_files=[])
+            result = upload_submission_files(ctx=self.ctx,
+                                             path="test_files",
+                                             submission_id="an_id",
+                                             user_id=user_id,
+                                             dataset_files=[uploaded_file],
+                                             doc_files=[])
 
             issues = result["DEL1012_Station_097_CTD_Data.txt"].issues
             self.assertEqual(1, len(issues))
@@ -139,12 +139,12 @@ class StoreTest(unittest.TestCase):
                               "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
             uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
 
-            result = upload_store_files(ctx=self.ctx,
-                                        path="test_files",
-                                        submission_id="an_id",
-                                        user_id=user_id,
-                                        dataset_files=[uploaded_file],
-                                        doc_files=[])
+            result = upload_submission_files(ctx=self.ctx,
+                                             path="test_files",
+                                             submission_id="an_id",
+                                             user_id=user_id,
+                                             dataset_files=[uploaded_file],
+                                             doc_files=[])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
@@ -181,12 +181,12 @@ class StoreTest(unittest.TestCase):
             document_file_content = "This is test content and does not reflect the opinion of the development team."
             document_file = UploadedFile("NSPRT_223_calib.txt", "text", document_file_content.encode("utf-8"))
 
-            result = upload_store_files(ctx=self.ctx,
-                                        path="test_files",
-                                        submission_id="an_id",
-                                        user_id=user_id,
-                                        dataset_files=[uploaded_file],
-                                        doc_files=[document_file])
+            result = upload_submission_files(ctx=self.ctx,
+                                             path="test_files",
+                                             submission_id="an_id",
+                                             user_id=user_id,
+                                             dataset_files=[uploaded_file],
+                                             doc_files=[document_file])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
@@ -223,12 +223,12 @@ class StoreTest(unittest.TestCase):
             document_file_content = "This is test content and does not reflect the opinion of the development team."
             document_file = UploadedFile("NSPRT_223_calib.txt", "text", document_file_content.encode("utf-8"))
 
-            result = upload_store_files(ctx=self.ctx,
-                                        path="test_files",
-                                        submission_id="an_id",
-                                        user_id=user_id,
-                                        dataset_files=[uploaded_file],
-                                        doc_files=[document_file])
+            result = upload_submission_files(ctx=self.ctx,
+                                             path="test_files",
+                                             submission_id="an_id",
+                                             user_id=user_id,
+                                             dataset_files=[uploaded_file],
+                                             doc_files=[document_file])
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 

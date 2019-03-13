@@ -1,6 +1,7 @@
 from unittest import TestCase
 
 from eocdb.core.models import DatasetValidationResult, Issue, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
+from eocdb.core.models.submission import TYPE_MEASUREMENT
 from eocdb.core.models.submission_file import SubmissionFile
 
 
@@ -25,13 +26,13 @@ class SubmissionFileTest(TestCase):
 
     def test_from_dict(self):
         sf_dict = {'index': 12, 'submission_id': 'whatthehell', 'filename': 'file_in_c_sharp',
-                   'filetype': 'MEASUREMENT', 'result': {'issues': [], 'status': 'OK'}, 'status': QC_STATUS_VALIDATED}
+                   'filetype': TYPE_MEASUREMENT, 'result': {'issues': [], 'status': 'OK'}, 'status': QC_STATUS_VALIDATED}
 
         sf = SubmissionFile.from_dict(sf_dict)
         self.assertEqual(12, sf.index)
         self.assertEqual('whatthehell', sf.submission_id)
         self.assertEqual('file_in_c_sharp', sf.filename)
-        self.assertEqual('MEASUREMENT', sf.filetype)
+        self.assertEqual(TYPE_MEASUREMENT, sf.filetype)
         self.assertEqual("OK", sf.result["status"])
         self.assertEqual(QC_STATUS_VALIDATED, sf.status)
 

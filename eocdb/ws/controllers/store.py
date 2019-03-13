@@ -33,7 +33,7 @@ from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET
     DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
-from ...core.models.submission import Submission
+from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMENT
 from ...core.models.submission_file import SubmissionFile
 from ...core.models.uploaded_file import UploadedFile
 from ...core.seabass.sb_file_reader import SbFileReader, SbFormatError
@@ -48,12 +48,12 @@ def get_store_info(ctx: WsContext) -> Dict:
     return dict(products=get_products(), productGroups=get_product_groups())
 
 
-def upload_store_files(ctx: WsContext,
-                       path: str,
-                       submission_id: str,
-                       user_id: int,
-                       dataset_files: List[UploadedFile],
-                       doc_files: List[UploadedFile]) -> Dict[str, DatasetValidationResult]:
+def upload_submission_files(ctx: WsContext,
+                            path: str,
+                            submission_id: str,
+                            user_id: int,
+                            dataset_files: List[UploadedFile],
+                            doc_files: List[UploadedFile]) -> Dict[str, DatasetValidationResult]:
     """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
     assert_not_none(path)
     assert_not_none(dataset_files)
@@ -106,7 +106,7 @@ def upload_store_files(ctx: WsContext,
         submission_files.append(SubmissionFile(index=index,
                                                submission_id=submission_id,
                                                filename=file.filename,
-                                               filetype="MEASUREMENT",
+                                               filetype=TYPE_MEASUREMENT,
                                                status=result.status,
                                                result=result))
         index += 1
@@ -121,7 +121,7 @@ def upload_store_files(ctx: WsContext,
         submission_files.append(SubmissionFile(index=index,
                                                submission_id=submission_id,
                                                filename=file.filename,
-                                               filetype="DOCUMENT",
+                                               filetype=TYPE_DOCUMENT,
                                                status=QC_STATUS_SUBMITTED,
                                                result=None))
         index += 1
@@ -139,6 +139,15 @@ def upload_store_files(ctx: WsContext,
     ctx.db_driver.add_submission(submission)
 
     return validation_results
+
+
+def delete_submission(ctx: WsContext, submission_id: str) -> bool:
+    submission = ctx.db_driver.get_submission(submission_id)
+
+    for file in submission.files:
+        _delete_submission_file(ctx=ctx, file_to_delete=file, submission=submission)
+
+    return ctx.db_driver.delete_submission(submission_id)
 
 
 def get_submissions(ctx: WsContext, user_id: int) -> List[Submission]:
@@ -167,7 +176,7 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
                            index: int, file: UploadedFile, type: str) -> Optional[DatasetValidationResult]:
     validation_result = None
 
-    if type == "MEASUREMENT":
+    if type == TYPE_MEASUREMENT:
         text = file.body.decode("utf-8")
         try:
             dataset = SbFileReader().read(io.StringIO(text))
@@ -227,7 +236,7 @@ def delete_submission_file(ctx: WsContext, submission: DbSubmission, index: int)
 
 
 def _delete_submission_file(ctx, file_to_delete, submission):
-    if file_to_delete.filetype == "MEASUREMENT":
+    if file_to_delete.filetype == TYPE_MEASUREMENT:
         root_path = ctx.get_datasets_upload_path(submission.path)
     else:
         root_path = ctx.get_doc_files_upload_path(submission.path)

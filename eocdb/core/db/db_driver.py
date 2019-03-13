@@ -49,5 +49,9 @@ class DbDriver(Service):
         """Get existing submission_file by ID."""
 
     @abstractmethod
+    def delete_submission(self, submission_id: str) -> bool:
+        """Delete existing submission by ID and return success."""
+
+    @abstractmethod
     def update_submission(self, submission: DbSubmission) -> bool:
         """Get existing submission_file by ID."""
