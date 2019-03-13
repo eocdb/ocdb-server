@@ -169,6 +169,50 @@ class StoreUploadSubmissionTest(WsTestCase):
             'user_id': 12}, actual_response_data)
 
 
+class StoreStatusSubmissionTest(WsTestCase):
+
+    def test_put_invalid_id(self):
+        body = tornado.escape.json_encode(QC_STATUS_APPROVED)
+        response = self.fetch(API_URL_PREFIX + f"/store/status/submission/abcdefghijick", body=body, method='PUT')
+
+        self.assertEqual(404, response.code)
+        self.assertEqual('Submission not found', response.reason)
+
+    def test_put_approve(self):
+        submission_id = "I_DO_EXIST"
+        submission = DbSubmission(submission_id=submission_id,
+                                  user_id=12,
+                                  date=datetime.datetime.now(),
+                                  status=QC_STATUS_VALIDATED,
+                                  qc_status="OK",
+                                  path="temp",
+                                  files=[])
+        self.ctx.db_driver.add_submission(submission)
+
+        body = tornado.escape.json_encode(QC_STATUS_APPROVED)
+        response = self.fetch(API_URL_PREFIX + f"/store/status/submission/{submission_id}", body=body, method='PUT')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/{submission_id}", method='GET')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        del actual_response_data["date"]  # varies, therefore we do not check tb 2019-03-13
+        del actual_response_data["id"]  # varies, therefore we do not check tb 2019-03-13
+        self.assertEqual({
+            'file_refs': [],
+            'files': [],
+            'path': 'temp',
+            'qc_status': 'OK',
+            'status': QC_STATUS_APPROVED,
+            'submission_id': 'I_DO_EXIST',
+            'user_id': 12}, actual_response_data)
+
+
 class StoreUploadSubmissionFileTest(WsTestCase):
 
     def test_get_no_results(self):
@@ -207,7 +251,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                           'filetype': 'black',
                           'index': 0,
                           'result': {'issues': [], 'status': 'OK'},
-                          'status': 'SUBMITTED',
+                          'status': QC_STATUS_SUBMITTED,
                           'submission_id': 'submitme'}, actual_response_data)
 
     def test_delete_no_submissions(self):
@@ -366,7 +410,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                           'filetype': TYPE_MEASUREMENT,
                           'index': 1,
                           'result': {'issues': [], 'status': 'OK'},
-                          'status': 'SUBMITTED',
+                          'status': QC_STATUS_VALIDATED,
                           'submission_id': 'rabatz'}, actual_response_data)
 
     @staticmethod
