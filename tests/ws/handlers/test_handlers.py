@@ -31,7 +31,7 @@ import tornado.testing
 from eocdb.core.db.db_submission import DbSubmission
 from eocdb.core.models import DatasetValidationResult, Issue
 from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, QC_STATUS_APPROVED, QC_STATUS_VALIDATED
-from eocdb.core.models.submission import Submission
+from eocdb.core.models.submission import Submission, TYPE_MEASUREMENT
 from eocdb.core.models.submission_file import SubmissionFile
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id_strict, get_dataset_qc_info
@@ -67,7 +67,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.18", result["info"].get("version"))
+        self.assertEqual("0.1.0-dev.19", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -85,13 +85,13 @@ class StoreInfoTest(WsTestCase):
         self.assertIn("productGroups", result)
 
 
-class StoreUploadTest(WsTestCase):
+class StoreUploadSubmissionTest(WsTestCase):
 
     def test_post_invalid_submission_id(self):
         mpf = MultiPartForm(boundary="HEFFALUMP")
         mpf.add_field("submissionid", "")
 
-        response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=bytes(mpf))
+        response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf))
         self.assertEqual(400, response.code)
         self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
 
@@ -108,9 +108,31 @@ class StoreUploadTest(WsTestCase):
         mpf = MultiPartForm(boundary="HEFFALUMP")
         mpf.add_field("submissionid", submission_id)
 
-        response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=bytes(mpf))
+        response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf))
         self.assertEqual(400, response.code)
         self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+
+    def test_delete_invalid_id(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='DELETE')
+
+        self.assertEqual(404, response.code)
+        self.assertEqual('Submission not found', response.reason)
+
+    def test_delete_success(self):
+        submission_id = "I_DO_EXIST"
+        submission = DbSubmission(submission_id=submission_id,
+                                user_id=12,
+                                date=datetime.datetime.now(),
+                                status="who_knows",
+                                qc_status="OK",
+                                path="temp",
+                                files=[])
+        self.ctx.db_driver.add_submission(submission)
+
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='DELETE')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
 
 
 class StoreUploadSubmissionFileTest(WsTestCase):
@@ -286,7 +308,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                     Issue(type="WARNING", description="This might be wrong")]))]
         db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
                                qc_status="OK",
-                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+                               path="/tmp/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
         self.ctx.db_driver.add_submission(db_subm)
 
         index = 1
@@ -307,7 +329,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
 
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual({'filename': 'the_uploaded_file.sb',
-                          'filetype': 'MEASUREMENT',
+                          'filetype': TYPE_MEASUREMENT,
                           'index': 1,
                           'result': {'issues': [], 'status': 'OK'},
                           'status': 'SUBMITTED',

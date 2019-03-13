@@ -22,6 +22,7 @@
 import tornado.escape
 import tornado.httputil
 
+from eocdb.core.models.submission import TYPE_MEASUREMENT
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.service import *
@@ -60,7 +61,7 @@ class StoreInfo(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
-class StoreUpload(WsRequestHandler):
+class StoreUploadSubmission(WsRequestHandler):
 
     def post(self):
         """Provide API operation uploadStoreFiles()."""
@@ -95,14 +96,24 @@ class StoreUpload(WsRequestHandler):
         for file in files.get("docfiles", []):
             doc_files.append(UploadedFile.from_dict(file))
 
-        result = upload_store_files(ctx=self.ws_context,
-                                    path=target_path,
-                                    submission_id=submission_id,
-                                    user_id=user_id,
-                                    dataset_files=dataset_files,
-                                    doc_files=doc_files)
+        result = upload_submission_files(ctx=self.ws_context,
+                                         path=target_path,
+                                         submission_id=submission_id,
+                                         user_id=user_id,
+                                         dataset_files=dataset_files,
+                                         doc_files=doc_files)
         # Note, result is a Dict[filename, DatasetValidationResult]
         self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
+
+    def delete(self, submission_id: str):
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        if submission is None:
+            self.set_status(404, reason="Submission not found")
+            return
+
+        success = delete_submission(ctx=self.ws_context, submission_id=submission_id)
+        if not success:
+            self.set_status(400, reason="Error deleting submission")
 
 
 # noinspection PyAbstractClass
@@ -163,10 +174,10 @@ class StoreUploadSubmissionFile(WsRequestHandler):
 
         if len(ds_files) == 1:
             file = ds_files[0]
-            type = 'MEASUREMENT'
+            type = TYPE_MEASUREMENT
         else:
             file = doc_files[0]
-            type = 'DOCUMENT'
+            type = TYPE_DOCUMENT
 
         result = update_submission_file(ctx=self.ws_context, submission=submission, index=index, file=file,type=type)
         if result is None:
@@ -177,7 +188,6 @@ class StoreUploadSubmissionFile(WsRequestHandler):
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
-
 
     def delete(self, submission_id: str, index: str):
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)

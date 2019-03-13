@@ -4,6 +4,9 @@ from typing import List
 from ...core.model import Model
 from ...core.models.submission_file_ref import SubmissionFileRef
 
+TYPE_MEASUREMENT = 'MEASUREMENT'
+TYPE_DOCUMENT = 'DOCUMENT'
+
 
 class Submission(Model):
 
