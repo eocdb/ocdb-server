@@ -115,6 +115,18 @@ class StoreUploadSubmission(WsRequestHandler):
         if not success:
             self.set_status(400, reason="Error deleting submission")
 
+    def get(self, submission_id: str):
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        if submission is None:
+            self.set_status(404, reason="Submission not found")
+            return
+
+        sub_dict = submission.to_dict()
+        sub_dict["date"] = sub_dict["date"].isoformat()
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(sub_dict))
+
 
 # noinspection PyAbstractClass
 class StoreUploadUser(WsRequestHandler):

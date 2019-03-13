@@ -144,6 +144,24 @@ paths:
       - eocdb_auth:
         - 'write:datasets'
         - 'read:datasets'
+    get:
+      tags:
+        - Submission
+      summary: Return a submission entry
+      description: Return an existing submission  entry
+      operationId: getSubmission
+      parameters:
+        - $ref: '#/components/parameters/submissionIdParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/Submission'
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission not found in registry
+      security:
+        - eocdb_auth:
+            - 'read:datasets'
     delete:
       tags:
         - Submission

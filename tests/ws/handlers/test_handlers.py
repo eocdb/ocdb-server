@@ -121,18 +121,52 @@ class StoreUploadSubmissionTest(WsTestCase):
     def test_delete_success(self):
         submission_id = "I_DO_EXIST"
         submission = DbSubmission(submission_id=submission_id,
-                                user_id=12,
-                                date=datetime.datetime.now(),
-                                status="who_knows",
-                                qc_status="OK",
-                                path="temp",
-                                files=[])
+                                  user_id=12,
+                                  date=datetime.datetime.now(),
+                                  status="who_knows",
+                                  qc_status="OK",
+                                  path="temp",
+                                  files=[])
         self.ctx.db_driver.add_submission(submission)
 
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='DELETE')
 
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
+
+    def test_get_invalid_id(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='GET')
+
+        self.assertEqual(404, response.code)
+        self.assertEqual('Submission not found', response.reason)
+
+    def test_get_success(self):
+        submission_id = "I_DO_EXIST"
+        submission = DbSubmission(submission_id=submission_id,
+                                  user_id=12,
+                                  date=datetime.datetime.now(),
+                                  status="who_knows",
+                                  qc_status="OK",
+                                  path="temp",
+                                  files=[])
+        self.ctx.db_driver.add_submission(submission)
+
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='GET')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        del actual_response_data["date"]    # varies, therefore we do not check tb 2019-03-13
+        del actual_response_data["id"]    # varies, therefore we do not check tb 2019-03-13
+        self.assertEqual({
+            'file_refs': [],
+            'files': [],
+            'path': 'temp',
+            'qc_status': 'OK',
+            'status': 'who_knows',
+            'submission_id': 'I_DO_EXIST',
+            'user_id': 12}, actual_response_data)
 
 
 class StoreUploadSubmissionFileTest(WsTestCase):
