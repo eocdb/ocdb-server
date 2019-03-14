@@ -138,6 +138,14 @@ class MongoDbDriver(DbDriver):
         result = self._submit_collection.replace_one({"_id": obj_id}, submission_dict)
         return result.modified_count == 1
 
+    def delete_submission(self, submission_id: str) -> bool:
+        subm_dict = self._submit_collection.find_one({"submission_id": submission_id})
+        if subm_dict is None:
+            return False
+
+        result = self._submit_collection.delete_one(subm_dict)
+        return result.deleted_count == 1
+
     @staticmethod
     def _get_start_index_and_count(query) -> (int, int):
         if query.offset is None:

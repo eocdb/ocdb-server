@@ -31,7 +31,7 @@ import tornado.testing
 from eocdb.core.db.db_submission import DbSubmission
 from eocdb.core.models import DatasetValidationResult, Issue
 from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, QC_STATUS_APPROVED, QC_STATUS_VALIDATED
-from eocdb.core.models.submission import Submission
+from eocdb.core.models.submission import Submission, TYPE_MEASUREMENT
 from eocdb.core.models.submission_file import SubmissionFile
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id_strict, get_dataset_qc_info
@@ -67,7 +67,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.18", result["info"].get("version"))
+        self.assertEqual("0.1.0-dev.19", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -85,13 +85,13 @@ class StoreInfoTest(WsTestCase):
         self.assertIn("productGroups", result)
 
 
-class StoreUploadTest(WsTestCase):
+class StoreUploadSubmissionTest(WsTestCase):
 
     def test_post_invalid_submission_id(self):
         mpf = MultiPartForm(boundary="HEFFALUMP")
         mpf.add_field("submissionid", "")
 
-        response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=bytes(mpf))
+        response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf))
         self.assertEqual(400, response.code)
         self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
 
@@ -108,9 +108,65 @@ class StoreUploadTest(WsTestCase):
         mpf = MultiPartForm(boundary="HEFFALUMP")
         mpf.add_field("submissionid", submission_id)
 
-        response = self.fetch(API_URL_PREFIX + "/store/upload", method='POST', body=bytes(mpf))
+        response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf))
         self.assertEqual(400, response.code)
         self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+
+    def test_delete_invalid_id(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='DELETE')
+
+        self.assertEqual(404, response.code)
+        self.assertEqual('Submission not found', response.reason)
+
+    def test_delete_success(self):
+        submission_id = "I_DO_EXIST"
+        submission = DbSubmission(submission_id=submission_id,
+                                  user_id=12,
+                                  date=datetime.datetime.now(),
+                                  status="who_knows",
+                                  qc_status="OK",
+                                  path="temp",
+                                  files=[])
+        self.ctx.db_driver.add_submission(submission)
+
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='DELETE')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+    def test_get_invalid_id(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='GET')
+
+        self.assertEqual(404, response.code)
+        self.assertEqual('Submission not found', response.reason)
+
+    def test_get_success(self):
+        submission_id = "I_DO_EXIST"
+        submission = DbSubmission(submission_id=submission_id,
+                                  user_id=12,
+                                  date=datetime.datetime.now(),
+                                  status="who_knows",
+                                  qc_status="OK",
+                                  path="temp",
+                                  files=[])
+        self.ctx.db_driver.add_submission(submission)
+
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='GET')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        del actual_response_data["date"]    # varies, therefore we do not check tb 2019-03-13
+        del actual_response_data["id"]    # varies, therefore we do not check tb 2019-03-13
+        self.assertEqual({
+            'file_refs': [],
+            'files': [],
+            'path': 'temp',
+            'qc_status': 'OK',
+            'status': 'who_knows',
+            'submission_id': 'I_DO_EXIST',
+            'user_id': 12}, actual_response_data)
 
 
 class StoreUploadSubmissionFileTest(WsTestCase):
@@ -197,6 +253,150 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                            'status': 'Hellyeah',
                            'submission_id': 'submitme',
                            'user_id': 88763}], actual_response_data)
+
+    def test_put_invalid_submissionid(self):
+        submissionid = "rattelschneck"
+        mpf = MultiPartForm(boundary="HEFFALUMP")
+        mpf.add_field("submissionid", submissionid)
+        index = 0
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                              body=bytes(mpf))
+
+        self.assertEqual(404, response.code)
+        self.assertEqual('Submission not found', response.reason)
+
+    def test_put_no_body(self):
+        submissionid = "rattelschneck"
+        files = [SubmissionFile(submission_id=submissionid,
+                                index=0,
+                                filename="Hans",
+                                filetype="black",
+                                status=QC_STATUS_SUBMITTED,
+                                result=DatasetValidationResult(status="OK", issues=[])),
+                 SubmissionFile(submission_id=submissionid,
+                                index=1,
+                                filename="Helga",
+                                filetype="green",
+                                status=QC_STATUS_VALIDATED,
+                                result=DatasetValidationResult(status="WARNING", issues=[
+                                    Issue(type="WARNING", description="This might be wrong")]))]
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
+                               qc_status="OK",
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+        self.ctx.db_driver.add_submission(db_subm)
+
+        mpf = MultiPartForm(boundary="HEFFALUMP")
+        mpf.add_field("submissionid", submissionid)
+        index = 0
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                              body=bytes(mpf), headers={"Content-Type": mpf.content_type})
+
+        self.assertEqual(400, response.code)
+        self.assertEqual('Invalid number of files supplied', response.reason)
+
+    def test_put_invalid_index(self):
+        submissionid = "rattelschneck"
+        files = [SubmissionFile(submission_id=submissionid,
+                                index=0,
+                                filename="Hans",
+                                filetype="black",
+                                status=QC_STATUS_SUBMITTED,
+                                result=DatasetValidationResult(status="OK", issues=[])),
+                 SubmissionFile(submission_id=submissionid,
+                                index=1,
+                                filename="Helga",
+                                filetype="green",
+                                status=QC_STATUS_VALIDATED,
+                                result=DatasetValidationResult(status="WARNING", issues=[
+                                    Issue(type="WARNING", description="This might be wrong")]))]
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
+                               qc_status="OK",
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+        self.ctx.db_driver.add_submission(db_subm)
+
+        index = -2
+        mpf = MultiPartForm(boundary="HEFFALUMP")
+        mpf.add_field("submissionid", submissionid)
+        dataset = self._create_valid_dataset()
+        mpf.add_file(f'datasetfiles', "the_uploaded_file.sb", io.StringIO(dataset), mime_type="text/plain")
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                              body=bytes(mpf), headers={"Content-Type": mpf.content_type})
+
+        self.assertEqual(400, response.code)
+        self.assertEqual('Invalid submission file index', response.reason)
+
+    def test_put_success(self):
+        submissionid = "rabatz"
+        files = [SubmissionFile(submission_id=submissionid,
+                                index=0,
+                                filename="Hans",
+                                filetype="black",
+                                status=QC_STATUS_SUBMITTED,
+                                result=DatasetValidationResult(status="OK", issues=[])),
+                 SubmissionFile(submission_id=submissionid,
+                                index=1,
+                                filename="Helga",
+                                filetype="green",
+                                status=QC_STATUS_VALIDATED,
+                                result=DatasetValidationResult(status="WARNING", issues=[
+                                    Issue(type="WARNING", description="This might be wrong")]))]
+        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
+                               qc_status="OK",
+                               path="/tmp/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+        self.ctx.db_driver.add_submission(db_subm)
+
+        index = 1
+        mpf = MultiPartForm(boundary="HEFFALUMP")
+        mpf.add_field("submissionid", submissionid)
+        dataset = self._create_valid_dataset()
+        mpf.add_file(f'datasetfiles', "the_uploaded_file.sb", io.StringIO(dataset), mime_type="text/plain")
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                              body=bytes(mpf), headers={"Content-Type": mpf.content_type})
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='GET')
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertEqual({'filename': 'the_uploaded_file.sb',
+                          'filetype': TYPE_MEASUREMENT,
+                          'index': 1,
+                          'result': {'issues': [], 'status': 'OK'},
+                          'status': 'SUBMITTED',
+                          'submission_id': 'rabatz'}, actual_response_data)
+
+    @staticmethod
+    def _create_valid_dataset() -> str:
+        return "/begin_header\n" \
+               "/investigators=Frank_Muller-Karger,Enrique_Montes\n" \
+               "/affiliations=University_of_South_Florida,USA\n" \
+               "/contact=emontesh@mail.usf.edu\n" \
+               "/experiment=SFP\n" \
+               "/cruise=WS15320\n" \
+               "/data_file_name=WS15320_1_ap_ad\n" \
+               "/documents=WS_cruises_report.pdf\n" \
+               "/calibration_files=CalReport_SPECTRIX_USF_Hu\n" \
+               "/data_type=scan\n" \
+               "/water_depth=-999\n" \
+               "/missing=-999\n" \
+               "/delimiter=space\n" \
+               "/fields=wavelength,abs_ap,ap,abs_ad,ad\n" \
+               "/units=nm,unitless,1/m,unitless,1/m\n" \
+               "/north_latitude=25.010[DEG]\n" \
+               "/south_latitude=25.010[DEG]\n" \
+               "/east_longitude=-80.380[DEG]\n" \
+               "/west_longitude=-80.380[DEG]\n" \
+               "/start_time=21:18:00[GMT]\n" \
+               "/end_time=21:18:00[GMT]\n" \
+               "/start_date=20151116\n" \
+               "/end_date=20151116\n" \
+               "/end_header\n" \
+               "400 0.120725 0.018486 0.059251 0.00714\n" \
+               "401  0.121268  0.018595  0.058999  0.007099"
 
 
 class StoreUpdateSubmissionFileTest(WsTestCase):

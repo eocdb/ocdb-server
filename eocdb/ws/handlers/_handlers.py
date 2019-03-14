@@ -22,6 +22,7 @@
 import tornado.escape
 import tornado.httputil
 
+from eocdb.core.models.submission import TYPE_MEASUREMENT
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.service import *
@@ -60,7 +61,7 @@ class StoreInfo(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
-class StoreUpload(WsRequestHandler):
+class StoreUploadSubmission(WsRequestHandler):
 
     def post(self):
         """Provide API operation uploadStoreFiles()."""
@@ -95,14 +96,36 @@ class StoreUpload(WsRequestHandler):
         for file in files.get("docfiles", []):
             doc_files.append(UploadedFile.from_dict(file))
 
-        result = upload_store_files(ctx=self.ws_context,
-                                    path=target_path,
-                                    submission_id=submission_id,
-                                    user_id=user_id,
-                                    dataset_files=dataset_files,
-                                    doc_files=doc_files)
+        result = upload_submission_files(ctx=self.ws_context,
+                                         path=target_path,
+                                         submission_id=submission_id,
+                                         user_id=user_id,
+                                         dataset_files=dataset_files,
+                                         doc_files=doc_files)
         # Note, result is a Dict[filename, DatasetValidationResult]
         self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
+
+    def delete(self, submission_id: str):
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        if submission is None:
+            self.set_status(404, reason="Submission not found")
+            return
+
+        success = delete_submission(ctx=self.ws_context, submission_id=submission_id)
+        if not success:
+            self.set_status(400, reason="Error deleting submission")
+
+    def get(self, submission_id: str):
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        if submission is None:
+            self.set_status(404, reason="Submission not found")
+            return
+
+        sub_dict = submission.to_dict()
+        sub_dict["date"] = sub_dict["date"].isoformat()
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(sub_dict))
 
 
 # noinspection PyAbstractClass
@@ -134,6 +157,49 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             self.finish(tornado.escape.json_encode(submission_file.to_dict()))
         else:
             self.set_status(400, reason="No result found")
+
+    def put(self, submission_id: str, index: str):
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        if submission is None:
+            self.set_status(404, reason="Submission not found")
+            return
+
+        index = int(index)
+        if index >= len(submission.files) or index < 0:
+            self.set_status(400, reason="Invalid submission file index")
+            return
+
+        arguments = dict()
+        files = dict()
+        # transform body with mime-type multipart/form-data into arguments and files Dict
+        tornado.httputil.parse_body_arguments(self.request.headers.get("Content-Type"),
+                                              self.request.body,
+                                              arguments,
+                                              files)
+        ds_files = files.get("datasetfiles", [])
+        doc_files = files.get("docfiles", [])
+        num_files = len(ds_files) + len(doc_files)
+
+        if num_files != 1:
+            self.set_status(400, reason="Invalid number of files supplied")
+            return
+
+        if len(ds_files) == 1:
+            file = ds_files[0]
+            type = TYPE_MEASUREMENT
+        else:
+            file = doc_files[0]
+            type = TYPE_DOCUMENT
+
+        result = update_submission_file(ctx=self.ws_context, submission=submission, index=index, file=file,type=type)
+        if result is None:
+            return
+
+        if result.status is not "OK":
+            self.set_status(400, reason="Validation Error")
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result.to_dict()))
 
     def delete(self, submission_id: str, index: str):
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)

@@ -1013,6 +1013,33 @@ class TestMongoDbDriver(unittest.TestCase):
         self.assertEqual(QC_STATUS_APPROVED, submission.status)
         self.assertEqual(QC_STATUS_VALIDATED, submission.qc_status)
 
+    def test_insert_submission_and_delete(self):
+        # insert
+        submission_id = "dunno_"
+        submission = DbSubmission(submission_id=submission_id, date=datetime(2019, 2, 22, 11, 14, 33), user_id=5876123,
+                                  status="SUBMITTED",
+                                  qc_status="OK",
+                                  path="/root", files=[])
+
+        s_id = self._driver.add_submission(submission)
+        self.assertIsNotNone(s_id)
+
+        # retrieve
+        submission = self._driver.get_submission(submission_id)
+        self.assertIsNotNone(submission)
+
+        # delete
+        result = self._driver.delete_submission(submission_id)
+        self.assertTrue(result)
+
+        # check
+        submission = self._driver.get_submission(submission_id)
+        self.assertIsNone(submission)
+
+    def test_delete_submission_invalid_id(self):
+        result = self._driver.delete_submission("_surely_not_stored")
+        self.assertFalse(result)
+
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):
             dataset = helpers.new_test_dataset(i)
