@@ -136,10 +136,10 @@ class StoreStatusSubmission(WsRequestHandler):
             self.set_status(404, reason="Submission not found")
             return
 
-        status = tornado.escape.json_decode(self.request.body)
-        # @todo 1 tb/tb implement logic to check status for valid transitions 2019-03-13
-        submission.status = status
-        success = update_submission(ctx=self.ws_context, submission=submission)
+        body_dict = tornado.escape.json_decode(self.request.body)
+        status = body_dict["status"]
+        # @todo 1 tb/tb check for date and parse if present 2019-03-14
+        success = update_submission(ctx=self.ws_context, submission=submission, status=status, publication_date=None)
         if not success:
             self.set_status(400, reason="Error updating submission")
 

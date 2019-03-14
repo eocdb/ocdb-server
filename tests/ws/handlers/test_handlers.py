@@ -163,6 +163,7 @@ class StoreUploadSubmissionTest(WsTestCase):
             'file_refs': [],
             'files': [],
             'path': 'temp',
+            'publication_date': None,
             'qc_status': 'OK',
             'status': 'who_knows',
             'submission_id': 'I_DO_EXIST',
@@ -189,7 +190,7 @@ class StoreStatusSubmissionTest(WsTestCase):
                                   files=[])
         self.ctx.db_driver.add_submission(submission)
 
-        body = tornado.escape.json_encode(QC_STATUS_APPROVED)
+        body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED})
         response = self.fetch(API_URL_PREFIX + f"/store/status/submission/{submission_id}", body=body, method='PUT')
 
         self.assertEqual(200, response.code)
@@ -207,6 +208,7 @@ class StoreStatusSubmissionTest(WsTestCase):
             'file_refs': [],
             'files': [],
             'path': 'temp',
+            'publication_date': None,
             'qc_status': 'OK',
             'status': QC_STATUS_APPROVED,
             'submission_id': 'I_DO_EXIST',
@@ -954,7 +956,7 @@ class DatasetsIdQcinfoTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}/qcinfo", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-        expected_response_data = {'result': None, 'status': QC_STATUS_SUBMITTED}
+        expected_response_data = {'date': None, 'result': None, 'status': 'SUBMITTED'}
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
