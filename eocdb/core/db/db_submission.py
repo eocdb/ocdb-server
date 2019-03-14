@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Type, Dict, Any
+from typing import List, Type, Dict, Any, Optional
 
 from ...core.model import T
 from ...core.models.submission import Submission
@@ -16,12 +16,14 @@ class DbSubmission(Submission):
                  qc_status: str,
                  path: str,
                  files: List[SubmissionFile],
-                 id_: str = None):
+                 id_: str = None,
+                 publication_date: datetime = None):
         super().__init__(submission_id, user_id, date, status, qc_status, [])
 
         self._id = id_
         self._path = path
         self._files = files
+        self._publication_date = publication_date
 
     @property
     def files(self):
@@ -46,6 +48,14 @@ class DbSubmission(Submission):
     @id.setter
     def id(self, value: str):
         self._id = value
+
+    @property
+    def publication_date(self) -> Optional[datetime]:
+        return self._publication_date
+
+    @publication_date.setter
+    def publication_date(self, value: datetime):
+        self._publication_date = value
 
     @classmethod
     def from_dict(cls: Type[T], dictionary: Dict[str, Any]):

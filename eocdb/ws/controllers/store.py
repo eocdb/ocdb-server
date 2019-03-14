@@ -30,7 +30,8 @@ from ..context import WsContext, _LOG
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
-    DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED
+    DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_TRANSITIONS, \
+    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMENT
@@ -126,13 +127,17 @@ def upload_submission_files(ctx: WsContext,
                                                result=None))
         index += 1
 
-    qc_status = _get_summary_vaidation_status(validation_results)
+    status = QC_STATUS_SUBMITTED
+    qc_status = _get_summary_validation_status(validation_results)
+    if not qc_status == DATASET_VALIDATION_RESULT_STATUS_ERROR:
+        status = QC_STATUS_VALIDATED
+
     archive_path = ctx.get_submission_path(path)
     # Insert submission into database
     submission = DbSubmission(submission_id=submission_id,
                               user_id=user_id,
                               date=datetime.datetime.now(),
-                              status=QC_STATUS_SUBMITTED,
+                              status=status,
                               qc_status=qc_status,
                               path=archive_path,
                               files=submission_files)
@@ -148,6 +153,25 @@ def delete_submission(ctx: WsContext, submission_id: str) -> bool:
         _delete_submission_file(ctx=ctx, file_to_delete=file, submission=submission)
 
     return ctx.db_driver.delete_submission(submission_id)
+
+
+def update_submission(ctx: WsContext, submission: DbSubmission, status: str, publication_date: datetime) -> bool:
+    old_status = submission.status
+
+    new_stati = QC_TRANSITIONS[old_status]
+    if status not in new_stati:
+        return False
+
+    if status == QC_STATUS_READY_TO_PUBLISHED:
+        submission.publication_date = publication_date
+    else:
+        submission.publication_date = None
+
+    if status == QC_STATUS_PUBLISHED:
+        _publish_submission(ctx, submission)
+
+    submission.status = status
+    return ctx.db_driver.update_submission(submission)
 
 
 def get_submissions(ctx: WsContext, user_id: int) -> List[Submission]:
@@ -210,8 +234,10 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
 
     submission.files[index].filename = file.filename
     submission.files[index].filetype = type
-    submission.files[index].status = QC_STATUS_SUBMITTED
+    submission.files[index].status = QC_STATUS_VALIDATED
     submission.files[index].result = validation_result
+
+    _update_validation_status(submission)
 
     result = ctx.db_driver.update_submission(submission)
     if not result:
@@ -360,7 +386,7 @@ def get_document_root_path(dataset_path):
         return valid_segments[0]
 
 
-def _get_summary_vaidation_status(validation_results: dict) -> str:
+def _get_summary_validation_status(validation_results: dict) -> str:
     errors = 0
     warnings = 0
     for key, value in validation_results.items():
@@ -375,3 +401,47 @@ def _get_summary_vaidation_status(validation_results: dict) -> str:
         return DATASET_VALIDATION_RESULT_STATUS_WARNING
 
     return DATASET_VALIDATION_RESULT_STATUS_OK
+
+
+def _update_validation_status(submission: DbSubmission):
+    errors = 0
+    for file in submission.files:
+        if file.status == DATASET_VALIDATION_RESULT_STATUS_ERROR:
+            errors += 1
+
+    if errors > 0:
+        submission.status = QC_STATUS_SUBMITTED
+    else:
+        submission.status = QC_STATUS_VALIDATED
+
+
+def _publish_submission(ctx: WsContext, submission: DbSubmission) -> bool:
+    source_meas_path = os.path.join(ctx.get_datasets_upload_path(submission.path))
+    source_docs_path = os.path.join(ctx.get_doc_files_upload_path(submission.path))
+    target_meas_path = os.path.join(ctx.get_datasets_store_path(submission.path))
+    target_docs_path = os.path.join(ctx.get_doc_files_store_path(submission.path))
+
+    datasets = []
+    for file in submission.files:
+        if file.filetype == TYPE_MEASUREMENT:
+            source_path = os.path.join(source_meas_path, file.filename)
+            target_path = os.path.join(target_meas_path, file.filename)
+        else:
+            source_path = os.path.join(source_docs_path, file.filename)
+            target_path = os.path.join(target_docs_path, file.filename)
+
+        os.rename(source_path, target_path)
+
+        if file.filetype == TYPE_MEASUREMENT:
+            try:
+                dataset = SbFileReader().read(target_path)
+            except (SbFormatError, OSError) as e:
+                _LOG.warning("Error reading dataset: " + e)
+                continue
+
+            datasets.append(dataset)
+
+    for dataset in datasets:
+        ctx.db_driver.add_dataset(dataset)
+
+    return True

@@ -22,7 +22,6 @@
 import tornado.escape
 import tornado.httputil
 
-from eocdb.core.models.submission import TYPE_MEASUREMENT
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.service import *
@@ -126,6 +125,23 @@ class StoreUploadSubmission(WsRequestHandler):
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(sub_dict))
+
+
+# noinspection PyAbstractClass,PyShadowingBuiltins
+class StoreStatusSubmission(WsRequestHandler):
+
+    def put(self, submission_id: str):
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        if submission is None:
+            self.set_status(404, reason="Submission not found")
+            return
+
+        body_dict = tornado.escape.json_decode(self.request.body)
+        status = body_dict["status"]
+        # @todo 1 tb/tb check for date and parse if present 2019-03-14
+        success = update_submission(ctx=self.ws_context, submission=submission, status=status, publication_date=None)
+        if not success:
+            self.set_status(400, reason="Error updating submission")
 
 
 # noinspection PyAbstractClass

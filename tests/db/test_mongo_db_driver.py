@@ -979,7 +979,7 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def test_update_submission_invalid_id(self):
         submission = DbSubmission(submission_id="dunno_", date=datetime(2018, 3, 22, 11, 14, 33), user_id=5876123,
-                                  status="SUBMITTED",
+                                  status=QC_STATUS_SUBMITTED,
                                   qc_status="OK",
                                   path="/root", files=[], id_="nasenmann")
 
@@ -989,7 +989,7 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_insert_submission_and_update(self):
         # insert
         submission = DbSubmission(submission_id="dunno_", date=datetime(2019, 2, 22, 11, 14, 33), user_id=5876123,
-                                  status="SUBMITTED",
+                                  status=QC_STATUS_SUBMITTED,
                                   qc_status="OK",
                                   path="/root", files=[])
 
@@ -1017,7 +1017,7 @@ class TestMongoDbDriver(unittest.TestCase):
         # insert
         submission_id = "dunno_"
         submission = DbSubmission(submission_id=submission_id, date=datetime(2019, 2, 22, 11, 14, 33), user_id=5876123,
-                                  status="SUBMITTED",
+                                  status=QC_STATUS_SUBMITTED,
                                   qc_status="OK",
                                   path="/root", files=[])
 
