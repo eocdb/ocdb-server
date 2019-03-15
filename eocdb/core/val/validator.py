@@ -7,6 +7,7 @@ from eocdb.core.val._gap_aware_dict import GapAwareDict
 from eocdb.core.val._meta_field_obsolete_rule import MetaFieldObsoleteRule
 from eocdb.core.val._number_record_rule import NumberRecordRule
 from eocdb.core.val._string_record_rule import StringRecordRule
+from eocdb.core.val._time_record_rule import TimeRecordRule
 from ..models.dataset import Dataset
 from ..models.dataset_validation_result import DatasetValidationResult
 from ..models.issue import ISSUE_TYPE_WARNING, ISSUE_TYPE_ERROR, Issue
@@ -189,6 +190,9 @@ class Validator(MessageLibrary):
                 self._record_rules.update({name: rule})
             elif "date" == data_type:
                 rule = DateRecordRule.from_dict(record_rule)
+                self._record_rules.update({name: rule})
+            elif "time" == data_type:
+                rule = TimeRecordRule.from_dict(record_rule)
                 self._record_rules.update({name: rule})
             else:
                 raise ValueError("Invalid data type in field validation rule: " + data_type)
