@@ -169,10 +169,32 @@ paths:
       description: Delete an existing submission and all asociated files
       operationId: deleteSubmission
       parameters:
-        - $ref: '#/components/parameters/submissionFileIdParam'
+        - $ref: '#/components/parameters/submissionIdParam'
       responses:
         '200':
           description: Deletion successfull
+        '400':
+          description: Invalid request
+        '404':
+          description: Submission not found in registry
+      security:
+        - eocdb_auth:
+            - 'write:datasets'
+            - 'read:datasets'
+  '/store/status/submission':
+    put:
+      tags:
+        - Set Submission Status
+      summary: Set the status of a submission
+      description: Set the status of a submission
+      operationId: setSubmissionStatus
+      parameters:
+        - $ref: '#/components/parameters/submissionIdParam'
+      requestBody:
+        $ref: '#/components/requestBodies/QcInfo'
+      responses:
+        '200':
+          description: Successful operation.
         '400':
           description: Invalid request
         '404':
@@ -1221,7 +1243,7 @@ components:
           enum: ['OK', 'WARNING', 'ERROR']
         status:
           type: string
-          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
+          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED','READY_TO_PUBLISHED','PUBLISHED','CANCELED']
         files:
           type: array
           items:
@@ -1312,9 +1334,11 @@ components:
       properties:
         status:
           type: string
-          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED', 'PUBLISHED']
+          enum: ['SUBMITTED', 'VALIDATED', 'APPROVED','READY_TO_PUBLISHED','PUBLISHED','CANCELED']
         result:
           type: object
+        date:
+          type: string
   requestBodies:
     Dataset:
       description: Dataset object.

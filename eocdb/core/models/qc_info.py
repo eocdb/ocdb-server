@@ -28,8 +28,16 @@ from ...core.asserts import assert_not_none, assert_one_of
 QC_STATUS_SUBMITTED = 'SUBMITTED'
 QC_STATUS_VALIDATED = 'VALIDATED'
 QC_STATUS_APPROVED = 'APPROVED'
+QC_STATUS_READY_TO_PUBLISHED = 'READY_TO_PUBLISHED'
 QC_STATUS_PUBLISHED = 'PUBLISHED'
 QC_STATUS_CANCELED = 'CANCELED'
+
+QC_TRANSITIONS = {QC_STATUS_SUBMITTED: [QC_STATUS_VALIDATED, QC_STATUS_CANCELED],
+                  QC_STATUS_VALIDATED: [QC_STATUS_APPROVED, QC_STATUS_CANCELED],
+                  QC_STATUS_APPROVED: [QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_CANCELED],
+                  QC_STATUS_READY_TO_PUBLISHED: [QC_STATUS_PUBLISHED, QC_STATUS_CANCELED],
+                  QC_STATUS_PUBLISHED: [QC_STATUS_CANCELED],
+                  QC_STATUS_CANCELED: [QC_STATUS_SUBMITTED]}
 
 
 class QcInfo(Model):
@@ -39,12 +47,17 @@ class QcInfo(Model):
 
     def __init__(self,
                  status: str,
-                 result: Dict = None):
+                 result: Dict = None,
+                 date: str = None):
         assert_not_none(status, name='status')
-        assert_one_of(status, [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_PUBLISHED, QC_STATUS_CANCELED],
+        assert_one_of(status,
+                      [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_READY_TO_PUBLISHED,
+                       QC_STATUS_PUBLISHED,
+                       QC_STATUS_CANCELED],
                       name='status')
         self._status = status
         self._result = result
+        self._date = date
 
     @property
     def status(self) -> str:
@@ -53,7 +66,10 @@ class QcInfo(Model):
     @status.setter
     def status(self, value: str):
         assert_not_none(value, name='value')
-        assert_one_of(value, [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_PUBLISHED],
+        assert_one_of(value,
+                      [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_READY_TO_PUBLISHED,
+                       QC_STATUS_PUBLISHED,
+                       QC_STATUS_CANCELED],
                       name='value')
         self._status = value
 
@@ -64,3 +80,11 @@ class QcInfo(Model):
     @result.setter
     def result(self, value: Optional[Dict]):
         self._result = value
+
+    @property
+    def date(self) -> Optional[str]:
+        return self._date
+
+    @date.setter
+    def date(self, value: str):
+        self._date = value

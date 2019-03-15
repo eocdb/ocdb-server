@@ -21,7 +21,7 @@
 import unittest
 
 from eocdb.ws.controllers.store import *
-from eocdb.ws.controllers.store import _get_summary_vaidation_status
+from eocdb.ws.controllers.store import _get_summary_validation_status
 from tests.helpers import new_test_service_context
 
 
@@ -246,22 +246,22 @@ class StoreTest(unittest.TestCase):
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
     def test_get_summary_vaidation_status_no_results(self):
-        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_OK, _get_summary_vaidation_status({}))
+        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_OK, _get_summary_validation_status({}))
 
     def test_get_summary_vaidation_status_no_errors(self):
         validation_results = {"wilhelm": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, []),
                               "herta": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, [])}
-        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_OK, _get_summary_vaidation_status(validation_results))
+        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_OK, _get_summary_validation_status(validation_results))
 
     def test_get_summary_vaidation_status_warning(self):
         validation_results = {"wilhelm": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, []),
                               "herta": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_WARNING, [])}
-        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_WARNING, _get_summary_vaidation_status(validation_results))
+        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_WARNING, _get_summary_validation_status(validation_results))
 
     def test_get_summary_vaidation_status_error(self):
         validation_results = {"wilhelm": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR, []),
                               "herta": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, [])}
-        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_ERROR, _get_summary_vaidation_status(validation_results))
+        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_ERROR, _get_summary_validation_status(validation_results))
 
     def test_get_summary_vaidation_status_all_mixed(self):
         validation_results = {"wilhelm": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR, []),
@@ -269,7 +269,7 @@ class StoreTest(unittest.TestCase):
                               "gerda": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_WARNING, []),
                               "Fritz": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, []),
                               "heffalump": DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_OK, [])}
-        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_ERROR, _get_summary_vaidation_status(validation_results))
+        self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_ERROR, _get_summary_validation_status(validation_results))
 
     def delete_test_file(self, filename: str):
         target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"),
