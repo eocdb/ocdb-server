@@ -18,6 +18,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+from time import strptime
 
 import tornado.escape
 import tornado.httputil
@@ -138,10 +139,20 @@ class StoreStatusSubmission(WsRequestHandler):
 
         body_dict = tornado.escape.json_decode(self.request.body)
         status = body_dict["status"]
-        # @todo 1 tb/tb check for date and parse if present 2019-03-14
-        success = update_submission(ctx=self.ws_context, submission=submission, status=status, publication_date=None)
+        publication_date = self._extract_date(body_dict)
+
+        success = update_submission(ctx=self.ws_context, submission=submission, status=status,
+                                    publication_date=publication_date)
         if not success:
             self.set_status(400, reason="Error updating submission")
+
+    @staticmethod
+    def _extract_date(body_dict):
+        if "date" in body_dict:
+            publication_date = strptime(body_dict["date"], "%Y%m%d")
+        else:
+            publication_date = None
+        return publication_date
 
 
 # noinspection PyAbstractClass
@@ -207,7 +218,7 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             file = doc_files[0]
             type = TYPE_DOCUMENT
 
-        result = update_submission_file(ctx=self.ws_context, submission=submission, index=index, file=file,type=type)
+        result = update_submission_file(ctx=self.ws_context, submission=submission, index=index, file=file, type=type)
         if result is None:
             return
 

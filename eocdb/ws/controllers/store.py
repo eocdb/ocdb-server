@@ -439,6 +439,8 @@ def _publish_submission(ctx: WsContext, submission: DbSubmission) -> bool:
                 _LOG.warning("Error reading dataset: " + e)
                 continue
 
+            dataset.path = target_path
+
             datasets.append(dataset)
 
     for dataset in datasets:

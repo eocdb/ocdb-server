@@ -36,7 +36,8 @@ from eocdb.core.models.submission_file import SubmissionFile
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id_strict, get_dataset_qc_info
 from eocdb.ws.handlers import API_URL_PREFIX
-from eocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument
+from eocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument, \
+    StoreStatusSubmission
 from tests.core.mpf import MultiPartForm
 from tests.helpers import new_test_service_context, new_test_dataset
 
@@ -173,7 +174,7 @@ class StoreUploadSubmissionTest(WsTestCase):
 class StoreStatusSubmissionTest(WsTestCase):
 
     def test_put_invalid_id(self):
-        body = tornado.escape.json_encode(QC_STATUS_APPROVED)
+        body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED, "date": "20170822"})
         response = self.fetch(API_URL_PREFIX + f"/store/status/submission/abcdefghijick", body=body, method='PUT')
 
         self.assertEqual(404, response.code)
@@ -190,7 +191,7 @@ class StoreStatusSubmissionTest(WsTestCase):
                                   files=[])
         self.ctx.db_driver.add_submission(submission)
 
-        body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED})
+        body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED, "date": "20180923"})
         response = self.fetch(API_URL_PREFIX + f"/store/status/submission/{submission_id}", body=body, method='PUT')
 
         self.assertEqual(200, response.code)
@@ -214,6 +215,20 @@ class StoreStatusSubmissionTest(WsTestCase):
             'submission_id': 'I_DO_EXIST',
             'user_id': 12}, actual_response_data)
 
+    def test_extract_date_not_present(self):
+        body_dict = {"status": "whatever"}
+
+        date = StoreStatusSubmission._extract_date(body_dict)
+        self.assertIsNone(date)
+
+    def test_extract_date(self):
+        body_dict = {"status": "whatever", "date": "20180317"}
+
+        date = StoreStatusSubmission._extract_date(body_dict)
+        self.assertIsNotNone(date)
+        self.assertEqual(2018, date.tm_year)
+        self.assertEqual(3, date.tm_mon)
+        self.assertEqual(17, date.tm_mday)
 
 class StoreUploadSubmissionFileTest(WsTestCase):
 
