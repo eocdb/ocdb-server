@@ -31,7 +31,7 @@ from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
     DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_TRANSITIONS, \
-    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED
+    QC_STATUS_PUBLISHED
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMENT
@@ -53,6 +53,7 @@ def upload_submission_files(ctx: WsContext,
                             path: str,
                             submission_id: str,
                             user_id: int,
+                            publication_date: datetime,
                             dataset_files: List[UploadedFile],
                             doc_files: List[UploadedFile]) -> Dict[str, DatasetValidationResult]:
     """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
@@ -137,6 +138,7 @@ def upload_submission_files(ctx: WsContext,
     submission = DbSubmission(submission_id=submission_id,
                               user_id=user_id,
                               date=datetime.datetime.now(),
+                              publication_date=publication_date,
                               status=status,
                               qc_status=qc_status,
                               path=archive_path,
@@ -162,10 +164,11 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     if status not in new_stati:
         return False
 
-    if status == QC_STATUS_READY_TO_PUBLISHED:
-        submission.publication_date = publication_date
-    else:
-        submission.publication_date = None
+    if status == QC_STATUS_PUBLISHED:
+        if publication_date:
+            submission.publication_date = publication_date
+        else:
+            submission.publication_date = datetime.datetime.now()
 
     if status == QC_STATUS_PUBLISHED:
         _publish_submission(ctx, submission)
@@ -440,6 +443,9 @@ def _publish_submission(ctx: WsContext, submission: DbSubmission) -> bool:
                 continue
 
             dataset.path = target_path
+            dataset.user_id = submission.user_id
+            dataset.submission_id = submission.id
+            dataset.status = submission.status
 
             datasets.append(dataset)
 

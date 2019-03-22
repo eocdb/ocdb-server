@@ -1286,10 +1286,16 @@ components:
       required:
         - metadata
         - records
+        - status
+        - submissionid
       properties:
         id:
           type: string
         path:
+          type: string
+        submissionid:
+          type: string
+        status:
           type: string
         metadata:
           type: object

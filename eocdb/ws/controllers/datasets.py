@@ -40,6 +40,8 @@ def validate_dataset(ctx: WsContext, dataset: Dataset) -> DatasetValidationResul
 
 def find_datasets(ctx: WsContext,
                   expr: str = None,
+                  submission_id: str = None,
+                  status: str = None,
                   region: List[float] = None,
                   time: List[str] = None,
                   wdepth: List[float] = None,
@@ -60,6 +62,8 @@ def find_datasets(ctx: WsContext,
         assert_instance(pgroup, [])
     query = DatasetQuery()
     query.expr = expr
+    query.submission_id = submission_id
+    query.status = status
     query.region = region
     query.time = time
     query.wdepth = wdepth
@@ -123,6 +127,32 @@ def delete_dataset(ctx: WsContext,
     if not deleted:
         raise WsResourceNotFoundError(f"Dataset with ID {dataset_id} not found")
     return deleted
+
+
+def delete_datasets_by_submission_id(ctx: WsContext,
+                                     submission_id: str):
+    """Delete an existing datasets by submissionid."""
+    assert_not_none(submission_id, name='submission_id')
+
+    result = find_datasets(ctx, submission_id=submission_id)
+
+    deleted = False
+    for res in result.datasets:
+        deleted = ctx.db_driver.instance().delete_dataset(res.id)
+
+    return deleted
+
+
+def update_datasets_status_by_submission_id(ctx: WsContext,
+                                            submission_id: str,
+                                            status: str):
+    """Delete an existing datasets by submissionid."""
+    assert_not_none(submission_id, name='submission_id')
+    assert_not_none(status, name='status')
+
+    updated = ctx.db_driver.instance().update_datasets_status_by_submissionid(submission_id, status)
+
+    return updated
 
 
 def get_dataset_by_id_strict(ctx: WsContext,

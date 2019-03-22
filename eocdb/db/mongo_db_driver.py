@@ -45,6 +45,10 @@ class MongoDbDriver(DbDriver):
         result = self._collection.replace_one({"_id": obj_id}, dataset_dict, upsert=True)
         return result.modified_count == 1
 
+    def update_datasets_status_by_submissionid(self, submission_id: str, status: str) -> bool:
+        result = self._collection.update({"submission_id": submission_id}, {'$set': {'status': status}}, upsert=True)
+        return True
+
     def delete_dataset(self, dataset_id: str) -> bool:
         obj_id = self._obj_id(dataset_id)
         if obj_id is None:

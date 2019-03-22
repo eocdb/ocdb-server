@@ -2,7 +2,7 @@ store_path: ~/.eocdb/store
 
 users:
   - name: scott
-    id: 1
+    id: 8877827454
     first_name: Bruce
     last_name: Scott
     email: bruce.scott@gmail.com

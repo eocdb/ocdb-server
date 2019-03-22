@@ -88,6 +88,9 @@ class StoreUploadSubmission(WsRequestHandler):
         path = _ensure_string_argument(path, "path")
         target_path = os.path.join(temp_area_path, path)
 
+        publication_date = arguments.get("publicationdate")
+        publication_date = _ensure_string_argument(publication_date, "publication_date")
+
         dataset_files = []
         for file in files.get("datasetfiles", []):
             dataset_files.append(UploadedFile.from_dict(file))
@@ -101,7 +104,8 @@ class StoreUploadSubmission(WsRequestHandler):
                                          submission_id=submission_id,
                                          user_id=user_id,
                                          dataset_files=dataset_files,
-                                         doc_files=doc_files)
+                                         doc_files=doc_files,
+                                         publication_date=publication_date)
         # Note, result is a Dict[filename, DatasetValidationResult]
         self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
 
@@ -123,6 +127,7 @@ class StoreUploadSubmission(WsRequestHandler):
 
         sub_dict = submission.to_dict()
         sub_dict["date"] = sub_dict["date"].isoformat()
+        sub_dict["publication_date"] = sub_dict["publication_date"].isoformat()
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(sub_dict))
@@ -141,6 +146,7 @@ class StoreStatusSubmission(WsRequestHandler):
         status = body_dict["status"]
         publication_date = self._extract_date(body_dict)
 
+        # @todo 1 tb/tb check for date and parse if present 2019-03-14
         success = update_submission(ctx=self.ws_context, submission=submission, status=status,
                                     publication_date=publication_date)
         if not success:
@@ -166,6 +172,7 @@ class StoreUploadUser(WsRequestHandler):
         for submission in result:
             sub_dict = submission.to_dict()
             sub_dict["date"] = sub_dict["date"].isoformat()
+            #sub_dict["publication_date"] = sub_dict["publication_date"].isoformat()
             result_list.append(sub_dict)
 
         self.set_header('Content-Type', 'application/json')
@@ -222,8 +229,8 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         if result is None:
             return
 
-        if result.status is not "OK":
-            self.set_status(400, reason="Validation Error")
+        # if result.status is not "OK":
+        #    self.set_status(400, reason="Validation Error")
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
@@ -385,6 +392,16 @@ class Datasets(WsRequestHandler):
         else:
             time = None
         return time
+
+
+# noinspection PyAbstractClass
+class DatasetsStatusBySubmissionId(WsRequestHandler):
+    def post(self, submissionid: str, status: str):
+        """Provide API operation updateDataset()."""
+        # transform body with mime-type application/json into a Dataset
+
+        update_datasets_status_by_submission_id(self.ws_context, submission_id=submissionid, status=status)
+        self.finish()
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins

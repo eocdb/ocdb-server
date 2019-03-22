@@ -32,6 +32,8 @@ class DatasetQuery(Model):
 
     def __init__(self,
                  expr: str = None,
+                 submission_id: str = None,
+                 status: str = None,
                  region: List[float] = None,
                  time: List[str] = None,
                  wdepth: List[float] = None,
@@ -44,6 +46,8 @@ class DatasetQuery(Model):
                  offset: int = 1,
                  count: int = 1000):
         self._expr = expr
+        self._submission_id = submission_id
+        self._status = status
         self._region = region
         self._time = time
         self._wdepth = wdepth
@@ -63,6 +67,22 @@ class DatasetQuery(Model):
     @expr.setter
     def expr(self, value: Optional[str]):
         self._expr = value
+
+    @property
+    def submission_id(self) -> str:
+        return self._submission_id
+
+    @submission_id.setter
+    def submission_id(self, value: str):
+        self._submission_id = value
+
+    @property
+    def status(self) -> str:
+        return self._status
+
+    @status.setter
+    def status(self, value: str):
+        self._status = value
 
     @property
     def region(self) -> Optional[List[float]]:
