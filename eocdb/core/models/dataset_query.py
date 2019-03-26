@@ -39,6 +39,8 @@ class DatasetQuery(Model):
                  shallow: str = None,
                  pmode: str = 'all',
                  pgroup: List[str] = None,
+                 status: str = None,
+                 submission_id: str = None,
                  pname: List[str] = None,
                  geojson: bool=False,
                  offset: int = 1,
@@ -51,6 +53,8 @@ class DatasetQuery(Model):
         self._shallow = shallow
         self._pmode = pmode
         self._pgroup = pgroup
+        self._status = status
+        self._submission_id = submission_id
         self._pname = pname
         self._geojson = geojson
         self._offset = offset
@@ -119,6 +123,22 @@ class DatasetQuery(Model):
     @pgroup.setter
     def pgroup(self, value: Optional[List[str]]):
         self._pgroup = value
+
+    @property
+    def submission_id(self) -> Optional[str]:
+        return self._submission_id
+
+    @submission_id.setter
+    def submission_id(self, value: Optional[str]):
+        self._submission_id = value
+
+    @property
+    def status(self) -> Optional[str]:
+        return self._status
+
+    @status.setter
+    def status(self, value: Optional[str]):
+        self._status = value
 
     @property
     def pname(self) -> Optional[List[str]]:

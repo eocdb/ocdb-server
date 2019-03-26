@@ -36,7 +36,10 @@ def new_test_db_dataset(n: int = 0):
 def _new_test_dataset(cls, n: int):
     return cls(dict(fields=["a", "b", "c"]),
                [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]],
-               path=f"archive/dataset-{n}.txt")
+               path=f"archive/dataset-{n}.txt",
+               user_id=1,
+               submission_id='abc',
+               status='PUBLISHED')
 
 
 class RequestParamsMock(RequestParams):

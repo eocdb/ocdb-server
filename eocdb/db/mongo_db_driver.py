@@ -338,6 +338,12 @@ class MongoDbDriver(DbDriver):
 
                 query_dict["times"] = times_dict
 
+            if query.submission_id is not None:
+                query_dict.update({'submission_id': query.submission_id})
+
+            if query.status is not None:
+                query_dict.update({'status': query.status})
+
             if query.pgroup is not None:
                 query_dict.update({'groups': {'$in': query.pgroup}})
 

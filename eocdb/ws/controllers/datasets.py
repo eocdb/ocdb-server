@@ -48,6 +48,8 @@ def find_datasets(ctx: WsContext,
                   shallow: str = 'no',
                   pmode: str = 'contains',
                   pgroup: List[str] = None,
+                  status: str = None,
+                  submission_id: str = None,
                   pname: List[str] = None,
                   geojson: bool = False,
                   offset: int = 1,
@@ -68,6 +70,8 @@ def find_datasets(ctx: WsContext,
     query.shallow = shallow
     query.pmode = pmode
     query.pgroup = pgroup
+    query.submission_id = submission_id
+    query.status = status
     query.pname = pname
     query.geojson = geojson
     query.offset = offset

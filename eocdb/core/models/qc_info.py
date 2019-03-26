@@ -27,17 +27,19 @@ from ...core.asserts import assert_not_none, assert_one_of
 
 QC_STATUS_SUBMITTED = 'SUBMITTED'
 QC_STATUS_VALIDATED = 'VALIDATED'
-QC_STATUS_APPROVED = 'APPROVED'
+QC_STATUS_PROCESSED = 'PROCESSED'
 QC_STATUS_READY_TO_PUBLISHED = 'READY_TO_PUBLISHED'
 QC_STATUS_PUBLISHED = 'PUBLISHED'
 QC_STATUS_CANCELED = 'CANCELED'
 
 QC_TRANSITIONS = {QC_STATUS_SUBMITTED: [QC_STATUS_VALIDATED, QC_STATUS_CANCELED],
-                  QC_STATUS_VALIDATED: [QC_STATUS_APPROVED, QC_STATUS_CANCELED],
-                  QC_STATUS_APPROVED: [QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_CANCELED],
-                  QC_STATUS_READY_TO_PUBLISHED: [QC_STATUS_PUBLISHED, QC_STATUS_CANCELED],
-                  QC_STATUS_PUBLISHED: [QC_STATUS_CANCELED],
-                  QC_STATUS_CANCELED: [QC_STATUS_SUBMITTED]}
+                  QC_STATUS_VALIDATED: [QC_STATUS_PROCESSED, QC_STATUS_PUBLISHED,
+                                        QC_STATUS_CANCELED],
+                  QC_STATUS_PROCESSED: [QC_STATUS_CANCELED],
+                  QC_STATUS_READY_TO_PUBLISHED: [QC_STATUS_PUBLISHED,
+                                                 QC_STATUS_PROCESSED,
+                                                 QC_STATUS_CANCELED],
+                  QC_STATUS_CANCELED: [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED]}
 
 
 class QcInfo(Model):
@@ -51,7 +53,10 @@ class QcInfo(Model):
                  date: str = None):
         assert_not_none(status, name='status')
         assert_one_of(status,
-                      [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_READY_TO_PUBLISHED,
+                      [QC_STATUS_SUBMITTED,
+                       QC_STATUS_VALIDATED,
+                       QC_STATUS_PROCESSED,
+                       QC_STATUS_READY_TO_PUBLISHED,
                        QC_STATUS_PUBLISHED,
                        QC_STATUS_CANCELED],
                       name='status')
@@ -67,7 +72,10 @@ class QcInfo(Model):
     def status(self, value: str):
         assert_not_none(value, name='value')
         assert_one_of(value,
-                      [QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_READY_TO_PUBLISHED,
+                      [QC_STATUS_SUBMITTED,
+                       QC_STATUS_VALIDATED,
+                       QC_STATUS_PROCESSED,
+                       QC_STATUS_READY_TO_PUBLISHED,
                        QC_STATUS_PUBLISHED,
                        QC_STATUS_CANCELED],
                       name='value')
