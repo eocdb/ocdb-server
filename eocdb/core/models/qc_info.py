@@ -35,7 +35,7 @@ QC_STATUS_CANCELED = 'CANCELED'
 QC_TRANSITIONS = {QC_STATUS_SUBMITTED: [QC_STATUS_VALIDATED, QC_STATUS_CANCELED],
                   QC_STATUS_VALIDATED: [QC_STATUS_PROCESSED, QC_STATUS_PUBLISHED,
                                         QC_STATUS_CANCELED],
-                  QC_STATUS_PROCESSED: [QC_STATUS_CANCELED],
+                  QC_STATUS_PROCESSED: [QC_STATUS_PUBLISHED, QC_STATUS_CANCELED],
                   QC_STATUS_READY_TO_PUBLISHED: [QC_STATUS_PUBLISHED,
                                                  QC_STATUS_PROCESSED,
                                                  QC_STATUS_CANCELED],
