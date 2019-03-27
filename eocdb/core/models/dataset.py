@@ -33,11 +33,18 @@ class Dataset(Model):
                  metadata: Dict,
                  records: List[List[Field]],
                  id_: str = None,
-                 path: str = None):
+                 path: str = None,
+                 user_id: int = None,
+                 submission_id: str = None,
+                 status: str = None
+            ):
         assert_not_none(metadata, name='metadata')
         assert_not_none(records, name='records')
         self._id = id_
         self._path = path
+        self._user_id = user_id
+        self._submission_id = submission_id
+        self._status = status
         self._metadata = metadata
         self._records = records
         self._longitudes = []
@@ -53,6 +60,30 @@ class Dataset(Model):
     @id.setter
     def id(self, value: Optional[str]):
         self._id = value
+
+    @property
+    def user_id(self) -> Optional[int]:
+        return self._user_id
+
+    @user_id.setter
+    def user_id(self, value: Optional[int]):
+        self._user_id = value
+
+    @property
+    def submission_id(self) -> Optional[str]:
+        return self._submission_id
+
+    @submission_id.setter
+    def submission_id(self, value: Optional[str]):
+        self._submission_id = value
+
+    @property
+    def status(self) -> Optional[str]:
+        return self._status
+
+    @status.setter
+    def status(self, value: Optional[str]):
+        self._status = value
 
     @property
     def path(self) -> Optional[str]:

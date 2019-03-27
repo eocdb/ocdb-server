@@ -7,7 +7,7 @@ from eocdb.core.query.query import FieldWildcardQuery, T, FieldRangeQuery, Field
 
 class MongoQueryGenerator(QueryVisitor[str]):
 
-    plain_fields = ["path", "status", "pgroup", "pname"]
+    plain_fields = ["path", "submission_id", "status", "pgroup", "pname"]
     METADATA = 'metadata.'
 
     def __init__(self):
@@ -66,3 +66,4 @@ class MongoQueryGenerator(QueryVisitor[str]):
             return name
 
         return self.METADATA + name
+    

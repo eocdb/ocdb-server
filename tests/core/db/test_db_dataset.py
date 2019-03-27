@@ -34,7 +34,10 @@ class DbDatsetTest(TestCase):
                           'id': None,
                           'metadata': {},
                           'records': [],
-                          'path': 'archive/dataset-3.txt',    # comes from test-dataset
+                          'path': 'archive/dataset-3.txt',
+                          'user_id': 1,
+                          'submission_id': 'abc',
+                          'status': 'PUBLISHED', # comes from test-dataset
                           'times': []}, self.dataset.to_dict())
 
     def test_to_dict(self):
@@ -59,6 +62,9 @@ class DbDatsetTest(TestCase):
                           'metadata': {'key_1': 'value_1', 'key_2': 'value_2'},
                           'records': [[-39.4, 110.8, 0.267612499], [-39.5, 110.9, 0.367612499]],
                           'path': 'archive/dataset-3.txt',
+                          'user_id': 1,
+                          'submission_id': 'abc',
+                          'status': 'PUBLISHED',
                           'times': ['2008-10-04T15:22:51']},
                            self.dataset.to_dict())
 

@@ -158,9 +158,9 @@ def delete_submission(ctx: WsContext, submission_id: str) -> bool:
 def update_submission(ctx: WsContext, submission: DbSubmission, status: str, publication_date: datetime) -> bool:
     old_status = submission.status
 
-    new_stati = QC_TRANSITIONS[old_status]
-    if status not in new_stati:
-        return False
+    #new_stati = QC_TRANSITIONS[old_status]
+    #if status not in new_stati:
+    #    return False
 
     if status == QC_STATUS_READY_TO_PUBLISHED:
         submission.publication_date = publication_date
@@ -440,6 +440,9 @@ def _publish_submission(ctx: WsContext, submission: DbSubmission) -> bool:
                 continue
 
             dataset.path = target_path
+            dataset.submission_id = submission.submission_id
+            dataset.user_id = submission.user_id
+            dataset.status = submission.status
 
             datasets.append(dataset)
 

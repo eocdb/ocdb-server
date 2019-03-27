@@ -343,6 +343,9 @@ class Datasets(WsRequestHandler):
         region = self.query.get_param_float_list('region', default=None)
         time = self.extract_time()
         wdepth = self.query.get_param_float_list('wdepth', default=None)
+        submission_id = self.query.get_param('submission_id', default=None)
+        user_id = self.query.get_param_int('user_id', default=None)
+        status = self.query.get_param('status', default=None)
         mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
         wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)
         shallow = self.query.get_param('shallow', default=SHALLOW_DEFAULT)
@@ -354,6 +357,7 @@ class Datasets(WsRequestHandler):
         count = self.query.get_param_int('count', default=None)
         result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
                                wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
+                               submission_id=submission_id, status=status,
                                offset=offset, count=count, geojson=geojson)
         # transform result of type DatasetQueryResult into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')

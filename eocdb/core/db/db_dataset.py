@@ -9,8 +9,13 @@ class DbDataset(Dataset):
                  metadata: Dict,
                  records: List[List[float]],
                  id_: str = None,
-                 path: str = None):
-        super().__init__(metadata, records, id_=id_, path=path)
+                 path: str = None,
+                 user_id: int = None,
+                 submission_id: str = None,
+                 status: str = None
+                 ):
+        super().__init__(metadata, records, id_=id_, path=path, user_id=user_id,
+                         submission_id=submission_id, status=status)
 
     def add_metadatum(self, key, value):
         self._metadata.update({key: value})
