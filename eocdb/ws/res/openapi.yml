@@ -263,6 +263,24 @@ paths:
       - eocdb_auth:
         - 'write:datasets'
         - 'read:datasets'
+  '/store/download/submissionfile':
+    get:
+      tags:
+        - Submission file data file download
+      summary: Download a submission file
+      description: Download a submission file
+      operationId: downloadSubmissionFile
+      parameters:
+        - $ref: '#/components/parameters/submissionIdParam'
+        - $ref: '#/components/parameters/indexParam'
+      responses:
+        '200':
+          $ref: '#/components/responses/BinaryFileContent'
+        '400':
+          description: Invalid request
+      security:
+        - eocdb_auth:
+            - 'read:submission'
   '/store/upload/user/{userid}':
     get:
       tags:

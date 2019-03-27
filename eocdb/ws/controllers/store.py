@@ -330,6 +330,32 @@ def download_store_files_by_id(ctx: WsContext,
     return _assemble_zip_archive(ctx, docs, result)
 
 
+# noinspection PyTypeChecker
+def download_submission_file_by_id(ctx: WsContext,
+                                   submission_id: str = None,
+                                   index: int = None) -> zipfile.ZipFile:
+
+    submission = get_submission(ctx, submission_id)
+
+    submission_file = get_submission_file(ctx, submission_id, index)
+
+    source_meas_path = os.path.join(ctx.get_datasets_upload_path(submission.path))
+
+    return _assemble_submission_file_zip_archive(ctx, submission_file, source_meas_path)
+
+
+def _assemble_submission_file_zip_archive(ctx, submission_file: SubmissionFile, path: str):
+    tmp_dir = tempfile.gettempdir()
+    zip_name = create_zip_file_name()
+    zip_file_path = os.path.join(tmp_dir, zip_name)
+
+    with zipfile.ZipFile(zip_file_path, "w") as zip_file:
+        full_file_path = os.path.join(ctx.store_path, path + '/' + submission_file.filename)
+        zip_file.write(full_file_path, path + '/' + submission_file.filename)
+
+    return zip_file
+
+
 def _assemble_zip_archive(ctx, docs, result):
     tmp_dir = tempfile.gettempdir()
     zip_name = create_zip_file_name()

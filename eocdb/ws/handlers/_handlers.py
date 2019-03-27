@@ -128,6 +128,34 @@ class StoreUploadSubmission(WsRequestHandler):
         self.finish(tornado.escape.json_encode(sub_dict))
 
 
+class StoreDownloadsubmissionFile(WsRequestHandler):
+    def get(self, submission_id: str, index: str):
+        index = int(index)
+
+        result = download_submission_file_by_id(self.ws_context, submission_id=submission_id, index=index)
+
+        self._return_zip_file(result)
+        self.finish()
+
+    def _return_zip_file(self, result):
+        if result is None:
+            return
+
+        self.set_header('Content-Type', 'application/zip')
+        path, filename = os.path.split(result.filename)
+        self.set_header("Content-Disposition", "attachment; filename=%s" % filename)
+        self._stream_file_content(result)
+        os.remove(result.filename)
+
+    def _stream_file_content(self, result):
+        with open(result.filename, 'rb') as f:
+            while True:
+                data = f.read(32768)
+                if not data:
+                    break
+                self.write(data)
+
+
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class StoreStatusSubmission(WsRequestHandler):
 
