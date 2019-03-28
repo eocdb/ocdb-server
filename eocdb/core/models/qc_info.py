@@ -27,6 +27,7 @@ from ...core.asserts import assert_not_none, assert_one_of
 
 QC_STATUS_SUBMITTED = 'SUBMITTED'
 QC_STATUS_VALIDATED = 'VALIDATED'
+QC_STATUS_APPROVED = 'APPROVED'
 QC_STATUS_PROCESSED = 'PROCESSED'
 QC_STATUS_READY_TO_PUBLISHED = 'READY_TO_PUBLISHED'
 QC_STATUS_PUBLISHED = 'PUBLISHED'
@@ -56,6 +57,7 @@ class QcInfo(Model):
                       [QC_STATUS_SUBMITTED,
                        QC_STATUS_VALIDATED,
                        QC_STATUS_PROCESSED,
+                       QC_STATUS_APPROVED,
                        QC_STATUS_READY_TO_PUBLISHED,
                        QC_STATUS_PUBLISHED,
                        QC_STATUS_CANCELED],
@@ -75,6 +77,7 @@ class QcInfo(Model):
                       [QC_STATUS_SUBMITTED,
                        QC_STATUS_VALIDATED,
                        QC_STATUS_PROCESSED,
+                       QC_STATUS_APPROVED,
                        QC_STATUS_READY_TO_PUBLISHED,
                        QC_STATUS_PUBLISHED,
                        QC_STATUS_CANCELED],
