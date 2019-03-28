@@ -30,7 +30,8 @@ import tornado.testing
 
 from eocdb.core.db.db_submission import DbSubmission
 from eocdb.core.models import DatasetValidationResult, Issue
-from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, QC_STATUS_APPROVED, QC_STATUS_VALIDATED
+from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, \
+    QC_STATUS_VALIDATED, QC_STATUS_APPROVED
 from eocdb.core.models.submission import Submission, TYPE_MEASUREMENT
 from eocdb.core.models.submission_file import SubmissionFile
 from eocdb.ws.app import new_application
@@ -229,6 +230,7 @@ class StoreStatusSubmissionTest(WsTestCase):
         self.assertEqual(2018, date.tm_year)
         self.assertEqual(3, date.tm_mon)
         self.assertEqual(17, date.tm_mday)
+
 
 class StoreUploadSubmissionFileTest(WsTestCase):
 
@@ -465,7 +467,7 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
     def test_update_invalid_submissionfile(self):
         submission_id = "not_stored"
         index = 8
-        status = QC_STATUS_APPROVED
+        status = QC_STATUS_VALIDATED
         response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
                               method='GET')
 
@@ -661,6 +663,18 @@ class StoreDownloadTest(WsTestCase):
                 os.remove(target_file_1)
             if target_dir is not None:
                 os.rmdir(target_dir)
+
+
+class StoreDownloadsubmissionFileTest(WsTestCase):
+    def test_get(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/download/submissionfile/sd/0", method='GET')
+        #self.assertEqual(400, response.code)
+        #self.assertEqual('OK', response.reason)
+
+        #expected_response_data = None
+        #actual_response_data = response.body
+        #self.assertEqual(expected_response_data, actual_response_data)
+
 
 
 class DatasetsValidateTest(WsTestCase):
