@@ -228,17 +228,20 @@ class TestMongoDbDriver(unittest.TestCase):
 
         query = DatasetQuery(offset=1)
         result = self._driver.find_datasets(query)
+        self.assertEqual(10, len(result.datasets))
         self.assertEqual(10, result.total_count)
         self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
 
         query = DatasetQuery(offset=2)
         result = self._driver.find_datasets(query)
-        self.assertEqual(9, result.total_count)
+        self.assertEqual(9, len(result.datasets))
+        self.assertEqual(10, result.total_count)
         self.assertEqual("archive/dataset-1.txt", result.datasets[0].path)
 
         query = DatasetQuery(offset=6)
         result = self._driver.find_datasets(query)
-        self.assertEqual(5, result.total_count)
+        self.assertEqual(5, len(result.datasets))
+        self.assertEqual(10, result.total_count)
         self.assertEqual("archive/dataset-5.txt", result.datasets[0].path)
 
     def test_get_count_only(self):
@@ -246,11 +249,13 @@ class TestMongoDbDriver(unittest.TestCase):
 
         query = DatasetQuery(count=4)
         result = self._driver.find_datasets(query)
+        self.assertEqual(4, len(result.datasets))
         self.assertEqual(10, result.total_count)
         self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
 
         query = DatasetQuery(count=7)
         result = self._driver.find_datasets(query)
+        self.assertEqual(7, len(result.datasets))
         self.assertEqual(10, result.total_count)
         self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
 
@@ -267,17 +272,20 @@ class TestMongoDbDriver(unittest.TestCase):
 
         query = DatasetQuery(offset=2, count=4)
         result = self._driver.find_datasets(query)
-        self.assertEqual(9, result.total_count)
+        self.assertEqual(4, len(result.datasets))
+        self.assertEqual(10, result.total_count)
         self.assertEqual("archive/dataset-1.txt", result.datasets[0].path)
 
         query = DatasetQuery(offset=5, count=3)
         result = self._driver.find_datasets(query)
-        self.assertEqual(6, result.total_count)
+        self.assertEqual(3, len(result.datasets))
+        self.assertEqual(10, result.total_count)
         self.assertEqual("archive/dataset-4.txt", result.datasets[0].path)
 
         query = DatasetQuery(offset=8, count=5)
         result = self._driver.find_datasets(query)
-        self.assertEqual(3, result.total_count)
+        self.assertEqual(3, len(result.datasets))
+        self.assertEqual(10, result.total_count)
         self.assertEqual("archive/dataset-7.txt", result.datasets[0].path)
 
     def test_get_offset_and_negative_count(self):
@@ -285,13 +293,15 @@ class TestMongoDbDriver(unittest.TestCase):
 
         query = DatasetQuery(offset=1, count=-1)
         result = self._driver.find_datasets(query)
+        self.assertEqual(10, len(result.datasets))
         self.assertEqual(10, result.total_count)
         self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
         self.assertEqual("archive/dataset-9.txt", result.datasets[9].path)
 
         query = DatasetQuery(offset=4, count=-1)
         result = self._driver.find_datasets(query)
-        self.assertEqual(7, result.total_count)
+        self.assertEqual(7, len(result.datasets))
+        self.assertEqual(10, result.total_count)
         self.assertEqual("archive/dataset-3.txt", result.datasets[0].path)
 
     def test_insert_two_and_get_by_location(self):
