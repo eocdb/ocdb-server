@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Type, Dict, Any, Optional
+from typing import List, Type, Dict, Any
 
 from ...core.model import T
 from ...core.models.submission import Submission
@@ -17,13 +17,13 @@ class DbSubmission(Submission):
                  path: str,
                  files: List[SubmissionFile],
                  id_: str = None,
-                 publication_date: datetime = None):
-        super().__init__(submission_id, user_id, date, status, qc_status, [])
+                 publication_date: datetime = None,
+                 allow_publication: bool = None):
+        super().__init__(submission_id, user_id, date, status, qc_status, publication_date, allow_publication, [])
 
         self._id = id_
         self._path = path
         self._files = files
-        self._publication_date = publication_date
 
     @property
     def files(self):
@@ -49,14 +49,6 @@ class DbSubmission(Submission):
     def id(self, value: str):
         self._id = value
 
-    @property
-    def publication_date(self) -> Optional[datetime]:
-        return self._publication_date
-
-    @publication_date.setter
-    def publication_date(self, value: datetime):
-        self._publication_date = value
-
     @classmethod
     def from_dict(cls: Type[T], dictionary: Dict[str, Any]):
         subm = super().from_dict(dictionary)
@@ -78,6 +70,8 @@ class DbSubmission(Submission):
                             status=subm.status,
                             qc_status=subm.qc_status,
                             path=path,
+                            publication_date=subm.publication_date,
+                            allow_publication=subm.allow_publication,
                             files=subm_files_array,
                             id_=id_)
 
@@ -91,5 +85,7 @@ class DbSubmission(Submission):
                           date=self._date,
                           qc_status=self._qc_status,
                           status=self._status,
+                          publication_date=self._publication_date,
+                          allow_publication=self._allow_publication,
                           file_refs=file_refs)
         return subm

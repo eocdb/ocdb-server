@@ -69,7 +69,7 @@ class StoreUploadSubmission(WsRequestHandler):
         # @todo 1 tb/tb fetch current user ID and assemble path into temp-storage
         # return if user not set - prevent from unauthorized uploads
         # self.current_user
-        user_id = 8877827454
+        # user_id = 8877827454
 
         arguments = dict()
         files = dict()
@@ -82,11 +82,25 @@ class StoreUploadSubmission(WsRequestHandler):
         submission_id = arguments.get("submissionid")
         submission_id = _ensure_string_argument(submission_id, "submissionid")
 
+        user_id = arguments.get("userid")
+        user_id = int(_ensure_string_argument(user_id, "userid"))
+
         temp_area_path = str(user_id) + "_" + submission_id
 
         path = arguments.get("path")
         path = _ensure_string_argument(path, "path")
         target_path = os.path.join(temp_area_path, path)
+
+        publication_date = arguments.get("publicationdate")
+        publication_date = _ensure_string_argument(publication_date, "publicationdate")
+
+        allow_publication = arguments.get("allowpublication")
+        allow_publication = _ensure_string_argument(allow_publication, 'allowpublication')
+
+        if allow_publication == 'true':
+            allow_publication = True
+        else:
+            allow_publication = False
 
         dataset_files = []
         for file in files.get("datasetfiles", []):
@@ -100,6 +114,8 @@ class StoreUploadSubmission(WsRequestHandler):
                                          path=target_path,
                                          submission_id=submission_id,
                                          user_id=user_id,
+                                         publication_date=publication_date,
+                                         allow_publication=allow_publication,
                                          dataset_files=dataset_files,
                                          doc_files=doc_files)
         # Note, result is a Dict[filename, DatasetValidationResult]

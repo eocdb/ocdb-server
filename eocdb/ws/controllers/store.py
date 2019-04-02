@@ -30,7 +30,7 @@ from ..context import WsContext, _LOG
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
-    DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, QC_TRANSITIONS, \
+    DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED \
     QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
@@ -54,11 +54,19 @@ def upload_submission_files(ctx: WsContext,
                             submission_id: str,
                             user_id: int,
                             dataset_files: List[UploadedFile],
+                            publication_date: str,
+                            allow_publication: bool,
                             doc_files: List[UploadedFile]) -> Dict[str, DatasetValidationResult]:
     """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
+    assert_not_none(submission_id)
     assert_not_none(path)
+    assert_not_none(publication_date)
+    assert_not_none(allow_publication)
     assert_not_none(dataset_files)
     assert_not_none(doc_files)
+
+    if submission_id == '':
+        raise WsBadRequestError(f"Submission identifier is empty!")
 
     result = ctx.db_driver.get_submission(submission_id)
     if result is not None:
@@ -140,6 +148,8 @@ def upload_submission_files(ctx: WsContext,
                               status=status,
                               qc_status=qc_status,
                               path=archive_path,
+                              publication_date=publication_date,
+                              allow_publication=allow_publication,
                               files=submission_files)
     ctx.db_driver.add_submission(submission)
 
@@ -158,8 +168,8 @@ def delete_submission(ctx: WsContext, submission_id: str) -> bool:
 def update_submission(ctx: WsContext, submission: DbSubmission, status: str, publication_date: datetime) -> bool:
     old_status = submission.status
 
-    #new_stati = QC_TRANSITIONS[old_status]
-    #if status not in new_stati:
+    # new_stati = QC_TRANSITIONS[old_status]
+    # if status not in new_stati:
     #    return False
 
     if status == QC_STATUS_READY_TO_PUBLISHED:
@@ -334,7 +344,6 @@ def download_store_files_by_id(ctx: WsContext,
 def download_submission_file_by_id(ctx: WsContext,
                                    submission_id: str = None,
                                    index: int = None) -> zipfile.ZipFile:
-
     submission = get_submission(ctx, submission_id)
 
     submission_file = get_submission_file(ctx, submission_id, index)
