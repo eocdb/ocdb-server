@@ -86,7 +86,7 @@ class MongoDbDriver(DbDriver):
                     feature_collection = self._to_geojson(points)
                     locations.update({ds_ref.id: feature_collection})
 
-            return DatasetQueryResult(locations, num_results, dataset_refs, query)
+            return DatasetQueryResult(locations, total_num_results, dataset_refs, query)
 
     def add_submission(self, submission: DbSubmission):
         sf_dict = submission.to_dict()
