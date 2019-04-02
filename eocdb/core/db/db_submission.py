@@ -19,7 +19,8 @@ class DbSubmission(Submission):
                  id_: str = None,
                  publication_date: datetime = None,
                  allow_publication: bool = None):
-        super().__init__(submission_id, user_id, date, status, qc_status, publication_date, allow_publication, [])
+        super().__init__(submission_id, user_id, date, status, qc_status, publication_date,
+                         allow_publication, [])
 
         self._id = id_
         self._path = path

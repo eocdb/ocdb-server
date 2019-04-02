@@ -5,7 +5,7 @@ from eocdb.core.db.db_submission import DbSubmission
 from eocdb.core.db.errors import OperationalError
 from eocdb.core.models.dataset_query import DatasetQuery
 from eocdb.core.models.qc_info import QC_STATUS_VALIDATED, \
-    QC_STATUS_SUBMITTED, QC_STATUS_PROCESSED, QC_STATUS_PUBLISHED
+    QC_STATUS_SUBMITTED, QC_STATUS_APPROVED, QC_STATUS_PUBLISHED
 from eocdb.core.models.submission_file import SubmissionFile
 from eocdb.db.mongo_db_driver import MongoDbDriver
 from tests import helpers

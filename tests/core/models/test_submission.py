@@ -15,6 +15,8 @@ class SubmissionTest(TestCase):
                                 date=datetime(2016, 2, 21, 10, 13, 32),
                                 status=QC_STATUS_SUBMITTED,
                                 qc_status='OK',
+                                publication_date=datetime(2016, 2, 21, 10, 13, 32),
+                                allow_publication=True,
                                 file_refs=sfrs)
 
         self.assertEqual({'date': datetime(2016, 2, 21, 10, 13, 32),
@@ -25,6 +27,8 @@ class SubmissionTest(TestCase):
                                          'submission_id': '12'}],
                           'qc_status': 'OK',
                           'status': QC_STATUS_SUBMITTED,
+                          'publication_date': datetime(2016, 2, 21, 10, 13, 32),
+                          'allow_publication':True,
                           'submission_id': 'submit_me',
                           'user_id': 6789}, submission.to_dict())
 

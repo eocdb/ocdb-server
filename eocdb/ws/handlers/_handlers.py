@@ -93,6 +93,7 @@ class StoreUploadSubmission(WsRequestHandler):
 
         publication_date = arguments.get("publicationdate")
         publication_date = _ensure_string_argument(publication_date, "publicationdate")
+        #publication_date = datetime.datetime.strptime(publication_date, '%Y-%m-%dT%H:%M:%S')
 
         allow_publication = arguments.get("allowpublication")
         allow_publication = _ensure_string_argument(allow_publication, 'allowpublication')
@@ -133,12 +134,16 @@ class StoreUploadSubmission(WsRequestHandler):
 
     def get(self, submission_id: str):
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        print(submission)
         if submission is None:
             self.set_status(404, reason="Submission not found")
             return
 
         sub_dict = submission.to_dict()
         sub_dict["date"] = sub_dict["date"].isoformat()
+
+        if sub_dict["publication_date"]:
+            sub_dict["publication_date"] = sub_dict["publication_date"]
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(sub_dict))
@@ -210,6 +215,8 @@ class StoreUploadUser(WsRequestHandler):
         for submission in result:
             sub_dict = submission.to_dict()
             sub_dict["date"] = sub_dict["date"].isoformat()
+            if sub_dict["publication_date"]:
+                sub_dict["publication_date"] = sub_dict["publication_date"]
             result_list.append(sub_dict)
 
         self.set_header('Content-Type', 'application/json')

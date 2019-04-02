@@ -109,7 +109,7 @@ class StoreTest(unittest.TestCase):
                                         allow_publication=False,
                                         doc_files=[])
 
-            self.assertEqual("Submission identifier is empty!", f"{cm.exception}")
+            self.assertEqual("HTTP 400: Submission identifier is empty!", f"{cm.exception}")
 
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")

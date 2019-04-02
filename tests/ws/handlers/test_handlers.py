@@ -69,7 +69,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.19", result["info"].get("version"))
+        self.assertEqual("0.1.0-dev.20", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -104,6 +104,8 @@ class StoreUploadSubmissionTest(WsTestCase):
                                 date=datetime.datetime.now(),
                                 status="who_knows",
                                 qc_status="OK",
+                                publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                allow_publication=False,
                                 file_refs=[])
         self.ctx.db_driver.add_submission(submission)
 
@@ -128,6 +130,8 @@ class StoreUploadSubmissionTest(WsTestCase):
                                   status="who_knows",
                                   qc_status="OK",
                                   path="temp",
+                                  publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                  allow_publication=False,
                                   files=[])
         self.ctx.db_driver.add_submission(submission)
 
@@ -150,6 +154,8 @@ class StoreUploadSubmissionTest(WsTestCase):
                                   status="who_knows",
                                   qc_status="OK",
                                   path="temp",
+                                  publication_date='2001-02-03T04:05:06',
+                                  allow_publication=False,
                                   files=[])
         self.ctx.db_driver.add_submission(submission)
 
@@ -165,7 +171,8 @@ class StoreUploadSubmissionTest(WsTestCase):
             'file_refs': [],
             'files': [],
             'path': 'temp',
-            'publication_date': None,
+            'publication_date': '2001-02-03T04:05:06',
+            'allow_publication': False,
             'qc_status': 'OK',
             'status': 'who_knows',
             'submission_id': 'I_DO_EXIST',
@@ -189,16 +196,22 @@ class StoreStatusSubmissionTest(WsTestCase):
                                   status=QC_STATUS_VALIDATED,
                                   qc_status="OK",
                                   path="temp",
+                                  publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                  allow_publication=False,
                                   files=[])
         self.ctx.db_driver.add_submission(submission)
 
-        body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED, "date": "20180923"})
+        body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED,
+                                           "date": "20180923",
+                                           'publication_date': '20180923',
+                                           'allow_publication': False,
+                                           })
         response = self.fetch(API_URL_PREFIX + f"/store/status/submission/{submission_id}", body=body, method='PUT')
 
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/{submission_id}", method='GET')
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/{submission_id}",  method='GET')
 
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
@@ -210,10 +223,12 @@ class StoreStatusSubmissionTest(WsTestCase):
             'file_refs': [],
             'files': [],
             'path': 'temp',
-            'publication_date': None,
             'qc_status': 'OK',
+
             'status': QC_STATUS_APPROVED,
             'submission_id': 'I_DO_EXIST',
+            'publication_date': None, #!!! Comes in here as None. Should ba a date.!! Need to check
+            'allow_publication': False,
             'user_id': 12}, actual_response_data)
 
     def test_extract_date_not_present(self):
@@ -256,7 +271,9 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
         db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
-                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                               publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                               allow_publication=False)
         self.ctx.db_driver.add_submission(db_subm)
 
         # --- get submission file ---
@@ -294,7 +311,9 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
         db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
-                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                               publication_date='2001-02-03T04:05:06',
+                               allow_publication=False)
         self.ctx.db_driver.add_submission(db_subm)
 
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='DELETE')
@@ -315,6 +334,8 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                            'qc_status': 'OK',
                            'status': 'Hellyeah',
                            'submission_id': 'submitme',
+                           'publication_date': '2001-02-03T04:05:06',
+                           'allow_publication': False,
                            'user_id': 88763}], actual_response_data)
 
     def test_put_invalid_submissionid(self):

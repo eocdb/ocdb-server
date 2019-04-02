@@ -30,7 +30,7 @@ from ..context import WsContext, _LOG
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
-    DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED \
+    DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, \
     QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
@@ -54,7 +54,7 @@ def upload_submission_files(ctx: WsContext,
                             submission_id: str,
                             user_id: int,
                             dataset_files: List[UploadedFile],
-                            publication_date: str,
+                            publication_date: datetime,
                             allow_publication: bool,
                             doc_files: List[UploadedFile]) -> Dict[str, DatasetValidationResult]:
     """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
