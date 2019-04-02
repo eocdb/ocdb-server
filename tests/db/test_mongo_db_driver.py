@@ -5,7 +5,7 @@ from eocdb.core.db.db_submission import DbSubmission
 from eocdb.core.db.errors import OperationalError
 from eocdb.core.models.dataset_query import DatasetQuery
 from eocdb.core.models.qc_info import QC_STATUS_VALIDATED, \
-    QC_STATUS_SUBMITTED, QC_STATUS_PROCESSED, QC_STATUS_PUBLISHED
+    QC_STATUS_SUBMITTED, QC_STATUS_PUBLISHED, QC_STATUS_APPROVED
 from eocdb.core.models.submission_file import SubmissionFile
 from eocdb.db.mongo_db_driver import MongoDbDriver
 from tests import helpers
@@ -212,15 +212,16 @@ class TestMongoDbDriver(unittest.TestCase):
         dataset.metadata["qc_status"] = QC_STATUS_VALIDATED
         self._driver.add_dataset(dataset)
 
-        dataset = helpers.new_test_dataset(14)
-        dataset.metadata["qc_status"] = QC_STATUS_APPROVED
-        self._driver.add_dataset(dataset)
+        # Status APPROVED removed at this stage
+        # dataset = helpers.new_test_dataset(14)
+        # dataset.metadata["qc_status"] = QC_STATUS_APPROVED
+        # self._driver.add_dataset(dataset)
 
-        query = DatasetQuery(expr="qc_status:" + QC_STATUS_APPROVED)
+        query = DatasetQuery(expr="qc_status:" + QC_STATUS_VALIDATED)
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-14.txt", result.datasets[0].path)
+        self.assertEqual("archive/dataset-13.txt", result.datasets[0].path)
 
     def test_get_offset_only(self):
         self._add_test_datasets_to_db()

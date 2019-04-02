@@ -22,7 +22,7 @@
 
 import unittest
 
-from eocdb.core.models.qc_info import QC_STATUS_VALIDATED, QC_STATUS_APPROVED
+from eocdb.core.models.qc_info import QC_STATUS_VALIDATED, QC_STATUS_PUBLISHED
 from eocdb.ws.controllers.datasets import *
 from tests.helpers import new_test_service_context, new_test_dataset
 
@@ -319,7 +319,7 @@ class DatasetsTest(unittest.TestCase):
         qc_info = get_dataset_qc_info(self.ctx, dataset_id)
         self.assertEqual(expected_qc_info, qc_info)
 
-        expected_qc_info = QcInfo(QC_STATUS_APPROVED,
+        expected_qc_info = QcInfo(QC_STATUS_PUBLISHED,
                                   dict(by='Illaria',
                                        when="2019-02-01",
                                        doc_files=["qc-report.docx"]))

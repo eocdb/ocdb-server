@@ -979,7 +979,7 @@ class DatasetsIdQcinfoTest(WsTestCase):
         dataset_ref = add_dataset(self.ctx, new_test_dataset(42))
         dataset_id = dataset_ref.id
 
-        expected_qc_info = QcInfo(QC_STATUS_APPROVED,
+        expected_qc_info = QcInfo(QC_STATUS_VALIDATED,
                                   dict(by='Illaria',
                                        when="2019-02-01",
                                        doc_files=["qc-report.docx"]))
