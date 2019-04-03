@@ -72,10 +72,9 @@ class MongoDbDriver(DbDriver):
 
         cursor = self._collection.find(query_dict, skip=start_index, limit=count)
         total_num_results = self._collection.count_documents(query_dict)
-        num_results = total_num_results - start_index
 
         if query.count == 0:
-            return DatasetQueryResult({}, num_results, [], query)
+            return DatasetQueryResult({}, total_num_results, [], query)
         else:
             dataset_refs = []
             locations = {}
@@ -86,7 +85,7 @@ class MongoDbDriver(DbDriver):
                     feature_collection = self._to_geojson(points)
                     locations.update({ds_ref.id: feature_collection})
 
-            return DatasetQueryResult(locations, num_results, dataset_refs, query)
+            return DatasetQueryResult(locations, total_num_results, dataset_refs, query)
 
     def add_submission(self, submission: DbSubmission):
         sf_dict = submission.to_dict()
