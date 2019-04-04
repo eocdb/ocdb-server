@@ -69,7 +69,7 @@ class StoreUploadSubmission(WsRequestHandler):
         # @todo 1 tb/tb fetch current user ID and assemble path into temp-storage
         # return if user not set - prevent from unauthorized uploads
         # self.current_user
-        user_id = 8877827454
+        # user_id = 8877827454
 
         arguments = dict()
         files = dict()
@@ -82,11 +82,26 @@ class StoreUploadSubmission(WsRequestHandler):
         submission_id = arguments.get("submissionid")
         submission_id = _ensure_string_argument(submission_id, "submissionid")
 
+        user_id = arguments.get("userid")
+        user_id = int(_ensure_string_argument(user_id, "userid"))
+
         temp_area_path = str(user_id) + "_" + submission_id
 
         path = arguments.get("path")
         path = _ensure_string_argument(path, "path")
         target_path = os.path.join(temp_area_path, path)
+
+        publication_date = arguments.get("publicationdate")
+        publication_date = _ensure_string_argument(publication_date, "publicationdate")
+        #publication_date = datetime.datetime.strptime(publication_date, '%Y-%m-%dT%H:%M:%S')
+
+        allow_publication = arguments.get("allowpublication")
+        allow_publication = _ensure_string_argument(allow_publication, 'allowpublication')
+
+        if allow_publication == 'true':
+            allow_publication = True
+        else:
+            allow_publication = False
 
         dataset_files = []
         for file in files.get("datasetfiles", []):
@@ -100,6 +115,8 @@ class StoreUploadSubmission(WsRequestHandler):
                                          path=target_path,
                                          submission_id=submission_id,
                                          user_id=user_id,
+                                         publication_date=publication_date,
+                                         allow_publication=allow_publication,
                                          dataset_files=dataset_files,
                                          doc_files=doc_files)
         # Note, result is a Dict[filename, DatasetValidationResult]
@@ -117,6 +134,7 @@ class StoreUploadSubmission(WsRequestHandler):
 
     def get(self, submission_id: str):
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        print(submission)
         if submission is None:
             self.set_status(404, reason="Submission not found")
             return
@@ -124,8 +142,39 @@ class StoreUploadSubmission(WsRequestHandler):
         sub_dict = submission.to_dict()
         sub_dict["date"] = sub_dict["date"].isoformat()
 
+        if sub_dict["publication_date"]:
+            sub_dict["publication_date"] = sub_dict["publication_date"]
+
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(sub_dict))
+
+
+class StoreDownloadsubmissionFile(WsRequestHandler):
+    def get(self, submission_id: str, index: str):
+        index = int(index)
+
+        result = download_submission_file_by_id(self.ws_context, submission_id=submission_id, index=index)
+
+        self._return_zip_file(result)
+        self.finish()
+
+    def _return_zip_file(self, result):
+        if result is None:
+            return
+
+        self.set_header('Content-Type', 'application/zip')
+        path, filename = os.path.split(result.filename)
+        self.set_header("Content-Disposition", "attachment; filename=%s" % filename)
+        self._stream_file_content(result)
+        os.remove(result.filename)
+
+    def _stream_file_content(self, result):
+        with open(result.filename, 'rb') as f:
+            while True:
+                data = f.read(32768)
+                if not data:
+                    break
+                self.write(data)
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -166,6 +215,8 @@ class StoreUploadUser(WsRequestHandler):
         for submission in result:
             sub_dict = submission.to_dict()
             sub_dict["date"] = sub_dict["date"].isoformat()
+            if sub_dict["publication_date"]:
+                sub_dict["publication_date"] = sub_dict["publication_date"]
             result_list.append(sub_dict)
 
         self.set_header('Content-Type', 'application/json')

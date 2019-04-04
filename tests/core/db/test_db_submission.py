@@ -23,7 +23,9 @@ class DbSubmissionTest(TestCase):
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
         subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", path="/the/archive/root/",
-                            files=files, qc_status="warning", date=datetime(2001, 2, 3, 4, 5, 6), publication_date=datetime(2002, 2, 3, 4, 5, 6))
+                            files=files, qc_status="warning", date=datetime(2001, 2, 3, 4, 5, 6),
+                            publication_date=datetime(2002, 2, 3, 4, 5, 6),
+                            allow_publication=True)
 
         self.assertEqual({'date': datetime(2001, 2, 3, 4, 5, 6),
                           'file_refs': [],
@@ -44,6 +46,7 @@ class DbSubmissionTest(TestCase):
                           'id': None,
                           'path': '/the/archive/root/',
                           'publication_date': datetime(2002, 2, 3, 4, 5, 6),
+                          'allow_publication': True,
                           'qc_status': 'warning',
                           'status': 'Hellyeah',
                           'submission_id': 'submitme',
@@ -69,6 +72,8 @@ class DbSubmissionTest(TestCase):
                      'qc_status': 'Very good',
                      'submission_id': 'submitme',
                      'path': 'up where we belong',
+                     'publication_date': datetime(2002, 2, 3, 4, 5, 6),
+                     'allow_publication': True,
                      'user_id': 88764}
 
         subm = DbSubmission.from_dict(subm_dict)

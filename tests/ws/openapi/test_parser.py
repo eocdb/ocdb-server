@@ -24,4 +24,4 @@ class ParserTest(unittest.TestCase):
         self.assertEqual(15, len(openapi.components.responses))
 
         self.assertIsNotNone(openapi.path_items)
-        self.assertEqual(26, len(openapi.path_items))
+        self.assertEqual(27, len(openapi.path_items))

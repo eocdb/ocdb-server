@@ -118,6 +118,7 @@ class MongoDbDriver(DbDriver):
 
     def get_submission(self, submission_id: str) -> Optional[DbSubmission]:
         subm_dict = self._submit_collection.find_one({"submission_id": submission_id})
+
         if subm_dict is not None:
             sf_id = subm_dict["_id"]
             del subm_dict["_id"]
