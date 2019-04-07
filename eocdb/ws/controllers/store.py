@@ -121,7 +121,7 @@ def upload_submission_files(ctx: WsContext,
         index += 1
 
     # Write documentation files into store
-    docs_dir_path = ctx.get_doc_files_store_path(path)
+    docs_dir_path = ctx.get_doc_files_upload_path(path)
     os.makedirs(docs_dir_path, exist_ok=True)
     for file in doc_files:
         file_path = os.path.join(docs_dir_path, file.filename)
@@ -185,7 +185,15 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 
 
 def get_submissions(ctx: WsContext, user_id: int) -> List[Submission]:
-    result = ctx.db_driver.get_submissions(user_id)
+    roles = [];
+    for u in ctx.config['users']:
+        if u['id'] == user_id:
+            roles = u['roles']
+
+    if 'admin' in roles:
+        result = ctx.db_driver.get_submissions()
+    else:
+        result = ctx.db_driver.get_submissions_for_user(user_id)
 
     submissions = []
     for db_subm in result:
@@ -348,7 +356,10 @@ def download_submission_file_by_id(ctx: WsContext,
 
     submission_file = get_submission_file(ctx, submission_id, index)
 
-    source_meas_path = os.path.join(ctx.get_datasets_upload_path(submission.path))
+    if submission_file.filetype == "MEASUREMENT":
+        source_meas_path = os.path.join(ctx.get_datasets_upload_path(submission.path))
+    else:
+        source_meas_path = os.path.join(ctx.get_doc_files_upload_path(submission.path))
 
     return _assemble_submission_file_zip_archive(ctx, submission_file, source_meas_path)
 

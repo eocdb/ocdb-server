@@ -2,7 +2,7 @@ store_path: ~/.eocdb/store
 
 users:
   - name: scott
-    id: 1
+    id: 8877827454
     first_name: Bruce
     last_name: Scott
     email: bruce.scott@gmail.com
@@ -11,7 +11,24 @@ users:
     roles:
       - submit
       - admin
-
+  - name: admin
+    id: 2
+    first_name: First
+    last_name: Admin
+    email: bruce.scott@gmail.com
+    phone: "+34 5678901234"
+    password: admin
+    roles:
+      - admin
+  - name: submit
+    id: 3
+    first_name: First
+    last_name: Submit
+    email: bruce.scott@gmail.com
+    phone: "+34 5678901234"
+    password: submit
+    roles:
+      - submit
 databases:
   default:
     type: eocdb.db.mongo_db_driver.MongoDbDriver
