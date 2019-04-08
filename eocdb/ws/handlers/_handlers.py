@@ -571,6 +571,8 @@ class UsersLogin(WsRequestHandler):
         username = credentials.get('username')
         password = credentials.get('password')
         user_info = login_user(self.ws_context, username=username, password=password)
+        if user_info is not None:
+            self.set_cookie("user", username)
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(user_info))
 

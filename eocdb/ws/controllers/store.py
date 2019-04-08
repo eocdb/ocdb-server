@@ -31,7 +31,7 @@ from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
     DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, \
-    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED
+    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED, QC_STATUS_PROCESSED
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMENT
@@ -177,7 +177,7 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     else:
         submission.publication_date = None
 
-    if status == QC_STATUS_PUBLISHED:
+    if status == QC_STATUS_PUBLISHED or status == QC_STATUS_PROCESSED:
         _publish_submission(ctx, submission)
 
     submission.status = status
