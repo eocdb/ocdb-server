@@ -287,7 +287,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                           'filetype': 'black',
                           'index': 0,
                           'result': {'issues': [], 'status': 'OK'},
-                          'status': QC_STATUS_SUBMITTED,
+                          'status': 'SUBMITTED',
                           'submission_id': 'submitme'}, actual_response_data)
 
     def test_delete_no_submissions(self):
@@ -425,7 +425,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
         db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
-                               qc_status="OK",
+                               qc_status=QC_STATUS_VALIDATED,
                                path="/tmp/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
         self.ctx.db_driver.add_submission(db_subm)
 
@@ -450,7 +450,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                           'filetype': TYPE_MEASUREMENT,
                           'index': 1,
                           'result': {'issues': [], 'status': 'OK'},
-                          'status': QC_STATUS_VALIDATED,
+                          'status': "OK",
                           'submission_id': 'rabatz'}, actual_response_data)
 
     @staticmethod
