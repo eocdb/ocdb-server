@@ -196,7 +196,12 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 
 
 def get_submissions(ctx: WsContext, user_id: int) -> List[Submission]:
-    result = ctx.db_driver.get_submissions(user_id)
+    is_admin = False
+    for user in ctx.config['users']:
+        if user['id'] == user_id:
+            is_admin = 'admin' in user['roles']
+
+    result = ctx.db_driver.get_submissions(user_id, is_admin)
 
     submissions = []
     for db_subm in result:

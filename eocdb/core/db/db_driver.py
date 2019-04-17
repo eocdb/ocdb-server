@@ -3,7 +3,6 @@ from typing import Optional, List
 
 from eocdb.core.db.db_submission import DbSubmission
 from eocdb.core.models.submission_file import SubmissionFile
-from ..models.submission import Submission
 from .. import Service
 from ..models import DatasetQueryResult
 from ..models.dataset import Dataset
@@ -41,7 +40,7 @@ class DbDriver(Service):
         """Get existing submission_file by ID."""
 
     @abstractmethod
-    def get_submissions(self, user_id: int) -> List[DbSubmission]:
+    def get_submissions(self, user_id: int, is_admin: bool = False) -> List[DbSubmission]:
         """Get existing submissions for user."""
 
     @abstractmethod
