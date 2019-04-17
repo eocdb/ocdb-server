@@ -31,7 +31,7 @@ from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
     DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, \
-    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED, QC_STATUS_CANCELED
+    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED, QC_STATUS_CANCELED, QC_STATUS_PROCESSED
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMENT
@@ -121,7 +121,7 @@ def upload_submission_files(ctx: WsContext,
         index += 1
 
     # Write documentation files into store
-    docs_dir_path = ctx.get_doc_files_store_path(path)
+    docs_dir_path = ctx.get_doc_files_upload_path(path)
     os.makedirs(docs_dir_path, exist_ok=True)
     for file in doc_files:
         file_path = os.path.join(docs_dir_path, file.filename)
@@ -182,7 +182,7 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     else:
         submission.publication_date = None
 
-    if status == QC_STATUS_PUBLISHED or QC_STATUS_READY_TO_PUBLISHED:
+    if status == QC_STATUS_PUBLISHED or status == QC_STATUS_PROCESSED:
         _publish_submission(ctx, submission)
 
     if status == QC_STATUS_CANCELED:
@@ -196,12 +196,7 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 
 
 def get_submissions(ctx: WsContext, user_id: int) -> List[Submission]:
-    is_admin = False
-    for user in ctx.config['users']:
-        if user['id'] == user_id:
-            is_admin = 'admin' in user['roles']
-
-    result = ctx.db_driver.get_submissions(user_id, is_admin)
+    result = ctx.db_driver.get_submissions(user_id)
 
     submissions = []
     for db_subm in result:

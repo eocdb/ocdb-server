@@ -830,7 +830,7 @@ class TestMongoDbDriver(unittest.TestCase):
             "{'type':'Feature','geometry':{'type':'Point','coordinates':[164.82,34.67]}}]}", geojson)
 
     def test_get_submissions_no_results(self):
-        result = self._driver.get_submissions(887620)
+        result = self._driver.get_submissions_for_user(887620)
         self.assertEqual([], result)
 
     def test_add_submission_and_get_one_by_userid(self):
@@ -841,7 +841,7 @@ class TestMongoDbDriver(unittest.TestCase):
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
 
-        result = self._driver.get_submissions(5876123)
+        result = self._driver.get_submissions_for_user(5876123)
         self.assertIsNotNone(result)
         self.assertEqual(1, len(result))
 
@@ -868,7 +868,7 @@ class TestMongoDbDriver(unittest.TestCase):
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
 
-        result = self._driver.get_submissions(5876123)
+        result = self._driver.get_submissions_for_user(5876123)
         self.assertIsNotNone(result)
         self.assertEqual(1, len(result))
 
@@ -901,7 +901,7 @@ class TestMongoDbDriver(unittest.TestCase):
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
 
-        result = self._driver.get_submissions(5876123)
+        result = self._driver.get_submissions_for_user(5876123)
         self.assertIsNotNone(result)
         self.assertEqual(2, len(result))
 

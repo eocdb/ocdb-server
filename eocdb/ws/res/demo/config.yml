@@ -28,7 +28,6 @@ users:
     password: submit
     roles:
       - submit
-
 databases:
   default:
     type: eocdb.db.mongo_db_driver.MongoDbDriver
