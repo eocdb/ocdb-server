@@ -27,6 +27,8 @@ from ...version import VERSION
 API_URL_PREFIX = f"/eocdb/api/v{VERSION}"
 
 MAPPINGS = [
+    (r'/webui/(.*)', tornado.web.StaticFileHandler,
+        {"path": 'static/webui'}),
     (url_pattern(API_URL_PREFIX + '/service/info'), ServiceInfo),
     (url_pattern(API_URL_PREFIX + '/store/info'), StoreInfo),
     (url_pattern(API_URL_PREFIX + '/store/upload/submission'), StoreUploadSubmission),
