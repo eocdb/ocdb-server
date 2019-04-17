@@ -420,7 +420,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                  SubmissionFile(submission_id=submissionid,
                                 index=1,
                                 filename="Helga",
-                                filetype="green",
+                                filetype="MEASUREMENT",
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
@@ -433,7 +433,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         mpf = MultiPartForm(boundary="HEFFALUMP")
         mpf.add_field("submissionid", submissionid)
         dataset = self._create_valid_dataset()
-        mpf.add_file(f'datasetfiles', "the_uploaded_file.sb", io.StringIO(dataset), mime_type="text/plain")
+        mpf.add_file(f'files', "the_uploaded_file.sb", io.StringIO(dataset), mime_type="text/plain")
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
                               body=bytes(mpf), headers={"Content-Type": mpf.content_type})
 

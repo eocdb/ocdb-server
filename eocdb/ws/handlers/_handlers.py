@@ -93,7 +93,7 @@ class StoreUploadSubmission(WsRequestHandler):
 
         publication_date = arguments.get("publicationdate")
         publication_date = _ensure_string_argument(publication_date, "publicationdate")
-        #publication_date = datetime.datetime.strptime(publication_date, '%Y-%m-%dT%H:%M:%S')
+        # publication_date = datetime.datetime.strptime(publication_date, '%Y-%m-%dT%H:%M:%S')
 
         allow_publication = arguments.get("allowpublication")
         allow_publication = _ensure_string_argument(allow_publication, 'allowpublication')
@@ -132,9 +132,12 @@ class StoreUploadSubmission(WsRequestHandler):
         if not success:
             self.set_status(400, reason="Error deleting submission")
 
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode({'message': f'{submission_id} deleted'}))
+
     def get(self, submission_id: str):
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
-        print(submission)
+
         if submission is None:
             self.set_status(404, reason="Submission not found")
             return
@@ -149,6 +152,7 @@ class StoreUploadSubmission(WsRequestHandler):
         self.finish(tornado.escape.json_encode(sub_dict))
 
 
+# noinspection PyAbstractClass
 class StoreDownloadsubmissionFile(WsRequestHandler):
     def get(self, submission_id: str, index: str):
         index = int(index)
@@ -194,6 +198,8 @@ class StoreStatusSubmission(WsRequestHandler):
                                     publication_date=publication_date)
         if not success:
             self.set_status(400, reason="Error updating submission")
+
+        self.finish(tornado.escape.json_encode({'message': f'Status of {submission_id} set to {status}'}))
 
     @staticmethod
     def _extract_date(body_dict):
@@ -247,6 +253,8 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             self.set_status(400, reason="Invalid submission file index")
             return
 
+        sb_file = get_submission_file(ctx=self.ws_context, submission_id=submission_id, index=index)
+
         arguments = dict()
         files = dict()
         # transform body with mime-type multipart/form-data into arguments and files Dict
@@ -254,27 +262,20 @@ class StoreUploadSubmissionFile(WsRequestHandler):
                                               self.request.body,
                                               arguments,
                                               files)
-        ds_files = files.get("datasetfiles", [])
-        doc_files = files.get("docfiles", [])
-        num_files = len(ds_files) + len(doc_files)
+        files = files.get("files", [])
+        num_files = len(files)
 
         if num_files != 1:
             self.set_status(400, reason="Invalid number of files supplied")
             return
 
-        if len(ds_files) == 1:
-            file = ds_files[0]
-            type = TYPE_MEASUREMENT
-        else:
-            file = doc_files[0]
-            type = TYPE_DOCUMENT
-
-        result = update_submission_file(ctx=self.ws_context, submission=submission, index=index, file=file, type=type)
+        result = update_submission_file(ctx=self.ws_context, submission=submission, index=index, file=files[0],
+                                        typ=sb_file.filetype)
         if result is None:
             return
 
-        if result.status is not "OK":
-            self.set_status(400, reason="Validation Error")
+        #if result.status is not "OK":
+        #    self.set_status(400, reason="Validation Error")
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
@@ -462,6 +463,25 @@ class DatasetsId(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
+class DatasetsSubmissionId(WsRequestHandler):
+
+    def get(self, submissionid: str):
+        """Provide API operation getDatasetById()."""
+        result = find_datasets(self.ws_context, submission_id=submissionid)
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result.to_dict()))
+
+    def delete(self, submissionid: str):
+        """Provide API operation deleteDatasets by submission ID()."""
+        result = find_datasets(self.ws_context, submission_id=submissionid)
+        api_key = self.header.get_param('api_key', default=None)
+        for ds in result.datasets:
+            delete_dataset(ctx=self.ws_context, dataset_id=ds.id, api_key=api_key)
+
+        self.finish(tornado.escape.json_encode({'message': f'Datasets for {submissionid} deleted'}))
+
+
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class DatasetsAffilProjectCruise(WsRequestHandler):
 
     def get(self, affil: str, project: str, cruise: str):
@@ -560,6 +580,9 @@ class Users(WsRequestHandler):
         data_dict = tornado.escape.json_decode(self.request.body)
         user = User.from_dict(data_dict)
         create_user(self.ws_context, user=user)
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode({'message': f'User {user.name} added'}))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins

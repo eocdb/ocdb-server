@@ -31,7 +31,7 @@ from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
     DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, \
-    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED
+    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED, QC_STATUS_CANCELED
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMENT
@@ -40,7 +40,7 @@ from ...core.models.uploaded_file import UploadedFile
 from ...core.seabass.sb_file_reader import SbFileReader, SbFormatError
 from ...core.val import validator
 from ...db.static_data import get_product_groups, get_products
-from ...ws.controllers.datasets import find_datasets, get_dataset_by_id
+from ...ws.controllers.datasets import find_datasets, get_dataset_by_id, delete_dataset
 from ...ws.errors import WsBadRequestError
 
 
@@ -162,6 +162,11 @@ def delete_submission(ctx: WsContext, submission_id: str) -> bool:
     for file in submission.files:
         _delete_submission_file(ctx=ctx, file_to_delete=file, submission=submission)
 
+    result = find_datasets(ctx=ctx, submission_id=submission_id)
+
+    for ds in result.datasets:
+        delete_dataset(ctx=ctx, dataset_id=ds.id, api_key="")
+
     return ctx.db_driver.delete_submission(submission_id)
 
 
@@ -177,8 +182,14 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     else:
         submission.publication_date = None
 
-    if status == QC_STATUS_PUBLISHED:
+    if status == QC_STATUS_PUBLISHED or QC_STATUS_READY_TO_PUBLISHED:
         _publish_submission(ctx, submission)
+
+    if status == QC_STATUS_CANCELED:
+        result = find_datasets(ctx=ctx, submission_id=submission.submission_id)
+
+        for ds in result.datasets:
+            delete_dataset(ctx=ctx, dataset_id=ds.id, api_key="")
 
     submission.status = status
     return ctx.db_driver.update_submission(submission)
@@ -207,10 +218,13 @@ def get_submission_file(ctx: WsContext,
 
 
 def update_submission_file(ctx: WsContext, submission: DbSubmission,
-                           index: int, file: UploadedFile, type: str) -> Optional[DatasetValidationResult]:
+                           index: int, file: UploadedFile, typ: str) -> Optional[DatasetValidationResult]:
     validation_result = None
 
-    if type == TYPE_MEASUREMENT:
+    file_to_delete = submission.files[index]
+    _delete_submission_file(ctx, file_to_delete, submission)
+
+    if typ == TYPE_MEASUREMENT:
         text = file.body.decode("utf-8")
         try:
             dataset = SbFileReader().read(io.StringIO(text))
@@ -223,8 +237,8 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
                                            [Issue(ISSUE_TYPE_ERROR, f"OSError: {e}")])
 
         validation_result = validator.validate_dataset(dataset, ctx.config)
-        if DATASET_VALIDATION_RESULT_STATUS_ERROR == validation_result.status:
-            return validation_result
+        #if DATASET_VALIDATION_RESULT_STATUS_ERROR == validation_result.status:
+        #    return validation_result
 
         write_path = ctx.get_datasets_upload_path(submission.path)
         os.makedirs(write_path, exist_ok=True)
@@ -239,13 +253,11 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
         with open(file_path, "wb") as fp:
             fp.write(file.body)
 
-    file_to_delete = submission.files[index]
-    _delete_submission_file(ctx, file_to_delete, submission)
-
     submission.files[index].filename = file.filename
-    submission.files[index].filetype = type
-    submission.files[index].status = QC_STATUS_VALIDATED
-    submission.files[index].result = validation_result
+    submission.files[index].filetype = typ
+    if typ == TYPE_MEASUREMENT:
+        submission.files[index].status = validation_result.status
+        submission.files[index].result = validation_result
 
     _update_validation_status(submission)
 
@@ -348,9 +360,12 @@ def download_submission_file_by_id(ctx: WsContext,
 
     submission_file = get_submission_file(ctx, submission_id, index)
 
-    source_meas_path = os.path.join(ctx.get_datasets_upload_path(submission.path))
+    if submission_file.filetype == TYPE_MEASUREMENT:
+        source_path = os.path.join(ctx.get_datasets_upload_path(submission.path))
+    else:
+        source_path = os.path.join(ctx.get_doc_files_upload_path(submission.path))
 
-    return _assemble_submission_file_zip_archive(ctx, submission_file, source_meas_path)
+    return _assemble_submission_file_zip_archive(ctx, submission_file, source_path)
 
 
 def _assemble_submission_file_zip_archive(ctx, submission_file: SubmissionFile, path: str):
