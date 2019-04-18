@@ -196,7 +196,15 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 
 
 def get_submissions(ctx: WsContext, user_id: int) -> List[Submission]:
-    result = ctx.db_driver.get_submissions(user_id)
+    roles = []
+    for u in ctx.config['users']:
+        if u['id'] == user_id:
+            roles = u['roles']
+
+    if 'admin' in roles:
+        result = ctx.db_driver.get_submissions()
+    else:
+        result = ctx.db_driver.get_submissions_for_user(user_id)
 
     submissions = []
     for db_subm in result:
@@ -237,7 +245,7 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
                                            [Issue(ISSUE_TYPE_ERROR, f"OSError: {e}")])
 
         validation_result = validator.validate_dataset(dataset, ctx.config)
-        #if DATASET_VALIDATION_RESULT_STATUS_ERROR == validation_result.status:
+        # if DATASET_VALIDATION_RESULT_STATUS_ERROR == validation_result.status:
         #    return validation_result
 
         write_path = ctx.get_datasets_upload_path(submission.path)

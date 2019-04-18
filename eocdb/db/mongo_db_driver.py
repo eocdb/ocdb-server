@@ -106,7 +106,17 @@ class MongoDbDriver(DbDriver):
 
         return db_submission.files[index]
 
-    def get_submissions(self, user_id: int, is_admin: bool = False) -> List[DbSubmission]:
+    def get_submissions(self) -> List[DbSubmission]:
+        submissions = []
+        cursor = self._submit_collection.find()
+        for subm_dict in cursor:
+            del subm_dict["_id"]
+            subm = DbSubmission.from_dict(subm_dict)
+            submissions.append(subm)
+
+        return submissions
+
+    def get_submissions_for_user(self, user_id: int, is_admin: bool = False) -> List[DbSubmission]:
         submissions = []
         if is_admin:
             cursor = self._submit_collection.find({})

@@ -40,7 +40,11 @@ class DbDriver(Service):
         """Get existing submission_file by ID."""
 
     @abstractmethod
-    def get_submissions(self, user_id: int, is_admin: bool = False) -> List[DbSubmission]:
+    def get_submissions(self) -> List[DbSubmission]:
+        """Get existing submissions for user."""
+
+    @abstractmethod
+    def get_submissions_for_user(self, user_id: int, is_admin: bool = False) -> List[DbSubmission]:
         """Get existing submissions for user."""
 
     @abstractmethod
