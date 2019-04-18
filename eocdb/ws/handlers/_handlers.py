@@ -619,7 +619,7 @@ class UsersId(WsRequestHandler):
         result = get_user_by_id(self.ws_context, user_id=user_id)
         # transform result of type User into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result.to_dict()))
+        self.finish(tornado.escape.json_encode(result))
 
     def put(self, id: str):
         """Provide API operation updateUser()."""

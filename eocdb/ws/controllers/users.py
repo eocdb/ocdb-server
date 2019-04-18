@@ -70,8 +70,16 @@ def logout_user(ctx: WsContext,
 def get_user_by_id(ctx: WsContext,
                    user_id: int) -> User:
     assert_not_none(user_id, name='user_id')
-    # TODO (generated): implement operation get_user_by_id()
-    raise NotImplementedError('operation get_user_by_id() not yet implemented')
+
+    users = ctx.config['users']
+
+    user = None
+    for u in users:
+        if u['id'] == user_id:
+            user = u
+    del user['password']
+
+    return user
 
 
 # noinspection PyUnusedLocal

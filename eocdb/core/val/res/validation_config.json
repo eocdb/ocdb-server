@@ -2342,6 +2342,18 @@
       "error": "@field_is_empty"
     },
     {
+      "name": "qc",
+      "unit": "none",
+      "data_type": "number",
+      "error": "@field_is_empty"
+    },
+    {
+      "name": "*_qc",
+      "unit": "none",
+      "data_type": "number",
+      "error": "@field_is_empty"
+    },
+    {
       "name": "r",
       "unit": "none",
       "lower_bound": 0,
