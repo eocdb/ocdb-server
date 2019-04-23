@@ -397,7 +397,7 @@ class Datasets(WsRequestHandler):
         time = self.extract_time()
         wdepth = self.query.get_param_float_list('wdepth', default=None)
         submission_id = self.query.get_param('submission_id', default=None)
-        user_id = self.query.get_param_int('user_id', default=None)
+        #user_id = self.query.get_param_int('user_id', default=None)
         status = self.query.get_param('status', default=None)
         mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
         wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)
