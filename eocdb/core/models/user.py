@@ -34,13 +34,11 @@ class User(Model):
     def __init__(self,
                  name: str,
                  password: str,
-                 id_: int,
                  first_name: str,
                  last_name: str,
                  email: str,
                  phone: str,
                  roles: List[str]):
-        assert_not_none(id_, name='id_')
         assert_not_none(name, name='name')
         assert_not_none(first_name, name='first_name')
         assert_not_none(last_name, name='last_name')
@@ -48,7 +46,6 @@ class User(Model):
         assert_not_none(password, name='password')
         assert_not_none(phone, name='phone')
         assert_not_none(roles, name='roles')
-        self._id = id_
         self._name = name
         self._first_name = first_name
         self._last_name = last_name
@@ -56,15 +53,6 @@ class User(Model):
         self._password = password
         self._phone = phone
         self._roles = roles
-
-    @property
-    def id(self) -> Optional[int]:
-        return self._id
-
-    @id.setter
-    def id(self, value: Optional[int]):
-        assert_not_none(value, name='value')
-        self._id = value
 
     @property
     def name(self) -> str:

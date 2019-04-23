@@ -615,8 +615,8 @@ class UsersId(WsRequestHandler):
 
     def get(self, id: str):
         """Provide API operation getUserByID()."""
-        user_id = RequestParams.to_int('id', id)
-        result = get_user_by_id(self.ws_context, user_id=user_id)
+        #user_id = RequestParams.to_int('id', id)
+        result = get_user_by_id(self.ws_context, user_id=id)
         # transform result of type User into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result))
@@ -632,9 +632,11 @@ class UsersId(WsRequestHandler):
 
     def delete(self, id: str):
         """Provide API operation deleteUser()."""
-        user_id = RequestParams.to_int('id', id)
-        delete_user(self.ws_context, user_id)
-        self.finish()
+        #user_id = RequestParams.to_int('id', id)
+        delete_user(self.ws_context, id)
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode({'message': f'User {user.name} deleted'}))
 
 
 def _ensure_string_argument(arg_value, arg_name: str):

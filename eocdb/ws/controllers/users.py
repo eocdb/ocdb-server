@@ -21,7 +21,7 @@
 from typing import Dict
 
 from ..context import WsContext
-from ..errors import WsUnauthorizedError, WsNotImplementedError
+from ..errors import WsUnauthorizedError, WsNotImplementedError, WsBadRequestError
 from ...core.asserts import assert_not_none
 from ...core.models.user import User
 
@@ -32,31 +32,45 @@ def login_user(ctx: WsContext,
                password: str) -> Dict[str, str]:
     assert_not_none(username, name='username')
     assert_not_none(password, name='password')
-    users = ctx.config.get("users")
-    if not users:
-        raise WsNotImplementedError("No users configured")
-    if not isinstance(users, list):
-        raise WsNotImplementedError("Invalid user configuration")
-    for user in users:
-        if not isinstance(user, dict):
-            raise WsUnauthorizedError("Invalid user configuration")
-    for user in users:
-        if user.get("name") == username or user.get("email") == username:
-            actual_password = user.get('password')
-            if actual_password == password:
-                user = dict(**user)
-                del user['password']
-                return user
-            else:
-                break
-    raise WsUnauthorizedError("Unknown username or password")
+
+    user = ctx.db_driver.instance().get_user(username, password)
+
+    if not user:
+        raise WsUnauthorizedError("Unknown username or password")
+
+    user = user.to_dict()
+
+    del user['password']
+
+    return user
+
+    # users = ctx.config.get("users")
+    # if not users:
+    #     raise WsNotImplementedError("No users configured")
+    # if not isinstance(users, list):
+    #     raise WsNotImplementedError("Invalid user configuration")
+    # for user in users:
+    #     if not isinstance(user, dict):
+    #         raise WsUnauthorizedError("Invalid user configuration")
+    # for user in users:
+    #     if user.get("name") == username or user.get("email") == username:
+    #         actual_password = user.get('password')
+    #         if actual_password == password:
+    #             user = dict(**user)
+    #             del user['password']
+    #             return user
+    #         else:
+    #             break
 
 
 # noinspection PyUnusedLocal
 def create_user(ctx: WsContext,
                 user: User):
-    # TODO (generated): implement operation create_user()
-    raise NotImplementedError('operation create_user() not yet implemented')
+
+    user_id = ctx.db_driver.instance().add_user(user)
+
+    if not user_id:
+        raise WsBadRequestError(f"Could not add user {user.name}")
 
 
 # noinspection PyUnusedLocal
@@ -68,18 +82,24 @@ def logout_user(ctx: WsContext,
 
 # noinspection PyUnusedLocal,PyTypeChecker
 def get_user_by_id(ctx: WsContext,
-                   user_id: int) -> User:
+                   user_id: str) -> User:
     assert_not_none(user_id, name='user_id')
 
-    users = ctx.config['users']
+    user = ctx.db_driver.instance().get_user(user_id)
 
-    user = None
-    for u in users:
-        if u['id'] == user_id:
-            user = u
-    del user['password']
+    if not user_id:
+        raise WsBadRequestError(f"Could not find user {user_id}")
 
-    return user
+    # users = ctx.config['users']
+    #
+    # user = None
+    # for u in users:
+    #     if u['id'] == user_id:
+    #         user = u
+
+    user_dict = user.to_dict()
+    del user_dict['password']
+    return user_dict
 
 
 # noinspection PyUnusedLocal
@@ -93,7 +113,10 @@ def update_user(ctx: WsContext,
 
 # noinspection PyUnusedLocal
 def delete_user(ctx: WsContext,
-                id_: int):
-    assert_not_none(id_, name='id_')
-    # TODO (generated): implement operation delete_user()
-    raise NotImplementedError('operation delete_user() not yet implemented')
+                user_id: str):
+    assert_not_none(user_id, name='user_id')
+    deleted = ctx.db_driver.instance().delete_user(user_id)
+
+    if not deleted:
+        raise WsBadRequestError(f"Could not delete user {user_id}")
+
