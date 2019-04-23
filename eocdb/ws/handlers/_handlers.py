@@ -84,7 +84,7 @@ class StoreUploadSubmission(WsRequestHandler):
         submission_id = _ensure_string_argument(submission_id, "submissionid")
 
         user_id = arguments.get("userid")
-        user_id = int(_ensure_string_argument(user_id, "userid"))
+        user_id = _ensure_string_argument(user_id, "userid")
 
         temp_area_path = str(user_id) + "_" + submission_id
 
@@ -215,8 +215,7 @@ class StoreStatusSubmission(WsRequestHandler):
 class StoreUploadUser(WsRequestHandler):
 
     def get(self, userid: str):
-        user_id = int(userid)
-        result = get_submissions(ctx=self.ws_context, user_id=user_id)
+        result = get_submissions(ctx=self.ws_context, user_id=userid)
 
         result_list = []
         for submission in result:
