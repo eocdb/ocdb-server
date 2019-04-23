@@ -754,10 +754,7 @@ paths:
       responses:
         '200':
             description: website content as markdown
-            content:
-              application/json:
-                schema:
-                  type: string
+            $ref: '#/components/responses/Links'
         '400':
           description: Invalid call
     post:
@@ -1572,6 +1569,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/User'
+    Links:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Links'
     TextFileContent:
       description: Successful operation.
       content:
