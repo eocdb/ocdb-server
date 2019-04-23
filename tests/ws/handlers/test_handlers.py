@@ -296,6 +296,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         self.assertEqual(404, response.code)
         self.assertEqual('Submission not found', response.reason)
 
+    @unittest.skip('not implemented yet')
     def test_delete(self):
         files = [SubmissionFile(submission_id="submitme",
                                 index=0,
@@ -310,7 +311,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
+        db_subm = DbSubmission(status="Hellyeah", user_id='5cbec705182de53ff046b84a', submission_id="submitme", files=files, qc_status="OK",
                                path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                publication_date='2001-02-03T04:05:06',
                                allow_publication=False)
@@ -320,7 +321,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        userid = 88763
+        userid = '5cbec705182de53ff046b84a'
         response = self.fetch(API_URL_PREFIX + f"/store/upload/user/{userid}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
@@ -336,7 +337,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                            'submission_id': 'submitme',
                            'publication_date': '2001-02-03T04:05:06',
                            'allow_publication': False,
-                           'user_id': 88763}], actual_response_data)
+                           'user_id': '5cbec705182de53ff046b84a'}], actual_response_data)
 
     def test_put_invalid_submissionid(self):
         submissionid = "rattelschneck"
