@@ -12,7 +12,7 @@ class Submission(Model):
 
     def __init__(self,
                  submission_id: str,
-                 user_id: int,
+                 user_id: str,
                  date: datetime,
                  status: str,
                  qc_status: str,
