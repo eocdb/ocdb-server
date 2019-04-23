@@ -197,6 +197,7 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 
 def get_submissions(ctx: WsContext, user_id: str) -> List[Submission]:
     roles = []
+    # Get user's roles
     for u in ctx.config['users']:
         if u['id'] == user_id:
             roles = u['roles']
