@@ -745,6 +745,21 @@ paths:
         - eocdb_auth:
           - 'read:datasets'
   '/links':
+    get:
+      tags:
+        - Links
+      summary: Getting links for Links Page
+      description: Getting links for Links Page
+      operationId: getLinks
+      responses:
+        '200':
+            description: website content as markdown
+            content:
+              application/json:
+                schema:
+                  type: string
+        '400':
+          description: Invalid call
     post:
       tags:
         - Links
