@@ -53,4 +53,5 @@ MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/users/login'), UsersLogin),
     (url_pattern(API_URL_PREFIX + '/users/logout'), UsersLogout),
     (url_pattern(API_URL_PREFIX + '/users/{id}'), UsersId),
+    (url_pattern(API_URL_PREFIX + '/links'), Links),
 ]

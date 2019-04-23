@@ -23,6 +23,7 @@ from time import strptime
 import tornado.escape
 import tornado.httputil
 
+from eocdb.ws.controllers.links import get_links, update_links
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.service import *
@@ -636,7 +637,21 @@ class UsersId(WsRequestHandler):
         delete_user(self.ws_context, id)
 
         self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode({'message': f'User {user.name} deleted'}))
+        self.finish(tornado.escape.json_encode({'message': f'User ID {id} deleted'}))
+
+
+# noinspection PyAbstractClass
+class Links(WsRequestHandler):
+    def get(self):
+        result = get_links(self.ws_context)
+        self.set_header('Content-Type', 'application/txt')
+        self.finish(tornado.escape.json_encode({'content': result}))
+
+    def post(self):
+        content = _ensure_string_argument(self.request.body_arguments['content'], 'content')
+        result = update_links(self.ws_context, content)
+        self.set_header('Content-Type', 'application/txt')
+        self.finish(result)
 
 
 def _ensure_string_argument(arg_value, arg_name: str):
