@@ -15,3 +15,5 @@ databases:
     type: eocdb.db.mongo_db_driver.MongoDbDriver
     parameters:
       mock: true
+
+links: 'res/links.md'

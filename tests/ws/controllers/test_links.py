@@ -11,10 +11,10 @@ class LinksTest(unittest.TestCase):
 
     def test_get_links(self):
         result = get_links(self.ctx)
-        self.assertEqual(result, "# Links")
+        self.assertEqual(result, "## Links")
 
     def test_update_links(self):
-        update_links(self.ctx, "## Links")
-        result = get_links(self.ctx)
-        self.assertEqual(result, "## Links")
         update_links(self.ctx, "# Links")
+        result = get_links(self.ctx)
+        self.assertEqual(result, "# Links")
+        update_links(self.ctx, "## Links")

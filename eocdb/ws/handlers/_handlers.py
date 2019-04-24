@@ -644,7 +644,10 @@ class Links(WsRequestHandler):
         self.finish(tornado.escape.json_encode({'content': result}))
 
     def post(self):
-        content = _ensure_string_argument(self.request.body_arguments['content'], 'content')
+        result = tornado.escape.json_decode(self.request.body)
+
+        content = result['content']
+
         result = update_links(self.ws_context, content)
         self.set_header('Content-Type', 'application/txt')
         self.finish(result)

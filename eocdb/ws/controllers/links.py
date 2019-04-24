@@ -2,7 +2,8 @@ from eocdb.ws.context import WsContext
 
 
 def get_links(ctx: WsContext):
-    with open('res/links.md', 'r') as mdfile:
+    fn = ctx.config.get('links')
+    with open(fn, 'r') as mdfile:
         s = mdfile.read()
         mdfile.close()
         return s

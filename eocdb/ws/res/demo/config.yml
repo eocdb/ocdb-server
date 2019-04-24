@@ -35,3 +35,6 @@ databases:
     parameters:
         url: "mongodb://ocdb-test:27017/eocdb"
 
+links:
+  path: 'res/links.md'
+
