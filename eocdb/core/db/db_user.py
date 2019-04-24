@@ -14,7 +14,7 @@ class DbUser(User):
                  email: str,
                  phone: str,
                  roles: List[str]):
-        super().__init__(name, password, id_, first_name, last_name, email, phone, roles)
+        super().__init__(name, password, first_name, last_name, email, phone, roles)
         self._id = id_
 
     @property

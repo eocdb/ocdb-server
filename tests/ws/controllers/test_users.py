@@ -22,6 +22,7 @@
 
 import unittest
 
+from eocdb.core.db.db_user import DbUser
 from eocdb.ws.controllers.users import *
 from tests.helpers import new_test_service_context
 
@@ -33,22 +34,17 @@ class UsersTest(unittest.TestCase):
 
     @unittest.skip('TODO: Fix THIS')
     def test_login_user(self):
+        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+
+        create_user(self.ctx, user)
         # noinspection PyTypeChecker
         result = login_user(self.ctx, username="scott", password="tiger")
-        expected_result = {
-            'id': 1,
-            'name': 'scott',
-            'email': 'bruce.scott@gmail.com',
-            'first_name': 'Bruce',
-            'last_name': 'Scott',
-            'phone': '+34 5678901234',
-            'roles': ['submit', 'admin']
-        }
-        self.assertEqual(expected_result, result)
 
-        result = login_user(self.ctx, username="bruce.scott@gmail.com", password="tiger")
+        result['id'] = ''
+
         expected_result = {
-            'id': 1,
+            'id': '',
             'name': 'scott',
             'email': 'bruce.scott@gmail.com',
             'first_name': 'Bruce',
@@ -56,6 +52,7 @@ class UsersTest(unittest.TestCase):
             'phone': '+34 5678901234',
             'roles': ['submit', 'admin']
         }
+
         self.assertEqual(expected_result, result)
 
         with self.assertRaises(WsUnauthorizedError) as cm:
@@ -66,45 +63,61 @@ class UsersTest(unittest.TestCase):
             login_user(self.ctx, username="bibo", password="tiger")
         self.assertEqual("HTTP 401: Unknown username or password", f"{cm.exception}")
 
-    @unittest.skip('not implemented yet')
     def test_create_user(self):
         # noinspection PyArgumentList
-        user = User()
-        # TODO (generated):  data properties
-        # noinspection PyArgumentList
+        user = User(name='tom2', last_name='Scott', password='hh', email='email@email.int',
+                    first_name='Tom', roles=['admin'], phone='02102238958')
+
         result = create_user(self.ctx, user=user)
-        self.assertIsNone(result)
+        self.assertIsNotNone(result)
+        self.assertIsInstance(result, str)
 
     @unittest.skip('not implemented yet')
     def test_logout_user(self):
         result = logout_user(self.ctx)
         self.assertIsNone(result)
 
-    @unittest.skip('not implemented yet')
-    def test_get_user_by_id(self):
-        # TODO (generated): set required parameters
-        user_id = -1
-        result = get_user_by_id(self.ctx, user_id)
-        self.assertIsInstance(result, User)
-        # noinspection PyArgumentList
-        expected_result = User()
-        # TODO (generated): set expected result properties
+    def test_get_user_by_name(self):
+        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+
+        create_user(self.ctx, user)
+
+        result = get_user_by_name(self.ctx, 'scott')
+        result['id'] = ''
+        expected_result = {
+            'id': '',
+            'name': 'scott',
+            'email': 'bruce.scott@gmail.com',
+            'first_name': 'Bruce',
+            'last_name': 'Scott',
+            'phone': '+34 5678901234',
+            'roles': ['submit', 'admin']
+        }
+
         self.assertEqual(expected_result, result)
 
-    @unittest.skip('not implemented yet')
     def test_update_user(self):
-        # TODO (generated): set required parameters
-        user_id = -1
-        # noinspection PyArgumentList
-        data = User()
-        # TODO (generated): set data properties
+        user = DbUser(id_='tt', name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                      first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
 
-        result = update_user(self.ctx, user_id, data=data)
-        self.assertIsNone(result)
+        create_user(self.ctx, user)
 
-    @unittest.skip('not implemented yet')
+        user.first_name = 'Tom'
+
+        result = update_user(self.ctx, 'scott', data=user)
+        self.assertIs(result, True)
+
     def test_delete_user(self):
-        # TODO (generated): set required parameters
-        user_id = -1
-        result = delete_user(self.ctx, user_id)
-        self.assertIsNone(result)
+        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+
+        create_user(self.ctx, user)
+
+        with self.assertRaises(WsBadRequestError) as cm:
+            delete_user(self.ctx, user_name="god")
+
+        self.assertEqual("HTTP 400: Could not delete user god", f"{cm.exception}")
+
+        result = delete_user(self.ctx, 'scott')
+        self.assertIs(result, True)

@@ -52,7 +52,7 @@ def get_store_info(ctx: WsContext) -> Dict:
 def upload_submission_files(ctx: WsContext,
                             path: str,
                             submission_id: str,
-                            user_id: int,
+                            user_id: str,
                             dataset_files: List[UploadedFile],
                             publication_date: datetime,
                             allow_publication: bool,

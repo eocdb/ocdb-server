@@ -117,7 +117,7 @@ class MongoDbDriver(DbDriver):
 
         return submissions
 
-    def get_submissions_for_user(self, user_id: int, is_admin: bool = False) -> List[DbSubmission]:
+    def get_submissions_for_user(self, user_id: str, is_admin: bool = False) -> List[DbSubmission]:
         submissions = []
         if is_admin:
             cursor = self._submit_collection.find({})
@@ -165,6 +165,15 @@ class MongoDbDriver(DbDriver):
         result = self._user_collection.insert_one(user_dict)
         return str(result.inserted_id)
 
+    def update_user(self, user: DbUser):
+        user_dict = user.to_dict()
+        result = self._user_collection.replace_one({'_id': user.id}, user_dict, upsert=True)
+
+        if not result:
+            return False
+
+        return True
+
     def delete_user(self, user_id: str) -> bool:
         user_dict = self._user_collection.find_one({"name": user_id})
         if user_dict is None:
@@ -184,6 +193,20 @@ class MongoDbDriver(DbDriver):
             return None
 
         user_id = result["_id"]
+        del result["_id"]
+        result["id"] = str(user_id)
+
+        return DbUser.from_dict(result)
+
+    def get_user_by_id(self, user_id: str):
+
+        result = self._user_collection.find_one({'_id': user_id})
+
+        if not result:
+            return None
+
+        user_id = result["_id"]
+
         del result["_id"]
         result["id"] = str(user_id)
 

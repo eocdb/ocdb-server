@@ -23,13 +23,13 @@ from time import strptime
 import tornado.escape
 import tornado.httputil
 
+from eocdb.core.db.db_user import DbUser
 from eocdb.ws.controllers.links import get_links, update_links
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
-from ..reqparams import RequestParams
 from ..webservice import WsRequestHandler
 from ...core.models.dataset import Dataset
 from ...core.models.dataset_ids import DatasetIds
@@ -613,30 +613,27 @@ class UsersLogout(WsRequestHandler):
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class UsersId(WsRequestHandler):
 
-    def get(self, id: str):
+    def get(self, user_name: str):
         """Provide API operation getUserByID()."""
-        #user_id = RequestParams.to_int('id', id)
-        result = get_user_by_id(self.ws_context, user_id=id)
+        result = get_user_by_name(self.ws_context, user_name=user_name)
         # transform result of type User into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result))
 
-    def put(self, id: str):
+    def put(self, user_name: str):
         """Provide API operation updateUser()."""
-        user_id = RequestParams.to_int('id', id)
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
-        data = User.from_dict(data_dict)
-        update_user(self.ws_context, user_id=user_id, data=data)
-        self.finish()
+        data = DbUser.from_dict(data_dict)
+        update_user(self.ws_context, user_name=user_name, data=data)
+        self.finish(tornado.escape.json_encode({'message': f'User ID {user_name} updated'}))
 
-    def delete(self, id: str):
+    def delete(self, user_name: str):
         """Provide API operation deleteUser()."""
-        #user_id = RequestParams.to_int('id', id)
-        delete_user(self.ws_context, id)
+        delete_user(self.ws_context, user_name)
 
         self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode({'message': f'User ID {id} deleted'}))
+        self.finish(tornado.escape.json_encode({'message': f'User {user_name} deleted'}))
 
 
 # noinspection PyAbstractClass
