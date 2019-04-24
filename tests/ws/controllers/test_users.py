@@ -32,7 +32,6 @@ class UsersTest(unittest.TestCase):
     def setUp(self):
         self.ctx = new_test_service_context()
 
-    @unittest.skip('TODO: Fix THIS')
     def test_login_user(self):
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
                     first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
