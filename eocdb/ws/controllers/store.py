@@ -52,7 +52,7 @@ def get_store_info(ctx: WsContext) -> Dict:
 def upload_submission_files(ctx: WsContext,
                             path: str,
                             submission_id: str,
-                            user_id: int,
+                            user_id: str,
                             dataset_files: List[UploadedFile],
                             publication_date: datetime,
                             allow_publication: bool,
@@ -195,7 +195,7 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     return ctx.db_driver.update_submission(submission)
 
 
-def get_submissions(ctx: WsContext, user_id: int) -> List[Submission]:
+def get_submissions(ctx: WsContext, user_id: str) -> List[Submission]:
     roles = []
     for u in ctx.config['users']:
         if u['id'] == user_id:

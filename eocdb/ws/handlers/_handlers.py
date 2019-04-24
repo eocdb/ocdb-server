@@ -23,12 +23,12 @@ from time import strptime
 import tornado.escape
 import tornado.httputil
 
+from eocdb.core.db.db_user import DbUser
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
-from ..reqparams import RequestParams
 from ..webservice import WsRequestHandler
 from ...core.models.dataset import Dataset
 from ...core.models.dataset_ids import DatasetIds
@@ -83,7 +83,7 @@ class StoreUploadSubmission(WsRequestHandler):
         submission_id = _ensure_string_argument(submission_id, "submissionid")
 
         user_id = arguments.get("userid")
-        user_id = int(_ensure_string_argument(user_id, "userid"))
+        user_id = _ensure_string_argument(user_id, "userid")
 
         temp_area_path = str(user_id) + "_" + submission_id
 
@@ -214,8 +214,7 @@ class StoreStatusSubmission(WsRequestHandler):
 class StoreUploadUser(WsRequestHandler):
 
     def get(self, userid: str):
-        user_id = int(userid)
-        result = get_submissions(ctx=self.ws_context, user_id=user_id)
+        result = get_submissions(ctx=self.ws_context, user_id=userid)
 
         result_list = []
         for submission in result:
@@ -396,7 +395,7 @@ class Datasets(WsRequestHandler):
         time = self.extract_time()
         wdepth = self.query.get_param_float_list('wdepth', default=None)
         submission_id = self.query.get_param('submission_id', default=None)
-        user_id = self.query.get_param_int('user_id', default=None)
+        #user_id = self.query.get_param_int('user_id', default=None)
         status = self.query.get_param('status', default=None)
         mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
         wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)
@@ -577,7 +576,13 @@ class Users(WsRequestHandler):
     def post(self):
         """Provide API operation createUser()."""
         # transform body with mime-type application/json into a User
+
         data_dict = tornado.escape.json_decode(self.request.body)
+
+        if check_user_by_name(self.ws_context, user_name=data_dict['name']):
+            self.set_status(400, reason=f"User {data_dict['name']} exists already")
+            return
+
         user = User.from_dict(data_dict)
         create_user(self.ws_context, user=user)
 
@@ -613,30 +618,27 @@ class UsersLogout(WsRequestHandler):
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class UsersId(WsRequestHandler):
 
-    def get(self, id: str):
+    def get(self, user_name: str):
         """Provide API operation getUserByID()."""
-        #user_id = RequestParams.to_int('id', id)
-        result = get_user_by_id(self.ws_context, user_id=id)
+        result = get_user_by_name(self.ws_context, user_name=user_name)
         # transform result of type User into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result))
 
-    def put(self, id: str):
+    def put(self, user_name: str):
         """Provide API operation updateUser()."""
-        user_id = RequestParams.to_int('id', id)
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
-        data = User.from_dict(data_dict)
-        update_user(self.ws_context, user_id=user_id, data=data)
-        self.finish()
+        data = DbUser.from_dict(data_dict)
+        update_user(self.ws_context, user_name=user_name, data=data)
+        self.finish(tornado.escape.json_encode({'message': f'User ID {user_name} updated'}))
 
-    def delete(self, id: str):
+    def delete(self, user_name: str):
         """Provide API operation deleteUser()."""
-        #user_id = RequestParams.to_int('id', id)
-        delete_user(self.ws_context, id)
+        delete_user(self.ws_context, user_name)
 
         self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode({'message': f'User {user.name} deleted'}))
+        self.finish(tornado.escape.json_encode({'message': f'User {user_name} deleted'}))
 
 
 def _ensure_string_argument(arg_value, arg_name: str):

@@ -2,6 +2,7 @@ from abc import abstractmethod
 from typing import Optional, List
 
 from eocdb.core.db.db_submission import DbSubmission
+from eocdb.core.db.db_user import DbUser
 from eocdb.core.models.submission_file import SubmissionFile
 from .. import Service
 from ..models import DatasetQueryResult
@@ -44,7 +45,7 @@ class DbDriver(Service):
         """Get existing submissions for user."""
 
     @abstractmethod
-    def get_submissions_for_user(self, user_id: int, is_admin: bool = False) -> List[DbSubmission]:
+    def get_submissions_for_user(self, user_id: str, is_admin: bool = False) -> List[DbSubmission]:
         """Get existing submissions for user."""
 
     @abstractmethod
@@ -58,3 +59,23 @@ class DbDriver(Service):
     @abstractmethod
     def update_submission(self, submission: DbSubmission) -> bool:
         """Get existing submission_file by ID."""
+
+    @abstractmethod
+    def add_user(self, user: DbUser) -> str:
+        """Add new user"""
+
+    @abstractmethod
+    def update_user(self, user: DbUser) -> bool:
+        """Update existing user"""
+
+    @abstractmethod
+    def delete_user(self, user_name: str) -> bool:
+        """Get existing user by User Name."""
+
+    @abstractmethod
+    def get_user(self, user_name: str, password: str = None) -> DbUser:
+        """Get existing user by User Name."""
+
+    @abstractmethod
+    def get_user_by_id(self, user_id: str) -> DbUser:
+        """Get existing user by User Name."""

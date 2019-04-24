@@ -29,13 +29,14 @@ import tornado.escape
 import tornado.testing
 
 from eocdb.core.db.db_submission import DbSubmission
-from eocdb.core.models import DatasetValidationResult, Issue
+from eocdb.core.models import DatasetValidationResult, Issue, User
 from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, \
     QC_STATUS_VALIDATED, QC_STATUS_APPROVED
 from eocdb.core.models.submission import Submission, TYPE_MEASUREMENT
 from eocdb.core.models.submission_file import SubmissionFile
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id_strict, get_dataset_qc_info
+from eocdb.ws.controllers.users import create_user
 from eocdb.ws.handlers import API_URL_PREFIX
 from eocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument, \
     StoreStatusSubmission
@@ -100,7 +101,7 @@ class StoreUploadSubmissionTest(WsTestCase):
     def test_post_submission_id_already_present(self):
         submission_id = "I_DO_EXIST"
         submission = Submission(submission_id=submission_id,
-                                user_id=12,
+                                user_id='12',
                                 date=datetime.datetime.now(),
                                 status="who_knows",
                                 qc_status="OK",
@@ -125,7 +126,7 @@ class StoreUploadSubmissionTest(WsTestCase):
     def test_delete_success(self):
         submission_id = "I_DO_EXIST"
         submission = DbSubmission(submission_id=submission_id,
-                                  user_id=12,
+                                  user_id='12',
                                   date=datetime.datetime.now(),
                                   status="who_knows",
                                   qc_status="OK",
@@ -149,7 +150,7 @@ class StoreUploadSubmissionTest(WsTestCase):
     def test_get_success(self):
         submission_id = "I_DO_EXIST"
         submission = DbSubmission(submission_id=submission_id,
-                                  user_id=12,
+                                  user_id='12',
                                   date=datetime.datetime.now(),
                                   status="who_knows",
                                   qc_status="OK",
@@ -176,7 +177,7 @@ class StoreUploadSubmissionTest(WsTestCase):
             'qc_status': 'OK',
             'status': 'who_knows',
             'submission_id': 'I_DO_EXIST',
-            'user_id': 12}, actual_response_data)
+            'user_id': '12'}, actual_response_data)
 
 
 class StoreStatusSubmissionTest(WsTestCase):
@@ -191,7 +192,7 @@ class StoreStatusSubmissionTest(WsTestCase):
     def test_put_approve(self):
         submission_id = "I_DO_EXIST"
         submission = DbSubmission(submission_id=submission_id,
-                                  user_id=12,
+                                  user_id='12',
                                   date=datetime.datetime.now(),
                                   status=QC_STATUS_VALIDATED,
                                   qc_status="OK",
@@ -229,7 +230,7 @@ class StoreStatusSubmissionTest(WsTestCase):
             'submission_id': 'I_DO_EXIST',
             'publication_date': None, #!!! Comes in here as None. Should ba a date.!! Need to check
             'allow_publication': False,
-            'user_id': 12}, actual_response_data)
+            'user_id': '12'}, actual_response_data)
 
     def test_extract_date_not_present(self):
         body_dict = {"status": "whatever"}
@@ -256,6 +257,11 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         self.assertEqual('No result found', response.reason)
 
     def test_get_one_result(self):
+        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+
+        mid = create_user(self.ctx, user)
+
         # --- add submission file ---
         files = [SubmissionFile(submission_id="submitme",
                                 index=0,
@@ -270,7 +276,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
+        db_subm = DbSubmission(status="Hellyeah", user_id=mid, submission_id="submitme", files=files, qc_status="OK",
                                path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                allow_publication=False)
@@ -297,6 +303,11 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         self.assertEqual('Submission not found', response.reason)
 
     def test_delete(self):
+        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+
+        mid = create_user(self.ctx, user)
+
         files = [SubmissionFile(submission_id="submitme",
                                 index=0,
                                 filename="Hans",
@@ -310,7 +321,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
+        db_subm = DbSubmission(status="Hellyeah", user_id=mid, submission_id="submitme", files=files, qc_status="OK",
                                path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                publication_date='2001-02-03T04:05:06',
                                allow_publication=False)
@@ -320,7 +331,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        userid = 88763
+        userid = mid
         response = self.fetch(API_URL_PREFIX + f"/store/upload/user/{userid}", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
@@ -336,7 +347,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                            'submission_id': 'submitme',
                            'publication_date': '2001-02-03T04:05:06',
                            'allow_publication': False,
-                           'user_id': 88763}], actual_response_data)
+                           'user_id': mid}], actual_response_data)
 
     def test_put_invalid_submissionid(self):
         submissionid = "rattelschneck"
@@ -364,7 +375,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
+        db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
                                qc_status="OK",
                                path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
         self.ctx.db_driver.add_submission(db_subm)
@@ -393,7 +404,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
+        db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
                                qc_status="OK",
                                path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
         self.ctx.db_driver.add_submission(db_subm)
@@ -424,7 +435,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id=submissionid, files=files,
+        db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
                                qc_status=QC_STATUS_VALIDATED,
                                path="/tmp/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
         self.ctx.db_driver.add_submission(db_subm)
@@ -509,7 +520,7 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
+        db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files, qc_status="OK",
                                path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
         self.ctx.db_driver.add_submission(db_subm)
 
@@ -536,7 +547,7 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
+        db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files, qc_status="OK",
                                path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
         self.ctx.db_driver.add_submission(db_subm)
 
@@ -1138,14 +1149,20 @@ class UsersTest(WsTestCase):
 class UsersLoginTest(WsTestCase):
 
     def test_get(self):
+        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+
+        create_user(self.ctx, user)
+
         credentials = dict(username="scott", password="tiger")
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
+
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
         expected_response_data = {
-            'id': 1,
+            'id': '',
             'name': 'scott',
             'email': 'bruce.scott@gmail.com',
             'first_name': 'Bruce',
@@ -1154,6 +1171,7 @@ class UsersLoginTest(WsTestCase):
             'roles': ['submit', 'admin']
         }
         actual_response_data = tornado.escape.json_decode(response.body)
+        actual_response_data['id'] = ''
         self.assertEqual(expected_response_data, actual_response_data)
 
 

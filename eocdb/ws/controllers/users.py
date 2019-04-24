@@ -21,7 +21,7 @@
 from typing import Dict
 
 from ..context import WsContext
-from ..errors import WsUnauthorizedError, WsNotImplementedError, WsBadRequestError
+from ..errors import WsUnauthorizedError, WsBadRequestError
 from ...core.asserts import assert_not_none
 from ...core.models.user import User
 
@@ -66,11 +66,12 @@ def login_user(ctx: WsContext,
 # noinspection PyUnusedLocal
 def create_user(ctx: WsContext,
                 user: User):
-
     user_id = ctx.db_driver.instance().add_user(user)
 
     if not user_id:
         raise WsBadRequestError(f"Could not add user {user.name}")
+
+    return user_id
 
 
 # noinspection PyUnusedLocal
@@ -81,14 +82,14 @@ def logout_user(ctx: WsContext,
 
 
 # noinspection PyUnusedLocal,PyTypeChecker
-def get_user_by_id(ctx: WsContext,
-                   user_id: str) -> User:
-    assert_not_none(user_id, name='user_id')
+def get_user_by_name(ctx: WsContext,
+                     user_name: str) -> User:
+    assert_not_none(user_name, name='user_id')
 
-    user = ctx.db_driver.instance().get_user(user_id)
+    user = ctx.db_driver.instance().get_user(user_name)
 
-    if not user_id:
-        raise WsBadRequestError(f"Could not find user {user_id}")
+    if not user:
+        raise WsBadRequestError(f"Could not find user {user_name}")
 
     # users = ctx.config['users']
     #
@@ -102,21 +103,39 @@ def get_user_by_id(ctx: WsContext,
     return user_dict
 
 
+# noinspection PyUnusedLocal,PyTypeChecker
+def check_user_by_name(ctx: WsContext,
+                       user_name: str) -> User:
+    assert_not_none(user_name, name='user_id')
+
+    user = ctx.db_driver.instance().get_user(user_name)
+
+    if not user:
+        return False
+    else:
+        return True
+
+
 # noinspection PyUnusedLocal
 def update_user(ctx: WsContext,
-                user_id: int,
+                user_name: str,
                 data: User):
-    assert_not_none(user_id, name='user_id')
-    # TODO (generated): implement operation update_user()
-    raise NotImplementedError('operation update_user() not yet implemented')
+    assert_not_none(user_name, name='user_name')
+    updated = ctx.db_driver.instance().update_user(data)
+
+    if not updated:
+        raise WsBadRequestError(f"Could not update user {data.name}")
+
+    return updated
 
 
 # noinspection PyUnusedLocal
 def delete_user(ctx: WsContext,
-                user_id: str):
-    assert_not_none(user_id, name='user_id')
-    deleted = ctx.db_driver.instance().delete_user(user_id)
+                user_name: str):
+    assert_not_none(user_name, name='user_name')
+    deleted = ctx.db_driver.instance().delete_user(user_name)
 
     if not deleted:
-        raise WsBadRequestError(f"Could not delete user {user_id}")
+        raise WsBadRequestError(f"Could not delete user {user_name}")
 
+    return deleted
