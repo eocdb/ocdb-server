@@ -16,4 +16,4 @@ databases:
     parameters:
       mock: true
 
-links: 'res/links.md'
+links: 'tests/ws/controllers/res/links.md'

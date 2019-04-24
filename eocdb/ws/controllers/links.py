@@ -10,7 +10,8 @@ def get_links(ctx: WsContext):
 
 
 def update_links(ctx: WsContext, content: str):
-    with open('res/links.md', 'w') as mdfile:
+    fn = ctx.config.get('links')
+    with open(fn, 'w') as mdfile:
         mdfile.write(content)
         return get_links(ctx)
 
