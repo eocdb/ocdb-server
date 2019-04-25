@@ -698,14 +698,10 @@ class StoreDownloadTest(WsTestCase):
 
 
 class StoreDownloadsubmissionFileTest(WsTestCase):
-    def test_get(self):
+    def test_get_not_exists(self):
         response = self.fetch(API_URL_PREFIX + f"/store/download/submissionfile/sd/0", method='GET')
-        #self.assertEqual(400, response.code)
-        #self.assertEqual('OK', response.reason)
-
-        #expected_response_data = None
-        #actual_response_data = response.body
-        #self.assertEqual(expected_response_data, actual_response_data)
+        self.assertEqual(400, response.code)
+        self.assertEqual('Submission File not found', response.reason)
 
 
 
