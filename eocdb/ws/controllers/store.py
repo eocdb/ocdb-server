@@ -367,6 +367,9 @@ def download_submission_file_by_id(ctx: WsContext,
                                    index: int = None) -> zipfile.ZipFile:
     submission = get_submission(ctx, submission_id)
 
+    if not submission:
+        return None
+
     submission_file = get_submission_file(ctx, submission_id, index)
 
     if submission_file.filetype == TYPE_MEASUREMENT:

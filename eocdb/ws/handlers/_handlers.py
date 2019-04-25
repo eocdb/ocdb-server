@@ -160,6 +160,10 @@ class StoreDownloadsubmissionFile(WsRequestHandler):
 
         result = download_submission_file_by_id(self.ws_context, submission_id=submission_id, index=index)
 
+        if not result:
+            self.set_status(400, reason="Submission File not found")
+
+
         self._return_zip_file(result)
         self.finish()
 
