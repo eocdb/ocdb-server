@@ -6,6 +6,7 @@ import numpy as np
 import pymongo
 import pymongo.errors
 
+from eocdb.core.db.db_user import DbUser
 from ..core import QueryParser
 from ..core.db.db_driver import DbDriver
 from ..core.db.db_submission import DbSubmission
@@ -116,9 +117,12 @@ class MongoDbDriver(DbDriver):
 
         return submissions
 
-    def get_submissions_for_user(self, user_id: int) -> List[DbSubmission]:
+    def get_submissions_for_user(self, user_id: str, is_admin: bool = False) -> List[DbSubmission]:
         submissions = []
-        cursor = self._submit_collection.find({"user_id": user_id})
+        if is_admin:
+            cursor = self._submit_collection.find({})
+        else:
+            cursor = self._submit_collection.find({"user_id": user_id})
         for subm_dict in cursor:
             del subm_dict["_id"]
             subm = DbSubmission.from_dict(subm_dict)
@@ -156,6 +160,58 @@ class MongoDbDriver(DbDriver):
         result = self._submit_collection.delete_one(subm_dict)
         return result.deleted_count == 1
 
+    def add_user(self, user: DbUser):
+        user_dict = user.to_dict()
+        result = self._user_collection.insert_one(user_dict)
+        return str(result.inserted_id)
+
+    def update_user(self, user: DbUser):
+        user_dict = user.to_dict()
+        result = self._user_collection.replace_one({'_id': user.id}, user_dict, upsert=True)
+
+        if not result:
+            return False
+
+        return True
+
+    def delete_user(self, user_id: str) -> bool:
+        user_dict = self._user_collection.find_one({"name": user_id})
+        if user_dict is None:
+            return False
+
+        result = self._user_collection.delete_one(user_dict)
+        return result.deleted_count == 1
+
+    def get_user(self, user_name: str, password: str = None):
+
+        if password is None:
+            result = self._user_collection.find_one({'name': user_name})
+        else:
+            result = self._user_collection.find_one({'name': user_name, 'password': password})
+
+        if not result:
+            return None
+
+        user_id = result["_id"]
+        del result["_id"]
+        result["id"] = str(user_id)
+
+        return DbUser.from_dict(result)
+
+    def get_user_by_id(self, user_id: str):
+
+        result = self._user_collection.find_one({'_id': user_id})
+
+        if not result:
+            return None
+
+        user_id = result["_id"]
+
+        del result["_id"]
+        result["id"] = str(user_id)
+
+        return DbUser.from_dict(result)
+
     @staticmethod
     def _get_start_index_and_count(query) -> (int, int):
         if query.offset is None:
@@ -184,6 +240,7 @@ class MongoDbDriver(DbDriver):
         self._client = None
         self._collection = None
         self._submit_collection = None
+        self._user_collection = None
         self._config = None
         self._query_converter = MongoDbDriver.QueryConverter()
 
@@ -220,6 +277,7 @@ class MongoDbDriver(DbDriver):
         # Create collection "eocdb.sb_datasets"
         self._collection = self._client.eocdb.sb_datasets
         self._submit_collection = self._client.eocdb.submission_files
+        self._user_collection = self._client.eocdb.users
         self._ensure_indices()
 
     def close(self):

@@ -2,7 +2,7 @@ store_path: ~/.eocdb/store
 
 users:
   - name: scott
-    id: 8877827454
+    id: 1
     first_name: Bruce
     last_name: Scott
     email: bruce.scott@gmail.com
@@ -10,7 +10,6 @@ users:
     password: tiger
     roles:
       - submit
-      - admin
   - name: admin
     id: 2
     first_name: First
@@ -35,4 +34,6 @@ databases:
     primary: true
     parameters:
         url: "mongodb://ocdb-test:27017/eocdb"
+
+links: 'res/links.md'
 

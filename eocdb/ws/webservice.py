@@ -100,7 +100,11 @@ class WebService:
         application.time_of_last_activity = time.clock()
         self.application = application
 
-        self.server = application.listen(port, address=address or 'localhost')
+        #self.server = application.listen(port, address=address or 'localhost')
+        from tornado.httpserver import HTTPServer
+        self.server = HTTPServer(application)
+        self.server.listen(port)
+
         # Ensure we have the same event loop in all threads
         asyncio.set_event_loop_policy(_GlobalEventLoopPolicy(asyncio.get_event_loop()))
         # Register handlers for common termination signals
@@ -216,6 +220,9 @@ class WsRequestHandler(RequestHandler):
     @property
     def cookie(self) -> RequestParams:
         return self._cookie
+
+    def get_current_user(self):
+        return self.get_secure_cookie("user")
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -334,6 +341,7 @@ class WsRequestCookie(RequestParams):
         raise NotImplementedError()
 
 
+# noinspection PyAbstractClass
 class _GlobalEventLoopPolicy(asyncio.DefaultEventLoopPolicy):
     """
     Event loop policy that has one fixed global loop for all threads.

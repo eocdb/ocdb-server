@@ -3,7 +3,7 @@ servers:
   - url: 'http://ocdb-test:4000/eocdb/api/v0.1.0/'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.20"
+  version: "0.1.0-dev.21"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -744,6 +744,33 @@ paths:
       security:
         - eocdb_auth:
           - 'read:datasets'
+  '/links':
+    get:
+      tags:
+        - Links
+      summary: Getting links for Links Page
+      description: Getting links for Links Page
+      operationId: getLinks
+      responses:
+        '200':
+            description: website content as markdown
+            $ref: '#/components/responses/Links'
+        '400':
+          description: Invalid call
+    post:
+      tags:
+        - Links
+      summary: Saving links for Links Page
+      description: Saving links for Links Page
+      operationId: saveLinks
+      requestBody:
+        $ref: '#/components/requestBodies/Links'
+      responses:
+        '200':
+          description: Successful operation.
+        '400':
+          description: Invalid call
+
   '/users':
     post:
       tags:
@@ -1299,6 +1326,11 @@ components:
          id:
            type: integer
            format: int64
+    Links:
+      type: object
+      required:
+        content:
+          type: string
     Dataset:
       type: object
       required:
@@ -1408,6 +1440,13 @@ components:
           application/json:
             schema:
               $ref: '#/components/schemas/UserId'
+    Links:
+      description: Links object.
+      required: true
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Links'
     FileUpload:
       description: 'File upload.'
       required: true
@@ -1530,6 +1569,12 @@ components:
         application/json:
           schema:
             $ref: '#/components/schemas/User'
+    Links:
+      description: Successful operation.
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/Links'
     TextFileContent:
       description: Successful operation.
       content:

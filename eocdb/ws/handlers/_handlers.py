@@ -23,12 +23,13 @@ from time import strptime
 import tornado.escape
 import tornado.httputil
 
+from eocdb.core.db.db_user import DbUser
+from eocdb.ws.controllers.links import get_links, update_links
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
-from ..reqparams import RequestParams
 from ..webservice import WsRequestHandler
 from ...core.models.dataset import Dataset
 from ...core.models.dataset_ids import DatasetIds
@@ -83,7 +84,7 @@ class StoreUploadSubmission(WsRequestHandler):
         submission_id = _ensure_string_argument(submission_id, "submissionid")
 
         user_id = arguments.get("userid")
-        user_id = int(_ensure_string_argument(user_id, "userid"))
+        user_id = _ensure_string_argument(user_id, "userid")
 
         temp_area_path = str(user_id) + "_" + submission_id
 
@@ -93,7 +94,7 @@ class StoreUploadSubmission(WsRequestHandler):
 
         publication_date = arguments.get("publicationdate")
         publication_date = _ensure_string_argument(publication_date, "publicationdate")
-        #publication_date = datetime.datetime.strptime(publication_date, '%Y-%m-%dT%H:%M:%S')
+        # publication_date = datetime.datetime.strptime(publication_date, '%Y-%m-%dT%H:%M:%S')
 
         allow_publication = arguments.get("allowpublication")
         allow_publication = _ensure_string_argument(allow_publication, 'allowpublication')
@@ -132,9 +133,12 @@ class StoreUploadSubmission(WsRequestHandler):
         if not success:
             self.set_status(400, reason="Error deleting submission")
 
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode({'message': f'{submission_id} deleted'}))
+
     def get(self, submission_id: str):
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
-        print(submission)
+
         if submission is None:
             self.set_status(404, reason="Submission not found")
             return
@@ -149,6 +153,7 @@ class StoreUploadSubmission(WsRequestHandler):
         self.finish(tornado.escape.json_encode(sub_dict))
 
 
+# noinspection PyAbstractClass
 class StoreDownloadsubmissionFile(WsRequestHandler):
     def get(self, submission_id: str, index: str):
         index = int(index)
@@ -195,6 +200,8 @@ class StoreStatusSubmission(WsRequestHandler):
         if not success:
             self.set_status(400, reason="Error updating submission")
 
+        self.finish(tornado.escape.json_encode({'message': f'Status of {submission_id} set to {status}'}))
+
     @staticmethod
     def _extract_date(body_dict):
         if "date" in body_dict:
@@ -208,8 +215,7 @@ class StoreStatusSubmission(WsRequestHandler):
 class StoreUploadUser(WsRequestHandler):
 
     def get(self, userid: str):
-        user_id = int(userid)
-        result = get_submissions(ctx=self.ws_context, user_id=user_id)
+        result = get_submissions(ctx=self.ws_context, user_id=userid)
 
         result_list = []
         for submission in result:
@@ -247,6 +253,8 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             self.set_status(400, reason="Invalid submission file index")
             return
 
+        sb_file = get_submission_file(ctx=self.ws_context, submission_id=submission_id, index=index)
+
         arguments = dict()
         files = dict()
         # transform body with mime-type multipart/form-data into arguments and files Dict
@@ -254,27 +262,20 @@ class StoreUploadSubmissionFile(WsRequestHandler):
                                               self.request.body,
                                               arguments,
                                               files)
-        ds_files = files.get("datasetfiles", [])
-        doc_files = files.get("docfiles", [])
-        num_files = len(ds_files) + len(doc_files)
+        files = files.get("files", [])
+        num_files = len(files)
 
         if num_files != 1:
             self.set_status(400, reason="Invalid number of files supplied")
             return
 
-        if len(ds_files) == 1:
-            file = ds_files[0]
-            type = TYPE_MEASUREMENT
-        else:
-            file = doc_files[0]
-            type = TYPE_DOCUMENT
-
-        result = update_submission_file(ctx=self.ws_context, submission=submission, index=index, file=file, type=type)
+        result = update_submission_file(ctx=self.ws_context, submission=submission, index=index, file=files[0],
+                                        typ=sb_file.filetype)
         if result is None:
             return
 
-        if result.status is not "OK":
-            self.set_status(400, reason="Validation Error")
+        #if result.status is not "OK":
+        #    self.set_status(400, reason="Validation Error")
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
@@ -395,7 +396,7 @@ class Datasets(WsRequestHandler):
         time = self.extract_time()
         wdepth = self.query.get_param_float_list('wdepth', default=None)
         submission_id = self.query.get_param('submission_id', default=None)
-        user_id = self.query.get_param_int('user_id', default=None)
+        #user_id = self.query.get_param_int('user_id', default=None)
         status = self.query.get_param('status', default=None)
         mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
         wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)
@@ -459,6 +460,25 @@ class DatasetsId(WsRequestHandler):
         api_key = self.header.get_param('api_key', default=None)
         delete_dataset(self.ws_context, dataset_id=dataset_id, api_key=api_key)
         self.finish()
+
+
+# noinspection PyAbstractClass,PyShadowingBuiltins
+class DatasetsSubmissionId(WsRequestHandler):
+
+    def get(self, submissionid: str):
+        """Provide API operation getDatasetById()."""
+        result = find_datasets(self.ws_context, submission_id=submissionid)
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result.to_dict()))
+
+    def delete(self, submissionid: str):
+        """Provide API operation deleteDatasets by submission ID()."""
+        result = find_datasets(self.ws_context, submission_id=submissionid)
+        api_key = self.header.get_param('api_key', default=None)
+        for ds in result.datasets:
+            delete_dataset(ctx=self.ws_context, dataset_id=ds.id, api_key=api_key)
+
+        self.finish(tornado.escape.json_encode({'message': f'Datasets for {submissionid} deleted'}))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -561,6 +581,9 @@ class Users(WsRequestHandler):
         user = User.from_dict(data_dict)
         create_user(self.ws_context, user=user)
 
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode({'message': f'User {user.name} added'}))
+
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class UsersLogin(WsRequestHandler):
@@ -590,28 +613,44 @@ class UsersLogout(WsRequestHandler):
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class UsersId(WsRequestHandler):
 
-    def get(self, id: str):
+    def get(self, user_name: str):
         """Provide API operation getUserByID()."""
-        user_id = RequestParams.to_int('id', id)
-        result = get_user_by_id(self.ws_context, user_id=user_id)
+        result = get_user_by_name(self.ws_context, user_name=user_name)
         # transform result of type User into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result.to_dict()))
+        self.finish(tornado.escape.json_encode(result))
 
-    def put(self, id: str):
+    def put(self, user_name: str):
         """Provide API operation updateUser()."""
-        user_id = RequestParams.to_int('id', id)
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
-        data = User.from_dict(data_dict)
-        update_user(self.ws_context, user_id=user_id, data=data)
-        self.finish()
+        data = DbUser.from_dict(data_dict)
+        update_user(self.ws_context, user_name=user_name, data=data)
+        self.finish(tornado.escape.json_encode({'message': f'User ID {user_name} updated'}))
 
-    def delete(self, id: str):
+    def delete(self, user_name: str):
         """Provide API operation deleteUser()."""
-        user_id = RequestParams.to_int('id', id)
-        delete_user(self.ws_context, user_id)
-        self.finish()
+        delete_user(self.ws_context, user_name)
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode({'message': f'User {user_name} deleted'}))
+
+
+# noinspection PyAbstractClass
+class Links(WsRequestHandler):
+    def get(self):
+        result = get_links(self.ws_context)
+        self.set_header('Content-Type', 'application/txt')
+        self.finish(tornado.escape.json_encode({'content': result}))
+
+    def post(self):
+        result = tornado.escape.json_decode(self.request.body)
+
+        content = result['content']
+
+        result = update_links(self.ws_context, content)
+        self.set_header('Content-Type', 'application/txt')
+        self.finish(result)
 
 
 def _ensure_string_argument(arg_value, arg_name: str):
