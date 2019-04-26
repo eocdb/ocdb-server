@@ -33,7 +33,7 @@ def login_user(ctx: WsContext,
     assert_not_none(username, name='username')
     assert_not_none(password, name='password')
 
-    user = ctx.db_driver.instance().get_user(username, password)
+    user = ctx.get_user(username, password)
 
     if not user:
         raise WsUnauthorizedError("Unknown username or password")
@@ -86,7 +86,7 @@ def get_user_by_name(ctx: WsContext,
                      user_name: str) -> User:
     assert_not_none(user_name, name='user_id')
 
-    user = ctx.db_driver.instance().get_user(user_name)
+    user = ctx.get_user(user_name)
 
     if not user:
         raise WsBadRequestError(f"Could not find user {user_name}")
@@ -108,7 +108,7 @@ def check_user_by_name(ctx: WsContext,
                        user_name: str) -> User:
     assert_not_none(user_name, name='user_id')
 
-    user = ctx.db_driver.instance().get_user(user_name)
+    user = ctx.get_user(user_name)
 
     if not user:
         return False

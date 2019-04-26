@@ -1,20 +1,8 @@
-#users:
-#  - name: scott
-#    id: 1
-#    first_name: Bruce
-#    last_name: Scott
-#    email: bruce.scott@gmail.com
-#    phone: "+34 5678901234"
-#    password: tiger
-#    roles:
-#      - submit
-#      - admin
-admin:
+admin_user:
   name: chef
-  id: 1
+  id: eocdb_administrator
   password: eocdb_chef
-  roles:
-    -admin
+  roles: [admin, submit]
 
 databases:
   default:
