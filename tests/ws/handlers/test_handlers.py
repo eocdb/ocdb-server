@@ -34,6 +34,7 @@ from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, \
     QC_STATUS_VALIDATED, QC_STATUS_APPROVED
 from eocdb.core.models.submission import Submission, TYPE_MEASUREMENT
 from eocdb.core.models.submission_file import SubmissionFile
+from eocdb.core.roles import Roles
 from eocdb.ws.app import new_application
 from eocdb.ws.controllers.datasets import add_dataset, find_datasets, get_dataset_by_id_strict, get_dataset_qc_info
 from eocdb.ws.controllers.users import create_user
@@ -258,7 +259,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
 
     def test_get_one_result(self):
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
 
         mid = create_user(self.ctx, user)
 
@@ -304,7 +305,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
 
     def test_delete(self):
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
 
         mid = create_user(self.ctx, user)
 
@@ -1144,9 +1145,9 @@ class UsersTest(WsTestCase):
 
 class UsersLoginTest(WsTestCase):
 
-    def test_get(self):
+    def test_login_existing_user(self):
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
 
         create_user(self.ctx, user)
 
@@ -1166,9 +1167,31 @@ class UsersLoginTest(WsTestCase):
             'phone': '+34 5678901234',
             'roles': ['submit', 'admin']
         }
+
         actual_response_data = tornado.escape.json_decode(response.body)
         actual_response_data['id'] = ''
         self.assertEqual(expected_response_data, actual_response_data)
+
+    def test_login_existing_user_wrong_password(self):
+        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
+
+        create_user(self.ctx, user)
+
+        credentials = dict(username="scott", password="lion")
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
+
+        self.assertEqual(401, response.code)
+        self.assertEqual('Unknown username or password', response.reason)
+
+    def test_login_unknown_user(self):
+        credentials = dict(username="malcolm", password="rattenloch")
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
+
+        self.assertEqual(401, response.code)
+        self.assertEqual('Unknown username or password', response.reason)
 
 
 class UsersLogoutTest(WsTestCase):

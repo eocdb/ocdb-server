@@ -23,6 +23,7 @@
 import unittest
 
 from eocdb.core.db.db_user import DbUser
+from eocdb.core.roles import Roles
 from eocdb.ws.controllers.users import *
 from tests.helpers import new_test_service_context
 
@@ -34,7 +35,7 @@ class UsersTest(unittest.TestCase):
 
     def test_login_user(self):
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
 
         create_user(self.ctx, user)
         # noinspection PyTypeChecker
@@ -65,7 +66,7 @@ class UsersTest(unittest.TestCase):
     def test_create_user(self):
         # noinspection PyArgumentList
         user = User(name='tom2', last_name='Scott', password='hh', email='email@email.int',
-                    first_name='Tom', roles=['admin'], phone='02102238958')
+                    first_name='Tom', roles=[Roles.ADMIN.value], phone='02102238958')
 
         result = create_user(self.ctx, user=user)
         self.assertIsNotNone(result)
@@ -78,7 +79,7 @@ class UsersTest(unittest.TestCase):
 
     def test_get_user_by_name(self):
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
 
         create_user(self.ctx, user)
 
@@ -98,7 +99,7 @@ class UsersTest(unittest.TestCase):
 
     def test_update_user(self):
         user = DbUser(id_='tt', name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                      first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+                      first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
 
         create_user(self.ctx, user)
 
@@ -109,7 +110,7 @@ class UsersTest(unittest.TestCase):
 
     def test_delete_user(self):
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=['submit', 'admin'], phone='+34 5678901234')
+                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
 
         create_user(self.ctx, user)
 

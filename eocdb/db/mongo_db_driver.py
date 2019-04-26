@@ -183,7 +183,6 @@ class MongoDbDriver(DbDriver):
         return result.deleted_count == 1
 
     def get_user(self, user_name: str, password: str = None):
-
         if password is None:
             result = self._user_collection.find_one({'name': user_name})
         else:
@@ -199,8 +198,8 @@ class MongoDbDriver(DbDriver):
         return DbUser.from_dict(result)
 
     def get_user_by_id(self, user_id: str):
-
-        result = self._user_collection.find_one({'_id': user_id})
+        obj_id = MongoDbDriver._obj_id(user_id)
+        result = self._user_collection.find_one({'_id': obj_id})
 
         if not result:
             return None

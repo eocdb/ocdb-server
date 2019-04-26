@@ -8,6 +8,7 @@ from eocdb.core.models.dataset_query import DatasetQuery
 from eocdb.core.models.qc_info import QC_STATUS_VALIDATED, \
     QC_STATUS_SUBMITTED, QC_STATUS_PUBLISHED, QC_STATUS_APPROVED
 from eocdb.core.models.submission_file import SubmissionFile
+from eocdb.core.roles import Roles
 from eocdb.db.mongo_db_driver import MongoDbDriver
 from tests import helpers
 
@@ -1057,14 +1058,14 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def test_add_user(self):
         user = DbUser(id_='asodvia', name='tom', last_name='Scott', password='hh', email='email@email.int',
-                      first_name='Tom', roles=['admin'], phone='02102238958')
+                      first_name='Tom', roles=[Roles.ADMIN.value], phone='02102238958')
 
         result = self._driver.add_user(user)
         self.assertIsNotNone(result)
 
     def test_update_user(self):
         user = DbUser(id_='asodvia', name='tom', last_name='Scott', password='hh', email='email@email.int',
-                      first_name='Tom', roles=['admin'], phone='02102238958')
+                      first_name='Tom', roles=[Roles.ADMIN.value], phone='02102238958')
 
         self._driver.add_user(user)
         user.last_name = 'Tiger'
@@ -1077,24 +1078,35 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def test_get_user_exists(self):
         user = DbUser(id_='asodvia', name='tom', last_name='Scott', password='hh', email='email@email.int',
-                      first_name='Tom', roles=['admin'], phone='02102238958')
+                      first_name='Tom', roles=[Roles.ADMIN.value], phone='02102238958')
         self._driver.add_user(user)
         result = self._driver.get_user('tom')
         self.assertIsNotNone(result)
 
     def test_get_user_with_wrong_password(self):
         user = DbUser(id_='asodvia', name='tom', last_name='Scott', password='hh', email='email@email.int',
-                      first_name='Tom', roles=['admin'], phone='02102238958')
+                      first_name='Tom', roles=[Roles.ADMIN.value], phone='02102238958')
         self._driver.add_user(user)
         result = self._driver.get_user('tom', 'öasodvhi')
         self.assertIsNone(result)
 
     def test_user_get_with_password(self):
         user = DbUser(id_='asodvia', name='tom', last_name='Scott', password='hh', email='email@email.int',
-                      first_name='Tom', roles=['admin'], phone='02102238958')
+                      first_name='Tom', roles=[Roles.ADMIN.value], phone='02102238958')
         self._driver.add_user(user)
         result = self._driver.get_user('tom', 'hh')
         self.assertIsNotNone(result)
+
+    def test_get_user_by_id(self):
+        user = DbUser(id_='asodvia', name='tom', last_name='Scott', password='hh', email='email@email.int',
+                      first_name='Tom', roles=[Roles.ADMIN.value], phone='02102238958')
+        user_id = self._driver.add_user(user)
+        result = self._driver.get_user_by_id(user_id)
+        self.assertIsNotNone(result)
+
+    def test_get_user_by_id_invaid_id(self):
+        result = self._driver.get_user_by_id("isnt_stored")
+        self.assertIsNone(result)
 
     def _add_test_datasets_to_db(self):
         for i in range(0, 10):
