@@ -4,6 +4,8 @@ import unittest
 from datetime import datetime
 
 from eocdb.core.db.db_driver import DbDriver
+from eocdb.core.db.db_user import DbUser
+from eocdb.core.roles import Roles
 from tests.helpers import new_test_service_context
 
 
@@ -72,3 +74,67 @@ class WsContextTest(unittest.TestCase):
     def test_get_db_drivers(self):
         ctx = new_test_service_context()
         self.assertIsInstance(ctx.db_drivers, list)
+
+    def test_get_user_none_present(self):
+        ctx = new_test_service_context()
+        user = ctx.get_user("walter")
+        self.assertIsNone(user)
+
+        user = ctx.get_user("fritz", "geheim!")
+        self.assertIsNone(user)
+
+    def test_get_user_from_DB(self):
+        ctx = new_test_service_context()
+
+        user_stored = DbUser(id_='asodvia', name='tom', last_name='Scott', password='hh', email='email@email.int',
+                      first_name='Tom', roles=[Roles.ADMIN.value], phone='02102238958')
+        ctx.db_driver.add_user(user_stored)
+
+        user = ctx.get_user("tom")
+        self.assertIsNotNone(user)
+        self.assertEqual("Scott", user.last_name)
+
+        user = ctx.get_user("tom", "hh")
+        self.assertIsNotNone(user)
+        self.assertEqual("email@email.int", user.email)
+
+    def test_get_user_from_DB_wrong_password(self):
+        ctx = new_test_service_context()
+
+        user_stored = DbUser(id_='asodvia', name='tom', last_name='Scott', password='hh', email='email@email.int',
+                             first_name='Tom', roles=[Roles.ADMIN.value], phone='02102238958')
+        ctx.db_driver.add_user(user_stored)
+
+        user = ctx.get_user("tom", "incorrect_pwd")
+        self.assertIsNone(user)
+
+    def test_get_user_admin_user_empty_db(self):
+        ctx = new_test_service_context()
+
+        user = ctx.get_user("chef")
+        self.assertIsNotNone(user)
+
+        user = ctx.get_user("chef", "eocdb_chef")
+        self.assertIsNotNone(user)
+
+    def test_get_user_admin_user_empty_db_wrong_password(self):
+        ctx = new_test_service_context()
+
+        user = ctx.get_user("chef", "completely_wrong")
+        self.assertIsNone(user)
+
+    def test_get_user_admin_user_filled_db(self):
+        ctx = new_test_service_context()
+
+        user_stored = DbUser(id_='asodvia', name='tom', last_name='Scott', password='hh', email='email@email.int',
+                             first_name='Tom', roles=[Roles.ADMIN.value], phone='02102238958')
+        ctx.db_driver.add_user(user_stored)
+
+        user = ctx.get_user("chef")
+        self.assertIsNotNone(user)
+
+        user = ctx.get_user("chef", "eocdb_chef")
+        self.assertIsNotNone(user)
+
+
+

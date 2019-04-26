@@ -26,6 +26,7 @@ import time
 import zipfile
 from typing import Dict, List, Optional
 
+from eocdb.core.roles import Roles
 from ..context import WsContext, _LOG
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
@@ -197,12 +198,12 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 
 def get_submissions(ctx: WsContext, user_id: str) -> List[Submission]:
     roles = []
-    # Get user's roles
-    for u in ctx.config['users']:
-        if u['id'] == user_id:
-            roles = u['roles']
 
-    if 'admin' in roles:
+    user = ctx.db_driver.instance().get_user_by_id(user_id=user_id)
+    if user is not None and user.roles is not None:
+        roles = user.roles
+
+    if Roles.is_admin(roles):
         result = ctx.db_driver.get_submissions()
     else:
         result = ctx.db_driver.get_submissions_for_user(user_id)

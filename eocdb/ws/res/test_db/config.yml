@@ -1,0 +1,20 @@
+store_path: ./_eocdb_test_store
+
+users:
+  - name: scott
+    id: 1
+    first_name: Bruce
+    last_name: Scott
+    email: bruce.scott@gmail.com
+    phone: "+34 5678901234"
+    password: tiger
+    roles:
+      - submit
+      - admin
+
+databases:
+  default:
+    type: eocdb.db.mongo_db_driver.MongoDbDriver
+    primary: true
+    parameters:
+      url: "mongodb://localhost:27017/eocdb"

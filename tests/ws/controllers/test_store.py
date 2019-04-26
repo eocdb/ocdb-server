@@ -43,7 +43,7 @@ class StoreTest(unittest.TestCase):
         self.assertIsInstance(result["productGroups"][0], dict)
 
     def test_upload_store_files(self):
-        user_id = 77618
+        user_id = "77618"
         try:
             data_file_text = ("/begin_header\n"
                               "/investigators=Marks and Spencer\n"
@@ -78,7 +78,7 @@ class StoreTest(unittest.TestCase):
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
     def test_upload_store_files_empty_submission_id(self):
-        user_id = 77618
+        user_id = "77618"
         try:
             data_file_text = ("/begin_header\n"
                               "/investigators=Marks and Spencer\n"
@@ -115,7 +115,7 @@ class StoreTest(unittest.TestCase):
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
     def test_upload_store_files_corrupt_file(self):
-        user_id = 77618
+        user_id = "77618"
         try:
             data_file_text = ("/begin_header\n"
                               "/end_header\n"
@@ -140,7 +140,7 @@ class StoreTest(unittest.TestCase):
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
     def test_upload_store_files_file_without_header(self):
-        user_id = 77618
+        user_id = "77618"
         try:
             data_file_text = ("0.99	26.0464	0.055836	36.222\n"
                               "1.99	26.0497	0.0558524	36.2311\n"
@@ -166,7 +166,7 @@ class StoreTest(unittest.TestCase):
 
     def test_up_and_download_store_files(self):
         try:
-            user_id = 77615
+            user_id = "77615"
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
                               "/delimiter = comma\n"
@@ -206,7 +206,7 @@ class StoreTest(unittest.TestCase):
 
     def test_up_and_download_store_files_with_doc_files(self):
         try:
-            user_id = 77616
+            user_id = "77616"
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
                               "/delimiter = comma\n"
@@ -250,7 +250,7 @@ class StoreTest(unittest.TestCase):
 
     def test_upload_and_download_submission_file(self):
         try:
-            user_id = 77616
+            user_id = "77616"
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
                               "/delimiter = comma\n"
