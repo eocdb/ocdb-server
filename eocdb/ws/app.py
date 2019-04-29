@@ -29,5 +29,5 @@ from .handlers import MAPPINGS
 
 def new_application():
     mappings = [('/res/(.*)', StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), 'res')})] + MAPPINGS
-    application = Application(mappings)
+    application = Application(mappings, cookie_secret="__theEOCDB_secretEncryptionString__")
     return application
