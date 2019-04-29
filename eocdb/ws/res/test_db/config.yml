@@ -1,16 +1,10 @@
 store_path: ./_eocdb_test_store
 
-users:
-  - name: scott
-    id: 1
-    first_name: Bruce
-    last_name: Scott
-    email: bruce.scott@gmail.com
-    phone: "+34 5678901234"
-    password: tiger
-    roles:
-      - submit
-      - admin
+admin_user:
+  name: chef
+  id: eocdb_administrator
+  password: eocdb_chef
+  roles: [admin, submit]
 
 databases:
   default:
