@@ -56,7 +56,6 @@ def create_user(ctx: WsContext,
 # noinspection PyUnusedLocal,PyTypeChecker
 def get_user_by_name(ctx: WsContext,
                      user_name: str) -> User:
-    # @todo 1 tb/tb add authorisation 2019-04-29
     assert_not_none(user_name, name='user_id')
 
     user = ctx.get_user(user_name)
@@ -68,25 +67,10 @@ def get_user_by_name(ctx: WsContext,
     return user_dict
 
 
-# todo 1 tb/tb seems to be unused, check and evt delete 2019-04-29
-# # noinspection PyUnusedLocal,PyTypeChecker
-# def check_user_by_name(ctx: WsContext,
-#                        user_name: str) -> User:
-#     assert_not_none(user_name, name='user_id')
-#
-#     user = ctx.get_user(user_name)
-#
-#     if not user:
-#         return False
-#     else:
-#         return True
-
-
 # noinspection PyUnusedLocal
 def update_user(ctx: WsContext,
                 user_name: str,
                 data: User):
-    # @todo 1 tb/tb add authorisation 2019-04-29
     assert_not_none(user_name, name='user_name')
     updated = ctx.db_driver.instance().update_user(data)
 
@@ -99,7 +83,6 @@ def update_user(ctx: WsContext,
 # noinspection PyUnusedLocal
 def delete_user(ctx: WsContext,
                 user_name: str):
-    # @todo 1 tb/tb add authorisation 2019-04-29
     assert_not_none(user_name, name='user_name')
     deleted = ctx.db_driver.instance().delete_user(user_name)
 
