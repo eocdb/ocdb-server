@@ -600,6 +600,7 @@ class UsersLogin(WsRequestHandler):
         user_info = login_user(self.ws_context, username=username, password=password)
         if user_info is not None:
             self.set_secure_cookie("user", username, expires_days=1)
+
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(user_info))
 
@@ -608,10 +609,12 @@ class UsersLogin(WsRequestHandler):
 class UsersLogout(WsRequestHandler):
 
     def get(self):
-        """Provide API operation logoutUser()."""
-        user_id = self.query.get_param_int('userid')
-        logout_user(self.ws_context, user_id)
-        self.finish()
+        current_user = self.get_current_user()
+        if current_user is not None:
+            self.clear_cookie("user")
+            return self.finish(tornado.escape.json_encode({'message': f'User {current_user} logged out'}))
+
+        return self.finish(tornado.escape.json_encode({'message': f'No user logged in'}))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins

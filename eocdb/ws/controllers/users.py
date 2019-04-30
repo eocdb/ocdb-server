@@ -77,6 +77,7 @@ def create_user(ctx: WsContext,
 # noinspection PyUnusedLocal
 def logout_user(ctx: WsContext,
                 user_id: int):
+
     # TODO (generated): implement operation logout_user()
     raise NotImplementedError('operation logout_user() not yet implemented')
 
