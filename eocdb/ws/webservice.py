@@ -36,6 +36,7 @@ from tornado.ioloop import IOLoop
 from tornado.log import enable_pretty_logging
 from tornado.web import RequestHandler, Application
 
+from eocdb.core.roles import Roles
 from .context import WsContext
 from .defaults import DEFAULT_ADDRESS, DEFAULT_PORT, DEFAULT_CONFIG_FILE, DEFAULT_UPDATE_PERIOD, DEFAULT_LOG_PREFIX
 from .reqparams import RequestParams
@@ -222,7 +223,11 @@ class WsRequestHandler(RequestHandler):
         return self._cookie
 
     def get_current_user(self):
-        return self.get_secure_cookie("user")
+        cookie = self.get_secure_cookie("user")
+        if cookie is not None:
+            return cookie.decode("utf-8")
+        else:
+            return None
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
@@ -261,6 +266,30 @@ class WsRequestHandler(RequestHandler):
                 traceback_lines.append(traceback_line)
             obj['traceback'] = traceback_lines
         self.finish(self.to_json(obj))
+
+    def has_admin_rights(self):
+        user_name = self.get_current_user()
+        if not user_name:
+            return False
+
+        user = self.ws_context.get_user(user_name)
+        if not Roles.is_admin(user.roles):
+            return False
+
+        return True
+
+    def is_self(self, user_name: str):
+        current_user_name = self.get_current_user()
+        if not current_user_name:
+            return False
+
+        if user_name == current_user_name:
+            return True
+        else:
+            return False
+
+
+
 
 
 class WsRequestHeader(RequestParams):

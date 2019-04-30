@@ -87,7 +87,6 @@ class User(Model):
 
     @email.setter
     def email(self, value: Optional[str]):
-        assert_not_none(value, name='value')
         self._email = value
 
     @property
@@ -105,7 +104,6 @@ class User(Model):
 
     @phone.setter
     def phone(self, value: Optional[str]):
-        assert_not_none(value, name='value')
         self._phone = value
 
     @property

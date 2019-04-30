@@ -34,93 +34,59 @@ def login_user(ctx: WsContext,
     assert_not_none(password, name='password')
 
     user = ctx.get_user(username, password)
-
     if not user:
         raise WsUnauthorizedError("Unknown username or password")
 
     user = user.to_dict()
-
     del user['password']
 
     return user
-
-    # users = ctx.config.get("users")
-    # if not users:
-    #     raise WsNotImplementedError("No users configured")
-    # if not isinstance(users, list):
-    #     raise WsNotImplementedError("Invalid user configuration")
-    # for user in users:
-    #     if not isinstance(user, dict):
-    #         raise WsUnauthorizedError("Invalid user configuration")
-    # for user in users:
-    #     if user.get("name") == username or user.get("email") == username:
-    #         actual_password = user.get('password')
-    #         if actual_password == password:
-    #             user = dict(**user)
-    #             del user['password']
-    #             return user
-    #         else:
-    #             break
 
 
 # noinspection PyUnusedLocal
 def create_user(ctx: WsContext,
                 user: User):
     user_id = ctx.db_driver.instance().add_user(user)
-
     if not user_id:
         raise WsBadRequestError(f"Could not add user {user.name}")
 
     return user_id
 
 
-# noinspection PyUnusedLocal
-def logout_user(ctx: WsContext,
-                user_id: int):
-
-    # TODO (generated): implement operation logout_user()
-    raise NotImplementedError('operation logout_user() not yet implemented')
-
-
 # noinspection PyUnusedLocal,PyTypeChecker
 def get_user_by_name(ctx: WsContext,
                      user_name: str) -> User:
+    # @todo 1 tb/tb add authorisation 2019-04-29
     assert_not_none(user_name, name='user_id')
 
     user = ctx.get_user(user_name)
-
     if not user:
         raise WsBadRequestError(f"Could not find user {user_name}")
-
-    # users = ctx.config['users']
-    #
-    # user = None
-    # for u in users:
-    #     if u['id'] == user_id:
-    #         user = u
 
     user_dict = user.to_dict()
     del user_dict['password']
     return user_dict
 
 
-# noinspection PyUnusedLocal,PyTypeChecker
-def check_user_by_name(ctx: WsContext,
-                       user_name: str) -> User:
-    assert_not_none(user_name, name='user_id')
-
-    user = ctx.get_user(user_name)
-
-    if not user:
-        return False
-    else:
-        return True
+# todo 1 tb/tb seems to be unused, check and evt delete 2019-04-29
+# # noinspection PyUnusedLocal,PyTypeChecker
+# def check_user_by_name(ctx: WsContext,
+#                        user_name: str) -> User:
+#     assert_not_none(user_name, name='user_id')
+#
+#     user = ctx.get_user(user_name)
+#
+#     if not user:
+#         return False
+#     else:
+#         return True
 
 
 # noinspection PyUnusedLocal
 def update_user(ctx: WsContext,
                 user_name: str,
                 data: User):
+    # @todo 1 tb/tb add authorisation 2019-04-29
     assert_not_none(user_name, name='user_name')
     updated = ctx.db_driver.instance().update_user(data)
 
@@ -133,6 +99,7 @@ def update_user(ctx: WsContext,
 # noinspection PyUnusedLocal
 def delete_user(ctx: WsContext,
                 user_name: str):
+    # @todo 1 tb/tb add authorisation 2019-04-29
     assert_not_none(user_name, name='user_name')
     deleted = ctx.db_driver.instance().delete_user(user_name)
 

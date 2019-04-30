@@ -5,6 +5,7 @@ from eocdb.ws import webservice
 
 
 class UrlPatternTest(unittest.TestCase):
+
     def test_url_pattern_works(self):
         re_pattern = webservice.url_pattern('/open/{id1}ws/{id2}wf')
         matcher = re.fullmatch(re_pattern, '/open/34ws/a66wf')
