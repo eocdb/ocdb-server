@@ -72,11 +72,6 @@ class UsersTest(unittest.TestCase):
         self.assertIsNotNone(result)
         self.assertIsInstance(result, str)
 
-    @unittest.skip('not implemented yet')
-    def test_logout_user(self):
-        result = logout_user(self.ctx)
-        self.assertIsNone(result)
-
     def test_get_user_by_name(self):
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
                     first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')

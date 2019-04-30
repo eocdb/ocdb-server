@@ -580,6 +580,10 @@ class Users(WsRequestHandler):
 
     def post(self):
         """Provide API operation createUser()."""
+        if not self.has_admin_rights():
+            self.finish(tornado.escape.json_encode({'message': 'Not enough access rights to perform operation.'}))
+            return
+
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
         user = User.from_dict(data_dict)
@@ -599,7 +603,8 @@ class UsersLogin(WsRequestHandler):
         password = credentials.get('password')
         user_info = login_user(self.ws_context, username=username, password=password)
         if user_info is not None:
-            self.set_cookie("user", username)
+            self.set_secure_cookie("user", username, expires_days=1)
+
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(user_info))
 
@@ -608,10 +613,12 @@ class UsersLogin(WsRequestHandler):
 class UsersLogout(WsRequestHandler):
 
     def get(self):
-        """Provide API operation logoutUser()."""
-        user_id = self.query.get_param_int('userid')
-        logout_user(self.ws_context, user_id)
-        self.finish()
+        current_user = self.get_current_user()
+        if current_user is not None:
+            self.clear_cookie("user")
+            return self.finish(tornado.escape.json_encode({'message': f'User {current_user} logged out'}))
+
+        return self.finish(tornado.escape.json_encode({'message': f'No user logged in'}))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -619,6 +626,11 @@ class UsersId(WsRequestHandler):
 
     def get(self, user_name: str):
         """Provide API operation getUserByID()."""
+        if not(self.has_admin_rights() or
+               self.is_self(user_name)):
+            self.finish(tornado.escape.json_encode({'message': 'Not enough access rights to perform operation.'}))
+            return
+
         result = get_user_by_name(self.ws_context, user_name=user_name)
         # transform result of type User into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
@@ -626,14 +638,22 @@ class UsersId(WsRequestHandler):
 
     def put(self, user_name: str):
         """Provide API operation updateUser()."""
+        if not self.has_admin_rights():
+            self.finish(tornado.escape.json_encode({'message': 'Not enough access rights to perform operation.'}))
+            return
+
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
         data = DbUser.from_dict(data_dict)
         update_user(self.ws_context, user_name=user_name, data=data)
-        self.finish(tornado.escape.json_encode({'message': f'User ID {user_name} updated'}))
+        self.finish(tornado.escape.json_encode({'message': f'User {user_name} updated'}))
 
     def delete(self, user_name: str):
         """Provide API operation deleteUser()."""
+        if not self.has_admin_rights():
+            self.finish(tornado.escape.json_encode({'message': 'Not enough access rights to perform operation.'}))
+            return
+
         delete_user(self.ws_context, user_name)
 
         self.set_header('Content-Type', 'application/json')
