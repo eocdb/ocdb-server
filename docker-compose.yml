@@ -4,11 +4,11 @@ version: "3.0"
 services:
   eocdb-server:
     build: .
-    image: eocdb-server:0.1.0
+    image: eocdb-server:0.1.4
     ports:
       - "4000:4000"
     command: >
       "source activate eocdb-dev && eocdb-server -a 0.0.0.0 -v -c eocdb/ws/res/demo/config.yml"
     healthcheck:
-      test: ["CMD", "curl", "localhost:4000/"]
+      test: ["CMD", "curl", "localhost:4000/service/info"]
       interval: 30s
