@@ -118,7 +118,6 @@ def update_dataset(ctx: WsContext,
 
 
 def delete_dataset(ctx: WsContext,
-                   api_key: str,
                    dataset_id: str):
     """Delete an existing dataset."""
     #assert_not_none(api_key, name='api_key')

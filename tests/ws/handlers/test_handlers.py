@@ -24,6 +24,7 @@ import os
 import unittest
 import urllib.parse
 import zipfile
+from typing import Optional
 
 import tornado.escape
 import tornado.testing
@@ -56,6 +57,18 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
     @property
     def ctx(self):
         return self._app.ws_context
+
+    def login_admin(self) -> Optional[str]:
+        credentials = dict(username="chef", password="eocdb_chef")
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
+        self.assertEqual(200, response.code)
+
+        return response.headers._dict["Set-Cookie"]
+
+    def logout_admin(self):
+        response = self.fetch(API_URL_PREFIX + "/users/logout", method='GET')
+        self.assertEqual(200, response.code)
 
 
 class ServiceInfoTest(WsTestCase):
@@ -184,54 +197,70 @@ class StoreUploadSubmissionTest(WsTestCase):
 class StoreStatusSubmissionTest(WsTestCase):
 
     def test_put_invalid_id(self):
+        cookie = self.login_admin()
+        try:
+            body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED, "date": "20170822"})
+            response = self.fetch(API_URL_PREFIX + f"/store/status/submission/abcdefghijick", body=body, method='PUT',
+                                  headers={"Cookie": cookie})
+
+            self.assertEqual(404, response.code)
+            self.assertEqual('Submission not found', response.reason)
+        finally:
+            self.logout_admin()
+
+    def test_put_approve(self):
+        cookie = self.login_admin()
+        try:
+            submission_id = "I_DO_EXIST"
+            submission = DbSubmission(submission_id=submission_id,
+                                      user_id='12',
+                                      date=datetime.datetime.now(),
+                                      status=QC_STATUS_VALIDATED,
+                                      qc_status="OK",
+                                      path="temp",
+                                      publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                      allow_publication=False,
+                                      files=[])
+            self.ctx.db_driver.add_submission(submission)
+
+            body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED,
+                                               "date": "20180923",
+                                               'publication_date': '20180923',
+                                               'allow_publication': False,
+                                               })
+            response = self.fetch(API_URL_PREFIX + f"/store/status/submission/{submission_id}", body=body, method='PUT',
+                                  headers={"Cookie": cookie})
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/{submission_id}",  method='GET',
+                                  headers={"Cookie": cookie})
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            actual_response_data = tornado.escape.json_decode(response.body)
+            del actual_response_data["date"]  # varies, therefore we do not check tb 2019-03-13
+            del actual_response_data["id"]  # varies, therefore we do not check tb 2019-03-13
+            self.assertEqual({
+                'file_refs': [],
+                'files': [],
+                'path': 'temp',
+                'qc_status': 'OK',
+
+                'status': QC_STATUS_APPROVED,
+                'submission_id': 'I_DO_EXIST',
+                'publication_date': None, #!!! Comes in here as None. Should ba a date.!! Need to check
+                'allow_publication': False,
+                'user_id': '12'}, actual_response_data)
+        finally:
+            self.logout_admin()
+
+    def test_put_not_logged_in(self):
         body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED, "date": "20170822"})
         response = self.fetch(API_URL_PREFIX + f"/store/status/submission/abcdefghijick", body=body, method='PUT')
 
-        self.assertEqual(404, response.code)
-        self.assertEqual('Submission not found', response.reason)
-
-    def test_put_approve(self):
-        submission_id = "I_DO_EXIST"
-        submission = DbSubmission(submission_id=submission_id,
-                                  user_id='12',
-                                  date=datetime.datetime.now(),
-                                  status=QC_STATUS_VALIDATED,
-                                  qc_status="OK",
-                                  path="temp",
-                                  publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                                  allow_publication=False,
-                                  files=[])
-        self.ctx.db_driver.add_submission(submission)
-
-        body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED,
-                                           "date": "20180923",
-                                           'publication_date': '20180923',
-                                           'allow_publication': False,
-                                           })
-        response = self.fetch(API_URL_PREFIX + f"/store/status/submission/{submission_id}", body=body, method='PUT')
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/{submission_id}",  method='GET')
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        actual_response_data = tornado.escape.json_decode(response.body)
-        del actual_response_data["date"]  # varies, therefore we do not check tb 2019-03-13
-        del actual_response_data["id"]  # varies, therefore we do not check tb 2019-03-13
-        self.assertEqual({
-            'file_refs': [],
-            'files': [],
-            'path': 'temp',
-            'qc_status': 'OK',
-
-            'status': QC_STATUS_APPROVED,
-            'submission_id': 'I_DO_EXIST',
-            'publication_date': None, #!!! Comes in here as None. Should ba a date.!! Need to check
-            'allow_publication': False,
-            'user_id': '12'}, actual_response_data)
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
     def test_extract_date_not_present(self):
         body_dict = {"status": "whatever"}
@@ -252,105 +281,265 @@ class StoreStatusSubmissionTest(WsTestCase):
 class StoreUploadSubmissionFileTest(WsTestCase):
 
     def test_get_no_results(self):
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='GET')
+        cookie = self.login_admin()
+        try:
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='GET', headers={"Cookie": cookie})
 
-        self.assertEqual(400, response.code)
-        self.assertEqual('No result found', response.reason)
+            self.assertEqual(400, response.code)
+            self.assertEqual('No result found', response.reason)
+        finally:
+            self.logout_admin()
 
     def test_get_one_result(self):
-        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
+        cookie = self.login_admin()
+        try:
+            user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                        first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
 
-        mid = create_user(self.ctx, user)
+            mid = create_user(self.ctx, user)
 
-        # --- add submission file ---
-        files = [SubmissionFile(submission_id="submitme",
-                                index=0,
-                                filename="Hans",
-                                filetype="black",
-                                status=QC_STATUS_SUBMITTED,
-                                result=DatasetValidationResult(status="OK", issues=[])),
-                 SubmissionFile(submission_id="submitme",
-                                index=1,
-                                filename="Helga",
-                                filetype="green",
-                                status=QC_STATUS_VALIDATED,
-                                result=DatasetValidationResult(status="WARNING", issues=[
-                                    Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=mid, submission_id="submitme", files=files, qc_status="OK",
-                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                               publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                               allow_publication=False)
-        self.ctx.db_driver.add_submission(db_subm)
+            # --- add submission file ---
+            files = [SubmissionFile(submission_id="submitme",
+                                    index=0,
+                                    filename="Hans",
+                                    filetype="black",
+                                    status=QC_STATUS_SUBMITTED,
+                                    result=DatasetValidationResult(status="OK", issues=[])),
+                     SubmissionFile(submission_id="submitme",
+                                    index=1,
+                                    filename="Helga",
+                                    filetype="green",
+                                    status=QC_STATUS_VALIDATED,
+                                    result=DatasetValidationResult(status="WARNING", issues=[
+                                        Issue(type="WARNING", description="This might be wrong")]))]
+            db_subm = DbSubmission(status="Hellyeah", user_id=mid, submission_id="submitme", files=files, qc_status="OK",
+                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                   publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                   allow_publication=False)
+            self.ctx.db_driver.add_submission(db_subm)
 
-        # --- get submission file ---
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='GET')
+            # --- get submission file ---
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='GET', headers={"Cookie": cookie})
 
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
 
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual({'filename': 'Hans',
-                          'filetype': 'black',
-                          'index': 0,
-                          'result': {'issues': [], 'status': 'OK'},
-                          'status': 'SUBMITTED',
-                          'submission_id': 'submitme'}, actual_response_data)
+            actual_response_data = tornado.escape.json_decode(response.body)
+            self.assertEqual({'filename': 'Hans',
+                              'filetype': 'black',
+                              'index': 0,
+                              'result': {'issues': [], 'status': 'OK'},
+                              'status': 'SUBMITTED',
+                              'submission_id': 'submitme'}, actual_response_data)
+        finally:
+            self.logout_admin()
+
+    def test_get_not_loged_in(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='GET')
+
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
     def test_delete_no_submissions(self):
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='DELETE')
+        cookie = self.login_admin()
+        try:
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='DELETE', headers={"Cookie": cookie})
 
-        self.assertEqual(404, response.code)
-        self.assertEqual('Submission not found', response.reason)
+            self.assertEqual(404, response.code)
+            self.assertEqual('Submission not found', response.reason)
+        finally:
+            self.logout_admin()
 
     def test_delete(self):
-        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
+        cookie = self.login_admin()
+        try:
+            user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                        first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
 
-        mid = create_user(self.ctx, user)
+            mid = create_user(self.ctx, user)
 
-        files = [SubmissionFile(submission_id="submitme",
-                                index=0,
-                                filename="Hans",
-                                filetype="black",
-                                status=QC_STATUS_SUBMITTED,
-                                result=DatasetValidationResult(status="OK", issues=[])),
-                 SubmissionFile(submission_id="submitme",
-                                index=1,
-                                filename="Helga",
-                                filetype="green",
-                                status=QC_STATUS_VALIDATED,
-                                result=DatasetValidationResult(status="WARNING", issues=[
-                                    Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=mid, submission_id="submitme", files=files, qc_status="OK",
-                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                               publication_date='2001-02-03T04:05:06',
-                               allow_publication=False)
-        self.ctx.db_driver.add_submission(db_subm)
+            files = [SubmissionFile(submission_id="submitme",
+                                    index=0,
+                                    filename="Hans",
+                                    filetype="black",
+                                    status=QC_STATUS_SUBMITTED,
+                                    result=DatasetValidationResult(status="OK", issues=[])),
+                     SubmissionFile(submission_id="submitme",
+                                    index=1,
+                                    filename="Helga",
+                                    filetype="green",
+                                    status=QC_STATUS_VALIDATED,
+                                    result=DatasetValidationResult(status="WARNING", issues=[
+                                        Issue(type="WARNING", description="This might be wrong")]))]
+            db_subm = DbSubmission(status="Hellyeah", user_id=mid, submission_id="submitme", files=files, qc_status="OK",
+                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                   publication_date='2001-02-03T04:05:06',
+                                   allow_publication=False)
+            self.ctx.db_driver.add_submission(db_subm)
 
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='DELETE')
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='DELETE', headers={"Cookie": cookie})
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
 
-        userid = mid
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/{userid}", method='GET')
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual([{'date': '2001-02-03T04:05:06',
-                           'file_refs': [{'filename': 'Helga',
-                                          'filetype': 'green',
-                                          'index': 0,
-                                          'status': 'VALIDATED',
-                                          'submission_id': 'submitme'}],
-                           'qc_status': 'OK',
-                           'status': 'Hellyeah',
-                           'submission_id': 'submitme',
-                           'publication_date': '2001-02-03T04:05:06',
-                           'allow_publication': False,
-                           'user_id': mid}], actual_response_data)
+            userid = mid
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/user/{userid}", method='GET', headers={"Cookie": cookie})
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+            actual_response_data = tornado.escape.json_decode(response.body)
+            self.assertEqual([{'date': '2001-02-03T04:05:06',
+                               'file_refs': [{'filename': 'Helga',
+                                              'filetype': 'green',
+                                              'index': 0,
+                                              'status': 'VALIDATED',
+                                              'submission_id': 'submitme'}],
+                               'qc_status': 'OK',
+                               'status': 'Hellyeah',
+                               'submission_id': 'submitme',
+                               'publication_date': '2001-02-03T04:05:06',
+                               'allow_publication': False,
+                               'user_id': mid}], actual_response_data)
+        finally:
+            self.logout_admin()
+
+    def test_delete_not_logged_in(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='DELETE')
+
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
     def test_put_invalid_submissionid(self):
+        cookie = self.login_admin()
+        try:
+            submissionid = "rattelschneck"
+            mpf = MultiPartForm(boundary="HEFFALUMP")
+            mpf.add_field("submissionid", submissionid)
+            index = 0
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                                  body=bytes(mpf), headers={"Cookie": cookie})
+
+            self.assertEqual(404, response.code)
+            self.assertEqual('Submission not found', response.reason)
+        finally:
+            self.logout_admin()
+
+    def test_put_no_body(self):
+        cookie = self.login_admin()
+        try:
+            submissionid = "rattelschneck"
+            files = [SubmissionFile(submission_id=submissionid,
+                                    index=0,
+                                    filename="Hans",
+                                    filetype="black",
+                                    status=QC_STATUS_SUBMITTED,
+                                    result=DatasetValidationResult(status="OK", issues=[])),
+                     SubmissionFile(submission_id=submissionid,
+                                    index=1,
+                                    filename="Helga",
+                                    filetype="green",
+                                    status=QC_STATUS_VALIDATED,
+                                    result=DatasetValidationResult(status="WARNING", issues=[
+                                        Issue(type="WARNING", description="This might be wrong")]))]
+            db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
+                                   qc_status="OK",
+                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+            self.ctx.db_driver.add_submission(db_subm)
+
+            mpf = MultiPartForm(boundary="HEFFALUMP")
+            mpf.add_field("submissionid", submissionid)
+            index = 0
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                                  body=bytes(mpf), headers={"Content-Type": mpf.content_type, "Cookie": cookie})
+
+            self.assertEqual(400, response.code)
+            self.assertEqual('Invalid number of files supplied', response.reason)
+        finally:
+            self.logout_admin()
+
+    def test_put_invalid_index(self):
+        cookie = self.login_admin()
+        try:
+            submissionid = "rattelschneck"
+            files = [SubmissionFile(submission_id=submissionid,
+                                    index=0,
+                                    filename="Hans",
+                                    filetype="black",
+                                    status=QC_STATUS_SUBMITTED,
+                                    result=DatasetValidationResult(status="OK", issues=[])),
+                     SubmissionFile(submission_id=submissionid,
+                                    index=1,
+                                    filename="Helga",
+                                    filetype="green",
+                                    status=QC_STATUS_VALIDATED,
+                                    result=DatasetValidationResult(status="WARNING", issues=[
+                                        Issue(type="WARNING", description="This might be wrong")]))]
+            db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
+                                   qc_status="OK",
+                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+            self.ctx.db_driver.add_submission(db_subm)
+
+            index = -2
+            mpf = MultiPartForm(boundary="HEFFALUMP")
+            mpf.add_field("submissionid", submissionid)
+            dataset = self._create_valid_dataset()
+            mpf.add_file(f'datasetfiles', "the_uploaded_file.sb", io.StringIO(dataset), mime_type="text/plain")
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                                  body=bytes(mpf), headers={"Content-Type": mpf.content_type, "Cookie": cookie})
+
+            self.assertEqual(400, response.code)
+            self.assertEqual('Invalid submission file index', response.reason)
+        finally:
+            self.logout_admin()
+
+    def test_put_success(self):
+        cookie = self.login_admin()
+        try:
+            submissionid = "rabatz"
+            files = [SubmissionFile(submission_id=submissionid,
+                                    index=0,
+                                    filename="Hans",
+                                    filetype="black",
+                                    status=QC_STATUS_SUBMITTED,
+                                    result=DatasetValidationResult(status="OK", issues=[])),
+                     SubmissionFile(submission_id=submissionid,
+                                    index=1,
+                                    filename="Helga",
+                                    filetype="MEASUREMENT",
+                                    status=QC_STATUS_VALIDATED,
+                                    result=DatasetValidationResult(status="WARNING", issues=[
+                                        Issue(type="WARNING", description="This might be wrong")]))]
+            db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
+                                   qc_status=QC_STATUS_VALIDATED,
+                                   path="/tmp/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+            self.ctx.db_driver.add_submission(db_subm)
+
+            index = 1
+            mpf = MultiPartForm(boundary="HEFFALUMP")
+            mpf.add_field("submissionid", submissionid)
+            dataset = self._create_valid_dataset()
+            mpf.add_file(f'files', "the_uploaded_file.sb", io.StringIO(dataset), mime_type="text/plain")
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
+                                  body=bytes(mpf), headers={"Content-Type": mpf.content_type, "Cookie": cookie})
+
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='GET',
+                                  headers={"Cookie": cookie})
+
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            actual_response_data = tornado.escape.json_decode(response.body)
+            self.assertEqual({'filename': 'the_uploaded_file.sb',
+                              'filetype': TYPE_MEASUREMENT,
+                              'index': 1,
+                              'result': {'issues': [], 'status': 'OK'},
+                              'status': "OK",
+                              'submission_id': 'rabatz'}, actual_response_data)
+        finally:
+            self.logout_admin()
+
+    def test_put_not_logged_in(self):
         submissionid = "rattelschneck"
         mpf = MultiPartForm(boundary="HEFFALUMP")
         mpf.add_field("submissionid", submissionid)
@@ -358,112 +547,8 @@ class StoreUploadSubmissionFileTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
                               body=bytes(mpf))
 
-        self.assertEqual(404, response.code)
-        self.assertEqual('Submission not found', response.reason)
-
-    def test_put_no_body(self):
-        submissionid = "rattelschneck"
-        files = [SubmissionFile(submission_id=submissionid,
-                                index=0,
-                                filename="Hans",
-                                filetype="black",
-                                status=QC_STATUS_SUBMITTED,
-                                result=DatasetValidationResult(status="OK", issues=[])),
-                 SubmissionFile(submission_id=submissionid,
-                                index=1,
-                                filename="Helga",
-                                filetype="green",
-                                status=QC_STATUS_VALIDATED,
-                                result=DatasetValidationResult(status="WARNING", issues=[
-                                    Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
-                               qc_status="OK",
-                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
-        self.ctx.db_driver.add_submission(db_subm)
-
-        mpf = MultiPartForm(boundary="HEFFALUMP")
-        mpf.add_field("submissionid", submissionid)
-        index = 0
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
-                              body=bytes(mpf), headers={"Content-Type": mpf.content_type})
-
-        self.assertEqual(400, response.code)
-        self.assertEqual('Invalid number of files supplied', response.reason)
-
-    def test_put_invalid_index(self):
-        submissionid = "rattelschneck"
-        files = [SubmissionFile(submission_id=submissionid,
-                                index=0,
-                                filename="Hans",
-                                filetype="black",
-                                status=QC_STATUS_SUBMITTED,
-                                result=DatasetValidationResult(status="OK", issues=[])),
-                 SubmissionFile(submission_id=submissionid,
-                                index=1,
-                                filename="Helga",
-                                filetype="green",
-                                status=QC_STATUS_VALIDATED,
-                                result=DatasetValidationResult(status="WARNING", issues=[
-                                    Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
-                               qc_status="OK",
-                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
-        self.ctx.db_driver.add_submission(db_subm)
-
-        index = -2
-        mpf = MultiPartForm(boundary="HEFFALUMP")
-        mpf.add_field("submissionid", submissionid)
-        dataset = self._create_valid_dataset()
-        mpf.add_file(f'datasetfiles', "the_uploaded_file.sb", io.StringIO(dataset), mime_type="text/plain")
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
-                              body=bytes(mpf), headers={"Content-Type": mpf.content_type})
-
-        self.assertEqual(400, response.code)
-        self.assertEqual('Invalid submission file index', response.reason)
-
-    def test_put_success(self):
-        submissionid = "rabatz"
-        files = [SubmissionFile(submission_id=submissionid,
-                                index=0,
-                                filename="Hans",
-                                filetype="black",
-                                status=QC_STATUS_SUBMITTED,
-                                result=DatasetValidationResult(status="OK", issues=[])),
-                 SubmissionFile(submission_id=submissionid,
-                                index=1,
-                                filename="Helga",
-                                filetype="MEASUREMENT",
-                                status=QC_STATUS_VALIDATED,
-                                result=DatasetValidationResult(status="WARNING", issues=[
-                                    Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
-                               qc_status=QC_STATUS_VALIDATED,
-                               path="/tmp/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
-        self.ctx.db_driver.add_submission(db_subm)
-
-        index = 1
-        mpf = MultiPartForm(boundary="HEFFALUMP")
-        mpf.add_field("submissionid", submissionid)
-        dataset = self._create_valid_dataset()
-        mpf.add_file(f'files', "the_uploaded_file.sb", io.StringIO(dataset), mime_type="text/plain")
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
-                              body=bytes(mpf), headers={"Content-Type": mpf.content_type})
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='GET')
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual({'filename': 'the_uploaded_file.sb',
-                          'filetype': TYPE_MEASUREMENT,
-                          'index': 1,
-                          'result': {'issues': [], 'status': 'OK'},
-                          'status': "OK",
-                          'submission_id': 'rabatz'}, actual_response_data)
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
     @staticmethod
     def _create_valid_dataset() -> str:
@@ -498,84 +583,109 @@ class StoreUploadSubmissionFileTest(WsTestCase):
 class StoreUpdateSubmissionFileTest(WsTestCase):
 
     def test_update_invalid_submissionfile(self):
+        cookie = self.login_admin()
+        try:
+            submission_id = "not_stored"
+            index = 8
+            status = QC_STATUS_VALIDATED
+
+            response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
+                                  method='GET', headers={"Cookie": cookie})
+
+            self.assertEqual(404, response.code)
+            self.assertEqual('Submission not found', response.reason)
+        finally:
+            self.logout_admin()
+
+    def test_update_invalid_index(self):
+        cookie = self.login_admin()
+        try:
+            files = [SubmissionFile(submission_id="submitme",
+                                    index=0,
+                                    filename="Hans",
+                                    filetype="black",
+                                    status=QC_STATUS_SUBMITTED,
+                                    result=DatasetValidationResult(status="OK", issues=[])),
+                     SubmissionFile(submission_id="submitme",
+                                    index=1,
+                                    filename="Helga",
+                                    filetype="green",
+                                    status=QC_STATUS_VALIDATED,
+                                    result=DatasetValidationResult(status="WARNING", issues=[
+                                        Issue(type="WARNING", description="This might be wrong")]))]
+            db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files, qc_status="OK",
+                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+            self.ctx.db_driver.add_submission(db_subm)
+
+            submission_id = "submitme"
+            index = 8
+            status = QC_STATUS_APPROVED
+            response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
+                                  method='GET',
+                                  headers={"Cookie": cookie})
+
+            self.assertEqual(400, response.code)
+            self.assertEqual('Invalid submission file index', response.reason)
+        finally:
+            self.logout_admin()
+
+    def test_update_success(self):
+        cookie = self.login_admin()
+        try:
+            files = [SubmissionFile(submission_id="submitme",
+                                    index=0,
+                                    filename="Hans",
+                                    filetype="black",
+                                    status=QC_STATUS_SUBMITTED,
+                                    result=DatasetValidationResult(status="OK", issues=[])),
+                     SubmissionFile(submission_id="submitme",
+                                    index=1,
+                                    filename="Helga",
+                                    filetype="green",
+                                    status=QC_STATUS_VALIDATED,
+                                    result=DatasetValidationResult(status="WARNING", issues=[
+                                        Issue(type="WARNING", description="This might be wrong")]))]
+            db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files, qc_status="OK",
+                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+            self.ctx.db_driver.add_submission(db_subm)
+
+            submission_id = "submitme"
+            index = 1
+            status = QC_STATUS_APPROVED
+            response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
+                                  method='GET',
+                                  headers={"Cookie": cookie})
+
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/1", method='GET', headers={"Cookie": cookie})
+
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            actual_response_data = tornado.escape.json_decode(response.body)
+            self.assertEqual({'filename': 'Helga',
+                              'filetype': 'green',
+                              'index': 1,
+                              'result': {'issues': [{'description': 'This might be wrong',
+                                                     'type': 'WARNING'}],
+                                         'status': 'WARNING'},
+                              'status': 'APPROVED',
+                              'submission_id': 'submitme'}, actual_response_data)
+        finally:
+            self.logout_admin()
+
+    def test_update_not_logged_in(self):
         submission_id = "not_stored"
         index = 8
         status = QC_STATUS_VALIDATED
+
         response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
                               method='GET')
 
-        self.assertEqual(404, response.code)
-        self.assertEqual('Submission not found', response.reason)
-
-    def test_update_invalid_index(self):
-        files = [SubmissionFile(submission_id="submitme",
-                                index=0,
-                                filename="Hans",
-                                filetype="black",
-                                status=QC_STATUS_SUBMITTED,
-                                result=DatasetValidationResult(status="OK", issues=[])),
-                 SubmissionFile(submission_id="submitme",
-                                index=1,
-                                filename="Helga",
-                                filetype="green",
-                                status=QC_STATUS_VALIDATED,
-                                result=DatasetValidationResult(status="WARNING", issues=[
-                                    Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files, qc_status="OK",
-                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
-        self.ctx.db_driver.add_submission(db_subm)
-
-        submission_id = "submitme"
-        index = 8
-        status = QC_STATUS_APPROVED
-        response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
-                              method='GET')
-
-        self.assertEqual(400, response.code)
-        self.assertEqual('Invalid submission file index', response.reason)
-
-    def test_update_success(self):
-        files = [SubmissionFile(submission_id="submitme",
-                                index=0,
-                                filename="Hans",
-                                filetype="black",
-                                status=QC_STATUS_SUBMITTED,
-                                result=DatasetValidationResult(status="OK", issues=[])),
-                 SubmissionFile(submission_id="submitme",
-                                index=1,
-                                filename="Helga",
-                                filetype="green",
-                                status=QC_STATUS_VALIDATED,
-                                result=DatasetValidationResult(status="WARNING", issues=[
-                                    Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files, qc_status="OK",
-                               path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
-        self.ctx.db_driver.add_submission(db_subm)
-
-        submission_id = "submitme"
-        index = 1
-        status = QC_STATUS_APPROVED
-        response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
-                              method='GET')
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/1", method='GET')
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual({'filename': 'Helga',
-                          'filetype': 'green',
-                          'index': 1,
-                          'result': {'issues': [{'description': 'This might be wrong',
-                                                 'type': 'WARNING'}],
-                                     'status': 'WARNING'},
-                          'status': 'APPROVED',
-                          'submission_id': 'submitme'}, actual_response_data)
-
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
 class StoreUploadUserTest(WsTestCase):
 
@@ -705,33 +815,32 @@ class StoreDownloadsubmissionFileTest(WsTestCase):
         self.assertEqual('Submission File not found', response.reason)
 
 
-
 class DatasetsValidateTest(WsTestCase):
 
-    def test_post(self):
+    def test_post_as_admin(self):
+        cookie = self.login_admin()
+
+        try:
+            dataset = new_test_dataset(13)
+            data = dataset.to_dict()
+            body = tornado.escape.json_encode(data)
+            response = self.fetch(API_URL_PREFIX + "/datasets/validate", method='POST', body=body, headers={"Cookie": cookie})
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+            actual_response_data = tornado.escape.json_decode(response.body)
+            self.assertIsInstance(actual_response_data, dict)
+            self.assertIn("status", actual_response_data)
+            self.assertIn("OK", actual_response_data["status"])
+        finally:
+            self.logout_admin()
+
+    def test_post_not_logged_in(self):
         dataset = new_test_dataset(13)
         data = dataset.to_dict()
         body = tornado.escape.json_encode(data)
         response = self.fetch(API_URL_PREFIX + "/datasets/validate", method='POST', body=body)
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertIsInstance(actual_response_data, dict)
-        self.assertIn("status", actual_response_data)
-        self.assertIn("OK", actual_response_data["status"])
-
-        # @todo 1 tb/nf we need to discuss this wrt the validator now doing real validation 2019-02-05
-        # dataset = new_test_dataset(13)
-        # dataset.id = "gnartz!"
-        # data = dataset.to_dict()
-        # body = tornado.escape.json_encode(data)
-        # response = self.fetch(API_URL_PREFIX + "/datasets/validate", method='POST', body=body)
-        # self.assertEqual(200, response.code)
-        # self.assertEqual('OK', response.reason)
-        # actual_response_data = tornado.escape.json_decode(response.body)
-        # self.assertIsInstance(actual_response_data, dict)
-        # self.assertIn("status", actual_response_data)
-        # self.assertIn("WARNING", actual_response_data["status"])
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
 
 class DatasetsTest(WsTestCase):
@@ -922,20 +1031,33 @@ class DatasetsIdTest(WsTestCase):
         self.assertEqual(404, response.code)
         self.assertEqual('Dataset with ID gnarz-foop not found', response.reason)
 
-    def test_delete(self):
+    def test_delete_not_logged_in(self):
         dataset_ref = add_dataset(self.ctx, new_test_dataset(0))
         dataset_id = dataset_ref.id
         response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}",
-                              method='DELETE',
-                              headers=dict(api_key="8745hfu57"))
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
+                              method='DELETE')
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
-        response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}",
-                              method='DELETE',
-                              headers=dict(api_key="8745hfu57"))
-        self.assertEqual(404, response.code)
-        self.assertEqual(f'Dataset with ID {dataset_id} not found', response.reason)
+    def test_delete(self):
+        cookie = self.login_admin()
+
+        try:
+            dataset_ref = add_dataset(self.ctx, new_test_dataset(0))
+            dataset_id = dataset_ref.id
+            response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}",
+                                  method='DELETE',
+                                  headers={"Cookie": cookie})
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}",
+                                  method='DELETE',
+                                  headers={"Cookie": cookie})
+            self.assertEqual(404, response.code)
+            self.assertEqual(f'Dataset with ID {dataset_id} not found', response.reason)
+        finally:
+            self.logout_admin()
 
 
 class DatasetsAffilProjectCruiseTest(WsTestCase):
@@ -991,7 +1113,28 @@ class DatasetsIdQcinfoTest(WsTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
-    def test_post(self):
+    def test_post_admin(self):
+        cookie = self.login_admin()
+
+        try:
+            dataset_ref = add_dataset(self.ctx, new_test_dataset(42))
+            dataset_id = dataset_ref.id
+
+            expected_qc_info = QcInfo(QC_STATUS_VALIDATED,
+                                      dict(by='Illaria',
+                                           when="2019-02-01",
+                                           doc_files=["qc-report.docx"]))
+            body = tornado.escape.json_encode(expected_qc_info.to_dict())
+            response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}/qcinfo", method='POST', body=body,  headers={"Cookie": cookie})
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            actual_qc_info = get_dataset_qc_info(self.ctx, dataset_id)
+            self.assertEqual(expected_qc_info, actual_qc_info)
+        finally:
+            self.logout_admin()
+
+    def test_post_no_admin(self):
         dataset_ref = add_dataset(self.ctx, new_test_dataset(42))
         dataset_id = dataset_ref.id
 
@@ -1001,11 +1144,8 @@ class DatasetsIdQcinfoTest(WsTestCase):
                                        doc_files=["qc-report.docx"]))
         body = tornado.escape.json_encode(expected_qc_info.to_dict())
         response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}/qcinfo", method='POST', body=body)
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        actual_qc_info = get_dataset_qc_info(self.ctx, dataset_id)
-        self.assertEqual(expected_qc_info, actual_qc_info)
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
 
 class DocfilesTest(WsTestCase):
@@ -1100,20 +1240,43 @@ class DocfilesAffilProjectCruiseNameTest(WsTestCase):
 
 class UsersTest(WsTestCase):
 
-    @unittest.skip('not implemented yet')
-    def test_post(self):
-        # TODO (generated): set data for request body to reasonable value
-        data = {}
+    def test_add_no_admin(self):
+        data = {
+            'name': 'hinz',
+            'first_name': 'Hinz',
+            'last_name': 'Kunz',
+            'password': 'lappig9',
+            'email': None,
+            'phone': None,
+            'roles': ['admin']
+        }
         body = tornado.escape.json_encode(data)
 
         response = self.fetch(API_URL_PREFIX + "/users", method='POST', body=body)
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
-        # TODO (generated): set expected_response correctly
-        expected_response_data = {}
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual(expected_response_data, actual_response_data)
+    def test_add_admin(self):
+        cookie = self.login_admin()
+
+        try:
+            data = {
+                'name': 'hinz',
+                'first_name': 'Hinz',
+                'last_name': 'Kunz',
+                'password': 'lappig9',
+                'email': None,
+                'phone': None,
+                'roles': ['admin']
+            }
+            body = tornado.escape.json_encode(data)
+
+            response = self.fetch(API_URL_PREFIX + "/users", method='POST', body=body, headers={"Cookie": cookie})
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+        finally:
+            self.logout_admin()
 
 
 class UsersLoginTest(WsTestCase):
@@ -1166,19 +1329,34 @@ class UsersLoginTest(WsTestCase):
         self.assertEqual(401, response.code)
         self.assertEqual('Unknown username or password', response.reason)
 
+    def test_login_admin(self):
+        credentials = dict(username="chef", password="eocdb_chef")
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        expected_response_data = {'id': '', 'name': 'chef', 'roles': ['admin', 'submit']}
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        actual_response_data['id'] = ''
+        self.assertEqual(expected_response_data, actual_response_data)
+
 
 class UsersLogoutTest(WsTestCase):
 
-    @unittest.skip('not implemented yet')
-    def test_get(self):
+    def test_get_no_user_logged_in(self):
         response = self.fetch(API_URL_PREFIX + "/users/logout", method='GET')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        # TODO (generated): set expected_response correctly
-        expected_response_data = {}
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual(expected_response_data, actual_response_data)
+    def test_get(self):
+        self.login_admin()
+
+        response = self.fetch(API_URL_PREFIX + "/users/logout", method='GET')
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
 
 
 class UsersIdTest(WsTestCase):
