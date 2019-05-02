@@ -419,24 +419,6 @@ class Datasets(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
 
-    def put(self):
-        """Provide API operation addDataset()."""
-        # transform body with mime-type application/json into a Dataset
-        data_dict = tornado.escape.json_decode(self.request.body)
-        dataset = Dataset.from_dict(data_dict)
-        result = add_dataset(self.ws_context, dataset=dataset)
-        # transform result of type DatasetRef into response with mime-type application/json
-        self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result.to_dict()))
-
-    def post(self):
-        """Provide API operation updateDataset()."""
-        # transform body with mime-type application/json into a Dataset
-        data_dict = tornado.escape.json_decode(self.request.body)
-        dataset = Dataset.from_dict(data_dict)
-        update_dataset(self.ws_context, dataset=dataset)
-        self.finish()
-
     def extract_time(self):
         start_time = self.query.get_param('start_time', default=None)
         end_time = self.query.get_param('end_time', default=None)

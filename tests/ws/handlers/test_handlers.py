@@ -901,33 +901,6 @@ class DatasetsTest(WsTestCase):
         self.assertIn("total_count", actual_response_data)
         self.assertEqual(2, actual_response_data["total_count"])
 
-    def test_put(self):
-        # test addDataset() operation
-        dataset = new_test_dataset(13)
-        body = tornado.escape.json_encode(dataset.to_dict())
-        response = self.fetch(API_URL_PREFIX + "/datasets", method='PUT', body=body)
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-        query_result = find_datasets(self.ctx)
-        self.assertEqual(1, query_result.total_count)
-        self.assertEqual(dataset.path, query_result.datasets[0].path)
-
-    def test_post(self):
-        # updateDataset() operation
-        add_dataset(self.ctx, new_test_dataset(14))
-        query_result = find_datasets(self.ctx)
-        self.assertEqual(1, query_result.total_count)
-        dataset_id = query_result.datasets[0].id
-        update_dataset = new_test_dataset(14)
-        update_dataset.path = "a/b/c/archive/x/x-01.csv"
-        update_dataset.id = dataset_id
-        body = tornado.escape.json_encode(update_dataset.to_dict())
-        response = self.fetch(API_URL_PREFIX + "/datasets", method='POST', body=body)
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-        updated_dataset = get_dataset_by_id_strict(self.ctx, dataset_id=dataset_id)
-        self.assertEqual(update_dataset, updated_dataset)
-
 
 class DatasetsIdTest(WsTestCase):
     @property

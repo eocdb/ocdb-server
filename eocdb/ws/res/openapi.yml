@@ -401,42 +401,6 @@ paths:
           description: Invalid query value(s)
       security:
         - api_key: []
-    put:
-      tags:
-        - Datasets
-      summary: Add a new dataset
-      description: Adds a new dataset to the store and returns a dataset reference.
-      operationId: addDataset
-      requestBody:
-        $ref: '#/components/requestBodies/Dataset'
-      responses:
-        '200':
-          $ref: '#/components/responses/DatasetRef'
-        '400':
-          description: Invalid request.
-      security:
-        - eocdb_auth:
-            - 'write:datasets'
-            - 'read:datasets'
-    post:
-      tags:
-        - Datasets
-      summary: Update an existing dataset
-      description: Updates an existing dataset to the store.
-      operationId: updateDataset
-      requestBody:
-        $ref: '#/components/requestBodies/Dataset'
-      responses:
-        '200':
-          description: Sucessful operation.
-        '400':
-          description: Invalid ID supplied.
-        '404':
-          description: Dataset not found.
-      security:
-        - eocdb_auth:
-            - 'write:datasets'
-            - 'read:datasets'
   '/datasets/{id}':
     get:
       tags:
