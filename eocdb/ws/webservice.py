@@ -38,7 +38,8 @@ from tornado.web import RequestHandler, Application
 
 from eocdb.core.roles import Roles
 from .context import WsContext
-from .defaults import DEFAULT_ADDRESS, DEFAULT_PORT, DEFAULT_CONFIG_FILE, DEFAULT_UPDATE_PERIOD, DEFAULT_LOG_PREFIX
+from .defaults import DEFAULT_ADDRESS, DEFAULT_PORT, DEFAULT_CONFIG_FILE, DEFAULT_UPDATE_PERIOD, DEFAULT_LOG_PREFIX, \
+    DEFAULT_SSL
 from .reqparams import RequestParams
 from ..core import UNDEFINED
 
@@ -54,6 +55,7 @@ class WebService:
                  application: Application,
                  address: str = DEFAULT_ADDRESS,
                  port: int = DEFAULT_PORT,
+                 ssl: bool = DEFAULT_SSL,
                  config_file: Optional[str] = None,
                  update_period: Optional[float] = DEFAULT_UPDATE_PERIOD,
                  log_file_prefix: str = DEFAULT_LOG_PREFIX,
@@ -101,9 +103,16 @@ class WebService:
         application.time_of_last_activity = time.clock()
         self.application = application
 
-        #self.server = application.listen(port, address=address or 'localhost')
         from tornado.httpserver import HTTPServer
-        self.server = HTTPServer(application)
+
+        if ssl:
+            self.server = HTTPServer(application, ssl_options={
+                "certfile": "static/certs/fullchain.pem",
+                "keyfile": "static/certs/privkey.pem",
+            })
+        else:
+            self.server = HTTPServer(application)
+
         self.server.listen(port)
 
         # Ensure we have the same event loop in all threads
