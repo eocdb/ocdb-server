@@ -46,6 +46,7 @@ def new_web_service(args=None) -> WebService:
                         default=DEFAULT_PORT,
                         help='Port number where the web service will listen on. '
                              f'Defaults to {DEFAULT_PORT}.')
+    parser.add_argument('--ssl', '-s',  action='store_true')
     parser.add_argument('--update', '-u', dest='update_period', metavar='UPDATE_PERIOD', type=float,
                         default=DEFAULT_UPDATE_PERIOD,
                         help='Check for configuration updates after given period in seconds. '
@@ -62,6 +63,7 @@ def new_web_service(args=None) -> WebService:
     return WebService(new_application(),
                       log_to_stderr=args_obj.verbose,
                       port=args_obj.port,
+                      ssl=args_obj.ssl,
                       address=args_obj.address,
                       config_file=args_obj.config_file,
                       update_period=args_obj.update_period)
