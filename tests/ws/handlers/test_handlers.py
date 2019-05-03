@@ -84,7 +84,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("eocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.21", result["info"].get("version"))
+        self.assertEqual("0.1.0-dev.22", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -399,11 +399,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
     def test_delete(self):
         cookie = self.login_admin()
         try:
-            user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                        first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
-
-            mid = create_user(self.ctx, user)
-
+            user = self.ctx.get_user("chef")
             files = [SubmissionFile(submission_id="submitme",
                                     index=0,
                                     filename="Hans",
@@ -417,7 +413,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                     status=QC_STATUS_VALIDATED,
                                     result=DatasetValidationResult(status="WARNING", issues=[
                                         Issue(type="WARNING", description="This might be wrong")]))]
-            db_subm = DbSubmission(status="Hellyeah", user_id=mid, submission_id="submitme", files=files, qc_status="OK",
+            db_subm = DbSubmission(status="Hellyeah", user_id=user.id, submission_id="submitme", files=files, qc_status="OK",
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                    publication_date='2001-02-03T04:05:06',
                                    allow_publication=False)
@@ -427,8 +423,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
 
-            userid = mid
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/user/{userid}", method='GET', headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/user", method='GET', headers={"Cookie": cookie})
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
             actual_response_data = tornado.escape.json_decode(response.body)
@@ -443,7 +438,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                'submission_id': 'submitme',
                                'publication_date': '2001-02-03T04:05:06',
                                'allow_publication': False,
-                               'user_id': mid}], actual_response_data)
+                               'user_id': user.id}], actual_response_data)
         finally:
             self.logout_admin()
 
@@ -736,15 +731,24 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
 class StoreUploadUserTest(WsTestCase):
 
     def test_get_no_results(self):
-        userid = 227654487
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/{userid}", method='GET')
+        cookie = self.login_admin()
+        try:
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/user", method='GET', headers={"Cookie": cookie})
 
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
 
-        expected_response_data = []
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual(expected_response_data, actual_response_data)
+            expected_response_data = []
+            actual_response_data = tornado.escape.json_decode(response.body)
+            self.assertEqual(expected_response_data, actual_response_data)
+        finally:
+            self.logout_admin()
+
+    def test_get_not_logged_in(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/user", method='GET')
+
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
 
 class StoreDownloadTest(WsTestCase):

@@ -79,11 +79,11 @@ class StoreUploadSubmission(WsRequestHandler):
                                               arguments,
                                               files)
 
+        user = self.ws_context.get_user(user_name)
+        user_id = user.id
+
         submission_id = arguments.get("submissionid")
         submission_id = _ensure_string_argument(submission_id, "submissionid")
-
-        user_id = arguments.get("userid")
-        user_id = _ensure_string_argument(user_id, "userid")
 
         temp_area_path = str(user_id) + "_" + submission_id
 
@@ -232,8 +232,18 @@ class StoreStatusSubmission(WsRequestHandler):
 # noinspection PyAbstractClass
 class StoreUploadUser(WsRequestHandler):
 
-    def get(self, userid: str):
-        result = get_submissions(ctx=self.ws_context, user_id=userid)
+    def get(self):
+        user_name = self.get_current_user()
+        if user_name is None:
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+
+        user = self.ws_context.get_user(user_name)
+        if user is None:
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+
+        result = get_submissions(ctx=self.ws_context, user_id=user.id)
 
         result_list = []
         for submission in result:
@@ -438,7 +448,6 @@ class Datasets(WsRequestHandler):
         time = self.extract_time()
         wdepth = self.query.get_param_float_list('wdepth', default=None)
         submission_id = self.query.get_param('submission_id', default=None)
-        #user_id = self.query.get_param_int('user_id', default=None)
         status = self.query.get_param('status', default=None)
         mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
         wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)

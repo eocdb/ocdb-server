@@ -3,7 +3,7 @@ servers:
   - url: 'http://ocdb-test:4000/eocdb/api/v0.1.0/'
 info:
   title: eocdb-server
-  version: "0.1.0-dev.21"
+  version: "0.1.0-dev.22"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
     How we utilise HTTP methods:
@@ -281,7 +281,7 @@ paths:
       security:
         - eocdb_auth:
             - 'read:submission'
-  '/store/upload/user/{userid}':
+  '/store/upload/user':
     get:
       tags:
         - Submission
