@@ -276,10 +276,10 @@ class DatasetsTest(unittest.TestCase):
         dataset_id = dataset_ref.id
         dataset = get_dataset_by_id_strict(self.ctx, dataset_id)
         self.assertEqual(dataset_id, dataset.id)
-        delete_dataset(self.ctx, "api_key", dataset_id)
+        delete_dataset(self.ctx, dataset_id)
 
         with self.assertRaises(WsResourceNotFoundError):
-            delete_dataset(self.ctx, "api_key", dataset_id)
+            delete_dataset(self.ctx, dataset_id)
 
     @unittest.skip('not implemented yet')
     def test_get_datasets_in_path(self):
