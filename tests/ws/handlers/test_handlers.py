@@ -105,93 +105,139 @@ class StoreInfoTest(WsTestCase):
 class StoreUploadSubmissionTest(WsTestCase):
 
     def test_post_invalid_submission_id(self):
-        mpf = MultiPartForm(boundary="HEFFALUMP")
-        mpf.add_field("submissionid", "")
+        cookie = self.login_admin()
+        try:
+            mpf = MultiPartForm(boundary="HEFFALUMP")
+            mpf.add_field("submissionid", "")
 
-        response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf))
-        self.assertEqual(400, response.code)
-        self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+            response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf),
+                                  headers={"Cookie": cookie})
+            self.assertEqual(400, response.code)
+            self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+        finally:
+            self.logout_admin()
 
     def test_post_submission_id_already_present(self):
-        submission_id = "I_DO_EXIST"
-        submission = Submission(submission_id=submission_id,
-                                user_id='12',
-                                date=datetime.datetime.now(),
-                                status="who_knows",
-                                qc_status="OK",
-                                publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                                allow_publication=False,
-                                file_refs=[])
-        self.ctx.db_driver.add_submission(submission)
+        cookie = self.login_admin()
+        try:
+            submission_id = "I_DO_EXIST"
+            submission = Submission(submission_id=submission_id,
+                                    user_id='12',
+                                    date=datetime.datetime.now(),
+                                    status="who_knows",
+                                    qc_status="OK",
+                                    publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                    allow_publication=False,
+                                    file_refs=[])
+            self.ctx.db_driver.add_submission(submission)
 
+            mpf = MultiPartForm(boundary="HEFFALUMP")
+            mpf.add_field("submissionid", submission_id)
+
+            response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf),
+                                  headers={"Cookie": cookie})
+            self.assertEqual(400, response.code)
+            self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+        finally:
+            self.logout_admin()
+
+    def test_post_not_logged_in(self):
         mpf = MultiPartForm(boundary="HEFFALUMP")
-        mpf.add_field("submissionid", submission_id)
+        mpf.add_field("submissionid", "whatever")
 
         response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf))
-        self.assertEqual(400, response.code)
-        self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+        self.assertEqual(403, response.code)
+        self.assertEqual("Not enough access rights to perform operation.", response.reason)
 
     def test_delete_invalid_id(self):
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='DELETE')
+        cookie = self.login_admin()
+        try:
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='DELETE', headers={"Cookie": cookie})
 
-        self.assertEqual(404, response.code)
-        self.assertEqual('Submission not found', response.reason)
+            self.assertEqual(404, response.code)
+            self.assertEqual('Submission not found', response.reason)
+        finally:
+            self.logout_admin()
 
     def test_delete_success(self):
-        submission_id = "I_DO_EXIST"
-        submission = DbSubmission(submission_id=submission_id,
-                                  user_id='12',
-                                  date=datetime.datetime.now(),
-                                  status="who_knows",
-                                  qc_status="OK",
-                                  path="temp",
-                                  publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                                  allow_publication=False,
-                                  files=[])
-        self.ctx.db_driver.add_submission(submission)
+        cookie = self.login_admin()
+        try:
+            submission_id = "I_DO_EXIST"
+            submission = DbSubmission(submission_id=submission_id,
+                                      user_id='12',
+                                      date=datetime.datetime.now(),
+                                      status="who_knows",
+                                      qc_status="OK",
+                                      path="temp",
+                                      publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                      allow_publication=False,
+                                      files=[])
+            self.ctx.db_driver.add_submission(submission)
 
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='DELETE')
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='DELETE', headers={"Cookie": cookie})
 
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+        finally:
+            self.logout_admin()
+
+    def test_delete_not_logged_in(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/dontcare", method='DELETE')
+
+        self.assertEqual(403, response.code)
+        self.assertEqual("Not enough access rights to perform operation.", response.reason)
 
     def test_get_invalid_id(self):
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='GET')
+        cookie = self.login_admin()
+        try:
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='GET', headers={"Cookie": cookie})
 
-        self.assertEqual(404, response.code)
-        self.assertEqual('Submission not found', response.reason)
+            self.assertEqual(404, response.code)
+            self.assertEqual('Submission not found', response.reason)
+        finally:
+            self.logout_admin()
 
     def test_get_success(self):
-        submission_id = "I_DO_EXIST"
-        submission = DbSubmission(submission_id=submission_id,
-                                  user_id='12',
-                                  date=datetime.datetime.now(),
-                                  status="who_knows",
-                                  qc_status="OK",
-                                  path="temp",
-                                  publication_date='2001-02-03T04:05:06',
-                                  allow_publication=False,
-                                  files=[])
-        self.ctx.db_driver.add_submission(submission)
+        cookie = self.login_admin()
+        try:
+            submission_id = "I_DO_EXIST"
+            submission = DbSubmission(submission_id=submission_id,
+                                      user_id='12',
+                                      date=datetime.datetime.now(),
+                                      status="who_knows",
+                                      qc_status="OK",
+                                      path="temp",
+                                      publication_date='2001-02-03T04:05:06',
+                                      allow_publication=False,
+                                      files=[])
+            self.ctx.db_driver.add_submission(submission)
 
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='GET')
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='GET', headers={"Cookie": cookie})
 
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
 
-        actual_response_data = tornado.escape.json_decode(response.body)
-        del actual_response_data["date"]    # varies, therefore we do not check tb 2019-03-13
-        del actual_response_data["id"]    # varies, therefore we do not check tb 2019-03-13
-        self.assertEqual({
-            'file_refs': [],
-            'files': [],
-            'path': 'temp',
-            'publication_date': '2001-02-03T04:05:06',
-            'allow_publication': False,
-            'qc_status': 'OK',
-            'status': 'who_knows',
-            'submission_id': 'I_DO_EXIST',
-            'user_id': '12'}, actual_response_data)
+            actual_response_data = tornado.escape.json_decode(response.body)
+            del actual_response_data["date"]    # varies, therefore we do not check tb 2019-03-13
+            del actual_response_data["id"]    # varies, therefore we do not check tb 2019-03-13
+            self.assertEqual({
+                'file_refs': [],
+                'files': [],
+                'path': 'temp',
+                'publication_date': '2001-02-03T04:05:06',
+                'allow_publication': False,
+                'qc_status': 'OK',
+                'status': 'who_knows',
+                'submission_id': 'I_DO_EXIST',
+                'user_id': '12'}, actual_response_data)
+        finally:
+            self.logout_admin()
+
+    def test_get_not_logged_in(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='GET')
+
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
 
 class StoreStatusSubmissionTest(WsTestCase):

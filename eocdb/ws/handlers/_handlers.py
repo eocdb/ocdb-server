@@ -66,11 +66,10 @@ class StoreUploadSubmission(WsRequestHandler):
 
     def post(self):
         """Provide API operation uploadStoreFiles()."""
-
-        # @todo 1 tb/tb fetch current user ID and assemble path into temp-storage
-        # return if user not set - prevent from unauthorized uploads
-        # self.current_user
-        # user_id = 8877827454
+        user_name = self.get_current_user()
+        if not (self.has_admin_rights() or self.is_self(user_name)):
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
 
         arguments = dict()
         files = dict()
@@ -124,6 +123,11 @@ class StoreUploadSubmission(WsRequestHandler):
         self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
 
     def delete(self, submission_id: str):
+        user_name = self.get_current_user()
+        if not (self.has_admin_rights() or self.is_self(user_name)):
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
         if submission is None:
             self.set_status(404, reason="Submission not found")
@@ -137,6 +141,11 @@ class StoreUploadSubmission(WsRequestHandler):
         self.finish(tornado.escape.json_encode({'message': f'{submission_id} deleted'}))
 
     def get(self, submission_id: str):
+        user_name = self.get_current_user()
+        if not (self.has_admin_rights() or self.is_self(user_name)):
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
 
         if submission is None:
