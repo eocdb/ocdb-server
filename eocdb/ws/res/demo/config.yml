@@ -11,7 +11,7 @@ databases:
     type: eocdb.db.mongo_db_driver.MongoDbDriver
     primary: true
     parameters:
-        url: "mongodb://ocdb-test:27017/eocdb"
+        url: "mongodb://localhost:27017/eocdb"
 
 links: 'res/links.md'
 

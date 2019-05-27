@@ -1,17 +1,19 @@
 from eocdb.ws.context import WsContext
+from eocdb.ws.errors import WsBadRequestError
 
 
-def get_links(ctx: WsContext):
-    fn = ctx.config.get('links')
-    with open(fn, 'r') as mdfile:
-        s = mdfile.read()
-        mdfile.close()
-        return s
+def get_links(ctx: WsContext) -> dict:
+    links = ctx.db_driver.instance().get_links()
+    if not links:
+        raise WsBadRequestError(f"Could not find links")
+
+    return links.to_dict()
 
 
-def update_links(ctx: WsContext, content: str):
-    fn = ctx.config.get('links')
-    with open(fn, 'w') as mdfile:
-        mdfile.write(content)
+def update_links(ctx: WsContext, content: str) -> dict:
+    success = ctx.db_driver.instance().update_links(content)
+    if success:
         return get_links(ctx)
+    else:
+        return {"content": "No links found"}
 
