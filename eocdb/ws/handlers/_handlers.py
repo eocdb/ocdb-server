@@ -510,7 +510,6 @@ class DatasetsSubmissionId(WsRequestHandler):
     def delete(self, submissionid: str):
         """Provide API operation deleteDatasets by submission ID()."""
         result = find_datasets(self.ws_context, submission_id=submissionid)
-        api_key = self.header.get_param('api_key', default=None)
         for ds in result.datasets:
             delete_dataset(ctx=self.ws_context, dataset_id=ds.id)
 
