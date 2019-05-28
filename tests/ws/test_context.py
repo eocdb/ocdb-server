@@ -1,7 +1,5 @@
 # import os
-import os
 import unittest
-from datetime import datetime
 
 from eocdb.core.db.db_driver import DbDriver
 from eocdb.core.db.db_user import DbUser
@@ -23,7 +21,7 @@ class WsContextTest(unittest.TestCase):
     def test_base_dir(self):
         ctx = new_test_service_context()
         self.assertIsInstance(ctx.base_dir, str)
-        self.assertTrue(ctx.base_dir.replace("\\", "/").endswith("/eocdb-server/tests/ws/res"))
+        self.assertTrue(ctx.base_dir.replace("\\", "/").endswith("/ocdb-server/tests/ws/res"))
 
     def test_store_path(self):
         ctx = new_test_service_context()
