@@ -27,7 +27,7 @@ install:
 
   - conda env create --file environment.yml
   - conda init bash
-  - source activate eocdb-dev
+  - source activate ocdb-server
   - conda list
   - python setup.py install
 
