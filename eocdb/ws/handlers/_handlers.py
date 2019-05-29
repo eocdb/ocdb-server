@@ -172,7 +172,6 @@ class StoreDownloadsubmissionFile(WsRequestHandler):
         if not result:
             self.set_status(400, reason="Submission File not found")
 
-
         self._return_zip_file(result)
         self.finish()
 
@@ -312,7 +311,7 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         if result is None:
             return
 
-        #if result.status is not "OK":
+        # if result.status is not "OK":
         #    self.set_status(400, reason="Validation Error")
 
         self.set_header('Content-Type', 'application/json')
@@ -494,7 +493,7 @@ class DatasetsId(WsRequestHandler):
             return
 
         dataset_id = id
-        delete_dataset(self.ws_context, dataset_id=dataset_id,)
+        delete_dataset(self.ws_context, dataset_id=dataset_id, )
         self.finish()
 
 
@@ -611,6 +610,23 @@ class DocfilesAffilProjectCruiseName(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
+class MatchupFiles(WsRequestHandler):
+    def get(self):
+        import ftptool
+
+        a_host = ftptool.FTPHost.connect("ftp.eumetsat.int", user="anonymous", password="hdzierz@gmail.com")
+        a_host.current_directory = '/pub/RSP/Test-Data/PMAv2.2.0/M01'
+
+        data = []
+        for (dirname, subdirs, files) in a_host.walk('/pub/RSP'):
+            for f in files:
+                data.append({'dirname': dirname, 'filename': f})
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(data))
+
+
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class Users(WsRequestHandler):
 
     def post(self):
@@ -661,8 +677,8 @@ class UsersId(WsRequestHandler):
 
     def get(self, user_name: str):
         """Provide API operation getUserByID()."""
-        if not(self.has_admin_rights() or
-               self.is_self(user_name)):
+        if not (self.has_admin_rights() or
+                self.is_self(user_name)):
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 

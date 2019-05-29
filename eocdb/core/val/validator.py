@@ -69,7 +69,7 @@ class Validator(MessageLibrary):
         error = template
         if template.startswith("@"):
             template_key = template[1:]
-            if not template_key in self._error_messages:
+            if template_key not in self._error_messages:
                 raise Exception("Requested error message not defined: " + template_key)
             error = self._error_messages[template_key]
 
@@ -86,7 +86,7 @@ class Validator(MessageLibrary):
         return num_errors
 
     def _validate_measurements(self, dataset, issues) -> int:
-        if not "fields" in dataset.metadata or not "units" in dataset.metadata:
+        if "fields" not in dataset.metadata or "units" not in dataset.metadata:
             issues.append(Issue(ISSUE_TYPE_ERROR,
                                 "Header tags /fields or /units missing. Skipping parsing of measurement records."))
             return 1
@@ -109,7 +109,7 @@ class Validator(MessageLibrary):
         errors = 0
         for variable in var_names:
             variable = self._strip_wavelength(variable)
-            if not variable in self._record_rules:
+            if variable not in self._record_rules:
                 issues.append(Issue(ISSUE_TYPE_WARNING,
                                     "Variable not listed in valid variables: " + variable))
                 index += 1

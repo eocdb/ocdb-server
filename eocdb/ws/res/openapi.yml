@@ -847,6 +847,21 @@ paths:
           description: Invalid user ID supplied.
         '404':
           description: User not found with given ID.
+  '/matchupfiles':
+    get:
+      tags:
+        - MatchupFiles
+      summary: Returns a list of matchup files
+      description: Returns a list of matchup files
+      operationId: getMatchupFiles
+      responses:
+        '200':
+          $ref: '#/components/responses/Submission'
+        '400':
+          description: Invalid request
+        '404':
+          description: No matchup files found
+
 components:
   parameters:
     apiKeyParam:
@@ -1527,6 +1542,14 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/SubmissionFile'
+    MatchupFiles:
+      description: List of matchup file of registry entries
+      content:
+        application/json:
+          schema:
+            type: array
+            items:
+              type: string
     User:
       description: Successful operation.
       content:

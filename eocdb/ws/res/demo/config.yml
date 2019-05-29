@@ -13,5 +13,3 @@ databases:
     parameters:
         url: "mongodb://localhost:27017/eocdb"
 
-links: 'res/links.md'
-

@@ -52,5 +52,6 @@ MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/users/logout'), UsersLogout),
     (url_pattern(API_URL_PREFIX + '/users/{user_name}'), UsersId),
     (url_pattern(API_URL_PREFIX + '/links'), Links),
+    (url_pattern(API_URL_PREFIX + '/matchupfiles'), MatchupFiles),
     (r'/(.*)', tornado.web.StaticFileHandler, {"path": 'static/webui', 'default_filename': 'index.html'}),
 ]
