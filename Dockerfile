@@ -4,9 +4,9 @@ FROM continuumio/miniconda3:latest
 # Person responsible
 MAINTAINER helge.dzierzon@brockmann-consult.de
 
-LABEL name=eocdb-server
+LABEL name=ocdb-server
 LABEL version=0.1.0
-LABEL conda_env=eocdb-dev
+LABEL conda_env=ocdb-server
 
 # Ensure usage of bash (simplifies source activate calls)
 SHELL ["/bin/bash", "-c"]
@@ -27,18 +27,18 @@ RUN  conda update -n base conda; \
     echo "test"
 
 # Set work directory for eocdb installation
-RUN mkdir /eocdb-server ;
-WORKDIR /eocdb-server
+RUN mkdir /ocdb-server ;
+WORKDIR /ocdb-server
 
 # Copy local github repo into image (will be replaced by either git clone or as a conda dep)
-ADD . /eocdb-server
+ADD . /ocdb-server
 
 # Setup eocdb-dev
-RUN source activate eocdb-dev; \
+RUN source activate ocdb-server; \
     python setup.py develop
 
 # Test eocdb-dev
-RUN source activate eocdb-dev; \
+RUN source activate ocdb-server; \
     pytest --cov=eocdb
 
 # Export web server port 4000
@@ -47,4 +47,4 @@ EXPOSE 4000
 # Start server
 
 ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["source activate eocdb-dev && eocdb-server -a 0.0.0.0 -v -c eocdb/ws/res/demo/config.yml" ]
+CMD ["source activate ocdb-server && ocdb-server -a 0.0.0.0 -v -c eocdb/ws/res/demo/config.yml" ]
