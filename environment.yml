@@ -1,4 +1,4 @@
-name: eocdb-dev
+name: ocdb-server
 
 channels:
   - conda-forge

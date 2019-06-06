@@ -5,6 +5,7 @@ import yaml
 
 from eocdb.core import UNDEFINED
 from eocdb.core.db.db_dataset import DbDataset
+from eocdb.core.db.db_links import DbLinks
 from eocdb.core.models.dataset import Dataset
 from eocdb.ws.context import WsContext
 from eocdb.ws.errors import WsBadRequestError
@@ -33,6 +34,10 @@ def new_test_db_dataset(n: int = 0):
     return _new_test_dataset(DbDataset, n)
 
 
+def new_links():
+    return _new_links(DbLinks)
+
+
 def _new_test_dataset(cls, n: int):
     return cls(dict(fields=["a", "b", "c"]),
                [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]],
@@ -40,6 +45,10 @@ def _new_test_dataset(cls, n: int):
                user_id=1,
                submission_id='abc',
                status='PUBLISHED')
+
+
+def _new_links(cls):
+    return cls(dict(name='links', content='test'))
 
 
 class RequestParamsMock(RequestParams):

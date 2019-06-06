@@ -139,7 +139,7 @@ class WsContext:
             user = DbUser.from_dict(user_dict)
             if not user.name == user_name:
                 return None
-            if not password is None:
+            if password is not None:
                 if not password == user.password:
                     return None
 

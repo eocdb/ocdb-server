@@ -10,11 +10,9 @@ class LinksTest(unittest.TestCase):
         self.ctx = new_test_service_context()
 
     def test_get_links(self):
+        update_links(self.ctx, "test")
         result = get_links(self.ctx)
-        self.assertEqual(result, "## Links")
+        self.assertEqual(result['content'], "test")
 
     def test_update_links(self):
-        update_links(self.ctx, "# Links")
-        result = get_links(self.ctx)
-        self.assertEqual(result, "# Links")
-        update_links(self.ctx, "## Links")
+        update_links(self.ctx, "test")

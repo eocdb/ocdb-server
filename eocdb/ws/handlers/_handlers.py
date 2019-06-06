@@ -510,9 +510,8 @@ class DatasetsSubmissionId(WsRequestHandler):
     def delete(self, submissionid: str):
         """Provide API operation deleteDatasets by submission ID()."""
         result = find_datasets(self.ws_context, submission_id=submissionid)
-        api_key = self.header.get_param('api_key', default=None)
         for ds in result.datasets:
-            delete_dataset(ctx=self.ws_context, dataset_id=ds.id, api_key=api_key)
+            delete_dataset(ctx=self.ws_context, dataset_id=ds.id)
 
         self.finish(tornado.escape.json_encode({'message': f'Datasets for {submissionid} deleted'}))
 
@@ -699,11 +698,17 @@ class UsersId(WsRequestHandler):
 # noinspection PyAbstractClass
 class Links(WsRequestHandler):
     def get(self):
+        """Provide API operation getUserByID()."""
         result = get_links(self.ws_context)
         self.set_header('Content-Type', 'application/txt')
-        self.finish(tornado.escape.json_encode({'content': result}))
+        self.finish(tornado.escape.json_encode({'content': result['content']}))
 
     def post(self):
+        """Provide API operation getUserByID()."""
+        if not self.has_admin_rights():
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+
         result = tornado.escape.json_decode(self.request.body)
 
         content = result['content']

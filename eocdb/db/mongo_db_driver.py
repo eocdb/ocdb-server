@@ -6,6 +6,7 @@ import numpy as np
 import pymongo
 import pymongo.errors
 
+from eocdb.core.db.db_links import DbLinks
 from eocdb.core.db.db_user import DbUser
 from ..core import QueryParser
 from ..core.db.db_driver import DbDriver
@@ -211,6 +212,28 @@ class MongoDbDriver(DbDriver):
 
         return DbUser.from_dict(result)
 
+    def get_links(self):
+        result = self._links_collection.find_one({'name': 'links'})
+
+        if not result:
+            return None
+
+        links_id = result["_id"]
+
+        del result["_id"]
+        result["id"] = str(links_id)
+
+        return DbLinks.from_dict(result)
+
+    def update_links(self, content: DbLinks):
+        result = self._links_collection.replace_one({'name': 'links'},
+                                                    {'name': 'links', 'content': content}, upsert=True)
+
+        if not result:
+            return False
+
+        return True
+
     @staticmethod
     def _get_start_index_and_count(query) -> (int, int):
         if query.offset is None:
@@ -240,6 +263,7 @@ class MongoDbDriver(DbDriver):
         self._collection = None
         self._submit_collection = None
         self._user_collection = None
+        self._links_collection = None
         self._config = None
         self._query_converter = MongoDbDriver.QueryConverter()
 
@@ -277,6 +301,7 @@ class MongoDbDriver(DbDriver):
         self._collection = self._client.eocdb.sb_datasets
         self._submit_collection = self._client.eocdb.submission_files
         self._user_collection = self._client.eocdb.users
+        self._links_collection = self._client.eocdb.links
         self._ensure_indices()
 
     def close(self):

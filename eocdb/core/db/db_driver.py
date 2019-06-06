@@ -1,6 +1,7 @@
 from abc import abstractmethod
 from typing import Optional, List
 
+from eocdb.core.db.db_links import DbLinks
 from eocdb.core.db.db_submission import DbSubmission
 from eocdb.core.db.db_user import DbUser
 from eocdb.core.models.submission_file import SubmissionFile
@@ -79,3 +80,11 @@ class DbDriver(Service):
     @abstractmethod
     def get_user_by_id(self, user_id: str) -> DbUser:
         """Get existing user by User Name."""
+
+    @abstractmethod
+    def get_links(self) -> DbLinks:
+        """Get Links page content"""
+
+    @abstractmethod
+    def update_links(self, content: DbLinks) -> bool:
+        """Update Links page content"""
