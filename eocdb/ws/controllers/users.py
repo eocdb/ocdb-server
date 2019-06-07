@@ -46,6 +46,10 @@ def login_user(ctx: WsContext,
 # noinspection PyUnusedLocal
 def create_user(ctx: WsContext,
                 user: User):
+    user_test = ctx.get_user(user.name)
+    if user_test is not None:
+        raise WsBadRequestError(f"User exists:  {user.name}")
+
     user_id = ctx.db_driver.instance().add_user(user)
     if not user_id:
         raise WsBadRequestError(f"Could not add user {user.name}")

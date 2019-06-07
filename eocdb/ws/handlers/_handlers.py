@@ -31,7 +31,6 @@ from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
 from ..webservice import WsRequestHandler
-from ...core.models.dataset import Dataset
 from ...core.models.dataset_ids import DatasetIds
 from ...core.models.user import User
 
@@ -242,7 +241,7 @@ class StoreUploadUser(WsRequestHandler):
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
-        result = get_submissions(ctx=self.ws_context, user_id=user.id)
+        result = get_submissions(ctx=self.ws_context, user=user)
 
         result_list = []
         for submission in result:
@@ -419,8 +418,7 @@ class StoreDownload(WsRequestHandler):
 
 
 # noinspection PyAbstractClass
-class DatasetsValidate(WsRequestHandler):
-
+class StoreUploadSubmissionValidate(WsRequestHandler):
     def post(self):
         """Provide API operation validateDataset()."""
         if not self.has_admin_rights():
@@ -429,7 +427,8 @@ class DatasetsValidate(WsRequestHandler):
 
         # transform body with mime-type application/json into a Dataset
         data_dict = tornado.escape.json_decode(self.request.body)
-        dataset = Dataset.from_dict(data_dict)
+        dataset = SbFileReader().read(io.StringIO(data_dict['data']))
+        #dataset = Dataset.from_dict(data_dict)
         result = validate_dataset(self.ws_context, dataset=dataset)
         # transform result of type DatasetValidationResult into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
@@ -457,10 +456,22 @@ class Datasets(WsRequestHandler):
         geojson = self.query.get_param_bool('geojson', default=False)
         offset = self.query.get_param_int('offset', default=None)
         count = self.query.get_param_int('count', default=None)
+
+        user_id = None
+
+        if self.has_admin_rights():
+            status = status
+        elif self.has_submit_rights():
+            user = self.ws_context.get_user(self.get_current_user())
+            user_id = user.id
+            status = status
+        else:
+            status = 'PUBLISHED'
+
         result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
                                wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
                                submission_id=submission_id, status=status,
-                               offset=offset, count=count, geojson=geojson)
+                               offset=offset, count=count, geojson=geojson, user_id=user_id)
         # transform result of type DatasetQueryResult into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))

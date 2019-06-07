@@ -32,7 +32,7 @@ from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
     DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, \
-    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED, QC_STATUS_CANCELED, QC_STATUS_PROCESSED
+    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED, QC_STATUS_CANCELED, QC_STATUS_PROCESSED, User
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMENT
@@ -166,7 +166,7 @@ def delete_submission(ctx: WsContext, submission_id: str) -> bool:
     result = find_datasets(ctx=ctx, submission_id=submission_id)
 
     for ds in result.datasets:
-        delete_dataset(ctx=ctx, dataset_id=ds.id, api_key="")
+        delete_dataset(ctx=ctx, dataset_id=ds.id)
 
     return ctx.db_driver.delete_submission(submission_id)
 
@@ -190,23 +190,23 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
         result = find_datasets(ctx=ctx, submission_id=submission.submission_id)
 
         for ds in result.datasets:
-            delete_dataset(ctx=ctx, dataset_id=ds.id, api_key="")
+            delete_dataset(ctx=ctx, dataset_id=ds.id)
 
     submission.status = status
     return ctx.db_driver.update_submission(submission)
 
 
-def get_submissions(ctx: WsContext, user_id: str) -> List[Submission]:
+def get_submissions(ctx: WsContext, user: User) -> List[Submission]:
     roles = []
+    user = ctx.get_user(user.name)
 
-    user = ctx.db_driver.instance().get_user_by_id(user_id=user_id)
     if user is not None and user.roles is not None:
         roles = user.roles
 
     if Roles.is_admin(roles):
         result = ctx.db_driver.get_submissions()
     else:
-        result = ctx.db_driver.get_submissions_for_user(user_id)
+        result = ctx.db_driver.get_submissions_for_user(user.id)
 
     submissions = []
     for db_subm in result:

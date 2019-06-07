@@ -53,6 +53,7 @@ def find_datasets(ctx: WsContext,
                   pname: List[str] = None,
                   geojson: bool = False,
                   offset: int = 1,
+                  user_id: str = None,
                   count: int = 1000) -> DatasetQueryResult:
     """Find datasets."""
     assert_one_of(wlmode, ['all', 'multispectral', 'hyperspectral'], name='wlmode')
@@ -76,6 +77,7 @@ def find_datasets(ctx: WsContext,
     query.geojson = geojson
     query.offset = offset
     query.count = count
+    query.user_id = user_id
 
     result = DatasetQueryResult({}, 0, [], query)
     for driver in ctx.db_drivers:
