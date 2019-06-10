@@ -79,7 +79,11 @@ class StoreUploadSubmission(WsRequestHandler):
                                               files)
 
         user = self.ws_context.get_user(user_name)
-        user_id = user.id
+
+        if user is not None:
+            user_id = user.id
+        else:
+            user_id = 0
 
         submission_id = arguments.get("submissionid")
         submission_id = _ensure_string_argument(submission_id, "submissionid")

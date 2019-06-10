@@ -73,6 +73,9 @@ def upload_submission_files(ctx: WsContext,
     if result is not None:
         raise WsBadRequestError(f"Submission identifier already exists: {submission_id}")
 
+    if path.count('/') < 3:
+        raise WsBadRequestError(f"Please provide teh path as format ID/cruise/experiment")
+
     datasets = dict()
     validation_results = dict()
 
