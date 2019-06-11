@@ -240,6 +240,7 @@ class WsRequestHandler(RequestHandler):
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Credentials", "true")
         self.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
         self.set_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
 
@@ -283,6 +284,17 @@ class WsRequestHandler(RequestHandler):
 
         user = self.ws_context.get_user(user_name)
         if not Roles.is_admin(user.roles):
+            return False
+
+        return True
+
+    def has_submit_rights(self):
+        user_name = self.get_current_user()
+        if not user_name:
+            return False
+
+        user = self.ws_context.get_user(user_name)
+        if not Roles.is_submit(user.roles):
             return False
 
         return True

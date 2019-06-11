@@ -73,7 +73,7 @@ def upload_submission_files(ctx: WsContext,
     if result is not None:
         raise WsBadRequestError(f"Submission identifier already exists: {submission_id}")
 
-    if path.count('/') < 3:
+    if path.count('/') < 2:
         raise WsBadRequestError(f"Please provide teh path as format ID/cruise/experiment")
 
     datasets = dict()
@@ -201,7 +201,7 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 
 def get_submissions(ctx: WsContext, user: User) -> List[Submission]:
     roles = []
-    user = ctx.get_user(user.name)
+    #user = ctx.get_user(user.name)
 
     if user is not None and user.roles is not None:
         roles = user.roles

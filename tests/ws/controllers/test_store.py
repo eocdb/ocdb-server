@@ -20,6 +20,7 @@
 # SOFTWARE.
 import unittest
 
+from eocdb.core.db.db_user import DbUser
 from eocdb.ws.controllers.store import *
 from eocdb.ws.controllers.store import _get_summary_validation_status
 from tests.helpers import new_test_service_context
@@ -65,7 +66,7 @@ class StoreTest(unittest.TestCase):
             uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
 
             result = upload_submission_files(ctx=self.ctx,
-                                             path="test_files",
+                                             path="test_files/cruise/experiment",
                                              submission_id="an_id",
                                              user_id=user_id,
                                              dataset_files=[uploaded_file],
@@ -123,7 +124,7 @@ class StoreTest(unittest.TestCase):
             uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
 
             result = upload_submission_files(ctx=self.ctx,
-                                             path="test_files",
+                                             path="test_files/cruise/experiment",
                                              submission_id="an_id",
                                              user_id=user_id,
                                              dataset_files=[uploaded_file],
@@ -148,7 +149,7 @@ class StoreTest(unittest.TestCase):
             uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
 
             result = upload_submission_files(ctx=self.ctx,
-                                             path="test_files",
+                                             path="test_files/cruise/experiment",
                                              submission_id="an_id",
                                              user_id=user_id,
                                              dataset_files=[uploaded_file],
@@ -167,6 +168,8 @@ class StoreTest(unittest.TestCase):
     def test_up_and_download_store_files(self):
         try:
             user_id = "77615"
+            user = DbUser(id_=user_id, name='scott', password='abc', first_name='Scott', last_name='Tiger',
+                          phone='', email='', roles=['submit'])
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
                               "/delimiter = comma\n"
@@ -183,7 +186,7 @@ class StoreTest(unittest.TestCase):
             uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
 
             result = upload_submission_files(ctx=self.ctx,
-                                             path="test_files",
+                                             path="test_files/cruise/experiment",
                                              submission_id="an_id",
                                              user_id=user_id,
                                              dataset_files=[uploaded_file],
@@ -193,7 +196,7 @@ class StoreTest(unittest.TestCase):
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
-            result = get_submissions(ctx=self.ctx, user_id=user_id)
+            result = get_submissions(ctx=self.ctx, user=user)
             self.assertIsNotNone(result)
             self.assertEqual(1, len(result))
             self.assertEqual("an_id", result[0].submission_id)
@@ -207,6 +210,8 @@ class StoreTest(unittest.TestCase):
     def test_up_and_download_store_files_with_doc_files(self):
         try:
             user_id = "77616"
+            user = DbUser(id_=user_id, name='scott', password='abc', first_name='Scott', last_name='Tiger',
+                          phone='', email='', roles=['submit'])
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
                               "/delimiter = comma\n"
@@ -227,7 +232,7 @@ class StoreTest(unittest.TestCase):
             document_file = UploadedFile("NSPRT_223_calib.txt", "text", document_file_content.encode("utf-8"))
 
             result = upload_submission_files(ctx=self.ctx,
-                                             path="test_files",
+                                             path="test_files/cruise/experiment",
                                              submission_id="an_id",
                                              user_id=user_id,
                                              dataset_files=[uploaded_file],
@@ -237,7 +242,7 @@ class StoreTest(unittest.TestCase):
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
-            result = get_submissions(ctx=self.ctx, user_id=user_id)
+            result = get_submissions(ctx=self.ctx, user=user)
             self.assertIsNotNone(result)
             self.assertEqual(1, len(result))
             self.assertEqual("an_id", result[0].submission_id)
@@ -271,7 +276,7 @@ class StoreTest(unittest.TestCase):
             document_file = UploadedFile("NSPRT_223_calib.txt", "text", document_file_content.encode("utf-8"))
 
             result = upload_submission_files(ctx=self.ctx,
-                                             path="test_files",
+                                             path="test_files/cruise/experiment",
                                              submission_id="an_id",
                                              user_id=user_id,
                                              dataset_files=[uploaded_file],
