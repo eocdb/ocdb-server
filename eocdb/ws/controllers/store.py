@@ -67,21 +67,28 @@ def upload_submission_files(ctx: WsContext,
     assert_not_none(doc_files)
 
     if submission_id == '':
-        raise WsBadRequestError(f"Submission identifier is empty!")
+        raise WsBadRequestError(f"Submission label is empty!")
 
     result = ctx.db_driver.get_submission(submission_id)
     if result is not None:
         raise WsBadRequestError(f"Submission identifier already exists: {submission_id}")
 
     if path.count('/') < 2:
-        raise WsBadRequestError(f"Please provide teh path as format ID/cruise/experiment")
+        raise WsBadRequestError(f"Please provide the path as format: acronym of affiliation/cruise/experiment")
+
+    if len(dataset_files) < 1:
+        raise WsBadRequestError(f"Please provide at least one dataset.")
 
     datasets = dict()
     validation_results = dict()
 
     # Read dataset files and make sure their format is ok.
     for file in dataset_files:
-        text = file.body.decode("utf-8")
+        try:
+            text = file.body.decode("utf-8")
+        except UnicodeDecodeError as e:
+            raise WsBadRequestError("Decoding error for file: " + file.filename + '.\n' + str(e))
+
         try:
             dataset = SbFileReader().read(io.StringIO(text))
         except SbFormatError as e:
@@ -175,7 +182,7 @@ def delete_submission(ctx: WsContext, submission_id: str) -> bool:
 
 
 def update_submission(ctx: WsContext, submission: DbSubmission, status: str, publication_date: datetime) -> bool:
-    old_status = submission.status
+    # old_status = submission.status
 
     # new_stati = QC_TRANSITIONS[old_status]
     # if status not in new_stati:
@@ -201,7 +208,7 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 
 def get_submissions(ctx: WsContext, user: User) -> List[Submission]:
     roles = []
-    #user = ctx.get_user(user.name)
+    # user = ctx.get_user(user.name)
 
     if user is not None and user.roles is not None:
         roles = user.roles

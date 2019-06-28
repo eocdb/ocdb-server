@@ -235,10 +235,14 @@ class StoreStatusSubmission(WsRequestHandler):
 class StoreUploadUser(WsRequestHandler):
 
     def get(self):
-        user_name = self.get_current_user()
-        if user_name is None:
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
+
+        if 'mode' in self.ws_context.config and self.ws_context.config['mode'] == 'dev':
+            user_name = 'chef'
+        else:
+            user_name = self.get_current_user()
+            if user_name is None:
+                self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+                return
 
         user = self.ws_context.get_user(user_name)
         if user is None:
@@ -711,6 +715,9 @@ class UsersId(WsRequestHandler):
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
         data = DbUser.from_dict(data_dict)
+        if not user_name:
+            user_name = self.get_current_user()
+
         update_user(self.ws_context, user_name=user_name, data=data)
         self.finish(tornado.escape.json_encode({'message': f'User {user_name} updated'}))
 

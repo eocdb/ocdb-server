@@ -6,7 +6,6 @@ from eocdb.core.query.query import FieldWildcardQuery, T, FieldRangeQuery, Field
 
 
 class MongoQueryGenerator(QueryVisitor[str]):
-
     plain_fields = ["path", "submission_id", "status", "pgroup", "pname"]
     METADATA = 'metadata.'
 
@@ -22,7 +21,10 @@ class MongoQueryGenerator(QueryVisitor[str]):
         return self.query_dict
 
     def visit_phrase(self, q: PhraseQuery, terms: List[T]) -> Optional[T]:
-        raise NotImplementedError()
+        phrase = ' '.join(terms)
+        query_dict = {'$text': {'$search': phrase}}
+        self.query_dict.update(query_dict)
+        return self.query_dict
 
     def visit_binary_op(self, q: BinaryOpQuery, term1: T, term2: T) -> Optional[T]:
         name_1 = self._get_db_field_name(q.term1.name)
@@ -38,15 +40,29 @@ class MongoQueryGenerator(QueryVisitor[str]):
 
     def visit_unary_op(self, q: UnaryOpQuery, term: T) -> Optional[T]:
         raise NotImplementedError()
+        # if q.op == '+':
+        #     self.query_dict.update({'$text': {'$search': '+' + q.term.value}})
+        # elif q.op == '-':
+        #     self.query_dict.update({'$text': {'$search': '-' + q.term.value}})
+        # elif q.op == 'NOT':
+        #     self.query_dict.update({'$not': q.term.value})
+        # else:
+        #     raise NotImplementedError()
+
+        # return self.query_dict
 
     def visit_field_value(self, q: FieldValueQuery) -> Optional[T]:
+        if q.name is None:
+            return self.query_dict.update({'$text': {'$search': q.value}})
+
         name = self._get_db_field_name(q.name)
-        self.last_field = {name : q.value}
+        self.last_field = {name: q.value}
+
         return self.last_field
 
     def visit_field_range(self, q: FieldRangeQuery) -> Optional[T]:
         name = self._get_db_field_name(q.name)
-        self.query_dict.update({name : {'$gte' : q.start_value, '$lte': q.end_value}})
+        self.query_dict.update({name: {'$gte': q.start_value, '$lte': q.end_value}})
         return self.query_dict
 
     def visit_field_wildcard(self, q: FieldWildcardQuery) -> Optional[T]:
@@ -66,4 +82,3 @@ class MongoQueryGenerator(QueryVisitor[str]):
             return name
 
         return self.METADATA + name
-    
