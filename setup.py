@@ -35,9 +35,7 @@ requirements = [
     'mongomock', 'ftptool'
 ]
 
-#a2e4eb1f7da65b20ee98d20cb054ceb55806a960
-
-packages = find_pacZZkages(exclude=["tests", "tests.*"])
+packages = find_packages(exclude=["tests", "tests.*"])
 
 VERSION = None
 DESCRIPTION = None
