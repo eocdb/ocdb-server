@@ -27,12 +27,10 @@ class MongoQueryGenerator(QueryVisitor[str]):
         return self.query_dict
 
     def visit_binary_op(self, q: BinaryOpQuery, term1: T, term2: T) -> Optional[T]:
-        name_1 = self._get_db_field_name(q.term1.name)
-        name_2 = self._get_db_field_name(q.term2.name)
         if q.op == 'AND':
-            self.query_dict.update({name_1: q.term1.value, name_2: q.term2.value})
+            self.query_dict.update({'$and': [term1, term2]})
         elif q.op == 'OR':
-            self.query_dict.update({'$or': [{name_1: q.term1.value}, {name_2: q.term2.value}]})
+            self.query_dict.update({'$or': [term1, term2]})
         else:
             raise NotImplementedError()
 
@@ -74,6 +72,8 @@ class MongoQueryGenerator(QueryVisitor[str]):
             raise NotImplementedError
 
         name = self._get_db_field_name(q.name)
+
+        #return {name: {'$regex': reg_exp}}
         self.query_dict.update({name: {'$regex': reg_exp}})
         return self.query_dict
 
