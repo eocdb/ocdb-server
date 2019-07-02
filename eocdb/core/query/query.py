@@ -100,8 +100,8 @@ class BinaryOpQuery(Query):
         return f'"{self.op}", {t1}, {t2}'
 
     def accept(self, visitor: 'QueryVisitor') -> Any:
-        term1 = self.term1.accept(visitor)
-        term2 = self.term2.accept(visitor)
+        term1 = self.term1.accept(visitor).copy()
+        term2 = self.term2.accept(visitor).copy()
         return visitor.visit_binary_op(self, term1, term2)
 
     def op_precedence(self) -> int:

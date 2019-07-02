@@ -634,10 +634,10 @@ class MatchupFiles(WsRequestHandler):
         import ftptool
 
         a_host = ftptool.FTPHost.connect("ftp.eumetsat.int", user="anonymous", password="hdzierz@gmail.com")
-        a_host.current_directory = '/pub/RSP/Test-Data/PMAv2.2.0/M01'
+        a_host.current_directory = '/pub/RSP/OLCI_MATCHUPS'
 
         data = []
-        for (dirname, subdirs, files) in a_host.walk('/pub/RSP'):
+        for (dirname, subdirs, files) in a_host.walk('/pub/RSP/OLCI_MATCHUPS'):
             for f in files:
                 data.append({'dirname': dirname, 'filename': f})
 

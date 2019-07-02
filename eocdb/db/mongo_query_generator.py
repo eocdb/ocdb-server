@@ -21,39 +21,49 @@ class MongoQueryGenerator(QueryVisitor[str]):
         return self.query_dict
 
     def visit_phrase(self, q: PhraseQuery, terms: List[T]) -> Optional[T]:
-        phrase = ' '.join(terms)
+        phrase = ''
+        for term in terms:
+            if isinstance(term, dict) and '$text' in term:
+                phrase += ' ' + term['$text']['$search']
+            elif isinstance(term, str):
+                phrase += ' ' + term
+        #phrase = ' '.join(terms)
         query_dict = {'$text': {'$search': phrase}}
         self.query_dict.update(query_dict)
         return self.query_dict
 
     def visit_binary_op(self, q: BinaryOpQuery, term1: T, term2: T) -> Optional[T]:
+        name_1 = self._get_db_field_name(q.term1.name)
+        name_2 = self._get_db_field_name(q.term2.name)
         if q.op == 'AND':
-            self.query_dict.update({'$and': [term1, term2]})
+            self.query_dict.update({'$and': [{name_1: term1[name_1]}, {name_2: term2[name_2]}]})
         elif q.op == 'OR':
-            self.query_dict.update({'$or': [term1, term2]})
+            self.query_dict.update({'$or': [{name_1: term1[name_1]}, {name_2: term2[name_2]}]})
         else:
             raise NotImplementedError()
 
         return self.query_dict
 
     def visit_unary_op(self, q: UnaryOpQuery, term: T) -> Optional[T]:
-        raise NotImplementedError()
         # if q.op == '+':
         #     self.query_dict.update({'$text': {'$search': '+' + q.term.value}})
-        # elif q.op == '-':
-        #     self.query_dict.update({'$text': {'$search': '-' + q.term.value}})
-        # elif q.op == 'NOT':
-        #     self.query_dict.update({'$not': q.term.value})
-        # else:
-        #     raise NotImplementedError()
-
-        # return self.query_dict
+        if q.op == '-':
+            self.last_field = {'$text': {'$search': '-' + q.term.value}}
+            return self.last_field
+        elif q.op == '+':
+            self.last_field = {'$text': {'$search': '+' + q.term.value}}
+            return self.last_field
+        elif q.op == 'NOT':
+            self.query_dict.update({'$not': q.term.value})
+            return self.query_dict
+        else:
+            raise NotImplementedError()
 
     def visit_field_value(self, q: FieldValueQuery) -> Optional[T]:
         if q.name is None:
-            return self.query_dict.update({'$text': {'$search': q.value}})
-
-        name = self._get_db_field_name(q.name)
+            name = '$text'
+        else:
+            name = self._get_db_field_name(q.name)
         self.last_field = {name: q.value}
 
         return self.last_field
@@ -73,9 +83,8 @@ class MongoQueryGenerator(QueryVisitor[str]):
 
         name = self._get_db_field_name(q.name)
 
-        #return {name: {'$regex': reg_exp}}
-        self.query_dict.update({name: {'$regex': reg_exp}})
-        return self.query_dict
+        self.last_field = {name: {'$regex': reg_exp}}
+        return self.last_field
 
     def _get_db_field_name(self, name: str) -> str:
         if name in self.plain_fields:
