@@ -152,7 +152,8 @@ class StoreUploadSubmissionTest(WsTestCase):
     def test_delete_invalid_id(self):
         cookie = self.login_admin()
         try:
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='DELETE', headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='DELETE',
+                                  headers={"Cookie": cookie})
 
             self.assertEqual(404, response.code)
             self.assertEqual('Submission not found', response.reason)
@@ -171,10 +172,12 @@ class StoreUploadSubmissionTest(WsTestCase):
                                       path="temp",
                                       publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                       allow_publication=False,
-                                      files=[])
+                                      files=[],
+                                      store_sub_path='Tom_Helge')
             self.ctx.db_driver.add_submission(submission)
 
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='DELETE', headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='DELETE',
+                                  headers={"Cookie": cookie})
 
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
@@ -190,7 +193,8 @@ class StoreUploadSubmissionTest(WsTestCase):
     def test_get_invalid_id(self):
         cookie = self.login_admin()
         try:
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='GET', headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='GET',
+                                  headers={"Cookie": cookie})
 
             self.assertEqual(404, response.code)
             self.assertEqual('Submission not found', response.reason)
@@ -209,17 +213,19 @@ class StoreUploadSubmissionTest(WsTestCase):
                                       path="temp",
                                       publication_date='2001-02-03T04:05:06',
                                       allow_publication=False,
-                                      files=[])
+                                      files=[],
+                                      store_sub_path='Tom_Helge')
             self.ctx.db_driver.add_submission(submission)
 
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='GET', headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='GET',
+                                  headers={"Cookie": cookie})
 
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
 
             actual_response_data = tornado.escape.json_decode(response.body)
-            del actual_response_data["date"]    # varies, therefore we do not check tb 2019-03-13
-            del actual_response_data["id"]    # varies, therefore we do not check tb 2019-03-13
+            del actual_response_data["date"]  # varies, therefore we do not check tb 2019-03-13
+            del actual_response_data["id"]  # varies, therefore we do not check tb 2019-03-13
             self.assertEqual({
                 'file_refs': [],
                 'files': [],
@@ -228,6 +234,7 @@ class StoreUploadSubmissionTest(WsTestCase):
                 'allow_publication': False,
                 'qc_status': 'OK',
                 'status': 'who_knows',
+                'store_sub_path': 'Tom_Helge',
                 'submission_id': 'I_DO_EXIST',
                 'user_id': '12'}, actual_response_data)
         finally:
@@ -266,7 +273,8 @@ class StoreStatusSubmissionTest(WsTestCase):
                                       path="temp",
                                       publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                       allow_publication=False,
-                                      files=[])
+                                      files=[],
+                                      store_sub_path='Tom_Helge')
             self.ctx.db_driver.add_submission(submission)
 
             body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED,
@@ -279,7 +287,7 @@ class StoreStatusSubmissionTest(WsTestCase):
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
 
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/{submission_id}",  method='GET',
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/{submission_id}", method='GET',
                                   headers={"Cookie": cookie})
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
@@ -294,8 +302,9 @@ class StoreStatusSubmissionTest(WsTestCase):
                 'qc_status': 'OK',
 
                 'status': QC_STATUS_APPROVED,
+                'store_sub_path': 'Tom_Helge',
                 'submission_id': 'I_DO_EXIST',
-                'publication_date': None, #!!! Comes in here as None. Should ba a date.!! Need to check
+                'publication_date': None,  # !!! Comes in here as None. Should ba a date.!! Need to check
                 'allow_publication': False,
                 'user_id': '12'}, actual_response_data)
         finally:
@@ -329,7 +338,8 @@ class StoreUploadSubmissionFileTest(WsTestCase):
     def test_get_no_results(self):
         cookie = self.login_admin()
         try:
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='GET', headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='GET',
+                                  headers={"Cookie": cookie})
 
             self.assertEqual(400, response.code)
             self.assertEqual('No result found', response.reason)
@@ -358,14 +368,17 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                     status=QC_STATUS_VALIDATED,
                                     result=DatasetValidationResult(status="WARNING", issues=[
                                         Issue(type="WARNING", description="This might be wrong")]))]
-            db_subm = DbSubmission(status="Hellyeah", user_id=mid, submission_id="submitme", files=files, qc_status="OK",
+            db_subm = DbSubmission(status="Hellyeah", user_id=mid, submission_id="submitme", files=files,
+                                   qc_status="OK",
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                    publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                                   allow_publication=False)
+                                   allow_publication=False,
+                                   store_sub_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             # --- get submission file ---
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='GET', headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='GET',
+                                  headers={"Cookie": cookie})
 
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
@@ -389,7 +402,8 @@ class StoreUploadSubmissionFileTest(WsTestCase):
     def test_delete_no_submissions(self):
         cookie = self.login_admin()
         try:
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='DELETE', headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='DELETE',
+                                  headers={"Cookie": cookie})
 
             self.assertEqual(404, response.code)
             self.assertEqual('Submission not found', response.reason)
@@ -413,13 +427,16 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                     status=QC_STATUS_VALIDATED,
                                     result=DatasetValidationResult(status="WARNING", issues=[
                                         Issue(type="WARNING", description="This might be wrong")]))]
-            db_subm = DbSubmission(status="Hellyeah", user_id=user.id, submission_id="submitme", files=files, qc_status="OK",
+            db_subm = DbSubmission(status="Hellyeah", user_id=user.id, submission_id="submitme", files=files,
+                                   qc_status="OK",
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                    publication_date='2001-02-03T04:05:06',
-                                   allow_publication=False)
+                                   allow_publication=False,
+                                   store_sub_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='DELETE', headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='DELETE',
+                                  headers={"Cookie": cookie})
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
 
@@ -482,7 +499,8 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                         Issue(type="WARNING", description="This might be wrong")]))]
             db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
                                    qc_status="OK",
-                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                   store_sub_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             mpf = MultiPartForm(boundary="HEFFALUMP")
@@ -515,7 +533,8 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                         Issue(type="WARNING", description="This might be wrong")]))]
             db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
                                    qc_status="OK",
-                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                   store_sub_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             index = -2
@@ -550,7 +569,8 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                         Issue(type="WARNING", description="This might be wrong")]))]
             db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
                                    qc_status=QC_STATUS_VALIDATED,
-                                   path="/tmp/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+                                   path="/tmp/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                   store_sub_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             index = 1
@@ -654,8 +674,10 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
                                     status=QC_STATUS_VALIDATED,
                                     result=DatasetValidationResult(status="WARNING", issues=[
                                         Issue(type="WARNING", description="This might be wrong")]))]
-            db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files, qc_status="OK",
-                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+            db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files,
+                                   qc_status="OK",
+                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                   store_sub_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             submission_id = "submitme"
@@ -686,8 +708,10 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
                                     status=QC_STATUS_VALIDATED,
                                     result=DatasetValidationResult(status="WARNING", issues=[
                                         Issue(type="WARNING", description="This might be wrong")]))]
-            db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files, qc_status="OK",
-                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6))
+            db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files,
+                                   qc_status="OK",
+                                   path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
+                                   store_sub_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             submission_id = "submitme"
@@ -700,7 +724,8 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
 
-            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/1", method='GET', headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/1", method='GET',
+                                  headers={"Cookie": cookie})
 
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
@@ -727,6 +752,7 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
 
         self.assertEqual(403, response.code)
         self.assertEqual('Not enough access rights to perform operation.', response.reason)
+
 
 class StoreUploadUserTest(WsTestCase):
 
@@ -926,6 +952,7 @@ test_sb_file = """/begin_header
 2017,1,11,11,11:05:00,12,-9999,95.7697,-54.8519,20,19,18,0.1696,0.0071,0.0125,0.0652,-9999,0.0130,0.0013,0.0497,0.0048,0.0057,0.0413,0.0231,0.0009,-9999,0.0149,0.0247,0.0012,2,0
 2017,1,11,11,11:05:00,11,-9999,95.7697,-54.8519,20,24,4,0.1461,0.0064,0.0116,0.0624,-9999,0.0116,0.0014,0.0439,0.0059,-9999,0.0353,0.0195,0.0007,-9999,0.0185,0.0216,0.0010,2,0
 """
+
 
 class DatasetsValidateTest(WsTestCase):
 
@@ -1242,7 +1269,8 @@ class DatasetsIdQcinfoTest(WsTestCase):
                                            when="2019-02-01",
                                            doc_files=["qc-report.docx"]))
             body = tornado.escape.json_encode(expected_qc_info.to_dict())
-            response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}/qcinfo", method='POST', body=body,  headers={"Cookie": cookie})
+            response = self.fetch(API_URL_PREFIX + f"/datasets/{dataset_id}/qcinfo", method='POST', body=body,
+                                  headers={"Cookie": cookie})
             self.assertEqual(200, response.code)
             self.assertEqual('OK', response.reason)
 
