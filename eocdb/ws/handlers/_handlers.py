@@ -23,6 +23,7 @@ from time import strptime
 import tornado.escape
 import tornado.httputil
 
+from eocdb.core import QuerySyntaxError
 from eocdb.core.db.db_user import DbUser
 from eocdb.ws.controllers.links import get_links, update_links
 from ..controllers.datasets import *
@@ -524,10 +525,15 @@ class Datasets(WsRequestHandler):
             user_id = None
             status = 'PUBLISHED'
 
-        result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
-                               wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
-                               submission_id=submission_id, status=status,
-                               offset=offset, count=count, geojson=geojson, user_id=user_id)
+        try:
+            result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
+                                   wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
+                                   submission_id=submission_id, status=status,
+                                   offset=offset, count=count, geojson=geojson, user_id=user_id)
+        except QuerySyntaxError as e:
+            self.set_status(status_code=403, reason=str(e))
+            return
+
         # transform result of type DatasetQueryResult into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
