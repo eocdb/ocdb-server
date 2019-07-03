@@ -52,6 +52,7 @@ def get_store_info(ctx: WsContext) -> Dict:
 
 def upload_submission_files(ctx: WsContext,
                             path: str,
+                            store_sub_path: str,
                             submission_id: str,
                             user_id: str,
                             dataset_files: List[UploadedFile],
@@ -74,7 +75,7 @@ def upload_submission_files(ctx: WsContext,
         raise WsBadRequestError(f"Submission identifier already exists: {submission_id}")
 
     if path.count('/') < 2:
-        raise WsBadRequestError(f"Please provide the path as format: acronym of affiliation/cruise/experiment")
+        raise WsBadRequestError(f"Please provide the path as format: AFFILIATION (acronym)/EXPERIMENT/CRUISE")
 
     if len(dataset_files) < 1:
         raise WsBadRequestError(f"Please provide at least one dataset.")
@@ -114,7 +115,7 @@ def upload_submission_files(ctx: WsContext,
     # Write dataset files into upload space and record as submission files
     submission_files = []
     index = 0
-    datasets_dir_path = ctx.get_datasets_upload_path(path)
+    datasets_dir_path = ctx.get_datasets_upload_path(os.path.join(store_sub_path, path))
     os.makedirs(datasets_dir_path, exist_ok=True)
     for file in dataset_files:
         file_path = os.path.join(datasets_dir_path, file.filename)
@@ -151,14 +152,14 @@ def upload_submission_files(ctx: WsContext,
     if not qc_status == DATASET_VALIDATION_RESULT_STATUS_ERROR:
         status = QC_STATUS_VALIDATED
 
-    archive_path = ctx.get_submission_path(path)
     # Insert submission into database
     submission = DbSubmission(submission_id=submission_id,
                               user_id=user_id,
                               date=datetime.datetime.now(),
                               status=status,
                               qc_status=qc_status,
-                              path=archive_path,
+                              path=path,
+                              store_sub_path=store_sub_path,
                               publication_date=publication_date,
                               allow_publication=allow_publication,
                               files=submission_files)
@@ -235,6 +236,43 @@ def get_submission_file(ctx: WsContext,
                         index: int):
     result = ctx.db_driver.get_submission_file(submission_id=submission_id, index=index)
     return result
+
+
+def update_submission_files(ctx: WsContext,
+                            path: str,
+                            store_sub_path: str,
+                            submission_id: str,
+                            new_submission_id: str,
+                            publication_date: datetime,
+                            allow_publication: bool) -> bool:
+    """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
+    assert_not_none(submission_id)
+    assert_not_none(path)
+    assert_not_none(publication_date)
+    assert_not_none(allow_publication)
+
+    if new_submission_id == '':
+        raise WsBadRequestError(f"Submission label is empty!")
+
+    if path.count('/') < 2:
+        raise WsBadRequestError(f"Please provide the path as format: acronym of affiliation/cruise/experiment")
+
+    # archive_path = ctx.get_submission_path(path)
+
+    submission = ctx.db_driver.get_submission(submission_id)
+    # old_path = submission.path
+
+
+    submission.submission_id = new_submission_id
+    submission.path = path
+    submission.store_sub_path = store_sub_path
+    submission.publication_date = publication_date
+    submission.allow_publication = allow_publication
+
+    ctx.db_driver.delete_submission(submission_id)
+    ctx.db_driver.add_submission(submission)
+
+    return True
 
 
 def update_submission_file(ctx: WsContext, submission: DbSubmission,
@@ -383,10 +421,11 @@ def download_submission_file_by_id(ctx: WsContext,
 
     submission_file = get_submission_file(ctx, submission_id, index)
 
+    path = os.path.join(submission.store_sub_path, submission.path)
     if submission_file.filetype == TYPE_MEASUREMENT:
-        source_path = os.path.join(ctx.get_datasets_upload_path(submission.path))
+        source_path = os.path.join(ctx.get_datasets_upload_path(path))
     else:
-        source_path = os.path.join(ctx.get_doc_files_upload_path(submission.path))
+        source_path = os.path.join(ctx.get_doc_files_upload_path(path))
 
     return _assemble_submission_file_zip_archive(ctx, submission_file, source_path)
 
@@ -489,30 +528,25 @@ def _update_validation_status(submission: DbSubmission):
 
 
 def _publish_submission(ctx: WsContext, submission: DbSubmission) -> bool:
-    source_meas_path = os.path.join(ctx.get_datasets_upload_path(submission.path))
-    source_docs_path = os.path.join(ctx.get_doc_files_upload_path(submission.path))
-    target_meas_path = os.path.join(ctx.get_datasets_store_path(submission.path))
-    target_docs_path = os.path.join(ctx.get_doc_files_store_path(submission.path))
+    submission_path = os.path.join(submission.store_sub_path, submission.path)
+    source_meas_path = os.path.join(ctx.get_datasets_upload_path(submission_path))
+    source_docs_path = os.path.join(ctx.get_doc_files_upload_path(submission_path))
 
     datasets = []
     for file in submission.files:
         if file.filetype == TYPE_MEASUREMENT:
             source_path = os.path.join(source_meas_path, file.filename)
-            target_path = os.path.join(target_meas_path, file.filename)
         else:
             source_path = os.path.join(source_docs_path, file.filename)
-            target_path = os.path.join(target_docs_path, file.filename)
-
-        os.rename(source_path, target_path)
 
         if file.filetype == TYPE_MEASUREMENT:
             try:
-                dataset = SbFileReader().read(target_path)
+                dataset = SbFileReader().read(source_path)
             except (SbFormatError, OSError) as e:
-                _LOG.warning("Error reading dataset: " + e)
+                _LOG.warning("Error reading dataset: " + str(e))
                 continue
 
-            dataset.path = target_path
+            dataset.path = source_path
             dataset.submission_id = submission.submission_id
             dataset.user_id = submission.user_id
             dataset.status = submission.status

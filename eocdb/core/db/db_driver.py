@@ -66,6 +66,10 @@ class DbDriver(Service):
         """Add new user"""
 
     @abstractmethod
+    def get_user_names(self) -> List[str]:
+        """Add new user"""
+
+    @abstractmethod
     def update_user(self, user: DbUser) -> bool:
         """Update existing user"""
 

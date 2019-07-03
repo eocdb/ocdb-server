@@ -23,6 +23,8 @@
 from ._handlers import *
 from ..webservice import url_pattern
 from ...version import VERSION
+from tornado import web
+
 
 API_URL_PREFIX = f"/ocdb/api/v{VERSION}"
 
@@ -36,7 +38,7 @@ MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/store/upload/user'), StoreUploadUser),
     (url_pattern(API_URL_PREFIX + '/store/upload/submissionfile/{submission_id}/{index}'), StoreUploadSubmissionFile),
     (url_pattern(API_URL_PREFIX + '/store/download/submissionfile/{submission_id}/{index}'),
-     StoreDownloadsubmissionFile),
+     StoreDownloadSubmissionFile),
     (url_pattern(API_URL_PREFIX + '/store/status/submissionfile/{submission_id}/{index}/{status}'),
      StoreUpdateSubmissionFile),
     (url_pattern(API_URL_PREFIX + '/store/download'), StoreDownload),
@@ -55,5 +57,5 @@ MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/users/{user_name}'), UsersId),
     (url_pattern(API_URL_PREFIX + '/links'), Links),
     (url_pattern(API_URL_PREFIX + '/matchupfiles'), MatchupFiles),
-    (r'/(.*)', tornado.web.StaticFileHandler, {"path": 'static/webui', 'default_filename': 'index.html'}),
+    (r'/(.*)', web.StaticFileHandler, {"path": 'static/webui', 'default_filename': 'index.html'}),
 ]

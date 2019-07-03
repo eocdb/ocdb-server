@@ -62,6 +62,8 @@ class MongoQueryGenerator(QueryVisitor[str]):
     def visit_field_value(self, q: FieldValueQuery) -> Optional[T]:
         if q.name is None:
             name = '$text'
+            self.last_field = {name: {'$search': q.value}}
+            return self.last_field
         else:
             name = self._get_db_field_name(q.name)
         self.last_field = {name: q.value}
@@ -80,6 +82,10 @@ class MongoQueryGenerator(QueryVisitor[str]):
             reg_exp = q.value.replace('*', '.*')
         else:
             raise NotImplementedError
+
+        if q.name is None:
+            self.last_field = {'$text': {'$search': reg_exp}}
+            return self.last_field
 
         name = self._get_db_field_name(q.name)
 
