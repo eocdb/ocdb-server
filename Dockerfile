@@ -12,7 +12,7 @@ LABEL conda_env=ocdb-server
 SHELL ["/bin/bash", "-c"]
 
 # Update system and install dependencies
-RUN apt-get -y update && apt-get -y upgrade && apt-get install sendmail
+RUN apt-get -y update && apt-get -y upgrade && apt-get -y install sendmail
 
 # && apt-get -y install  git build-essential libyaml-cpp-dev
 
