@@ -170,9 +170,9 @@ def upload_submission_files(ctx: WsContext,
 
 def delete_submission(ctx: WsContext, submission_id: str) -> bool:
     submission = ctx.db_driver.get_submission(submission_id)
-
-    for file in submission.files:
-        _delete_submission_file(ctx=ctx, file_to_delete=file, submission=submission)
+    _delete_submission(ctx, submission)
+    ##for file in submission.files:
+    #    _delete_submission_file(ctx=ctx, file_to_delete=file, submission=submission)
 
     result = find_datasets(ctx=ctx, submission_id=submission_id)
 
@@ -357,14 +357,20 @@ def delete_submission_file(ctx: WsContext, submission: DbSubmission, index: int)
 
 def _delete_submission_file(ctx, file_to_delete, submission):
     if file_to_delete.filetype == TYPE_MEASUREMENT:
-        root_path = ctx.get_datasets_upload_path(submission.path)
+        root_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path,submission.path))
     else:
-        root_path = ctx.get_doc_files_upload_path(submission.path)
+        root_path = ctx.get_doc_files_upload_path(os.path.join(submission.store_sub_path,submission.path))
     file_path = os.path.join(root_path, file_to_delete.filename)
     if os.path.isfile(file_path):
         os.remove(file_path)
     else:
         _LOG.warning("File to delete des not exist: " + file_path)
+
+
+def _delete_submission(ctx, submission):
+    import shutil
+    path = ctx.get_submission_path(submission.store_sub_path)
+    shutil.rmtree(path)
 
 
 def update_submission_file_status(ctx: WsContext, submission: DbSubmission, index: int, status: str) -> bool:
