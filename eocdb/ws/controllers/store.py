@@ -133,7 +133,7 @@ def upload_submission_files(ctx: WsContext,
         index += 1
 
     # Write documentation files into store
-    docs_dir_path = ctx.get_doc_files_upload_path(path)
+    docs_dir_path = ctx.get_doc_files_upload_path(os.path.join(store_sub_path, path))
     os.makedirs(docs_dir_path, exist_ok=True)
     for file in doc_files:
         file_path = os.path.join(docs_dir_path, file.filename)
@@ -260,8 +260,22 @@ def update_submission_files(ctx: WsContext,
     # archive_path = ctx.get_submission_path(path)
 
     submission = ctx.db_driver.get_submission(submission_id)
-    # old_path = submission.path
+    submission_path = ctx.get_submission_path(os.path.join(submission.store_sub_path, ''))
 
+    old_path = submission.path.split('/')
+    new_path = path.split('/')
+
+    import shutil
+    if old_path[0] != new_path[0]:
+        shutil.move(os.path.join(submission_path, old_path[0]), os.path.join(submission_path, new_path[0]))
+
+    if old_path[1] != new_path[1]:
+        shutil.move(os.path.join(submission_path, old_path[0], old_path[1]),
+                    os.path.join(submission_path, new_path[0], new_path[1]))
+
+    if old_path[2] != new_path[2]:
+        shutil.move(os.path.join(submission_path, old_path[0], old_path[1], old_path[2]),
+                    os.path.join(submission_path, new_path[0], new_path[1], new_path[2]))
 
     submission.submission_id = new_submission_id
     submission.path = path
@@ -544,7 +558,7 @@ def _publish_submission(ctx: WsContext, submission: DbSubmission) -> bool:
                 dataset = SbFileReader().read(source_path)
             except (SbFormatError, OSError) as e:
                 _LOG.warning("Error reading dataset: " + str(e))
-                continue
+                raise e
 
             dataset.path = source_path
             dataset.submission_id = submission.submission_id

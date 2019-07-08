@@ -23,7 +23,6 @@ from time import strptime
 import tornado.escape
 import tornado.httputil
 
-from eocdb.core import QuerySyntaxError
 from eocdb.core.db.db_user import DbUser
 from eocdb.ws.controllers.links import get_links, update_links
 from ..controllers.datasets import *
@@ -263,10 +262,14 @@ class StoreStatusSubmission(WsRequestHandler):
         status = body_dict["status"]
         publication_date = self._extract_date(body_dict)
 
-        success = update_submission(ctx=self.ws_context, submission=submission, status=status,
-                                    publication_date=publication_date)
-        if not success:
-            self.set_status(400, reason="Error updating submission")
+        try:
+            success = update_submission(ctx=self.ws_context, submission=submission, status=status,
+                                        publication_date=publication_date)
+            if not success:
+                self.set_status(400, reason="Error updating submission")
+
+        except SbFormatError as e:
+            self.set_status(403, reason="Error in data format. If status is VALIDATED please contact ops: " + str(e))
 
         self.finish(tornado.escape.json_encode({'message': f'Status of {submission_id} set to {status}'}))
 
@@ -499,7 +502,7 @@ class Datasets(WsRequestHandler):
         # noinspection PyBroadException,PyUnusedLocal
         expr = self.query.get_param('expr', default=None)
         region = self.query.get_param_float_list('region', default=None)
-        time = self.extract_time()
+        tim = self.extract_time()
         wdepth = self.query.get_param_float_list('wdepth', default=None)
         submission_id = self.query.get_param('submission_id', default=None)
         status = self.query.get_param('status', default=None)
@@ -516,21 +519,21 @@ class Datasets(WsRequestHandler):
 
         if self.has_admin_rights():
             status = status
-            user_id = user_id
         elif self.has_submit_rights():
-            user = self.ws_context.get_user(self.get_current_user())
-            user_id = user.id
-            status = status
+            if status != 'PUBLISHED':
+                user = self.ws_context.get_user(self.get_current_user())
+                user_id = user.id
+
+            status = 'PUBLISHED'
         else:
-            user_id = None
             status = 'PUBLISHED'
 
         try:
-            result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
+            result = find_datasets(self.ws_context, expr=expr, region=region, time=tim, wdepth=wdepth, mtype=mtype,
                                    wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
                                    submission_id=submission_id, status=status,
                                    offset=offset, count=count, geojson=geojson, user_id=user_id)
-        except QuerySyntaxError as e:
+        except Exception as e:
             self.set_status(status_code=403, reason=str(e))
             return
 
