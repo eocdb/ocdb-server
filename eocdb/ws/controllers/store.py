@@ -195,6 +195,11 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
         submission.publication_date = None
 
     if status == QC_STATUS_PUBLISHED or status == QC_STATUS_PROCESSED:
+        result = find_datasets(ctx=ctx, submission_id=submission.submission_id)
+
+        for ds in result.datasets:
+            delete_dataset(ctx=ctx, dataset_id=ds.id)
+
         _publish_submission(ctx, submission)
 
     if status == QC_STATUS_CANCELED:
@@ -312,7 +317,7 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
         # if DATASET_VALIDATION_RESULT_STATUS_ERROR == validation_result.status:
         #    return validation_result
 
-        write_path = ctx.get_datasets_upload_path(submission.path)
+        write_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path,submission.path))
         os.makedirs(write_path, exist_ok=True)
         file_path = os.path.join(write_path, file.filename)
         with open(file_path, "w") as fp:
