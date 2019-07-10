@@ -32,7 +32,7 @@ from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
     DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, \
-    QC_STATUS_READY_TO_PUBLISHED, QC_STATUS_PUBLISHED, QC_STATUS_CANCELED, QC_STATUS_PROCESSED, User
+    QC_STATUS_PUBLISHED, QC_STATUS_CANCELED, QC_STATUS_PROCESSED, User
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMENT
@@ -189,18 +189,17 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     # if status not in new_stati:
     #    return False
 
-    if status == QC_STATUS_READY_TO_PUBLISHED:
-        submission.publication_date = publication_date
-    else:
-        submission.publication_date = None
+    submission.publication_date = None
+    submission.status = status
 
     if status == QC_STATUS_PUBLISHED or status == QC_STATUS_PROCESSED:
+        submission.publication_date = publication_date
         result = find_datasets(ctx=ctx, submission_id=submission.submission_id)
 
         for ds in result.datasets:
             delete_dataset(ctx=ctx, dataset_id=ds.id)
 
-        _publish_submission(ctx, submission)
+        _publish_submission(ctx, submission, status)
 
     if status == QC_STATUS_CANCELED:
         result = find_datasets(ctx=ctx, submission_id=submission.submission_id)
@@ -208,7 +207,6 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
         for ds in result.datasets:
             delete_dataset(ctx=ctx, dataset_id=ds.id)
 
-    submission.status = status
     return ctx.db_driver.update_submission(submission)
 
 
@@ -552,7 +550,7 @@ def _update_validation_status(submission: DbSubmission):
         submission.status = QC_STATUS_VALIDATED
 
 
-def _publish_submission(ctx: WsContext, submission: DbSubmission) -> bool:
+def _publish_submission(ctx: WsContext, submission: DbSubmission, status) -> bool:
     submission_path = os.path.join(submission.store_sub_path, submission.path)
     source_meas_path = os.path.join(ctx.get_datasets_upload_path(submission_path))
     source_docs_path = os.path.join(ctx.get_doc_files_upload_path(submission_path))
@@ -571,10 +569,10 @@ def _publish_submission(ctx: WsContext, submission: DbSubmission) -> bool:
                 _LOG.warning("Error reading dataset: " + str(e))
                 raise e
 
-            dataset.path = source_path
+            dataset.path = submission_path
             dataset.submission_id = submission.submission_id
             dataset.user_id = submission.user_id
-            dataset.status = submission.status
+            dataset.status = status
 
             datasets.append(dataset)
 
