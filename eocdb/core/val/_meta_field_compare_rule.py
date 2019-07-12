@@ -9,7 +9,8 @@ from eocdb.core.val._rule import Rule
 
 class MetaFieldCompareRule(Rule):
 
-    def __init__(self, reference_name: str, compare_name: str, operation: str, data_type: str, error=None, warning=None):
+    def __init__(self, reference_name: str, compare_name: str, operation: str, data_type: str, error=None,
+                 warning=None):
         self._reference_name = reference_name
         self._compare_name = compare_name
         self._data_type = data_type
@@ -44,7 +45,8 @@ class MetaFieldCompareRule(Rule):
         if self._operator(reference_value, compare_value):
             return None
         else:
-            message_dict = GapAwareDict({"reference": self._reference_name, "ref_val": reference_value, "compare": self._compare_name, "comp_val": compare_value})
+            message_dict = GapAwareDict({"reference": self._reference_name, "ref_val": reference_value,
+                                         "compare": self._compare_name, "comp_val": compare_value})
             if self._error is not None:
                 error_message = library.resolve_error(self._error, message_dict)
                 return Issue(ISSUE_TYPE_ERROR, error_message)
@@ -53,7 +55,7 @@ class MetaFieldCompareRule(Rule):
                 return Issue(ISSUE_TYPE_WARNING, warning_message)
 
     def _extract_value(self, name: str, metadata: dict):
-        if not name in metadata:
+        if name not in metadata:
             return None
 
         value = metadata[name]

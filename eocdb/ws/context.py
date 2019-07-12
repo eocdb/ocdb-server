@@ -29,14 +29,14 @@ from ..core.db.db_driver import DbDriver
 from ..core.db.db_user import DbUser
 from ..core.service import ServiceRegistry
 
-_LOG = logging.getLogger('eocdb')
+_LOG = logging.getLogger('ocdb')
 
 Config = Dict[str, Any]
 
 STORE_PATH_CONFIG_NAME = "store_path"
-UPLOAD_PATH_CONFIG_NAME = "upload_path"
-DEFAULT_STORE_PATH = "~/.eocdb/store"
-DEFAULT_UPLOAD_PATH = "~/.eocdb/uploads"
+UPLOAD_PATH_CONFIG_NAME = "store_path"
+DEFAULT_STORE_PATH = "~/.ocdb/store"
+DEFAULT_UPLOAD_PATH = "~/.ocdb/store"
 
 DB_DRIVERS_CONFIG_NAME = "databases"
 

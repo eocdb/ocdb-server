@@ -2985,6 +2985,29 @@
       "unit_error": "@field_has_wrong_unit"
     }
   ],
+  "modifiers": [
+    {"name": "_###ang"},
+    {"name": "_##cilo"},
+    {"name": "_##ciup"},
+    {"name": "_ex###"},
+    {"name": "_em###"},
+    {"name": "###filt"},
+    {"name": "_###prefilt"},
+    {"name": "_###ppt"},
+    {"name": "_###size"},
+    {"name": "_stokes1"},
+    {"name": "_stokes2"},
+    {"name": "_stokes3"},
+    {"name": "_stokes4"}
+  ],
+  "suffixes": [
+    {"name": "_abun", "unit": "cell/L", "unit_error": "@suffix_has_wrong_unit"},
+    {"name": "_biovol", "unit": "m^3/L", "unit_error": "@suffix_has_wrong_unit"},
+    {"name": "_carbon", "unit": "ug/L", "unit_error": "@suffix_has_wrong_unit"},
+    {"name": "_cv"},
+    {"name": "_sd"},
+    {"name": "_se"}
+  ],
   "errors": [
     {
       "name": "south_north_mismatch",
@@ -3005,6 +3028,10 @@
     {
       "name": "field_has_wrong_unit",
       "message": "The units of '{field_name}', should be '{unit}', not '{bad_unit}'."
+    },
+    {
+      "name": "suffix_has_wrong_unit",
+      "message": "The units of '{field_name}' suffix, should be '{unit}', not '{bad_unit}'."
     },
     {
       "name": "field_out_of_bounds",

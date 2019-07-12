@@ -69,7 +69,7 @@ class Validator(MessageLibrary):
         error = template
         if template.startswith("@"):
             template_key = template[1:]
-            if not template_key in self._error_messages:
+            if template_key not in self._error_messages:
                 raise Exception("Requested error message not defined: " + template_key)
             error = self._error_messages[template_key]
 
@@ -86,7 +86,7 @@ class Validator(MessageLibrary):
         return num_errors
 
     def _validate_measurements(self, dataset, issues) -> int:
-        if not "fields" in dataset.metadata or not "units" in dataset.metadata:
+        if "fields" not in dataset.metadata or "units" not in dataset.metadata:
             issues.append(Issue(ISSUE_TYPE_ERROR,
                                 "Header tags /fields or /units missing. Skipping parsing of measurement records."))
             return 1
@@ -108,8 +108,14 @@ class Validator(MessageLibrary):
         index = 0
         errors = 0
         for variable in var_names:
+            if self._check_modifiers(variable):
+                continue
+
+            if self._check_suffixes(variable):
+                continue
+
             variable = self._strip_wavelength(variable)
-            if not variable in self._record_rules:
+            if variable not in self._record_rules:
                 issues.append(Issue(ISSUE_TYPE_WARNING,
                                     "Variable not listed in valid variables: " + variable))
                 index += 1
@@ -131,11 +137,52 @@ class Validator(MessageLibrary):
 
         return errors
 
+    def _check_modifiers(self, variable):
+        for modifier in self._modifiers:
+            m = modifier['name']
+            n = m.count('#')
+
+            expression = re.compile('.*' + m + '$')
+            if expression.match(variable):
+                return True
+
+            repl = ''
+            for i in range(n):
+                repl += '#'
+
+            buffer1 = m.replace(repl, '[0-9]{' + str(n) + '}')
+            buffer2 = m.replace(repl, '[0-9]{' + str(n+1) + '}')
+            expression1 = re.compile('.*' + buffer1 + '$')
+            expression2 = re.compile('.*' + buffer2 + '$')
+            if expression1.match(variable) and not expression2.match(variable):
+                return True
+        return False
+
+    def _check_suffixes(self, variable):
+        for suffix in self._suffixes:
+            s = suffix['name']
+            expression = re.compile('.*' + s + '$')
+            if expression.match(variable):
+                return True
+        return False
+
     def _parse_rules(self, rules_config):
         self._parse_header_rules(rules_config)
         self._parse_record_rules(rules_config)
         self._parse_error_messages(rules_config)
         self._parse_warning_messages(rules_config)
+        self._parse_modifiers(rules_config)
+        self._parse_suffixes(rules_config)
+
+    def _parse_modifiers(self, rules_config):
+        self._modifiers = []
+        if 'modifiers' in rules_config:
+            self._modifiers = rules_config["modifiers"]
+
+    def _parse_suffixes(self, rules_config):
+        self._suffixes = []
+        if 'suffixes' in rules_config:
+            self._suffixes = rules_config["suffixes"]
 
     def _parse_warning_messages(self, rules_config):
         self._warning_messages = {}

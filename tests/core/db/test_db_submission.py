@@ -22,10 +22,10 @@ class DbSubmissionTest(TestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", path="/the/archive/root/",
+        subm = DbSubmission(status="Hellyeah", user_id='Tom', submission_id="submitme", path="/the/archive/root/",
                             files=files, qc_status="warning", date=datetime(2001, 2, 3, 4, 5, 6),
                             publication_date=datetime(2002, 2, 3, 4, 5, 6),
-                            allow_publication=True)
+                            allow_publication=True, store_sub_path='Tom_Helge',)
 
         self.assertEqual({'date': datetime(2001, 2, 3, 4, 5, 6),
                           'file_refs': [],
@@ -50,7 +50,8 @@ class DbSubmissionTest(TestCase):
                           'qc_status': 'warning',
                           'status': 'Hellyeah',
                           'submission_id': 'submitme',
-                          'user_id': 88763}, subm.to_dict())
+                          'store_sub_path': 'Tom_Helge',
+                          'user_id': 'Tom'}, subm.to_dict())
 
     def test_from_dict(self):
         subm_dict = {'date': datetime(2002, 3, 4, 5, 6, 7),
@@ -74,7 +75,8 @@ class DbSubmissionTest(TestCase):
                      'path': 'up where we belong',
                      'publication_date': datetime(2002, 2, 3, 4, 5, 6),
                      'allow_publication': True,
-                     'user_id': 88764}
+                     'store_sub_path': 'Tom_Helge',
+                     'user_id': 'Tom'}
 
         subm = DbSubmission.from_dict(subm_dict)
         self.assertEqual(datetime(2002, 3, 4, 5, 6, 7), subm.date)
@@ -98,8 +100,8 @@ class DbSubmissionTest(TestCase):
                                 status=QC_STATUS_VALIDATED,
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
-        db_subm = DbSubmission(status="Hellyeah", user_id=88763, submission_id="submitme", files=files, qc_status="OK",
-                               path="/root/hell/yeah", date=datetime(2001, 2, 3, 4, 5, 6))
+        db_subm = DbSubmission(status="Hellyeah", user_id='Tom', submission_id="submitme", files=files, qc_status="OK",
+                               path="/root/hell/yeah", date=datetime(2001, 2, 3, 4, 5, 6), store_sub_path='Tom_Helge')
 
         subm = db_subm.to_submission()
 

@@ -1,7 +1,6 @@
 from unittest import TestCase
 
 from eocdb.core.models.dataset import Dataset
-from eocdb.core.seabass.sb_file_reader import SbFileReader
 from eocdb.core.val._gap_aware_dict import GapAwareDict
 from eocdb.core.val.validator import Validator
 
@@ -10,6 +9,38 @@ class ValidatorTest(TestCase):
 
     def setUp(self):
         self._validator = Validator()
+
+    def test_check_modifiers(self):
+        result = self._validator._check_modifiers('helge_12cilo')
+        self.assertTrue(result)
+
+        result = self._validator._check_modifiers('helge_ex123')
+        self.assertTrue(result)
+
+        result = self._validator._check_modifiers('helge_123ang')
+        self.assertTrue(result)
+
+        result = self._validator._check_modifiers('helge_1234ang')
+        self.assertFalse(result)
+
+        result = self._validator._check_modifiers('helge_stokes1')
+        self.assertTrue(result)
+
+        result = self._validator._check_modifiers('helge_stokes5')
+        self.assertFalse(result)
+
+        result = self._validator._check_modifiers('helge_stokes1_stokes5')
+        self.assertFalse(result)
+
+    def test_check_suffixes(self):
+        result = self._validator._check_suffixes('helge_sd')
+        self.assertTrue(result)
+
+        result = self._validator._check_suffixes('helge_ssd')
+        self.assertFalse(result)
+
+        result = self._validator._check_suffixes('helge_sd_suff')
+        self.assertFalse(result)
 
     def test_validate_dataset_valid(self):
         dataset = self._create_valid_dataset()

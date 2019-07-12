@@ -7,6 +7,7 @@ from eocdb.core.val._message_library import MessageLibrary
 
 no_units: List[str] = ["none", "unitless"]
 
+
 class NumberRecordRule:
 
     @staticmethod
@@ -61,10 +62,11 @@ class NumberRecordRule:
         self._lower_bound = lower_bound
         self._upper_bound = upper_bound
 
-    def eval(self, unit: str, values: List[float], library: MessageLibrary, missing_value: float = None) -> Optional[List[Issue]]:
+    def eval(self, unit: str, values: List[float], library: MessageLibrary,
+             missing_value: float = None) -> Optional[List[Issue]]:
         issues = []
 
-        if not unit in self._units:
+        if unit not in self._units:
             message_dict = GapAwareDict({"field_name": self._name, "unit": self._units, "bad_unit": unit})
             error_message = library.resolve_error(self._unit_error, message_dict)
             issues.append(Issue(ISSUE_TYPE_ERROR, error_message))

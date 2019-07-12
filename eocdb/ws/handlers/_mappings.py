@@ -23,21 +23,25 @@
 from ._handlers import *
 from ..webservice import url_pattern
 from ...version import VERSION
+from tornado import web
 
-API_URL_PREFIX = f"/eocdb/api/v{VERSION}"
+
+API_URL_PREFIX = f"/ocdb/api/v{VERSION}"
 
 MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/service/info'), ServiceInfo),
     (url_pattern(API_URL_PREFIX + '/store/info'), StoreInfo),
     (url_pattern(API_URL_PREFIX + '/store/upload/submission'), StoreUploadSubmission),
+    (url_pattern(API_URL_PREFIX + '/store/upload/submission/validate'), StoreUploadSubmissionValidate),
     (url_pattern(API_URL_PREFIX + '/store/upload/submission/{submission_id}'), StoreUploadSubmission),
     (url_pattern(API_URL_PREFIX + '/store/status/submission/{submission_id}'), StoreStatusSubmission),
     (url_pattern(API_URL_PREFIX + '/store/upload/user'), StoreUploadUser),
     (url_pattern(API_URL_PREFIX + '/store/upload/submissionfile/{submission_id}/{index}'), StoreUploadSubmissionFile),
-    (url_pattern(API_URL_PREFIX + '/store/download/submissionfile/{submission_id}/{index}'), StoreDownloadsubmissionFile),
-    (url_pattern(API_URL_PREFIX + '/store/status/submissionfile/{submission_id}/{index}/{status}'), StoreUpdateSubmissionFile),
+    (url_pattern(API_URL_PREFIX + '/store/download/submissionfile/{submission_id}/{index}'),
+     StoreDownloadSubmissionFile),
+    (url_pattern(API_URL_PREFIX + '/store/status/submissionfile/{submission_id}/{index}/{status}'),
+     StoreUpdateSubmissionFile),
     (url_pattern(API_URL_PREFIX + '/store/download'), StoreDownload),
-    (url_pattern(API_URL_PREFIX + '/datasets/validate'), DatasetsValidate),
     (url_pattern(API_URL_PREFIX + '/datasets'), Datasets),
     (url_pattern(API_URL_PREFIX + '/datasets/{id}'), DatasetsId),
     (url_pattern(API_URL_PREFIX + '/datasets/submission/{submissionid}'), DatasetsSubmissionId),
@@ -52,5 +56,6 @@ MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/users/logout'), UsersLogout),
     (url_pattern(API_URL_PREFIX + '/users/{user_name}'), UsersId),
     (url_pattern(API_URL_PREFIX + '/links'), Links),
-    (r'/(.*)', tornado.web.StaticFileHandler, {"path": 'static/webui', 'default_filename': 'index.html'}),
+    (url_pattern(API_URL_PREFIX + '/matchupfiles'), MatchupFiles),
+    (r'/(.*)', web.StaticFileHandler, {"path": 'static/webui', 'default_filename': 'index.html'}),
 ]

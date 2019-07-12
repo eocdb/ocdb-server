@@ -58,7 +58,16 @@ class PhraseQuery(Query):
         return f'[{args}]'
 
     def accept(self, visitor: 'QueryVisitor') -> Any:
-        return visitor.visit_phrase(self, [term.accept(visitor) for term in self.terms])
+        lst = []
+        for term in self.terms:
+            if isinstance(term, UnaryOpQuery):
+                lst.append(visitor.visit_unary_op(q=term, term=term.term))
+            elif isinstance(term, FieldValueQuery):
+                lst.append(str(term.value))
+            else:
+                lst.append(str(term))
+
+        return visitor.visit_phrase(self, lst)
 
     def op_precedence(self) -> int:
         return 400
@@ -91,7 +100,9 @@ class BinaryOpQuery(Query):
         return f'"{self.op}", {t1}, {t2}'
 
     def accept(self, visitor: 'QueryVisitor') -> Any:
-        return visitor.visit_binary_op(self, self.term1.accept(visitor), self.term2.accept(visitor))
+        term1 = self.term1.accept(visitor).copy()
+        term2 = self.term2.accept(visitor).copy()
+        return visitor.visit_binary_op(self, term1, term2)
 
     def op_precedence(self) -> int:
         if self.op == KW_OR:

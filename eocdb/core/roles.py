@@ -13,3 +13,9 @@ class Roles(Enum):
             return True
         return False
 
+    @classmethod
+    def is_submit(cls, roles: List[str]):
+        if Roles.SUBMIT.value in roles:
+            return True
+        return False
+

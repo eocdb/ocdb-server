@@ -838,7 +838,7 @@ class TestMongoDbDriver(unittest.TestCase):
     def test_add_submission_and_get_one_by_userid(self):
         date = datetime(2018, 4, 23, 12, 15, 34)
         sf = DbSubmission(submission_id="the_first_test", date=date, user_id='5876123', status=QC_STATUS_SUBMITTED,
-                          qc_status="OK", path="walking", files=[])
+                          qc_status="OK", path="walking", files=[],store_sub_path='Tom_Helge')
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -865,7 +865,7 @@ class TestMongoDbDriver(unittest.TestCase):
                               status=QC_STATUS_SUBMITTED, result=None)
         sf = DbSubmission(submission_id=submission_id, date=date, user_id='5876123', status=QC_STATUS_SUBMITTED,
                           qc_status="OK",
-                          path="/the/cool/path", files=[sf_0, sf_1])
+                          path="/the/cool/path", files=[sf_0, sf_1],store_sub_path='Tom_Helge')
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -888,18 +888,18 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def test_add_three_submission_and_get_two_by_userid(self):
         sf = DbSubmission(submission_id="the_first_test", date=datetime(2018, 4, 23, 12, 15, 34), user_id='5876123',
-                          status=QC_STATUS_SUBMITTED, qc_status="OK", path="/hey/yes/", files=[])
+                          status=QC_STATUS_SUBMITTED, qc_status="OK", path="/hey/yes/", files=[],store_sub_path='Tom_Helge')
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
 
         sf = DbSubmission(submission_id="the_other_user_thing", date=datetime(2017, 4, 23, 12, 15, 34),
                           user_id='999999',
-                          status=QC_STATUS_VALIDATED, qc_status="OK", path="some/where/else", files=[])
+                          status=QC_STATUS_VALIDATED, qc_status="OK", path="some/where/else", files=[],store_sub_path='Tom_Helge')
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
 
         sf = DbSubmission(submission_id="the_second_one", date=datetime(2011, 1, 22, 12, 15, 34), user_id='5876123',
-                          status=QC_STATUS_PUBLISHED, path="whatever", qc_status="OK", files=[])
+                          status=QC_STATUS_PUBLISHED, path="whatever", qc_status="OK", files=[],store_sub_path='Tom_Helge')
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -935,7 +935,7 @@ class TestMongoDbDriver(unittest.TestCase):
                               status=QC_STATUS_SUBMITTED, result=None)
         sf = DbSubmission(submission_id=submission_id, date=date, user_id='5876123', status=QC_STATUS_SUBMITTED,
                           qc_status="OK",
-                          path="/some/where/", files=[sf_0, sf_1])
+                          path="/some/where/", files=[sf_0, sf_1], store_sub_path='Tom_Helge')
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -963,7 +963,7 @@ class TestMongoDbDriver(unittest.TestCase):
                               status=QC_STATUS_SUBMITTED, result=None)
         sf = DbSubmission(submission_id=submission_id, date=date, user_id='5876123', status=QC_STATUS_SUBMITTED,
                           qc_status="OK",
-                          path="p/a/th/", files=[sf_0, sf_1])
+                          path="p/a/th/", files=[sf_0, sf_1], store_sub_path='Tom_Helge')
 
         sf_id = self._driver.add_submission(sf)
         self.assertIsNotNone(sf_id)
@@ -980,7 +980,7 @@ class TestMongoDbDriver(unittest.TestCase):
 
         submission = DbSubmission(submission_id=submission_id, date=date, user_id='5876123', status="SUBMITTED",
                                   qc_status="OK",
-                                  path="/root", files=[])
+                                  path="/root", files=[], store_sub_path='Tom_Helge')
 
         sf_id = self._driver.add_submission(submission)
         self.assertIsNotNone(sf_id)
@@ -996,7 +996,7 @@ class TestMongoDbDriver(unittest.TestCase):
         submission = DbSubmission(submission_id="dunno_", date=datetime(2018, 3, 22, 11, 14, 33), user_id='5876123',
                                   status=QC_STATUS_SUBMITTED,
                                   qc_status="OK",
-                                  path="/root", files=[], id_="nasenmann")
+                                  path="/root", files=[], id_="nasenmann", store_sub_path='Tom_Helge')
 
         result = self._driver.update_submission(submission)
         self.assertFalse(result)
@@ -1006,7 +1006,7 @@ class TestMongoDbDriver(unittest.TestCase):
         submission = DbSubmission(submission_id="dunno_", date=datetime(2019, 2, 22, 11, 14, 33), user_id='5876123',
                                   status=QC_STATUS_SUBMITTED,
                                   qc_status="OK",
-                                  path="/root", files=[])
+                                  path="/root", files=[], store_sub_path='Tom_Helge')
 
         s_id = self._driver.add_submission(submission)
         self.assertIsNotNone(s_id)
@@ -1035,7 +1035,7 @@ class TestMongoDbDriver(unittest.TestCase):
                                   user_id='5876123',
                                   status=QC_STATUS_SUBMITTED,
                                   qc_status="OK",
-                                  path="/root", files=[])
+                                  path="/root", files=[], store_sub_path='Tom_Helge')
 
         s_id = self._driver.add_submission(submission)
         self.assertIsNotNone(s_id)

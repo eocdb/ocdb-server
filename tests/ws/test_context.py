@@ -27,43 +27,43 @@ class WsContextTest(unittest.TestCase):
         ctx = new_test_service_context()
         path = ctx.store_path
         self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/store"))
+        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store"))
 
     def test_upload_path(self):
         ctx = new_test_service_context()
         path = ctx.upload_path
         self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/uploads"))
+        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store"))
 
     def test_get_datasets_store_path(self):
         ctx = new_test_service_context()
         path = ctx.get_datasets_store_path("BIGELOW/BALCH/gnats")
         self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/store/BIGELOW/BALCH/gnats/archive"))
+        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/BIGELOW/BALCH/gnats/archive"))
 
     def test_get_doc_files_store_path(self):
         ctx = new_test_service_context()
         path = ctx.get_doc_files_store_path("BIGELOW/BALCH/gnats")
         self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/store/BIGELOW/BALCH/gnats/documents"))
+        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/BIGELOW/BALCH/gnats/documents"))
 
     def test_get_datasets_upload_path(self):
         ctx = new_test_service_context()
         path = ctx.get_datasets_upload_path("INPE/Ubatuba")
         self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/uploads/INPE/Ubatuba/archive"))
+        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/INPE/Ubatuba/archive"))
 
     def test_get_doc_files_upload_path(self):
         ctx = new_test_service_context()
         path = ctx.get_doc_files_upload_path("INPE/Ubatuba")
         self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/uploads/INPE/Ubatuba/documents"))
+        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/INPE/Ubatuba/documents"))
 
     def test_submission_path(self):
         ctx = new_test_service_context()
         path = ctx.get_submission_path("LAVAL_U/babin/ICESCAPE")
         self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.eocdb/uploads/LAVAL_U/babin/ICESCAPE"))
+        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/LAVAL_U/babin/ICESCAPE"))
 
     def test_db_driver(self):
         ctx = new_test_service_context()

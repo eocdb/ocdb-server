@@ -6,7 +6,6 @@ from eocdb.core.query.query import FieldWildcardQuery, T, FieldRangeQuery, Field
 
 
 class MongoQueryGenerator(QueryVisitor[str]):
-
     plain_fields = ["path", "submission_id", "status", "pgroup", "pname"]
     METADATA = 'metadata.'
 
@@ -22,31 +21,58 @@ class MongoQueryGenerator(QueryVisitor[str]):
         return self.query_dict
 
     def visit_phrase(self, q: PhraseQuery, terms: List[T]) -> Optional[T]:
-        raise NotImplementedError()
+        phrase = ''
+        for term in terms:
+            if isinstance(term, dict) and '$text' in term:
+                phrase += ' ' + term['$text']['$search']
+            elif isinstance(term, str):
+                phrase += ' ' + term
+        #phrase = ' '.join(terms)
+        query_dict = {'$text': {'$search': phrase}}
+        self.query_dict.update(query_dict)
+        return self.query_dict
 
     def visit_binary_op(self, q: BinaryOpQuery, term1: T, term2: T) -> Optional[T]:
         name_1 = self._get_db_field_name(q.term1.name)
         name_2 = self._get_db_field_name(q.term2.name)
         if q.op == 'AND':
-            self.query_dict.update({name_1: q.term1.value, name_2: q.term2.value})
+            self.query_dict.update({'$and': [{name_1: term1[name_1]}, {name_2: term2[name_2]}]})
         elif q.op == 'OR':
-            self.query_dict.update({'$or': [{name_1: q.term1.value}, {name_2: q.term2.value}]})
+            self.query_dict.update({'$or': [{name_1: term1[name_1]}, {name_2: term2[name_2]}]})
         else:
             raise NotImplementedError()
 
         return self.query_dict
 
     def visit_unary_op(self, q: UnaryOpQuery, term: T) -> Optional[T]:
-        raise NotImplementedError()
+        # if q.op == '+':
+        #     self.query_dict.update({'$text': {'$search': '+' + q.term.value}})
+        if q.op == '-':
+            self.last_field = {'$text': {'$search': '-' + q.term.value}}
+            return self.last_field
+        elif q.op == '+':
+            self.last_field = {'$text': {'$search': '+' + q.term.value}}
+            return self.last_field
+        elif q.op == 'NOT':
+            self.query_dict.update({'$not': q.term.value})
+            return self.query_dict
+        else:
+            raise NotImplementedError()
 
     def visit_field_value(self, q: FieldValueQuery) -> Optional[T]:
-        name = self._get_db_field_name(q.name)
-        self.last_field = {name : q.value}
+        if q.name is None:
+            name = '$text'
+            self.last_field = {name: {'$search': q.value}}
+            return self.last_field
+        else:
+            name = self._get_db_field_name(q.name)
+        self.last_field = {name: q.value}
+
         return self.last_field
 
     def visit_field_range(self, q: FieldRangeQuery) -> Optional[T]:
         name = self._get_db_field_name(q.name)
-        self.query_dict.update({name : {'$gte' : q.start_value, '$lte': q.end_value}})
+        self.query_dict.update({name: {'$gte': q.start_value, '$lte': q.end_value}})
         return self.query_dict
 
     def visit_field_wildcard(self, q: FieldWildcardQuery) -> Optional[T]:
@@ -57,13 +83,17 @@ class MongoQueryGenerator(QueryVisitor[str]):
         else:
             raise NotImplementedError
 
+        if q.name is None:
+            self.last_field = {'$text': {'$search': reg_exp}}
+            return self.last_field
+
         name = self._get_db_field_name(q.name)
-        self.query_dict.update({name: {'$regex': reg_exp}})
-        return self.query_dict
+
+        self.last_field = {name: {'$regex': reg_exp}}
+        return self.last_field
 
     def _get_db_field_name(self, name: str) -> str:
         if name in self.plain_fields:
             return name
 
         return self.METADATA + name
-    

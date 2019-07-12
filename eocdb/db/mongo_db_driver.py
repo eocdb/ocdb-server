@@ -198,6 +198,19 @@ class MongoDbDriver(DbDriver):
 
         return DbUser.from_dict(result)
 
+    def get_user_names(self):
+        result = self._user_collection.find({})
+
+        if not result:
+            return None
+
+        names = []
+
+        for user in result:
+            names.append(user['name'])
+
+        return names
+
     def get_user_by_id(self, user_id: str):
         obj_id = MongoDbDriver._obj_id(user_id)
         result = self._user_collection.find_one({'_id': obj_id})

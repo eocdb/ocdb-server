@@ -232,6 +232,9 @@ class WsRequestHandler(RequestHandler):
         return self._cookie
 
     def get_current_user(self):
+        if 'mode' in self.ws_context.config and self.ws_context.config['mode'] == 'dev':
+            return 'chef'
+
         cookie = self.get_secure_cookie("user")
         if cookie is not None:
             return cookie.decode("utf-8")
@@ -240,6 +243,7 @@ class WsRequestHandler(RequestHandler):
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
+        self.set_header("Access-Control-Allow-Credentials", "true")
         self.set_header("Access-Control-Allow-Headers", "Content-Type, Authorization, X-Requested-With")
         self.set_header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS')
 
@@ -277,12 +281,26 @@ class WsRequestHandler(RequestHandler):
         self.finish(self.to_json(obj))
 
     def has_admin_rights(self):
+        if 'mode' in self.ws_context.config and self.ws_context.config['mode'] == 'dev':
+            return True
+
         user_name = self.get_current_user()
         if not user_name:
             return False
 
         user = self.ws_context.get_user(user_name)
         if not Roles.is_admin(user.roles):
+            return False
+
+        return True
+
+    def has_submit_rights(self):
+        user_name = self.get_current_user()
+        if not user_name:
+            return False
+
+        user = self.ws_context.get_user(user_name)
+        if not Roles.is_submit(user.roles):
             return False
 
         return True

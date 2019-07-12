@@ -44,6 +44,7 @@ class DatasetQuery(Model):
                  pname: List[str] = None,
                  geojson: bool=False,
                  offset: int = 1,
+                 user_id: str = None,
                  count: int = 1000):
         self._expr = expr
         self._region = region
@@ -59,6 +60,7 @@ class DatasetQuery(Model):
         self._geojson = geojson
         self._offset = offset
         self._count = count
+        self._user_id = user_id
 
     @property
     def expr(self) -> Optional[str]:
@@ -171,3 +173,11 @@ class DatasetQuery(Model):
     @count.setter
     def count(self, value: Optional[int]):
         self._count = value
+
+    @property
+    def user_id(self) -> Optional[int]:
+        return self._user_id
+
+    @user_id.setter
+    def user_id(self, value: Optional[int]):
+        self._user_id = value

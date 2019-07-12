@@ -15,6 +15,7 @@ class DbSubmission(Submission):
                  status: str,
                  qc_status: str,
                  path: str,
+                 store_sub_path: str,
                  files: List[SubmissionFile],
                  id_: str = None,
                  publication_date: datetime = None,
@@ -24,6 +25,7 @@ class DbSubmission(Submission):
 
         self._id = id_
         self._path = path
+        self._store_sub_path = store_sub_path
         self._files = files
 
     @property
@@ -41,6 +43,14 @@ class DbSubmission(Submission):
     @path.setter
     def path(self, value: str):
         self._path = value
+
+    @property
+    def store_sub_path(self):
+        return self._store_sub_path
+
+    @store_sub_path.setter
+    def store_sub_path(self, value: str):
+        self._store_sub_path = value
 
     @property
     def id(self) -> str:
@@ -71,6 +81,7 @@ class DbSubmission(Submission):
                             status=subm.status,
                             qc_status=subm.qc_status,
                             path=path,
+                            store_sub_path=dictionary['store_sub_path'],
                             publication_date=subm.publication_date,
                             allow_publication=subm.allow_publication,
                             files=subm_files_array,

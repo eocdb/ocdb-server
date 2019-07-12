@@ -232,6 +232,8 @@ class SbFileReader:
             line = self._next_line()
             if line == EOF:
                 break
+            if line == '\n':
+                continue
 
             tokens = re.split(delimiter_regex, line)
             if len(tokens) <= 1:

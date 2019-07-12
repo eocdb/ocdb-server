@@ -31,7 +31,6 @@ from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
 from ..webservice import WsRequestHandler
-from ...core.models.dataset import Dataset
 from ...core.models.dataset_ids import DatasetIds
 from ...core.models.user import User
 
@@ -80,7 +79,11 @@ class StoreUploadSubmission(WsRequestHandler):
                                               files)
 
         user = self.ws_context.get_user(user_name)
-        user_id = user.id
+
+        if user is not None:
+            user_id = user.id
+        else:
+            user_id = 0
 
         submission_id = arguments.get("submissionid")
         submission_id = _ensure_string_argument(submission_id, "submissionid")
@@ -89,11 +92,13 @@ class StoreUploadSubmission(WsRequestHandler):
 
         path = arguments.get("path")
         path = _ensure_string_argument(path, "path")
-        target_path = os.path.join(temp_area_path, path)
 
         publication_date = arguments.get("publicationdate")
         publication_date = _ensure_string_argument(publication_date, "publicationdate")
         # publication_date = datetime.datetime.strptime(publication_date, '%Y-%m-%dT%H:%M:%S')
+
+        if publication_date == 'none':
+            publication_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         allow_publication = arguments.get("allowpublication")
         allow_publication = _ensure_string_argument(allow_publication, 'allowpublication')
@@ -112,7 +117,8 @@ class StoreUploadSubmission(WsRequestHandler):
             doc_files.append(UploadedFile.from_dict(file))
 
         result = upload_submission_files(ctx=self.ws_context,
-                                         path=target_path,
+                                         path=path,
+                                         store_sub_path=temp_area_path,
                                          submission_id=submission_id,
                                          user_id=user_id,
                                          publication_date=publication_date,
@@ -161,9 +167,53 @@ class StoreUploadSubmission(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(sub_dict))
 
+    def put(self, submission_id: str):
+        user_name = self.get_current_user()
+        if not (self.has_admin_rights() or self.is_self(user_name)):
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+
+        user = self.ws_context.get_user(user_name)
+
+        if user is not None:
+            user_id = user.id
+        else:
+            user_id = 0
+
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+
+        if submission is None:
+            self.set_status(404, reason="Submission not found")
+            return
+
+        body_dict = tornado.escape.json_decode(self.request.body)
+        new_submission_id = body_dict["submissionid"]
+        new_submission_id = _ensure_string_argument(new_submission_id, "submissionid")
+
+        temp_area_path = str(user_id) + "_" + submission_id
+
+        path = body_dict["path"]
+        path = _ensure_string_argument(path, "path")
+
+        publication_date = body_dict["publicationdate"]
+        publication_date = _ensure_string_argument(publication_date, "publicationdate")
+
+        allow_publication = body_dict["allowpublication"]
+
+        update_submission_files(ctx=self.ws_context,
+                                path=path,
+                                store_sub_path=temp_area_path,
+                                new_submission_id=new_submission_id,
+                                submission_id=submission_id,
+                                publication_date=publication_date,
+                                allow_publication=allow_publication)
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode({'message': f'Submission {submission_id} updated'}))
+
 
 # noinspection PyAbstractClass
-class StoreDownloadsubmissionFile(WsRequestHandler):
+class StoreDownloadSubmissionFile(WsRequestHandler):
     def get(self, submission_id: str, index: str):
         index = int(index)
 
@@ -171,7 +221,6 @@ class StoreDownloadsubmissionFile(WsRequestHandler):
 
         if not result:
             self.set_status(400, reason="Submission File not found")
-
 
         self._return_zip_file(result)
         self.finish()
@@ -213,10 +262,14 @@ class StoreStatusSubmission(WsRequestHandler):
         status = body_dict["status"]
         publication_date = self._extract_date(body_dict)
 
-        success = update_submission(ctx=self.ws_context, submission=submission, status=status,
-                                    publication_date=publication_date)
-        if not success:
-            self.set_status(400, reason="Error updating submission")
+        try:
+            success = update_submission(ctx=self.ws_context, submission=submission, status=status,
+                                        publication_date=publication_date)
+            if not success:
+                self.set_status(400, reason="Error updating submission")
+
+        except SbFormatError as e:
+            self.set_status(403, reason="Error in data format. If status is VALIDATED please contact ops: " + str(e))
 
         self.finish(tornado.escape.json_encode({'message': f'Status of {submission_id} set to {status}'}))
 
@@ -233,17 +286,21 @@ class StoreStatusSubmission(WsRequestHandler):
 class StoreUploadUser(WsRequestHandler):
 
     def get(self):
-        user_name = self.get_current_user()
-        if user_name is None:
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
+
+        if 'mode' in self.ws_context.config and self.ws_context.config['mode'] == 'dev':
+            user_name = 'chef'
+        else:
+            user_name = self.get_current_user()
+            if user_name is None:
+                self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+                return
 
         user = self.ws_context.get_user(user_name)
         if user is None:
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
-        result = get_submissions(ctx=self.ws_context, user_id=user.id)
+        result = get_submissions(ctx=self.ws_context, user=user)
 
         result_list = []
         for submission in result:
@@ -312,7 +369,7 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         if result is None:
             return
 
-        #if result.status is not "OK":
+        # if result.status is not "OK":
         #    self.set_status(400, reason="Validation Error")
 
         self.set_header('Content-Type', 'application/json')
@@ -420,8 +477,7 @@ class StoreDownload(WsRequestHandler):
 
 
 # noinspection PyAbstractClass
-class DatasetsValidate(WsRequestHandler):
-
+class StoreUploadSubmissionValidate(WsRequestHandler):
     def post(self):
         """Provide API operation validateDataset()."""
         if not self.has_admin_rights():
@@ -430,7 +486,8 @@ class DatasetsValidate(WsRequestHandler):
 
         # transform body with mime-type application/json into a Dataset
         data_dict = tornado.escape.json_decode(self.request.body)
-        dataset = Dataset.from_dict(data_dict)
+        dataset = SbFileReader().read(io.StringIO(data_dict['data']))
+        # dataset = Dataset.from_dict(data_dict)
         result = validate_dataset(self.ws_context, dataset=dataset)
         # transform result of type DatasetValidationResult into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
@@ -445,7 +502,7 @@ class Datasets(WsRequestHandler):
         # noinspection PyBroadException,PyUnusedLocal
         expr = self.query.get_param('expr', default=None)
         region = self.query.get_param_float_list('region', default=None)
-        time = self.extract_time()
+        tim = self.extract_time()
         wdepth = self.query.get_param_float_list('wdepth', default=None)
         submission_id = self.query.get_param('submission_id', default=None)
         status = self.query.get_param('status', default=None)
@@ -458,10 +515,28 @@ class Datasets(WsRequestHandler):
         geojson = self.query.get_param_bool('geojson', default=False)
         offset = self.query.get_param_int('offset', default=None)
         count = self.query.get_param_int('count', default=None)
-        result = find_datasets(self.ws_context, expr=expr, region=region, time=time, wdepth=wdepth, mtype=mtype,
-                               wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
-                               submission_id=submission_id, status=status,
-                               offset=offset, count=count, geojson=geojson)
+        user_id = self.query.get_param_int('user_id', default=None)
+
+        if self.has_admin_rights():
+            status = status
+        elif self.has_submit_rights():
+            if status != 'PUBLISHED':
+                user = self.ws_context.get_user(self.get_current_user())
+                user_id = user.id
+
+            status = 'PUBLISHED'
+        else:
+            status = 'PUBLISHED'
+
+        try:
+            result = find_datasets(self.ws_context, expr=expr, region=region, time=tim, wdepth=wdepth, mtype=mtype,
+                                   wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
+                                   submission_id=submission_id, status=status,
+                                   offset=offset, count=count, geojson=geojson, user_id=user_id)
+        except Exception as e:
+            self.set_status(status_code=403, reason=str(e))
+            return
+
         # transform result of type DatasetQueryResult into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
@@ -470,10 +545,10 @@ class Datasets(WsRequestHandler):
         start_time = self.query.get_param('start_time', default=None)
         end_time = self.query.get_param('end_time', default=None)
         if start_time is not None or end_time is not None:
-            time = [start_time, end_time]
+            t = [start_time, end_time]
         else:
-            time = None
-        return time
+            t = None
+        return t
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -494,7 +569,7 @@ class DatasetsId(WsRequestHandler):
             return
 
         dataset_id = id
-        delete_dataset(self.ws_context, dataset_id=dataset_id,)
+        delete_dataset(self.ws_context, dataset_id=dataset_id, )
         self.finish()
 
 
@@ -611,6 +686,23 @@ class DocfilesAffilProjectCruiseName(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
+class MatchupFiles(WsRequestHandler):
+    def get(self):
+        import ftptool
+
+        a_host = ftptool.FTPHost.connect("ftp.eumetsat.int", user="anonymous", password="hdzierz@gmail.com")
+        a_host.current_directory = '/pub/RSP/OLCI_MATCHUPS'
+
+        data = []
+        for (dirname, subdirs, files) in a_host.walk('/pub/RSP/OLCI_MATCHUPS'):
+            for f in files:
+                data.append({'dirname': dirname, 'filename': f})
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(data))
+
+
+# noinspection PyAbstractClass,PyShadowingBuiltins
 class Users(WsRequestHandler):
 
     def post(self):
@@ -627,9 +719,27 @@ class Users(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode({'message': f'User {user.name} added'}))
 
+    def get(self):
+        """Provide API operation createUser()."""
+        if not self.has_admin_rights():
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+
+        # transform body with mime-type application/json into a User
+        result = get_user_names(self.ws_context)
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result))
+
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class UsersLogin(WsRequestHandler):
+    def get(self):
+        current_user = self.get_current_user()
+        if current_user is None:
+            return self.finish(tornado.escape.json_encode({'message': f'Not Logged in'}))
+
+        return self.finish(tornado.escape.json_encode({'message': f'I am {current_user}'}))
 
     def post(self):
         """Provide API operation loginUser()."""
@@ -642,6 +752,45 @@ class UsersLogin(WsRequestHandler):
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(user_info))
+
+    def put(self):
+        """Provide API operation changeLoginUser()."""
+        current_user = self.get_current_user()
+        credentials = tornado.escape.json_decode(self.request.body)
+        username = credentials.get('username')
+
+        new_password1 = credentials.get('newpassword1')
+        new_password2 = credentials.get('newpassword2')
+        old_password = credentials.get('oldpassword')
+
+        if current_user is None:
+            return self.finish(tornado.escape.json_encode({'message': f'Not Logged in'}))
+
+        if not self.has_admin_rights():
+            if current_user != username:
+                self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+                return
+
+        if username is None:
+            user = login_user(self.ws_context, username=current_user, password=old_password, retain_password=True)
+            username = current_user
+        else:
+            user = get_user_by_name(self.ws_context, user_name=username, retain_password=True)
+
+        if user is None:
+            self.set_status(status_code=404,
+                            reason='The user does not exist. If that is your own user name, contact: ops@eumetsat.int')
+
+        if new_password1 != new_password2:
+            self.set_status(status_code=403, reason="Passwords Don't match")
+            return
+
+        user['password'] = new_password1
+
+        update_user(self.ws_context, user_name=username, data=DbUser.from_dict(user))
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode({'message': f'User {username}\'s password updated.'}))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -661,8 +810,8 @@ class UsersId(WsRequestHandler):
 
     def get(self, user_name: str):
         """Provide API operation getUserByID()."""
-        if not(self.has_admin_rights() or
-               self.is_self(user_name)):
+        if not (self.has_admin_rights() or
+                self.is_self(user_name)):
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
@@ -680,6 +829,9 @@ class UsersId(WsRequestHandler):
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
         data = DbUser.from_dict(data_dict)
+        if not user_name:
+            user_name = self.get_current_user()
+
         update_user(self.ws_context, user_name=user_name, data=data)
         self.finish(tornado.escape.json_encode({'message': f'User {user_name} updated'}))
 
