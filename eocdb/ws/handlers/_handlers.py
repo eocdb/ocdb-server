@@ -766,10 +766,9 @@ class UsersLogin(WsRequestHandler):
         if current_user is None:
             return self.finish(tornado.escape.json_encode({'message': f'Not Logged in'}))
 
-        if not self.has_admin_rights():
-            if current_user != username:
-                self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-                return
+        if current_user != username:
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
 
         if username is None:
             user = login_user(self.ws_context, username=current_user, password=old_password, retain_password=True)
