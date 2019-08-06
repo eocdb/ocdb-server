@@ -31,6 +31,10 @@ def login_user(ctx: WsContext,
                username: str,
                password: str,
                retain_password: bool = False) -> Dict[str, str]:
+
+    if 'mode' in ctx.config and ctx.config['mode'] == 'dev':
+        return ctx.get_user('chef').to_dict()
+
     assert_not_none(username, name='username')
     assert_not_none(password, name='password')
 

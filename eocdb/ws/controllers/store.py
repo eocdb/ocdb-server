@@ -24,6 +24,7 @@ import os
 import tempfile
 import time
 import zipfile
+import chardet
 from typing import Dict, List, Optional
 
 from eocdb.core.roles import Roles
@@ -85,8 +86,9 @@ def upload_submission_files(ctx: WsContext,
 
     # Read dataset files and make sure their format is ok.
     for file in dataset_files:
+        txt_encoding = chardet.detect(file.body)['encoding']
         try:
-            text = file.body.decode("utf-8")
+            text = file.body.decode(txt_encoding)
         except UnicodeDecodeError as e:
             raise WsBadRequestError("Decoding error for file: " + file.filename + '.\n' + str(e))
 
@@ -120,7 +122,12 @@ def upload_submission_files(ctx: WsContext,
     for file in dataset_files:
         file_path = os.path.join(datasets_dir_path, file.filename)
         with open(file_path, "w") as fp:
-            text = file.body.decode("utf-8")
+            txt_encoding = chardet.detect(file.body)['encoding']
+            try:
+                text = file.body.decode(txt_encoding)
+            except UnicodeDecodeError as e:
+                raise WsBadRequestError("Decoding error for file: " + file.filename + '.\n' + str(e))
+
             fp.write(text)
 
         result = validation_results[file.filename]
