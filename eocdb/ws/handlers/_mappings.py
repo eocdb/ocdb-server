@@ -26,7 +26,7 @@ from ...version import VERSION
 from tornado import web
 
 
-API_URL_PREFIX = f"/ocdb/api/v{VERSION}"
+API_URL_PREFIX = f"/ocdb/api/{VERSION}"
 
 MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/service/info'), ServiceInfo),
