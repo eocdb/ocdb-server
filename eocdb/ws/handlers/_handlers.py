@@ -751,6 +751,7 @@ class UsersLogin(WsRequestHandler):
             self.set_secure_cookie("user", username, expires_days=1)
 
         self.set_header('Content-Type', 'application/json')
+        del user_info['password']
         self.finish(tornado.escape.json_encode(user_info))
 
     def put(self):
