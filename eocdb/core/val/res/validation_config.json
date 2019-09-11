@@ -275,6 +275,11 @@
       "type": "field_obsolete",
       "warning": "@obsolete_field"
     },
+	{
+      "name": "geoform_originljdyspo",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
     {
       "name": "geoform",
       "type": "field_obsolete",

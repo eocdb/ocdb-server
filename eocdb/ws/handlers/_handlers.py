@@ -285,22 +285,23 @@ class StoreStatusSubmission(WsRequestHandler):
 # noinspection PyAbstractClass
 class StoreUploadUser(WsRequestHandler):
 
-    def get(self):
+    def get(self, user_name: Optional[str] = None):
 
-        if 'mode' in self.ws_context.config and self.ws_context.config['mode'] == 'dev':
-            user_name = 'chef'
-        else:
-            user_name = self.get_current_user()
-            if user_name is None:
-                self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-                return
+        current_user_name = self.get_current_user()
 
-        user = self.ws_context.get_user(user_name)
-        if user is None:
+        if current_user_name is None:
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
-        result = get_submissions(ctx=self.ws_context, user=user)
+        current_user = self.ws_context.get_user(current_user_name)
+        if current_user is None:
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+
+        if user_name is None:
+            user_name = current_user_name
+
+        result = get_submissions(ctx=self.ws_context, user=current_user, user_name=user_name)
 
         result_list = []
         for submission in result:
@@ -749,6 +750,9 @@ class UsersLogin(WsRequestHandler):
         user_info = login_user(self.ws_context, username=username, password=password)
         if user_info is not None:
             self.set_secure_cookie("user", username, expires_days=1)
+
+        if 'password' in user_info:
+            del user_info['password']
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(user_info))

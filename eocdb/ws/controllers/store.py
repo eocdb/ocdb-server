@@ -217,17 +217,19 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     return ctx.db_driver.update_submission(submission)
 
 
-def get_submissions(ctx: WsContext, user: User) -> List[Submission]:
+def get_submissions(ctx: WsContext, user: User, user_name: Optional[str] = None) -> List[Submission]:
     roles = []
-    # user = ctx.get_user(user.name)
+    quser = ctx.get_user(user_name)
 
     if user is not None and user.roles is not None:
         roles = user.roles
 
-    if Roles.is_admin(roles):
+    if Roles.is_admin(roles) and quser is None:
         result = ctx.db_driver.get_submissions()
+    elif not Roles.is_admin(roles) and quser is None:
+        result = []
     else:
-        result = ctx.db_driver.get_submissions_for_user(user.id)
+        result = ctx.db_driver.get_submissions_for_user(quser.id, Roles.is_admin(roles))
 
     submissions = []
     for db_subm in result:
