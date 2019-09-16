@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from eocdb.core.file_helper import FileHelper
+from ocdb.core.file_helper import FileHelper
 
 
 class FileHelperTest(unittest.TestCase):

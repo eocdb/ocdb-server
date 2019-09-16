@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from eocdb.core.models import DatasetValidationResult, Issue, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
-from eocdb.core.models.submission import TYPE_MEASUREMENT
-from eocdb.core.models.submission_file import SubmissionFile
+from ocdb.core.models import DatasetValidationResult, Issue, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
+from ocdb.core.models.submission import TYPE_MEASUREMENT
+from ocdb.core.models.submission_file import SubmissionFile
 
 
 class SubmissionFileTest(TestCase):

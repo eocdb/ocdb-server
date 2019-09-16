@@ -1,7 +1,7 @@
 import unittest
 from typing import List
 
-from eocdb.db.static_data import get_products, get_product_groups, get_fields, get_groups_for_product
+from ocdb.db.static_data import get_products, get_product_groups, get_fields, get_groups_for_product
 
 
 class StaticDataTest(unittest.TestCase):

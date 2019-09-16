@@ -2,7 +2,7 @@ import json
 import unittest
 from tornado.testing import AsyncHTTPTestCase
 
-from eocdb.ws.app import new_application
+from ocdb.ws.app import new_application
 from tests.helpers import new_test_service_context
 
 
@@ -14,7 +14,7 @@ class HandlersTest(AsyncHTTPTestCase):
         application.ws_context = new_test_service_context()
         return application
 
-    @unittest.skip('superseded by eocdb.ws.handlers')
+    @unittest.skip('superseded by ocdb.ws.handlers')
     def test_fetch_base(self):
         response = self.fetch('/')
         self.assertEqual(200, response.code)

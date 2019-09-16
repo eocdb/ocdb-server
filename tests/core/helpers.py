@@ -1,4 +1,4 @@
-from eocdb.core.service import Service, ServiceInfo
+from ocdb.core.service import Service, ServiceInfo
 
 
 class TestServiceBase(Service):

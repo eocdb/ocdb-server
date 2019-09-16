@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from eocdb.core.service import Service, ServiceRegistry, ServiceError
+from ocdb.core.service import Service, ServiceRegistry, ServiceError
 from tests.core.helpers import TestServiceA, TestServiceB
 
 

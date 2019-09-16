@@ -1,7 +1,7 @@
 from datetime import datetime
 from unittest import TestCase
 
-from eocdb.core.time_helper import TimeHelper
+from ocdb.core.time_helper import TimeHelper
 
 
 class TimeHelperTest(TestCase):

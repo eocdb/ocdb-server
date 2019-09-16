@@ -1,15 +1,15 @@
 import unittest
 from datetime import datetime
 
-from eocdb.core.db.db_submission import DbSubmission
-from eocdb.core.db.db_user import DbUser
-from eocdb.core.db.errors import OperationalError
-from eocdb.core.models.dataset_query import DatasetQuery
-from eocdb.core.models.qc_info import QC_STATUS_VALIDATED, \
+from ocdb.core.db.db_submission import DbSubmission
+from ocdb.core.db.db_user import DbUser
+from ocdb.core.db.errors import OperationalError
+from ocdb.core.models.dataset_query import DatasetQuery
+from ocdb.core.models.qc_info import QC_STATUS_VALIDATED, \
     QC_STATUS_SUBMITTED, QC_STATUS_PUBLISHED, QC_STATUS_APPROVED
-from eocdb.core.models.submission_file import SubmissionFile
-from eocdb.core.roles import Roles
-from eocdb.db.mongo_db_driver import MongoDbDriver
+from ocdb.core.models.submission_file import SubmissionFile
+from ocdb.core.roles import Roles
+from ocdb.db.mongo_db_driver import MongoDbDriver
 from tests import helpers
 
 

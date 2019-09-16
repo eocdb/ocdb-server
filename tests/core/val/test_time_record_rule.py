@@ -1,7 +1,7 @@
 import unittest
 
-from eocdb.core.models import ISSUE_TYPE_ERROR
-from eocdb.core.val._time_record_rule import TimeRecordRule
+from ocdb.core.models import ISSUE_TYPE_ERROR
+from ocdb.core.val._time_record_rule import TimeRecordRule
 from tests.core.val._mock_library import MockLibrary
 
 

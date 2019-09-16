@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from eocdb.core.models import Dataset, ISSUE_TYPE_WARNING
-from eocdb.core.val._meta_field_obsolete_rule import MetaFieldObsoleteRule
+from ocdb.core.models import Dataset, ISSUE_TYPE_WARNING
+from ocdb.core.val._meta_field_obsolete_rule import MetaFieldObsoleteRule
 from tests.core.val._mock_library import MockLibrary
 
 

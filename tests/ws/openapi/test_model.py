@@ -1,6 +1,6 @@
 import unittest
 
-from eocdb.ws.openapi.model import SchemaProxy, SchemaImpl
+from ocdb.ws.openapi.model import SchemaProxy, SchemaImpl
 
 
 class SchemaTest(unittest.TestCase):

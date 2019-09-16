@@ -22,9 +22,9 @@
 
 import unittest
 
-from eocdb.core.db.db_user import DbUser
-from eocdb.core.roles import Roles
-from eocdb.ws.controllers.users import *
+from ocdb.core.db.db_user import DbUser
+from ocdb.core.roles import Roles
+from ocdb.ws.controllers.users import *
 from tests.helpers import new_test_service_context
 
 

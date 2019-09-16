@@ -1,6 +1,6 @@
 import unittest
 
-from eocdb.core.roles import Roles
+from ocdb.core.roles import Roles
 
 
 class RolesTest(unittest.TestCase):

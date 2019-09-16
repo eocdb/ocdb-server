@@ -29,18 +29,18 @@ from typing import Optional
 import tornado.escape
 import tornado.testing
 
-from eocdb.core.db.db_submission import DbSubmission
-from eocdb.core.models import DatasetValidationResult, Issue, User
-from eocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, \
+from ocdb.core.db.db_submission import DbSubmission
+from ocdb.core.models import DatasetValidationResult, Issue, User
+from ocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, \
     QC_STATUS_VALIDATED, QC_STATUS_APPROVED
-from eocdb.core.models.submission import Submission, TYPE_MEASUREMENT
-from eocdb.core.models.submission_file import SubmissionFile
-from eocdb.core.roles import Roles
-from eocdb.ws.app import new_application
-from eocdb.ws.controllers.datasets import add_dataset, get_dataset_qc_info
-from eocdb.ws.controllers.users import create_user
-from eocdb.ws.handlers import API_URL_PREFIX
-from eocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument, \
+from ocdb.core.models.submission import Submission, TYPE_MEASUREMENT
+from ocdb.core.models.submission_file import SubmissionFile
+from ocdb.core.roles import Roles
+from ocdb.ws.app import new_application
+from ocdb.ws.controllers.datasets import add_dataset, get_dataset_qc_info
+from ocdb.ws.controllers.users import create_user
+from ocdb.ws.handlers import API_URL_PREFIX
+from ocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument, \
     StoreStatusSubmission
 from tests.core.mpf import MultiPartForm
 from tests.helpers import new_test_service_context, new_test_dataset

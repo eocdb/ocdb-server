@@ -1,9 +1,9 @@
 import os
 import sys
 
-from eocdb.core.file_helper import FileHelper
-from eocdb.core.seabass.sb_file_reader import SbFileReader
-from eocdb.db.mongo_db_driver import MongoDbDriver
+from ocdb.core.file_helper import FileHelper
+from ocdb.core.seabass.sb_file_reader import SbFileReader
+from ocdb.db.mongo_db_driver import MongoDbDriver
 
 
 # usage:

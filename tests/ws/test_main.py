@@ -1,6 +1,6 @@
 import unittest
 
-from eocdb.ws.main import main \
+from ocdb.ws.main import main \
     # from eocdb.ws.main import main, new_web_service  # , new_web_service
 
 

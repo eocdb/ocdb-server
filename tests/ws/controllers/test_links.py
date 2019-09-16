@@ -1,6 +1,6 @@
 import unittest
 
-from eocdb.ws.controllers.links import get_links, update_links
+from ocdb.ws.controllers.links import get_links, update_links
 from tests.helpers import new_test_service_context
 
 

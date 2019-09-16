@@ -1,13 +1,13 @@
 import os
 import unittest
 
-from eocdb.ws.openapi.codegen import Code, CodeGen
-from eocdb.ws.openapi.parser import Parser
+from ocdb.ws.openapi.codegen import Code, CodeGen
+from ocdb.ws.openapi.parser import Parser
 
 
 class CodeGenTest(unittest.TestCase):
     def test_gen_code(self):
-        file = os.path.join(os.path.dirname(__file__), "..", "..", "..", "eocdb", "ws", "res", "openapi.yml")
+        file = os.path.join(os.path.dirname(__file__), "..", "..", "..", "ocdb", "ws", "res", "openapi.yml")
 
         open_api = Parser.from_yaml(file)
         self.assertIsNotNone(open_api)

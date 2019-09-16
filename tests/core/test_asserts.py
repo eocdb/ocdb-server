@@ -1,6 +1,6 @@
 import unittest
 
-from eocdb.core.asserts import *
+from ocdb.core.asserts import *
 
 
 class AssertsTest(unittest.TestCase):

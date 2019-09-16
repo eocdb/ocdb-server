@@ -1,8 +1,8 @@
 import unittest
 from datetime import datetime
 
-from eocdb.core.models import Dataset, ISSUE_TYPE_ERROR, ISSUE_TYPE_WARNING
-from eocdb.core.val._meta_field_compare_rule import MetaFieldCompareRule
+from ocdb.core.models import Dataset, ISSUE_TYPE_ERROR, ISSUE_TYPE_WARNING
+from ocdb.core.val._meta_field_compare_rule import MetaFieldCompareRule
 from tests.core.val._mock_library import MockLibrary
 
 

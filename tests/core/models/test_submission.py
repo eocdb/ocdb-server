@@ -1,9 +1,9 @@
 from datetime import datetime
 from unittest import TestCase
 
-from eocdb.core.models import QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
-from eocdb.core.models.submission import Submission
-from eocdb.core.models.submission_file_ref import SubmissionFileRef
+from ocdb.core.models import QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
+from ocdb.core.models.submission import Submission
+from ocdb.core.models.submission_file_ref import SubmissionFileRef
 
 
 class SubmissionTest(TestCase):
@@ -11,7 +11,7 @@ class SubmissionTest(TestCase):
     def test_to_dict(self):
         sfrs = [SubmissionFileRef(submission_id="12", index=7, filename="bla", filetype="blubb", status="who_knows")]
         submission = Submission(submission_id="submit_me",
-                                user_id=6789,
+                                user_id="6789",
                                 date=datetime(2016, 2, 21, 10, 13, 32),
                                 status=QC_STATUS_SUBMITTED,
                                 qc_status='OK',

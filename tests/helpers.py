@@ -3,13 +3,13 @@ from typing import Optional
 
 import yaml
 
-from eocdb.core import UNDEFINED
-from eocdb.core.db.db_dataset import DbDataset
-from eocdb.core.db.db_links import DbLinks
-from eocdb.core.models.dataset import Dataset
-from eocdb.ws.context import WsContext
-from eocdb.ws.errors import WsBadRequestError
-from eocdb.ws.reqparams import RequestParams
+from ocdb.core import UNDEFINED
+from ocdb.core.db.db_dataset import DbDataset
+from ocdb.core.db.db_links import DbLinks
+from ocdb.core.models.dataset import Dataset
+from ocdb.ws.context import WsContext
+from ocdb.ws.errors import WsBadRequestError
+from ocdb.ws.reqparams import RequestParams
 
 
 def new_test_service_context() -> WsContext:

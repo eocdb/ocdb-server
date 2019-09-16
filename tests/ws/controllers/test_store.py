@@ -20,10 +20,10 @@
 # SOFTWARE.
 import unittest
 
-from eocdb.core.db.db_user import DbUser
-from eocdb.ws.controllers.store import *
-from eocdb.ws.controllers.store import _get_summary_validation_status
-from eocdb.ws.controllers.users import create_user
+from ocdb.core.db.db_user import DbUser
+from ocdb.ws.controllers.store import *
+from ocdb.ws.controllers.store import _get_summary_validation_status
+from ocdb.ws.controllers.users import create_user
 from tests.helpers import new_test_service_context
 
 

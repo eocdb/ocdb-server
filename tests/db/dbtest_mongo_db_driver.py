@@ -1,4 +1,4 @@
-from eocdb.db.mongo_db_driver import MongoDbDriver
+from ocdb.db.mongo_db_driver import MongoDbDriver
 from tests.db.test_mongo_db_driver import TestMongoDbDriver
 
 

@@ -22,7 +22,7 @@
 
 import unittest
 
-from eocdb.ws.controllers.docfiles import *
+from ocdb.ws.controllers.docfiles import *
 from tests.helpers import new_test_service_context
 
 

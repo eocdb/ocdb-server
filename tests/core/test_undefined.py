@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from eocdb.core.undefined import UNDEFINED
+from ocdb.core.undefined import UNDEFINED
 
 
 class UndefinedTest(TestCase):
