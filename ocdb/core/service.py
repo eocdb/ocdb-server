@@ -91,7 +91,7 @@ class ServiceRegistry(ServiceLookup):
     
         "database_drivers": {
             "EUMETSAT-OCDB": {
-                "type": "eocdb.db.services.MongoDbDriver",
+                "type": "ocdb.db.services.MongoDbDriver",
                 "write": True,
                 "read": True,
                 "parameters": {
@@ -101,7 +101,7 @@ class ServiceRegistry(ServiceLookup):
                 }
             },
             "SeaBASS-Test": {
-                "type": "eocdb.db.services.SeaBassDriver",
+                "type": "ocdb.db.services.SeaBassDriver",
                 "write": False,
                 "read": True,
                 "parameters": {

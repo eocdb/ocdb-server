@@ -53,7 +53,7 @@ def get_store_info(ctx: WsContext) -> Dict:
 
 def upload_submission_files(ctx: WsContext,
                             path: str,
-                            store_sub_path: str,
+                            store_user_path: str,
                             submission_id: str,
                             user_id: str,
                             dataset_files: List[UploadedFile],
@@ -63,6 +63,7 @@ def upload_submission_files(ctx: WsContext,
     """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
     assert_not_none(submission_id)
     assert_not_none(path)
+    assert_not_none(store_user_path)
     assert_not_none(publication_date)
     assert_not_none(allow_publication)
     assert_not_none(dataset_files)
@@ -117,7 +118,7 @@ def upload_submission_files(ctx: WsContext,
     # Write dataset files into upload space and record as submission files
     submission_files = []
     index = 0
-    datasets_dir_path = ctx.get_datasets_upload_path(os.path.join(store_sub_path, path))
+    datasets_dir_path = ctx.get_datasets_upload_path(os.path.join(store_user_path, path))
     os.makedirs(datasets_dir_path, exist_ok=True)
     for file in dataset_files:
         file_path = os.path.join(datasets_dir_path, file.filename)
@@ -125,6 +126,7 @@ def upload_submission_files(ctx: WsContext,
             txt_encoding = chardet.detect(file.body)['encoding']
             try:
                 text = file.body.decode(txt_encoding)
+            # TEST!!!
             except UnicodeDecodeError as e:
                 raise WsBadRequestError("Decoding error for file: " + file.filename + '.\n' + str(e))
 
@@ -140,7 +142,7 @@ def upload_submission_files(ctx: WsContext,
         index += 1
 
     # Write documentation files into store
-    docs_dir_path = ctx.get_doc_files_upload_path(os.path.join(store_sub_path, path))
+    docs_dir_path = ctx.get_doc_files_upload_path(os.path.join(store_user_path, path))
     os.makedirs(docs_dir_path, exist_ok=True)
     for file in doc_files:
         file_path = os.path.join(docs_dir_path, file.filename)
@@ -166,7 +168,7 @@ def upload_submission_files(ctx: WsContext,
                               status=status,
                               qc_status=qc_status,
                               path=path,
-                              store_sub_path=store_sub_path,
+                              store_user_path=store_user_path,
                               publication_date=publication_date,
                               allow_publication=allow_publication,
                               files=submission_files)
@@ -232,9 +234,9 @@ def get_submissions(ctx: WsContext, user: User, user_name: Optional[str] = None)
         result = ctx.db_driver.get_submissions_for_user(quser.id, Roles.is_admin(roles))
 
     submissions = []
-    for db_subm in result:
-        subm = db_subm.to_submission()
-        submissions.append(subm)
+    for db_submission in result:
+        submission = db_submission.to_submission()
+        submissions.append(submission)
 
     return submissions
 
@@ -252,7 +254,7 @@ def get_submission_file(ctx: WsContext,
 
 def update_submission_files(ctx: WsContext,
                             path: str,
-                            store_sub_path: str,
+                            store_user_path: str,
                             submission_id: str,
                             new_submission_id: str,
                             publication_date: datetime,
@@ -260,6 +262,7 @@ def update_submission_files(ctx: WsContext,
     """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
     assert_not_none(submission_id)
     assert_not_none(path)
+    assert_not_none(store_user_path)
     assert_not_none(publication_date)
     assert_not_none(allow_publication)
 
@@ -291,7 +294,7 @@ def update_submission_files(ctx: WsContext,
 
     submission.submission_id = new_submission_id
     submission.path = path
-    submission.store_sub_path = store_sub_path
+    submission.store_sub_path = store_user_path
     submission.publication_date = publication_date
     submission.allow_publication = allow_publication
 
@@ -301,12 +304,23 @@ def update_submission_files(ctx: WsContext,
     return True
 
 
+def add_submission_file(ctx: WsContext, submission: DbSubmission, file: UploadedFile, typ: str) -> \
+        Optional[DatasetValidationResult]:
+    submission = get_submission(ctx, submission_id=submission.submission_id)
+
+    index = submission.next_index
+
+    return update_submission_file(ctx, submission, index, file, typ, 'add')
+
+
 def update_submission_file(ctx: WsContext, submission: DbSubmission,
-                           index: int, file: UploadedFile, typ: str) -> Optional[DatasetValidationResult]:
+                           index: int, file: UploadedFile, typ: str, mode: str = None) -> \
+        Optional[DatasetValidationResult]:
     validation_result = None
 
-    file_to_delete = submission.files[index]
-    _delete_submission_file(ctx, file_to_delete, submission)
+    if mode != 'add':
+        file_to_delete = submission.files[index]
+        _delete_submission_file(ctx, file_to_delete, submission)
 
     if typ == TYPE_MEASUREMENT:
         text = file.body.decode("utf-8")
@@ -324,7 +338,7 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
         # if DATASET_VALIDATION_RESULT_STATUS_ERROR == validation_result.status:
         #    return validation_result
 
-        write_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path,submission.path))
+        write_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path, submission.path))
         os.makedirs(write_path, exist_ok=True)
         file_path = os.path.join(write_path, file.filename)
         with open(file_path, "w") as fp:
@@ -337,8 +351,25 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
         with open(file_path, "wb") as fp:
             fp.write(file.body)
 
-    submission.files[index].filename = file.filename
-    submission.files[index].filetype = typ
+    if mode == 'add':
+        if typ == TYPE_MEASUREMENT:
+            submission.files.append(SubmissionFile(index=index,
+                                                   submission_id=submission.submission_id,
+                                                   filename=file.filename,
+                                                   filetype=typ,
+                                                   status=validation_result.status,
+                                                   result=validation_result))
+        else:
+            submission.files.append(SubmissionFile(index=index,
+                                                   submission_id=submission.submission_id,
+                                                   filename=file.filename,
+                                                   filetype=typ,
+                                                   status=QC_STATUS_SUBMITTED,
+                                                   result=None))
+    else:
+        submission.files[index].filename = file.filename
+        submission.files[index].filetype = typ
+
     if typ == TYPE_MEASUREMENT:
         submission.files[index].status = validation_result.status
         submission.files[index].result = validation_result
@@ -369,9 +400,9 @@ def delete_submission_file(ctx: WsContext, submission: DbSubmission, index: int)
 
 def _delete_submission_file(ctx, file_to_delete, submission):
     if file_to_delete.filetype == TYPE_MEASUREMENT:
-        root_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path,submission.path))
+        root_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path, submission.path))
     else:
-        root_path = ctx.get_doc_files_upload_path(os.path.join(submission.store_sub_path,submission.path))
+        root_path = ctx.get_doc_files_upload_path(os.path.join(submission.store_sub_path, submission.path))
     file_path = os.path.join(root_path, file_to_delete.filename)
     if os.path.isfile(file_path):
         os.remove(file_path)
@@ -459,17 +490,17 @@ def download_submission_file_by_id(ctx: WsContext,
     else:
         source_path = os.path.join(ctx.get_doc_files_upload_path(path))
 
-    return _assemble_submission_file_zip_archive(ctx, submission_file, source_path)
+    return _assemble_submission_file_zip_archive(submission_file, source_path, path)
 
 
-def _assemble_submission_file_zip_archive(ctx, submission_file: SubmissionFile, path: str):
+def _assemble_submission_file_zip_archive(submission_file: SubmissionFile, source_path: str, path: str):
     tmp_dir = tempfile.gettempdir()
     zip_name = create_zip_file_name()
     zip_file_path = os.path.join(tmp_dir, zip_name)
 
     with zipfile.ZipFile(zip_file_path, "w") as zip_file:
-        full_file_path = os.path.join(ctx.store_path, path + '/' + submission_file.filename)
-        zip_file.write(full_file_path, path + '/' + submission_file.filename)
+        zip_file.write(os.path.join(source_path, submission_file.filename),
+                       os.path.join(path, submission_file.filename))
 
     return zip_file
 
@@ -485,6 +516,8 @@ def _assemble_zip_archive(ctx, docs, result):
                 continue
 
             full_file_path = os.path.join(ctx.store_path, dataset.path)
+            if not os.path.exists(full_file_path):
+                raise FileNotFoundError(f"Could not find file {full_file_path} on server. Please contact eumetsat.")
             zip_file.write(full_file_path, dataset.path)
 
             if not docs:

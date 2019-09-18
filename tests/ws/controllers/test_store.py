@@ -74,7 +74,7 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
         finally:
@@ -111,7 +111,7 @@ class StoreTest(unittest.TestCase):
                                         publication_date="2100-01-01",
                                         allow_publication=False,
                                         doc_files=[],
-                                        store_sub_path='Tom_Helge')
+                                        store_user_path='Tom_Helge')
 
             self.assertEqual("HTTP 400: Submission label is empty!", f"{cm.exception}")
 
@@ -134,7 +134,7 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
 
             issues = result["DEL1012_Station_097_CTD_Data.txt"].issues
             self.assertEqual(1, len(issues))
@@ -160,7 +160,7 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
 
             issues = result["DEL1012_Station_097_CTD_Data.txt"].issues
             self.assertEqual(1, len(issues))
@@ -198,7 +198,7 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
         finally:
@@ -234,7 +234,7 @@ class StoreTest(unittest.TestCase):
                                     publication_date="2100-01-01",
                                     allow_publication=False,
                                     doc_files=[],
-                                    store_sub_path='Tom_Helge')
+                                    store_user_path='Tom_Helge')
 
             # user_name None and user admin
             user.roles = ['admin']
@@ -300,7 +300,7 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[document_file],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
@@ -345,7 +345,7 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[document_file],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 

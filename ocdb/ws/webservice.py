@@ -43,7 +43,7 @@ from .defaults import DEFAULT_ADDRESS, DEFAULT_PORT, DEFAULT_CONFIG_FILE, DEFAUL
 from .reqparams import RequestParams
 from ..core import UNDEFINED
 
-_LOG = logging.getLogger('eocdb')
+_LOG = logging.getLogger('ocdb')
 
 
 class WebService:

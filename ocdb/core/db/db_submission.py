@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Type, Dict, Any
+from typing import List, Type, Dict, Any, Union
 
 from ...core.model import T
 from ...core.models.submission import Submission
@@ -15,18 +15,30 @@ class DbSubmission(Submission):
                  status: str,
                  qc_status: str,
                  path: str,
-                 store_sub_path: str,
+                 store_user_path: str,
                  files: List[SubmissionFile],
                  id_: str = None,
-                 publication_date: datetime = None,
+                 publication_date: Union[datetime, str] = None,
                  allow_publication: bool = None):
         super().__init__(submission_id, user_id, date, status, qc_status, publication_date,
                          allow_publication, [])
 
         self._id = id_
         self._path = path
-        self._store_sub_path = store_sub_path
+        self._store_sub_path = store_user_path
         self._files = files
+
+    #def __repr__(self):
+    #    return json.dumps(self.to_dict())
+
+    @property
+    def next_index(self):
+        max_index = 0
+        for f in self.files:
+            if f.index > max_index:
+                max_index = f.index
+
+        return max_index + 1
 
     @property
     def files(self):
@@ -81,7 +93,7 @@ class DbSubmission(Submission):
                             status=subm.status,
                             qc_status=subm.qc_status,
                             path=path,
-                            store_sub_path=dictionary['store_sub_path'],
+                            store_user_path=dictionary['store_sub_path'],
                             publication_date=subm.publication_date,
                             allow_publication=subm.allow_publication,
                             files=subm_files_array,

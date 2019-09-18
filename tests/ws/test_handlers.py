@@ -24,9 +24,9 @@ class HandlersTest(AsyncHTTPTestCase):
                               description='EUMETSAT Ocean Colour In-Situ Database Server'),
                          json.loads(response.body))
 
-    @unittest.skip('superseded by eocdb.ws.handlers')
+    @unittest.skip('superseded by ocdb.ws.handlers')
     def test_fetch_query_succeeds(self):
-        response = self.fetch('/eocdb/api/measurements?query=ernie')
+        response = self.fetch('/ocdb/api/measurements?query=ernie')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
@@ -47,16 +47,16 @@ class HandlersTest(AsyncHTTPTestCase):
                                      '2017-05-22T08:33:00']}],
                          json.loads(response.body))
 
-    @unittest.skip('superseded by eocdb.ws.handlers')
+    @unittest.skip('superseded by ocdb.ws.handlers')
     def test_fetch_query_succeeds_no_results(self):
-        response = self.fetch('/eocdb/api/measurements?query=bert')
+        response = self.fetch('/ocdb/api/measurements?query=bert')
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
         self.assertEqual([], json.loads(response.body))
 
-    @unittest.skip('superseded by eocdb.ws.handlers')
+    @unittest.skip('superseded by ocdb.ws.handlers')
     def test_fetch_query_fails(self):
-        response = self.fetch('/eocdb/api/measurements?query=trigger_error')
+        response = self.fetch('/ocdb/api/measurements?query=trigger_error')
         self.assertEqual(500, response.code)
         self.assertEqual('Internal Server Error', response.reason)
         self.assertEqual({'error': {'code': 500, 'message': 'Internal Server Error'}},

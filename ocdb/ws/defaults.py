@@ -22,7 +22,7 @@
 
 import os
 
-DEFAULT_SERVER_NAME = 'eocdb-server'
+DEFAULT_SERVER_NAME = 'ocdb-server'
 DEFAULT_ADDRESS = 'localhost'
 DEFAULT_PORT = 4000
 DEFAULT_SSL = False

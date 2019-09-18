@@ -1,8 +1,8 @@
 openapi: 3.0.0
 servers:
-  - url: 'http://ocdb-test:4000/eocdb/api/v0.1.0/'
+  - url: 'http://ocdb-test:4000/ocdb/api/v0.1.0/'
 info:
-  title: eocdb-server
+  title: ocdb-server
   version: "0.1.0-dev.22"
   description: |
     RESTful API for the EUMETSAT Ocean Colour In-Situ Database.
@@ -12,7 +12,7 @@ info:
     * POST: update existing items.
     * DELETE: delete existing items.
   contact:
-    email: eocdb@eumetsat.eu
+    email: ocdb@eumetsat.eu
   license:
     name: MIT
     url: 'https://opensource.org/licenses/MIT'
@@ -141,7 +141,7 @@ paths:
         '400':
           description: Invalid request.
       security:
-      - eocdb_auth:
+      - ocdb_auth:
         - 'write:datasets'
         - 'read:datasets'
     get:
@@ -160,7 +160,7 @@ paths:
         '404':
           description: Submission not found in registry
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'read:datasets'
     delete:
       tags:
@@ -178,7 +178,7 @@ paths:
         '404':
           description: Submission not found in registry
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
   '/store/status/submission':
@@ -200,7 +200,7 @@ paths:
         '404':
           description: Submission not found in registry
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
   '/store/upload/submissionfile':
@@ -219,7 +219,7 @@ paths:
         '400':
           description: Invalid request
       security:
-      - eocdb_auth:
+      - ocdb_auth:
         - 'read:datasets'
     put:
       tags:
@@ -240,7 +240,7 @@ paths:
         '404':
           description: Submission File not found in registry
       security:
-      - eocdb_auth:
+      - ocdb_auth:
         - 'write:datasets'
         - 'read:datasets'
     delete:
@@ -260,7 +260,7 @@ paths:
         '404':
           description: Submission file not found in registry
       security:
-      - eocdb_auth:
+      - ocdb_auth:
         - 'write:datasets'
         - 'read:datasets'
   '/store/download/submissionfile':
@@ -279,7 +279,7 @@ paths:
         '400':
           description: Invalid request
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'read:submission'
   '/store/upload/user':
     get:
@@ -296,7 +296,7 @@ paths:
         '400':
           description: Invalid request
       security:
-      - eocdb_auth:
+      - ocdb_auth:
         - 'read:datasets'
   '/store/upload/submission/{submissionid}':
     get:
@@ -315,7 +315,7 @@ paths:
         '404':
           description: No submission files found in registry
       security:
-      - eocdb_auth:
+      - ocdb_auth:
         - 'read:datasets'
   '/store/status/submissionfile/{submission_id}/{index}/{status}':
     put:
@@ -336,7 +336,7 @@ paths:
         '404':
           description: Submission File not found in registry
       security:
-        - eocdb_auth:
+        - ocdb_auth:
           - 'write:datasets'
           - 'read:datasets'
   # TODO by forman: address publishing/hiding datasets
@@ -436,7 +436,7 @@ paths:
         '404':
           description: Dataset not found.
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
   '/datasets/{affil}/{project}/{cruise}':
@@ -456,7 +456,7 @@ paths:
         '400':
           description: Invalid path.
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'read:datasets'
   '/datasets/{affil}/{project}/{cruise}/{name}':
     get:
@@ -478,7 +478,7 @@ paths:
         '404':
           description: Dataset not found.
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
   '/datasets/{id}/qcinfo':
@@ -498,7 +498,7 @@ paths:
         '404':
           description: Dataset not found.
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
     post:
@@ -519,7 +519,7 @@ paths:
         '404':
           description: Dataset not found.
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
   '/docfiles':
@@ -535,7 +535,7 @@ paths:
         '200':
           description: Successful operation.
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
     post:
@@ -550,7 +550,7 @@ paths:
         '200':
           description: Successful operation.
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'write:datasets'
             - 'read:datasets'
   '/docfiles/{affil}/{project}/{cruise}':
@@ -609,7 +609,7 @@ paths:
         '404':
           description: Documentation file not found.
       security:
-        - eocdb_auth:
+        - ocdb_auth:
             - 'write:docFiles'
             - 'read:docFiles'
   '/submission':
@@ -627,7 +627,7 @@ paths:
         '400':
           description: Invalid request
       security:
-        - eocdb_auth:
+        - ocdb_auth:
           - 'write:datasets'
           - 'read:datasets'
   '/submission/{submissionid}':
@@ -647,7 +647,7 @@ paths:
         '404':
           description: Submission not found in registry
       security:
-        - eocdb_auth:
+        - ocdb_auth:
           - 'read:datasets'
     put:
       tags:
@@ -667,7 +667,7 @@ paths:
         '404':
           description: Submission not found in registry
       security:
-        - eocdb_auth:
+        - ocdb_auth:
           - 'write:datasets'
           - 'read:datasets'
     delete:
@@ -686,7 +686,7 @@ paths:
         '404':
           description: Submission not found in registry
       security:
-        - eocdb_auth:
+        - ocdb_auth:
           - 'write:datasets'
           - 'read:datasets'
   '/submission/user/{userid}':
@@ -706,7 +706,7 @@ paths:
         '404':
           description: No submissions foudn in registry
       security:
-        - eocdb_auth:
+        - ocdb_auth:
           - 'read:datasets'
   '/links':
     get:
@@ -1576,11 +1576,11 @@ components:
             type: string
             format: binary
   securitySchemes:
-    eocdb_auth:
+    ocdb_auth:
       type: oauth2
       flows:
         implicit:
-          authorizationUrl: 'http://eocdb.io/oauth/dialog'
+          authorizationUrl: 'http://ocdb.io/oauth/dialog'
           scopes:
             'write:datasets': modify datasets in your account
             'read:datasets': read your datasets
@@ -1599,4 +1599,4 @@ components:
 
 externalDocs:
   description: Find out more about EUMETSAT Ocean Colour In-Situ Database
-  url: 'http://eocdb.io'
+  url: 'http://ocdb.io'

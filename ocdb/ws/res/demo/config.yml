@@ -8,10 +8,10 @@ admin_user:
 
 databases:
   default:
-    type: eocdb.db.mongo_db_driver.MongoDbDriver
+    type: ocdb.db.mongo_db_driver.MongoDbDriver
     primary: true
     parameters:
-        url: "mongodb://localhost:27017/eocdb"
+        url: "mongodb://localhost:27017/ocdb"
 
 
 mode: dev

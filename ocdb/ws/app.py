@@ -31,6 +31,6 @@ from .handlers import MAPPINGS
 def new_application():
     mappings = [('/res/(.*)', StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), 'res')})] + MAPPINGS
     application = Application(mappings, cookie_secret="__theEOCDB_secretEncryptionString__")
-    autoreload.add_reload_hook('eocdb/core/res/validation_config.json')
+    autoreload.add_reload_hook('ocdb/core/res/validation_config.json')
     autoreload.start()
     return application

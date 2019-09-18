@@ -1,4 +1,4 @@
-store_path: ./_eocdb_test_store
+store_path: ./_ocdb_test_store
 
 admin_user:
   name: chef
@@ -8,7 +8,7 @@ admin_user:
 
 databases:
   default:
-    type: eocdb.db.mongo_db_driver.MongoDbDriver
+    type: ocdb.db.mongo_db_driver.MongoDbDriver
     primary: true
     parameters:
       mock: true

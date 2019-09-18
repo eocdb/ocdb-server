@@ -83,7 +83,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertEqual("3.0.0", result["openapi"])
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
-        self.assertEqual("eocdb-server", result["info"].get("title"))
+        self.assertEqual("ocdb-server", result["info"].get("title"))
         self.assertEqual("0.1.0-dev.22", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
@@ -173,7 +173,7 @@ class StoreUploadSubmissionTest(WsTestCase):
                                       publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                       allow_publication=False,
                                       files=[],
-                                      store_sub_path='Tom_Helge')
+                                      store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(submission)
 
             response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='DELETE',
@@ -214,7 +214,7 @@ class StoreUploadSubmissionTest(WsTestCase):
                                       publication_date='2001-02-03T04:05:06',
                                       allow_publication=False,
                                       files=[],
-                                      store_sub_path='Tom_Helge')
+                                      store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(submission)
 
             response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/I_DO_EXIST", method='GET',
@@ -274,7 +274,7 @@ class StoreStatusSubmissionTest(WsTestCase):
                                       publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                       allow_publication=False,
                                       files=[],
-                                      store_sub_path='Tom_Helge')
+                                      store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(submission)
 
             body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED,
@@ -373,7 +373,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                    publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                    allow_publication=False,
-                                   store_sub_path='Tom_Helge')
+                                   store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             # --- get submission file ---
@@ -432,7 +432,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                    publication_date='2001-02-03T04:05:06',
                                    allow_publication=False,
-                                   store_sub_path='Tom_Helge')
+                                   store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/submitme/0", method='DELETE',
@@ -500,7 +500,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
             db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
                                    qc_status="OK",
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                                   store_sub_path='Tom_Helge')
+                                   store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             mpf = MultiPartForm(boundary="HEFFALUMP")
@@ -534,7 +534,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
             db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
                                    qc_status="OK",
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                                   store_sub_path='Tom_Helge')
+                                   store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             index = -2
@@ -570,7 +570,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
             db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id=submissionid, files=files,
                                    qc_status=QC_STATUS_VALIDATED,
                                    path="/tmp/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                                   store_sub_path='Tom_Helge')
+                                   store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             index = 1
@@ -677,7 +677,7 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
             db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files,
                                    qc_status="OK",
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                                   store_sub_path='Tom_Helge')
+                                   store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             submission_id = "submitme"
@@ -711,7 +711,7 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
             db_subm = DbSubmission(status="Hellyeah", user_id='88763', submission_id="submitme", files=files,
                                    qc_status="OK",
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
-                                   store_sub_path='Tom_Helge')
+                                   store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(db_subm)
 
             submission_id = "submitme"

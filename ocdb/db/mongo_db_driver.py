@@ -150,7 +150,7 @@ class MongoDbDriver(DbDriver):
         if "id" in submission_dict:
             submission_dict["id"] = None
 
-        result = self._submit_collection.replace_one({"_id": obj_id}, submission_dict)
+        result = self._submit_collection.replace_one({"_id": obj_id}, submission_dict, upsert=True)
         return result.modified_count == 1
 
     def delete_submission(self, submission_id: str) -> bool:
@@ -308,13 +308,13 @@ class MongoDbDriver(DbDriver):
             except pymongo.errors.ConnectionFailure as e:
                 raise RuntimeError("Database connection failure") from e
 
-        # Create database "eocdb"
-        self._db = self._client.eocdb
-        # Create collection "eocdb.sb_datasets"
-        self._collection = self._client.eocdb.sb_datasets
-        self._submit_collection = self._client.eocdb.submission_files
-        self._user_collection = self._client.eocdb.users
-        self._links_collection = self._client.eocdb.links
+        # Create database "ocdb"
+        self._db = self._client.ocdb
+        # Create collection "ocdb.sb_datasets"
+        self._collection = self._client.ocdb.sb_datasets
+        self._submit_collection = self._client.ocdb.submission_files
+        self._user_collection = self._client.ocdb.users
+        self._links_collection = self._client.ocdb.links
         self._ensure_indices()
 
     def close(self):

@@ -80,15 +80,10 @@ class StoreUploadSubmission(WsRequestHandler):
 
         user = self.ws_context.get_user(user_name)
 
-        if user is not None:
-            user_id = user.id
-        else:
-            user_id = 0
-
         submission_id = arguments.get("submissionid")
         submission_id = _ensure_string_argument(submission_id, "submissionid")
 
-        temp_area_path = str(user_id) + "_" + submission_id
+        store_user_path = str(user_name) + "_" + submission_id
 
         path = arguments.get("path")
         path = _ensure_string_argument(path, "path")
@@ -118,9 +113,9 @@ class StoreUploadSubmission(WsRequestHandler):
 
         result = upload_submission_files(ctx=self.ws_context,
                                          path=path,
-                                         store_sub_path=temp_area_path,
+                                         store_user_path=store_user_path,
                                          submission_id=submission_id,
-                                         user_id=user_id,
+                                         user_id=user_name,
                                          publication_date=publication_date,
                                          allow_publication=allow_publication,
                                          dataset_files=dataset_files,
@@ -202,7 +197,7 @@ class StoreUploadSubmission(WsRequestHandler):
 
         update_submission_files(ctx=self.ws_context,
                                 path=path,
-                                store_sub_path=temp_area_path,
+                                store_user_path=temp_area_path,
                                 new_submission_id=new_submission_id,
                                 submission_id=submission_id,
                                 publication_date=publication_date,
@@ -333,6 +328,37 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         else:
             self.set_status(400, reason="No result found")
 
+    def post(self, submission_id: str, typ: str):
+        user_name = self.get_current_user()
+        if not (self.has_admin_rights() or self.is_self(user_name)):
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+        if submission is None:
+            self.set_status(404, reason="Submission not found")
+            return
+
+        arguments = dict()
+        files = dict()
+        # transform body with mime-type multipart/form-data into arguments and files Dict
+        tornado.httputil.parse_body_arguments(self.request.headers.get("Content-Type"),
+                                              self.request.body,
+                                              arguments,
+                                              files)
+        files = files.get("files", [])
+        num_files = len(files)
+
+        if num_files != 1:
+            self.set_status(400, reason="Invalid number of files supplied")
+            return
+
+        add_submission_file(ctx=self.ws_context, submission=submission, file=files[0], typ=typ)
+
+        self.set_status(200, reason="OK")
+
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode({'Message': f'File {files[0].filename} added.'}))
+
     def put(self, submission_id: str, index: str):
         user_name = self.get_current_user()
         if not (self.has_admin_rights() or self.is_self(user_name)):
@@ -369,9 +395,6 @@ class StoreUploadSubmissionFile(WsRequestHandler):
                                         typ=sb_file.filetype)
         if result is None:
             return
-
-        # if result.status is not "OK":
-        #    self.set_status(400, reason="Validation Error")
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
@@ -448,7 +471,7 @@ class StoreDownload(WsRequestHandler):
                                       pname=pname, docs=docs)
 
         self._return_zip_file(result)
-        self.finish()
+        self.finish(tornado.escape.json_encode({'message': 'File downloaded'}))
 
     def post(self):
         id_list_dict = tornado.escape.json_decode(self.request.body)
