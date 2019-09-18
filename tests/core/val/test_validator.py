@@ -1,8 +1,8 @@
 from unittest import TestCase
 
-from eocdb.core.models.dataset import Dataset
-from eocdb.core.val._gap_aware_dict import GapAwareDict
-from eocdb.core.val.validator import Validator
+from ocdb.core.models.dataset import Dataset
+from ocdb.core.val._gap_aware_dict import GapAwareDict
+from ocdb.core.val.validator import Validator
 
 
 class ValidatorTest(TestCase):

@@ -1,9 +1,9 @@
 # import os
 import unittest
 
-from eocdb.core.db.db_driver import DbDriver
-from eocdb.core.db.db_user import DbUser
-from eocdb.core.roles import Roles
+from ocdb.core.db.db_driver import DbDriver
+from ocdb.core.db.db_user import DbUser
+from ocdb.core.roles import Roles
 from tests.helpers import new_test_service_context
 
 

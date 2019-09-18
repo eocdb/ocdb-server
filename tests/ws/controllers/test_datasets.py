@@ -22,8 +22,8 @@
 
 import unittest
 
-from eocdb.core.models.qc_info import QC_STATUS_VALIDATED, QC_STATUS_PUBLISHED
-from eocdb.ws.controllers.datasets import *
+from ocdb.core.models.qc_info import QC_STATUS_VALIDATED, QC_STATUS_PUBLISHED
+from ocdb.ws.controllers.datasets import *
 from tests.helpers import new_test_service_context, new_test_dataset
 
 

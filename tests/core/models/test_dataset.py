@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from eocdb.core.models import Dataset
+from ocdb.core.models import Dataset
 
 
 class DatasetTest(TestCase):

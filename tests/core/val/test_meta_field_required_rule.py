@@ -1,7 +1,7 @@
 import unittest
 
-from eocdb.core.models import Dataset, ISSUE_TYPE_ERROR
-from eocdb.core.val._meta_field_required_rule import MetaFieldRequiredRule
+from ocdb.core.models import Dataset, ISSUE_TYPE_ERROR
+from ocdb.core.val._meta_field_required_rule import MetaFieldRequiredRule
 from tests.core.val._mock_library import MockLibrary
 
 

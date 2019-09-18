@@ -1,6 +1,6 @@
 [![Docker Repository on Quay](https://quay.io/repository/bcdev/eocdb-server/status "Docker Repository on Quay")](https://quay.io/repository/bcdev/eocdb-server)
 [![Build Status](https://travis-ci.org/bcdev/ocdb-server.svg?branch=master)](https://travis-ci.org/bcdev/ocdb-server)
-[![swagger-api validator-badge]({https://github.com/bcdev/eocdb-server/tree/master/eocdb/ws/res/openapi.yml}task-list-api-swagger-definition.yaml)](./eocdb/ws/res/openapi.yml)
+[![swagger-api validator-badge]({https://github.com/bcdev/eocdb-server/tree/master/eocdb/ws/res/openapi.yml}task-list-api-swagger-definition.yaml)](ocdb/ws/res/openapi.yml)
 
 # eocdb-server
 

@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from eocdb.core.models.dataset_ids import DatasetIds
+from ocdb.core.models.dataset_ids import DatasetIds
 
 
 class DatasetIdsTest(TestCase):

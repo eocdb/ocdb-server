@@ -2,7 +2,7 @@ import unittest
 
 from tornado.web import HTTPError
 
-from eocdb.ws.errors import WsError, WsConfigError, WsBadRequestError, WsResourceNotFoundError
+from ocdb.ws.errors import WsError, WsConfigError, WsBadRequestError, WsResourceNotFoundError
 
 
 class ErrorsTest(unittest.TestCase):

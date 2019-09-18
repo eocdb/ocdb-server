@@ -2,8 +2,8 @@ import unittest
 from typing import Optional, List
 from unittest import TestCase
 
-from eocdb.core.query.parser import QueryParser
-from eocdb.core.query.query import FieldValueQuery, PhraseQuery, UnaryOpQuery, BinaryOpQuery, QueryVisitor, \
+from ocdb.core.query.parser import QueryParser
+from ocdb.core.query.query import FieldValueQuery, PhraseQuery, UnaryOpQuery, BinaryOpQuery, QueryVisitor, \
     FieldRangeQuery, FieldWildcardQuery
 
 

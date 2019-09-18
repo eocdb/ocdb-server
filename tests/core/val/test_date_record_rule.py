@@ -1,7 +1,7 @@
 import unittest
 
-from eocdb.core.models import ISSUE_TYPE_ERROR, ISSUE_TYPE_WARNING
-from eocdb.core.val._date_record_rule import DateRecordRule
+from ocdb.core.models import ISSUE_TYPE_ERROR
+from ocdb.core.val._date_record_rule import DateRecordRule
 from tests.core.val._mock_library import MockLibrary
 
 

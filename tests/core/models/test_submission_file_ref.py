@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from eocdb.core.models import QC_STATUS_APPROVED, QC_STATUS_PUBLISHED
-from eocdb.core.models.submission_file_ref import SubmissionFileRef
+from ocdb.core.models import QC_STATUS_APPROVED, QC_STATUS_PUBLISHED
+from ocdb.core.models.submission_file_ref import SubmissionFileRef
 
 
 class SubmissionFileRefTest(TestCase):

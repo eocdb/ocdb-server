@@ -6,7 +6,7 @@ admin_user:
 
 databases:
   default:
-    type: eocdb.db.mongo_db_driver.MongoDbDriver
+    type: ocdb.db.mongo_db_driver.MongoDbDriver
     parameters:
       mock: true
 

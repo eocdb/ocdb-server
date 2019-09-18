@@ -1,13 +1,13 @@
 import unittest
 
-from eocdb.ws.main import main \
-    # from eocdb.ws.main import main, new_web_service  # , new_web_service
+from ocdb.ws.main import main \
+    # from ocdb.ws.main import main, new_web_service  # , new_web_service
 
 
 # import tornado.ioloop
 # from tornado.ioloop import IOLoop
-# from eocdb.ws.service import WebService
-# from eocdb.ws.webservice import WebService
+# from ocdb.ws.service import WebService
+# from ocdb.ws.webservice import WebService
 
 
 class MainSmokeTest(unittest.TestCase):

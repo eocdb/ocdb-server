@@ -20,9 +20,10 @@
 # SOFTWARE.
 import unittest
 
-from eocdb.core.db.db_user import DbUser
-from eocdb.ws.controllers.store import *
-from eocdb.ws.controllers.store import _get_summary_validation_status
+from ocdb.core.db.db_user import DbUser
+from ocdb.ws.controllers.store import *
+from ocdb.ws.controllers.store import _get_summary_validation_status
+from ocdb.ws.controllers.users import create_user
 from tests.helpers import new_test_service_context
 
 
@@ -73,7 +74,7 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
         finally:
@@ -110,7 +111,7 @@ class StoreTest(unittest.TestCase):
                                         publication_date="2100-01-01",
                                         allow_publication=False,
                                         doc_files=[],
-                                        store_sub_path='Tom_Helge')
+                                        store_user_path='Tom_Helge')
 
             self.assertEqual("HTTP 400: Submission label is empty!", f"{cm.exception}")
 
@@ -133,7 +134,7 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
 
             issues = result["DEL1012_Station_097_CTD_Data.txt"].issues
             self.assertEqual(1, len(issues))
@@ -159,7 +160,7 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
 
             issues = result["DEL1012_Station_097_CTD_Data.txt"].issues
             self.assertEqual(1, len(issues))
@@ -197,26 +198,81 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
+        finally:
+            self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
-            result = get_submissions(ctx=self.ctx, user=user)
+    def test_get_submission(self):
+        try:
+            user = User(name='scott1', password='abc', first_name='Scott', last_name='Tiger',
+                        phone='', email='', roles=[])
+
+            user_id = create_user(ctx=self.ctx, user=user)
+
+            data_file_text = ("/begin_header\n"
+                              "/received=20120330\n"
+                              "/delimiter = comma\n"
+                              "/north_latitude=42.598[DEG]\n"
+                              "/east_longitude=-67.105[DEG]\n"
+                              "/start_date=20101117\n"
+                              "/end_date=20101117\n"
+                              "/start_time=20:14:00[GMT]\n"
+                              "/end_time=20:14:00[GMT]\n"
+                              "/fields = station, SN, lat, lon, year, month, day, hour, minute, pressure, wt, sal, CHL, Epar, oxygen\n"
+                              "/units = none, none, degrees, degrees, yyyy, mo, dd, hh, mn, dbar, degreesC, PSU, mg/m^3, uE/cm^2s, ml/L\n"
+                              "/end_header\n"
+                              "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
+            uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
+
+            upload_submission_files(ctx=self.ctx,
+                                    path="test_files/cruise/experiment",
+                                    submission_id="an_id",
+                                    user_id=user_id,
+                                    dataset_files=[uploaded_file],
+                                    publication_date="2100-01-01",
+                                    allow_publication=False,
+                                    doc_files=[],
+                                    store_user_path='Tom_Helge')
+
+            # user_name None and user admin
+            user.roles = ['admin']
+            result = get_submissions(ctx=self.ctx, user=user, user_name=None)
             self.assertIsNotNone(result)
             self.assertEqual(1, len(result))
-            self.assertEqual("an_id", result[0].submission_id)
 
-            file_refs = result[0].file_refs
-            self.assertEqual(1, len(file_refs))
+            # user_name None and user not admin
+
+            user.roles = ['submit']
+            result = get_submissions(ctx=self.ctx, user=user, user_name=None)
+            self.assertIsNotNone(result)
+            self.assertEqual(0, len(result))
+
+            # user_name exist and user admin
+
+            user.roles = ['admin']
+            result = get_submissions(ctx=self.ctx, user=user, user_name="scott1")
+            self.assertIsNotNone(result)
+            self.assertEqual(1, len(result))
+
+            # user_name exist and user not admin
+
+            user.roles = ['submit']
+            result = get_submissions(ctx=self.ctx, user=user, user_name="scott1")
+            self.assertIsNotNone(result)
+            self.assertEqual(1, len(result))
 
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
     def test_up_and_download_store_files_with_doc_files(self):
         try:
-            user_id = "77616"
-            user = DbUser(id_=user_id, name='scott', password='abc', first_name='Scott', last_name='Tiger',
-                          phone='', email='', roles=['submit'])
+            user = User(name='scott', password='abc', first_name='Scott', last_name='Tiger',
+                        phone='', email='', roles=['submit'])
+
+            user_id = create_user(ctx=self.ctx, user=user)
+
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
                               "/delimiter = comma\n"
@@ -244,11 +300,11 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[document_file],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
-            result = get_submissions(ctx=self.ctx, user=user)
+            result = get_submissions(ctx=self.ctx, user=user, user_name='scott')
             self.assertIsNotNone(result)
             self.assertEqual(1, len(result))
             self.assertEqual("an_id", result[0].submission_id)
@@ -289,7 +345,7 @@ class StoreTest(unittest.TestCase):
                                              publication_date="2100-01-01",
                                              allow_publication=False,
                                              doc_files=[document_file],
-                                             store_sub_path='Tom_Helge')
+                                             store_user_path='Tom_Helge')
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 

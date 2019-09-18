@@ -1,5 +1,5 @@
-from eocdb.core.val._gap_aware_dict import GapAwareDict
-from eocdb.core.val._message_library import MessageLibrary
+from ocdb.core.val._gap_aware_dict import GapAwareDict
+from ocdb.core.val._message_library import MessageLibrary
 
 
 class MockLibrary(MessageLibrary):

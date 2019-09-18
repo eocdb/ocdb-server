@@ -22,7 +22,7 @@
 
 import unittest
 
-from eocdb.ws.controllers.service import *
+from ocdb.ws.controllers.service import *
 from tests.helpers import new_test_service_context
 
 
@@ -38,7 +38,7 @@ class ServiceTest(unittest.TestCase):
         self.assertEqual("3.0.0", result["openapi"])
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
-        self.assertEqual("eocdb-server", result["info"].get("title"))
+        self.assertEqual("ocdb-server", result["info"].get("title"))
         self.assertEqual("0.1.0-dev.22", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",

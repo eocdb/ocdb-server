@@ -1,9 +1,9 @@
 from datetime import datetime
 from unittest import TestCase
 
-from eocdb.core.db.db_submission import DbSubmission
-from eocdb.core.models import DatasetValidationResult, Issue, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
-from eocdb.core.models.submission_file import SubmissionFile
+from ocdb.core.db.db_submission import DbSubmission
+from ocdb.core.models import DatasetValidationResult, Issue, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
+from ocdb.core.models.submission_file import SubmissionFile
 
 
 class DbSubmissionTest(TestCase):
@@ -25,7 +25,7 @@ class DbSubmissionTest(TestCase):
         subm = DbSubmission(status="Hellyeah", user_id='Tom', submission_id="submitme", path="/the/archive/root/",
                             files=files, qc_status="warning", date=datetime(2001, 2, 3, 4, 5, 6),
                             publication_date=datetime(2002, 2, 3, 4, 5, 6),
-                            allow_publication=True, store_sub_path='Tom_Helge',)
+                            allow_publication=True, store_user_path='Tom_Helge', )
 
         self.assertEqual({'date': datetime(2001, 2, 3, 4, 5, 6),
                           'file_refs': [],
@@ -101,7 +101,7 @@ class DbSubmissionTest(TestCase):
                                 result=DatasetValidationResult(status="WARNING", issues=[
                                     Issue(type="WARNING", description="This might be wrong")]))]
         db_subm = DbSubmission(status="Hellyeah", user_id='Tom', submission_id="submitme", files=files, qc_status="OK",
-                               path="/root/hell/yeah", date=datetime(2001, 2, 3, 4, 5, 6), store_sub_path='Tom_Helge')
+                               path="/root/hell/yeah", date=datetime(2001, 2, 3, 4, 5, 6), store_user_path='Tom_Helge')
 
         subm = db_subm.to_submission()
 

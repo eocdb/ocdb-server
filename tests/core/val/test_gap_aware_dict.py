@@ -1,6 +1,6 @@
 from unittest import TestCase
 
-from eocdb.core.val._gap_aware_dict import GapAwareDict
+from ocdb.core.val._gap_aware_dict import GapAwareDict
 
 
 class GapAwareDictTest(TestCase):

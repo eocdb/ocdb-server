@@ -1,12 +1,12 @@
 import os
 import unittest
 
-from eocdb.ws.openapi.parser import Parser
+from ocdb.ws.openapi.parser import Parser
 
 
 class ParserTest(unittest.TestCase):
     def test_from_yaml(self):
-        file = os.path.join(os.path.dirname(__file__), "..", "..", "..", "eocdb", "ws", "res", "openapi.yml")
+        file = os.path.join(os.path.dirname(__file__), "..", "..", "..", "ocdb", "ws", "res", "openapi.yml")
 
         openapi = Parser.from_yaml(file)
         self.assertIsNotNone(openapi)

@@ -1,7 +1,7 @@
 import unittest
 
-from eocdb.core import QueryParser
-from eocdb.db.mongo_query_generator import MongoQueryGenerator
+from ocdb.core import QueryParser
+from ocdb.db.mongo_query_generator import MongoQueryGenerator
 
 
 class TestMongoQueryGenerator(unittest.TestCase):

@@ -1,7 +1,7 @@
 import datetime
 import unittest
 
-from eocdb.core.seabass.sb_file_reader import SbFileReader, SbFormatError
+from ocdb.core.seabass.sb_file_reader import SbFileReader, SbFormatError
 from tests.helpers import new_test_db_dataset
 
 

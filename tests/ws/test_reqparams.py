@@ -1,7 +1,7 @@
 import unittest
 
-from eocdb.ws.errors import WsBadRequestError
-from eocdb.ws.reqparams import RequestParams
+from ocdb.ws.errors import WsBadRequestError
+from ocdb.ws.reqparams import RequestParams
 from tests.helpers import RequestParamsMock
 
 

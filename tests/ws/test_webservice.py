@@ -1,7 +1,7 @@
 import re
 import unittest
 
-from eocdb.ws import webservice
+from ocdb.ws import webservice
 
 
 class UrlPatternTest(unittest.TestCase):

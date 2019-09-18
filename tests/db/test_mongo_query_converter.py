@@ -1,8 +1,8 @@
 import datetime
 import unittest
 
-from eocdb.core.models import DatasetQuery
-from eocdb.db.mongo_db_driver import MongoDbDriver
+from ocdb.core.models import DatasetQuery
+from ocdb.db.mongo_db_driver import MongoDbDriver
 
 
 class TestMongoQueryConverter(unittest.TestCase):

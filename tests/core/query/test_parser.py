@@ -1,7 +1,7 @@
 from unittest import TestCase
 
-from eocdb.core.query.parser import QueryTokenizer, QuerySyntaxError, QueryParser
-from eocdb.core.query.query import QueryBuilder
+from ocdb.core.query.parser import QueryTokenizer, QuerySyntaxError, QueryParser
+from ocdb.core.query.query import QueryBuilder
 
 B = QueryBuilder
 P = QueryParser
