@@ -79,10 +79,12 @@ class MongoDbDriver(DbDriver):
             return DatasetQueryResult({}, total_num_results, [], query)
         else:
             dataset_refs = []
+            dataset_ids = []
             locations = {}
             for dataset_dict in cursor:
                 ds_ref, points = self._to_dataset_ref(dataset_dict, query.geojson)
                 dataset_refs.append(ds_ref)
+                dataset_ids.append(ds_ref.id)
                 if points is not None:
                     feature_collection = self._to_geojson(points)
                     locations.update({ds_ref.id: feature_collection})
