@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, date
 from typing import Optional
 
 from ...core.models.submission_file_ref import SubmissionFileRef
@@ -14,7 +14,7 @@ class SubmissionFile(Model):
                  filetype: str,
                  status: str,
                  result: Optional[DatasetValidationResult],
-                 creationdate: Optional[datetime] = datetime.now()):
+                 creationdate: Optional[date] = datetime.now()):
         self._index = index
         self._submission_id = submission_id
         self._filename = filename

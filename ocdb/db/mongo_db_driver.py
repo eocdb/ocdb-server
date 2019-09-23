@@ -110,6 +110,20 @@ class MongoDbDriver(DbDriver):
 
         return db_submission.files[index]
 
+    def get_submission_file_by_filename(self, submission_id: str, file_name: str) -> Optional[SubmissionFile]:
+        subm_dict = self._submit_collection.find_one({"submission_id": submission_id})
+        if subm_dict is None:
+            return None
+
+        del subm_dict["_id"]
+        db_submission = DbSubmission.from_dict(subm_dict)
+
+        for f in db_submission.files:
+            if file_name == f.filename:
+                return f
+
+        return None
+
     def get_submissions(self) -> List[DbSubmission]:
         submissions = []
         cursor = self._submit_collection.find()
@@ -349,7 +363,8 @@ class MongoDbDriver(DbDriver):
     def _to_dataset_ref(dataset_dict, geojson=False):
         dataset_id = str(dataset_dict.get("_id"))
         path = dataset_dict.get("path")
-        ds_ref = DatasetRef(dataset_id, path)
+        filename = dataset_dict.get("filename")
+        ds_ref = DatasetRef(dataset_id, path, filename)
 
         if geojson:
             lons = dataset_dict.get("longitudes")

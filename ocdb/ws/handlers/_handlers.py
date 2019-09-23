@@ -353,7 +353,15 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             self.set_status(400, reason="Invalid number of files supplied")
             return
 
-        add_submission_file(ctx=self.ws_context, submission=submission, file=files[0], typ=typ)
+        submission_file = get_submission_file_by_filename(ctx=self.ws_context, submission_id=submission_id,
+                                                          file_name=files[0].filename)
+
+        if not submission_file:
+            add_submission_file(ctx=self.ws_context, submission=submission, file=files[0], typ=typ)
+        else:
+            self.set_status(400,
+                            reason=f"File name {files[0].filename} exists already in submission. Please use re-upload feature")
+            return
 
         self.set_status(200, reason="OK")
 

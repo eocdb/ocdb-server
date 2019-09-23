@@ -34,7 +34,8 @@ class Dataset(Model):
                  records: List[List[Field]],
                  id_: str = None,
                  path: str = None,
-                 user_id: int = None,
+                 filename: str = None,
+                 user_id: str = None,
                  submission_id: str = None,
                  status: str = None
             ):
@@ -42,6 +43,7 @@ class Dataset(Model):
         assert_not_none(records, name='records')
         self._id = id_
         self._path = path
+        self._filename = filename
         self._user_id = user_id
         self._submission_id = submission_id
         self._status = status
@@ -62,11 +64,11 @@ class Dataset(Model):
         self._id = value
 
     @property
-    def user_id(self) -> Optional[int]:
+    def user_id(self) -> Optional[str]:
         return self._user_id
 
     @user_id.setter
-    def user_id(self, value: Optional[int]):
+    def user_id(self, value: Optional[str]):
         self._user_id = value
 
     @property
@@ -92,6 +94,14 @@ class Dataset(Model):
     @path.setter
     def path(self, value: Optional[str]):
         self._path = value
+
+    @property
+    def filename(self) -> Optional[str]:
+        return self._filename
+
+    @filename.setter
+    def filename(self, value: Optional[str]):
+        self._filename = value
 
     @property
     def metadata(self) -> Dict:
