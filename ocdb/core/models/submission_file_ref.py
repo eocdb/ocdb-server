@@ -1,3 +1,6 @@
+from datetime import datetime
+from typing import Optional
+
 from ..model import Model
 
 
@@ -7,11 +10,13 @@ class SubmissionFileRef(Model):
                  submission_id: str,
                  filename: str,
                  filetype: str,
-                 status: str):
+                 status: str,
+                 creationdate: Optional[datetime] = None):
         self._index = index
-        self._submission_id=submission_id
+        self._submission_id = submission_id
         self._filename = filename
         self._filetype = filetype
+        self._creationdate = creationdate
         self._status = status
 
     @property
@@ -53,3 +58,11 @@ class SubmissionFileRef(Model):
     @status.setter
     def status(self, value: str):
         self._status = value
+
+    @property
+    def creationdate(self):
+        return self._creationdate
+
+    @creationdate.setter
+    def creationdate(self, value: str):
+        self._creationdate = value
