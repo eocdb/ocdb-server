@@ -86,3 +86,8 @@ class DatasetQueryResult(Model):
     @property
     def dataset_ids(self) -> List[str]:
         return self._dataset_ids
+
+    @dataset_ids.setter
+    def dataset_ids(self, value: List[str]):
+        assert_not_none(value, name='value')
+        self._dataset_ids = value

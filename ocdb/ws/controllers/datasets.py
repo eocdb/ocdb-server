@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 
-from typing import List
+from typing import List, Union
 
 from ..context import WsContext
 from ...core.asserts import assert_not_none, assert_one_of, assert_instance
@@ -84,6 +84,7 @@ def find_datasets(ctx: WsContext,
         result_part = driver.instance().find_datasets(query)
         result.total_count += result_part.total_count
         result.datasets += result_part.datasets
+        result.dataset_ids += result_part.dataset_ids
         result.locations.update(result_part.locations)
 
     return result
@@ -101,7 +102,7 @@ def add_dataset(ctx: WsContext,
     dataset_id = ctx.db_driver.instance().add_dataset(dataset)
     if not dataset_id:
         raise WsBadRequestError(f"Could not add dataset {dataset.path}")
-    return DatasetRef(dataset_id, dataset.path)
+    return DatasetRef(dataset_id, dataset.path, dataset.filename)
 
 
 def update_dataset(ctx: WsContext,
@@ -141,9 +142,14 @@ def get_dataset_by_id_strict(ctx: WsContext,
 
 
 def get_dataset_by_id(ctx: WsContext,
-                      dataset_id: str) -> Dataset:
+                      dataset_id: Union[dict, str]) -> Dataset:
     """Get dataset by ID."""
     assert_not_none(dataset_id, name='dataset_id')
+
+    # The dataset_id may be a dataset json object
+    if isinstance(dataset_id, dict):
+        dataset_id = dataset_id['id']
+
     dataset = ctx.db_driver.instance().get_dataset(dataset_id)
     return dataset
 
