@@ -16,4 +16,3 @@ def update_links(ctx: WsContext, content: str) -> dict:
         return get_links(ctx)
     else:
         return {"content": "No links found"}
-

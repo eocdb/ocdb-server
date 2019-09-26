@@ -364,7 +364,8 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             add_submission_file(ctx=self.ws_context, submission=submission, file=files[0], typ=typ)
         else:
             self.set_status(400,
-                            reason=f"File name {files[0].filename} exists already in submission. Please use re-upload feature")
+                            reason=f"File name {files[0].filename} "
+                            f"exists already in submission. Please use re-upload feature")
             return
 
         self.set_status(200, reason="OK")

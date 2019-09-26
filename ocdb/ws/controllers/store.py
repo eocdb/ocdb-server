@@ -181,7 +181,7 @@ def upload_submission_files(ctx: WsContext,
 def delete_submission(ctx: WsContext, submission_id: str) -> bool:
     submission = ctx.db_driver.get_submission(submission_id)
     _delete_submission(ctx, submission)
-    ##for file in submission.files:
+    # for file in submission.files:
     #    _delete_submission_file(ctx=ctx, file_to_delete=file, submission=submission)
 
     result = find_datasets(ctx=ctx, submission_id=submission_id)

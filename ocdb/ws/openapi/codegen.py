@@ -684,8 +684,7 @@ class CodeGen:
         return Parameter(name=name if name else prop.name,
                          schema=prop.schema,
                          in_="query",
-                         required=schema.required
-                                  and prop.name in schema.required)
+                         required=schema.required and prop.name in schema.required)
 
     def _gen_model_tests_code(self, schema_name: str, schema: Schema, modules: Dict[str, Code]):
         # Should generate test code here, but models are actually just stupid object structures
@@ -726,6 +725,7 @@ class CodeGen:
         code.append()
         return code
 
+    # noinspection PyMethodMayBeStatic
     def _gen_assert_imports(self) -> Code:
         return Code("from ...core.asserts import"
                     " assert_not_empty,"

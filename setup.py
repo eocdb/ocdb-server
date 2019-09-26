@@ -32,7 +32,7 @@ requirements = [
     'pyyaml',
     'tornado',
     # Development
-    'mongomock', 'ftptool'
+    'mongomock', 'ftptool', 'bson', 'chardet'
 ]
 
 packages = find_packages(exclude=["tests", "tests.*"])

@@ -81,6 +81,7 @@ class WsContext:
 
         primary_db_driver = None
 
+        # noinspection PyUnusedLocal
         def filter_db_drivers(service_id, service, config):
             nonlocal primary_db_driver
             if not isinstance(service, DbDriver):
