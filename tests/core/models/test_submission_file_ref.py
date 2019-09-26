@@ -2,6 +2,7 @@ from unittest import TestCase
 
 from ocdb.core.models import QC_STATUS_APPROVED, QC_STATUS_PUBLISHED
 from ocdb.core.models.submission_file_ref import SubmissionFileRef
+from tests.helpers import NOW
 
 
 class SubmissionFileRefTest(TestCase):
@@ -9,6 +10,7 @@ class SubmissionFileRefTest(TestCase):
     def test_to_dict(self):
         sfr = SubmissionFileRef(index=12,
                                 submission_id="suppe",
+                                creationdate=NOW,
                                 filename="Margarete",
                                 filetype="mixed",
                                 status=QC_STATUS_APPROVED)
@@ -16,6 +18,7 @@ class SubmissionFileRefTest(TestCase):
         self.assertEqual({'filename': 'Margarete',
                           'filetype': 'mixed',
                           'index': 12,
+                          'creationdate': NOW,
                           'status': QC_STATUS_APPROVED,
                           'submission_id': 'suppe'}, sfr.to_dict())
 

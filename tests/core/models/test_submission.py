@@ -4,12 +4,13 @@ from unittest import TestCase
 from ocdb.core.models import QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
 from ocdb.core.models.submission import Submission
 from ocdb.core.models.submission_file_ref import SubmissionFileRef
+from tests.helpers import NOW
 
 
 class SubmissionTest(TestCase):
 
     def test_to_dict(self):
-        sfrs = [SubmissionFileRef(submission_id="12", index=7, filename="bla", filetype="blubb", status="who_knows")]
+        sfrs = [SubmissionFileRef(submission_id="12", creationdate=NOW, index=7, filename="bla", filetype="blubb", status="who_knows")]
         submission = Submission(submission_id="submit_me",
                                 user_id="6789",
                                 date=datetime(2016, 2, 21, 10, 13, 32),
@@ -22,6 +23,7 @@ class SubmissionTest(TestCase):
         self.assertEqual({'date': datetime(2016, 2, 21, 10, 13, 32),
                           'file_refs': [{'filename': 'bla',
                                          'filetype': 'blubb',
+                                         'creationdate': NOW,
                                          'index': 7,
                                          'status': 'who_knows',
                                          'submission_id': '12'}],
@@ -41,6 +43,7 @@ class SubmissionTest(TestCase):
                    'allow_publication': True,
                    'file_refs': [{'filename': 'jepp',
                                   'filetype': 'holla',
+                                  'creationdate': NOW,
                                   'index': 8,
                                   'status': 'happy',
                                   'submission_id': 'argonaut'}],

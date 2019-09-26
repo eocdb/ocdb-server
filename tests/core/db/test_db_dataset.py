@@ -1,8 +1,7 @@
 import datetime
 from unittest import TestCase
 
-from tests.helpers import  new_test_db_dataset
-
+from tests.helpers import new_test_db_dataset
 
 
 class DbDatsetTest(TestCase):
@@ -34,10 +33,11 @@ class DbDatsetTest(TestCase):
                           'id': None,
                           'metadata': {},
                           'records': [],
-                          'path': 'archive/dataset-3.txt',
-                          'user_id': 1,
+                          'path': 'archive',
+                          'filename': 'dataset-3.txt',
+                          'user_id': '1',
                           'submission_id': 'abc',
-                          'status': 'PUBLISHED', # comes from test-dataset
+                          'status': 'PUBLISHED',  # comes from test-dataset
                           'times': []}, self.dataset.to_dict())
 
     def test_to_dict(self):
@@ -61,12 +61,13 @@ class DbDatsetTest(TestCase):
                           'id': None,
                           'metadata': {'key_1': 'value_1', 'key_2': 'value_2'},
                           'records': [[-39.4, 110.8, 0.267612499], [-39.5, 110.9, 0.367612499]],
-                          'path': 'archive/dataset-3.txt',
-                          'user_id': 1,
+                          'path': 'archive',
+                          'filename': 'dataset-3.txt',
+                          'user_id': '1',
                           'submission_id': 'abc',
                           'status': 'PUBLISHED',
                           'times': ['2008-10-04T15:22:51']},
-                           self.dataset.to_dict())
+                         self.dataset.to_dict())
 
     def test_add_attributes_and_get(self):
         attribute_names = ["lon", "lat", "chl"]
@@ -109,4 +110,3 @@ class DbDatsetTest(TestCase):
         self.dataset.add_time(datetime.datetime.utcnow())
 
         self.assertEqual(2, len(self.dataset.times))
-

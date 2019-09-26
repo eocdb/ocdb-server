@@ -1,9 +1,22 @@
-from datetime import datetime
 from unittest import TestCase
 
 from ocdb.core.db.db_submission import DbSubmission
 from ocdb.core.models import DatasetValidationResult, Issue, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
 from ocdb.core.models.submission_file import SubmissionFile
+
+from datetime import datetime
+
+NOW = datetime(2009, 8, 7, 6, 5, 4)
+# # old_datetime_class = datetime.datetime
+#
+#
+# class const_now_datetime(datetime):
+#     @classmethod
+#     def now(cls, tz=None):
+#         return NOW
+#
+#
+# datetime = const_now_datetime
 
 
 class DbSubmissionTest(TestCase):
@@ -11,12 +24,14 @@ class DbSubmissionTest(TestCase):
     def test_to_dict(self):
         files = [SubmissionFile(submission_id="submitme",
                                 index=0,
+                                creationdate=NOW,
                                 filename="Hans",
                                 filetype="DOC",
                                 status=QC_STATUS_SUBMITTED,
                                 result=DatasetValidationResult(status="OK", issues=[])),
                  SubmissionFile(submission_id="submitme",
                                 index=1,
+                                creationdate=NOW,
                                 filename="Helga",
                                 filetype="MEAS",
                                 status=QC_STATUS_VALIDATED,
@@ -30,12 +45,14 @@ class DbSubmissionTest(TestCase):
         self.assertEqual({'date': datetime(2001, 2, 3, 4, 5, 6),
                           'file_refs': [],
                           'files': [{'filename': 'Hans',
+                                     'creationdate': NOW,
                                      'filetype': 'DOC',
                                      'index': 0,
                                      'result': {'issues': [], 'status': 'OK'},
                                      'status': QC_STATUS_SUBMITTED,
                                      'submission_id': 'submitme'},
                                     {'filename': 'Helga',
+                                     'creationdate': NOW,
                                      'filetype': 'MEAS',
                                      'index': 1,
                                      'result': {'issues': [{'description': 'This might be wrong',

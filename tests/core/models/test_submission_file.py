@@ -1,8 +1,8 @@
 from unittest import TestCase
-
 from ocdb.core.models import DatasetValidationResult, Issue, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED
 from ocdb.core.models.submission import TYPE_MEASUREMENT
 from ocdb.core.models.submission_file import SubmissionFile
+from tests.helpers import NOW
 
 
 class SubmissionFileTest(TestCase):
@@ -11,6 +11,7 @@ class SubmissionFileTest(TestCase):
         dsvr = DatasetValidationResult(status="OK", issues=[])
         sf = SubmissionFile(index=11,
                             submission_id="yeswecan",
+                            creationdate=NOW,
                             filename="is_a_secret",
                             filetype="DOC",
                             status=QC_STATUS_SUBMITTED,
@@ -19,6 +20,7 @@ class SubmissionFileTest(TestCase):
         sf_dict = sf.to_dict()
         self.assertEqual({'filename': 'is_a_secret',
                           'filetype': 'DOC',
+                          'creationdate': NOW,
                           'index': 11,
                           'result': {'issues': [], 'status': 'OK'},
                           'status': QC_STATUS_SUBMITTED,
@@ -26,7 +28,8 @@ class SubmissionFileTest(TestCase):
 
     def test_from_dict(self):
         sf_dict = {'index': 12, 'submission_id': 'whatthehell', 'filename': 'file_in_c_sharp',
-                   'filetype': TYPE_MEASUREMENT, 'result': {'issues': [], 'status': 'OK'}, 'status': QC_STATUS_VALIDATED}
+                   'filetype': TYPE_MEASUREMENT, 'result': {'issues': [], 'status': 'OK'},
+                   'status': QC_STATUS_VALIDATED}
 
         sf = SubmissionFile.from_dict(sf_dict)
         self.assertEqual(12, sf.index)
@@ -37,7 +40,8 @@ class SubmissionFileTest(TestCase):
         self.assertEqual(QC_STATUS_VALIDATED, sf.status)
 
     def test_to_ref(self):
-        dsvr = DatasetValidationResult(status="ERROR", issues=[Issue(type="ERROR", description="Yo, not like that my son")])
+        dsvr = DatasetValidationResult(status="ERROR",
+                                       issues=[Issue(type="ERROR", description="Yo, not like that my son")])
         sf = SubmissionFile(index=11,
                             submission_id="yeswecan",
                             filename="is_a_secret",

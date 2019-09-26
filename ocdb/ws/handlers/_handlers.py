@@ -323,9 +323,13 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         index = int(index)
 
         submission_file = get_submission_file(ctx=self.ws_context, submission_id=submission_id, index=index)
+
         if submission_file is not None:
+            submission_file = submission_file.to_dict()
+            submission_file['creationdate'] = submission_file['creationdate'].isoformat()
+
             self.set_header('Content-Type', 'application/json')
-            self.finish(tornado.escape.json_encode(submission_file.to_dict()))
+            self.finish(tornado.escape.json_encode(submission_file))
         else:
             self.set_status(400, reason="No result found")
 

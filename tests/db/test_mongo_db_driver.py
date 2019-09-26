@@ -87,7 +87,8 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-4.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-4.txt", result.datasets[0].filename)
 
     def test_insert_three_and_get_by_metadata_field_and(self):
         dataset = helpers.new_test_dataset(3)
@@ -109,13 +110,15 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-5.txt", result.datasets[0].path)
+        self.assertEqual("dataset-5.txt", result.datasets[0].filename)
+        self.assertEqual("archive", result.datasets[0].path)
 
         query = DatasetQuery(expr="affiliations: we_want_this AND cruise: baltic_2")
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-4.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-4.txt", result.datasets[0].filename)
 
     def test_insert_three_and_get_by_metadata_field_or(self):
         dataset = helpers.new_test_dataset(6)
@@ -137,13 +140,15 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(3, result.total_count)
-        self.assertEqual("archive/dataset-6.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-6.txt", result.datasets[0].filename)
 
         query = DatasetQuery(expr="affiliations: we_want_this OR cruise: baltic_2")
 
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("archive/dataset-7.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-7.txt", result.datasets[0].filename)
 
     def test_insert_and_get_by_not_existing_metadata_field(self):
         dataset = helpers.new_test_dataset(9)
@@ -154,6 +159,7 @@ class TestMongoDbDriver(unittest.TestCase):
         result = self._driver.find_datasets(query)
         self.assertEqual(0, result.total_count)
 
+    # !!!
     def test_insert_and_get_by_path(self):
         dataset = helpers.new_test_dataset(9)
         self._driver.add_dataset(dataset)
@@ -161,11 +167,12 @@ class TestMongoDbDriver(unittest.TestCase):
         dataset = helpers.new_test_dataset(10)
         self._driver.add_dataset(dataset)
 
-        query = DatasetQuery(expr="path:archive/dataset-10.txt")
+        query = DatasetQuery(expr="path:archive")
 
         result = self._driver.find_datasets(query)
-        self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-10.txt", result.datasets[0].path)
+        self.assertEqual(2, result.total_count)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-9.txt", result.datasets[0].filename)
 
     def test_insert_and_get_by_path_single_char_wildcard(self):
         dataset = helpers.new_test_dataset(13)
@@ -191,23 +198,28 @@ class TestMongoDbDriver(unittest.TestCase):
 
     def test_insert_and_get_by_path_multi_char_wildcard(self):
         dataset = helpers.new_test_dataset(13)
-        dataset.path = "archive/Helga.txt"
+        dataset.path = "archive"
+        dataset.filename = "Helga.txt"
         self._driver.add_dataset(dataset)
 
         dataset = helpers.new_test_dataset(14)
-        dataset.path = "archive/Helma.txt"
+        dataset.path = "archive"
+        dataset.filename = "Helma.txt"
         self._driver.add_dataset(dataset)
 
         dataset = helpers.new_test_dataset(15)
-        dataset.path = "archive/Olga.txt"
+        dataset.path = "bla"
+        dataset.filename = "Olga.txt"
         self._driver.add_dataset(dataset)
 
-        query = DatasetQuery(expr="path:*ga")
+        query = DatasetQuery(expr="path:*ar")
 
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("archive/Helga.txt", result.datasets[0].path)
-        self.assertEqual("archive/Olga.txt", result.datasets[1].path)
+        self.assertEqual("Helga.txt", result.datasets[0].filename)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[1].path)
+        self.assertEqual("Helma.txt", result.datasets[1].filename)
 
     def test_insert_and_get_by_qc_status(self):
         dataset = helpers.new_test_dataset(13)
@@ -223,7 +235,8 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-13.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-13.txt", result.datasets[0].filename)
 
     def test_get_offset_only(self):
         self._add_test_datasets_to_db()
@@ -232,19 +245,22 @@ class TestMongoDbDriver(unittest.TestCase):
         result = self._driver.find_datasets(query)
         self.assertEqual(10, len(result.datasets))
         self.assertEqual(10, result.total_count)
-        self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-0.txt", result.datasets[0].filename)
 
         query = DatasetQuery(offset=2)
         result = self._driver.find_datasets(query)
         self.assertEqual(9, len(result.datasets))
         self.assertEqual(10, result.total_count)
-        self.assertEqual("archive/dataset-1.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-1.txt", result.datasets[0].filename)
 
         query = DatasetQuery(offset=6)
         result = self._driver.find_datasets(query)
         self.assertEqual(5, len(result.datasets))
         self.assertEqual(10, result.total_count)
-        self.assertEqual("archive/dataset-5.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-5.txt", result.datasets[0].filename)
 
     def test_get_count_only(self):
         self._add_test_datasets_to_db()
@@ -253,13 +269,15 @@ class TestMongoDbDriver(unittest.TestCase):
         result = self._driver.find_datasets(query)
         self.assertEqual(4, len(result.datasets))
         self.assertEqual(10, result.total_count)
-        self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-0.txt", result.datasets[0].filename)
 
         query = DatasetQuery(count=7)
         result = self._driver.find_datasets(query)
         self.assertEqual(7, len(result.datasets))
         self.assertEqual(10, result.total_count)
-        self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-0.txt", result.datasets[0].filename)
 
     def test_get_count_zero_returns_number_of_results(self):
         self._add_test_datasets_to_db()
@@ -276,19 +294,22 @@ class TestMongoDbDriver(unittest.TestCase):
         result = self._driver.find_datasets(query)
         self.assertEqual(4, len(result.datasets))
         self.assertEqual(10, result.total_count)
-        self.assertEqual("archive/dataset-1.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-1.txt", result.datasets[0].filename)
 
         query = DatasetQuery(offset=5, count=3)
         result = self._driver.find_datasets(query)
         self.assertEqual(3, len(result.datasets))
         self.assertEqual(10, result.total_count)
-        self.assertEqual("archive/dataset-4.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-4.txt", result.datasets[0].filename)
 
         query = DatasetQuery(offset=8, count=5)
         result = self._driver.find_datasets(query)
         self.assertEqual(3, len(result.datasets))
         self.assertEqual(10, result.total_count)
-        self.assertEqual("archive/dataset-7.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-7.txt", result.datasets[0].filename)
 
     def test_get_offset_and_negative_count(self):
         self._add_test_datasets_to_db()
@@ -297,14 +318,20 @@ class TestMongoDbDriver(unittest.TestCase):
         result = self._driver.find_datasets(query)
         self.assertEqual(10, len(result.datasets))
         self.assertEqual(10, result.total_count)
-        self.assertEqual("archive/dataset-0.txt", result.datasets[0].path)
-        self.assertEqual("archive/dataset-9.txt", result.datasets[9].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-0.txt", result.datasets[0].filename)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-9.txt", result.datasets[9].filename)
 
         query = DatasetQuery(offset=4, count=-1)
         result = self._driver.find_datasets(query)
         self.assertEqual(7, len(result.datasets))
         self.assertEqual(10, result.total_count)
-        self.assertEqual("archive/dataset-3.txt", result.datasets[0].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-3.txt", result.datasets[0].filename)
 
     def test_insert_two_and_get_by_location(self):
         dataset = helpers.new_test_db_dataset(11)
@@ -319,7 +346,9 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-12.txt", result.datasets[0].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-12.txt", result.datasets[0].filename)
 
     def test_insert_two_and_get_by_location_many_records(self):
         dataset = helpers.new_test_db_dataset(13)
@@ -343,7 +372,9 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-13.txt", result.datasets[0].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-13.txt", result.datasets[0].filename)
 
     def test_insert_two_and_get_by_location_many_records_with_geojson_one_result(self):
         dataset = helpers.new_test_db_dataset(15)
@@ -367,7 +398,9 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-15.txt", result.datasets[0].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-15.txt", result.datasets[0].filename)
 
         self.assertEqual(1, len(result.locations))
         ds_id = result.datasets[0].id
@@ -405,8 +438,12 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
-        self.assertEqual("archive/dataset-19.txt", result.datasets[1].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-17.txt", result.datasets[0].filename)
+
+        self.assertEqual("archive", result.datasets[1].path)
+        self.assertEqual("dataset-19.txt", result.datasets[1].filename)
 
         self.assertEqual(2, len(result.locations))
         ds_id = result.datasets[0].id
@@ -443,7 +480,9 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-16.txt", result.datasets[0].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-16.txt", result.datasets[0].filename)
 
         # region does not match tb 2018-10-24
         query = DatasetQuery(expr='data_status: test', region=[25.0, -75.0, 27.0, -70.0])
@@ -476,20 +515,26 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-17.txt", result.datasets[0].filename)
 
         query = DatasetQuery(time=["2008-08-23T00:00:00", "2008-08-23T23:59:59"])  # covers second dataset tb 2018-10-29
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-18.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-18.txt", result.datasets[0].filename)
 
         query = DatasetQuery(time=["2007-01-01T00:00:00", "2008-08-23T23:59:59"])  # covers both datasets tb 2018-10-29
 
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
-        self.assertEqual("archive/dataset-18.txt", result.datasets[1].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-17.txt", result.datasets[0].filename)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-18.txt", result.datasets[1].filename)
 
         query = DatasetQuery(time=["2005-01-01T00:00:00", "2005-01-01T23:59:59"])  # covers no dataset tb 2018-10-29
 
@@ -515,14 +560,17 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-17.txt", result.datasets[0].filename)
 
         query = DatasetQuery(time=[None, "2010-01-01T23:59:59"])  # covers both datasets tb 2018-10-29
 
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
-        self.assertEqual("archive/dataset-18.txt", result.datasets[1].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-17.txt", result.datasets[0].filename)
+        self.assertEqual("archive", result.datasets[1].path)
+        self.assertEqual("dataset-18.txt", result.datasets[1].filename)
 
         query = DatasetQuery(time=[None, "2001-01-01T23:59:59"])  # covers no dataset tb 2018-10-29
 
@@ -548,14 +596,18 @@ class TestMongoDbDriver(unittest.TestCase):
 
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-18.txt", result.datasets[0].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-18.txt", result.datasets[0].filename)
 
         query = DatasetQuery(time=["2007-01-01T00:00:00", None])  # covers both datasets tb 2018-10-29
 
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("archive/dataset-17.txt", result.datasets[0].path)
-        self.assertEqual("archive/dataset-18.txt", result.datasets[1].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-17.txt", result.datasets[0].filename)
+        self.assertEqual("archive", result.datasets[1].path)
+        self.assertEqual("dataset-18.txt", result.datasets[1].filename)
 
         query = DatasetQuery(time=["2010-01-01T23:59:59", None])  # covers no dataset tb 2018-10-29
 
@@ -587,7 +639,9 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(pgroup=["Chl_a"])
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-21.txt", result.datasets[0].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-21.txt", result.datasets[0].filename)
 
     def test_insert_two_and_get_by_product_group_both_matching(self):
         dataset = helpers.new_test_db_dataset(22)
@@ -601,8 +655,10 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(pgroup=["b"])
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("archive/dataset-22.txt", result.datasets[0].path)
-        self.assertEqual("archive/dataset-23.txt", result.datasets[1].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-22.txt", result.datasets[0].filename)
+        self.assertEqual("archive", result.datasets[1].path)
+        self.assertEqual("dataset-23.txt", result.datasets[1].filename)
 
     def test_insert_two_and_get_by_product_group_two_groups_both_matching(self):
         dataset = helpers.new_test_db_dataset(24)
@@ -642,7 +698,9 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(pname=["b"])
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-20.txt", result.datasets[0].path)
+
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-20.txt", result.datasets[0].filename)
 
     def test_insert_two_and_get_by_product_name_two_matching(self):
         dataset = helpers.new_test_db_dataset(22)
@@ -656,8 +714,10 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(pname=["b", "c"])
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("archive/dataset-22.txt", result.datasets[0].path)
-        self.assertEqual("archive/dataset-23.txt", result.datasets[1].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-22.txt", result.datasets[0].filename)
+        self.assertEqual("archive", result.datasets[1].path)
+        self.assertEqual("dataset-23.txt", result.datasets[1].filename)
 
     def test_insert_two_and_get_by_measurement_type_all(self):
         dataset = helpers.new_test_db_dataset(40)
@@ -684,14 +744,16 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(mtype='flow_thru')
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-43.txt", result.datasets[0].path)
+        self.assertEqual("dataset-43.txt", result.datasets[0].filename)
+        self.assertEqual("archive", result.datasets[0].path)
 
     def test_insert_one_and_update(self):
         dataset = helpers.new_test_db_dataset(44)
         ds_id = self._driver.add_dataset(dataset)
 
         result = self._driver.get_dataset(ds_id)
-        self.assertEqual("archive/dataset-44.txt", result.path)
+        self.assertEqual("archive", result.path)
+        self.assertEqual("dataset-44.txt", result.filename)
 
         result.metadata["the_new"] = "a_thing_we_added"
         success = self._driver.update_dataset(result)
@@ -744,8 +806,10 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(shallow='no')
         result = self._driver.find_datasets(query)
         self.assertEqual(2, result.total_count)
-        self.assertEqual("archive/dataset-28.txt", result.datasets[0].path)
-        self.assertEqual("archive/dataset-29.txt", result.datasets[1].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-28.txt", result.datasets[0].filename)
+        self.assertEqual("archive", result.datasets[1].path)
+        self.assertEqual("dataset-29.txt", result.datasets[1].filename)
 
     def test_shallow_yes(self):
         dataset = helpers.new_test_db_dataset(30)
@@ -778,39 +842,46 @@ class TestMongoDbDriver(unittest.TestCase):
         query = DatasetQuery(shallow='exclusively')
         result = self._driver.find_datasets(query)
         self.assertEqual(1, result.total_count)
-        self.assertEqual("archive/dataset-33.txt", result.datasets[0].path)
+        self.assertEqual("archive", result.datasets[0].path)
+        self.assertEqual("dataset-33.txt", result.datasets[0].filename)
 
     def test_to_dataset_ref_without_points(self):
         dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde",
+                        "filename": "test.txt",
                         "longitudes": [-108.7, -107.92], "latitudes": [14.22, 14.64]}
 
         dataset_ref, points = self._driver._to_dataset_ref(dataset_dict, geojson=False)
         self.assertEqual("nasenmann.org", dataset_ref.id)
         self.assertEqual("/where/is/your/mama/gone/Rosamunde", dataset_ref.path)
+        self.assertEqual("test.txt", dataset_ref.filename)
         self.assertIsNone(points)
 
     def test_to_dataset_ref_with_points(self):
         dataset_dict = {"_id": "nasenmann.org", "path": "/where/is/your/mama/gone/Rosamunde",
+                        "filename": "test.txt",
                         "longitudes": [-108.7, -107.92], "latitudes": [14.22, 14.64]}
 
         dataset_ref, points = self._driver._to_dataset_ref(dataset_dict, geojson=True)
         self.assertEqual("nasenmann.org", dataset_ref.id)
         self.assertEqual("/where/is/your/mama/gone/Rosamunde", dataset_ref.path)
+        self.assertEqual("test.txt", dataset_ref.filename)
         self.assertEqual(2, len(points))
         self.assertEqual((-107.92, 14.64), points[1])
 
     def test_convert_times_empty(self):
-        dict = {'path': 'archive/dataset-17.txt',
-                'times': []}
+        dic = {'path': 'archive',
+               'filename': 'dataset-17.txt',
+               'times': []}
 
-        converted_dict = self._driver._convert_times(dict)
+        converted_dict = self._driver._convert_times(dic)
         self.assertEqual([], converted_dict["times"])
 
     def test_convert_times_two_values(self):
-        dict = {'path': 'archive/dataset-17.txt',
-                'times': ['2008-07-11T14:16:22', '2008-07-11T14:17:08']}
+        dic = {'path': 'archive',
+               'filename': 'dataset-17.txt',
+               'times': ['2008-07-11T14:16:22', '2008-07-11T14:17:08']}
 
-        converted_dict = self._driver._convert_times(dict)
+        converted_dict = self._driver._convert_times(dic)
         self.assertEqual([datetime(2008, 7, 11, 14, 16, 22), datetime(2008, 7, 11, 14, 17, 8)], converted_dict["times"])
 
     def test_to_geojson_empty(self):
@@ -821,14 +892,16 @@ class TestMongoDbDriver(unittest.TestCase):
         locations = [(164.2, 34.55)]
         geojson = MongoDbDriver._to_geojson(locations)
         self.assertEqual(
-            "{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}}]}",
+            "{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point',"
+            "'coordinates':[164.2,34.55]}}]}",
             geojson)
 
     def test_to_geojson_two_points(self):
         locations = [(164.2, 34.55), (164.82, 34.67)]
         geojson = MongoDbDriver._to_geojson(locations)
         self.assertEqual(
-            "{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point','coordinates':[164.2,34.55]}},"
+            "{'type':'FeatureCollection','features':[{'type':'Feature','geometry':{'type':'Point',"
+            "'coordinates':[164.2,34.55]}},"
             "{'type':'Feature','geometry':{'type':'Point','coordinates':[164.82,34.67]}}]}", geojson)
 
     def test_get_submissions_no_results(self):

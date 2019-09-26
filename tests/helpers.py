@@ -2,6 +2,7 @@ import os
 from typing import Optional
 
 import yaml
+from datetime import datetime
 
 from ocdb.core import UNDEFINED
 from ocdb.core.db.db_dataset import DbDataset
@@ -10,6 +11,9 @@ from ocdb.core.models.dataset import Dataset
 from ocdb.ws.context import WsContext
 from ocdb.ws.errors import WsBadRequestError
 from ocdb.ws.reqparams import RequestParams
+
+
+NOW = datetime(2009, 8, 7, 6, 5, 4)
 
 
 def new_test_service_context() -> WsContext:
@@ -41,8 +45,9 @@ def new_links():
 def _new_test_dataset(cls, n: int):
     return cls(dict(fields=["a", "b", "c"]),
                [[n + 1.2, n + 2.3, n + 3.4], [n + 4.5, n + 5.6, n + 6.7]],
-               path=f"archive/dataset-{n}.txt",
-               user_id=1,
+               path="archive",
+               filename=f"dataset-{n}.txt",
+               user_id='1',
                submission_id='abc',
                status='PUBLISHED')
 
