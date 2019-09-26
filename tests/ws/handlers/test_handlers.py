@@ -43,7 +43,7 @@ from ocdb.ws.handlers import API_URL_PREFIX
 from ocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestError, _ensure_int_argument, \
     StoreStatusSubmission
 from tests.core.mpf import MultiPartForm
-from tests.helpers import new_test_service_context, new_test_dataset
+from tests.helpers import new_test_service_context, new_test_dataset, NOW
 
 
 class WsTestCase(tornado.testing.AsyncHTTPTestCase):
@@ -357,12 +357,14 @@ class StoreUploadSubmissionFileTest(WsTestCase):
             # --- add submission file ---
             files = [SubmissionFile(submission_id="submitme",
                                     index=0,
+                                    creationdate=NOW,
                                     filename="Hans",
                                     filetype="black",
                                     status=QC_STATUS_SUBMITTED,
                                     result=DatasetValidationResult(status="OK", issues=[])),
                      SubmissionFile(submission_id="submitme",
                                     index=1,
+                                    creationdate=NOW,
                                     filename="Helga",
                                     filetype="green",
                                     status=QC_STATUS_VALIDATED,
@@ -385,6 +387,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
 
             actual_response_data = tornado.escape.json_decode(response.body)
             self.assertEqual({'filename': 'Hans',
+                              'creationdate': '2009-08-07T06:05:04',
                               'filetype': 'black',
                               'index': 0,
                               'result': {'issues': [], 'status': 'OK'},
@@ -417,11 +420,13 @@ class StoreUploadSubmissionFileTest(WsTestCase):
             files = [SubmissionFile(submission_id="submitme",
                                     index=0,
                                     filename="Hans",
+                                    creationdate=NOW,
                                     filetype="black",
                                     status=QC_STATUS_SUBMITTED,
                                     result=DatasetValidationResult(status="OK", issues=[])),
                      SubmissionFile(submission_id="submitme",
                                     index=1,
+                                    creationdate=NOW,
                                     filename="Helga",
                                     filetype="green",
                                     status=QC_STATUS_VALIDATED,
@@ -446,6 +451,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
             actual_response_data = tornado.escape.json_decode(response.body)
             self.assertEqual([{'date': '2001-02-03T04:05:06',
                                'file_refs': [{'filename': 'Helga',
+                                              'creationdate': None,
                                               'filetype': 'green',
                                               'index': 0,
                                               'status': 'VALIDATED',
@@ -556,12 +562,14 @@ class StoreUploadSubmissionFileTest(WsTestCase):
             submissionid = "rabatz"
             files = [SubmissionFile(submission_id=submissionid,
                                     index=0,
+                                    creationdate=NOW,
                                     filename="Hans",
                                     filetype="black",
                                     status=QC_STATUS_SUBMITTED,
                                     result=DatasetValidationResult(status="OK", issues=[])),
                      SubmissionFile(submission_id=submissionid,
                                     index=1,
+                                    creationdate=NOW,
                                     filename="Helga",
                                     filetype="MEASUREMENT",
                                     status=QC_STATUS_VALIDATED,
@@ -594,6 +602,7 @@ class StoreUploadSubmissionFileTest(WsTestCase):
             self.assertEqual({'filename': 'the_uploaded_file.sb',
                               'filetype': TYPE_MEASUREMENT,
                               'index': 1,
+                              'creationdate': '2009-08-07T06:05:04',
                               'result': {'issues': [], 'status': 'OK'},
                               'status': "OK",
                               'submission_id': 'rabatz'}, actual_response_data)
@@ -696,12 +705,14 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
         cookie = self.login_admin()
         try:
             files = [SubmissionFile(submission_id="submitme",
+                                    creationdate=NOW,
                                     index=0,
                                     filename="Hans",
                                     filetype="black",
                                     status=QC_STATUS_SUBMITTED,
                                     result=DatasetValidationResult(status="OK", issues=[])),
                      SubmissionFile(submission_id="submitme",
+                                    creationdate=NOW,
                                     index=1,
                                     filename="Helga",
                                     filetype="green",
@@ -732,6 +743,7 @@ class StoreUpdateSubmissionFileTest(WsTestCase):
 
             actual_response_data = tornado.escape.json_decode(response.body)
             self.assertEqual({'filename': 'Helga',
+                              'creationdate': '2009-08-07T06:05:04',
                               'filetype': 'green',
                               'index': 1,
                               'result': {'issues': [{'description': 'This might be wrong',
@@ -821,16 +833,19 @@ class StoreDownloadTest(WsTestCase):
         target_file_1 = None
         target_file_2 = None
         try:
-            target_dir = os.path.join(self.ctx.store_path, "archive")
-            os.makedirs(target_dir)
+            target_dir = os.path.join(self.ctx.store_path, '1_abc',
+                                      "archive", "archive")
+            os.makedirs(target_dir, exist_ok=True)
 
             ds_ref_1 = add_dataset(self.ctx, new_test_dataset(0))
-            target_file_1 = os.path.join(self.ctx.store_path, ds_ref_1.path)
+            target_file_1 = os.path.join(self.ctx.store_path, '1_abc',
+                                         ds_ref_1.path, "archive", ds_ref_1.filename)
             with open(target_file_1, "w") as fp:
                 fp.write("firlefanz")
 
             ds_ref_2 = add_dataset(self.ctx, new_test_dataset(1))
-            target_file_2 = os.path.join(self.ctx.store_path, ds_ref_2.path)
+            target_file_2 = os.path.join(self.ctx.store_path, '1_abc',
+                                         ds_ref_2.path, "archive", ds_ref_2.filename)
             with open(target_file_2, "w") as fp:
                 fp.write("schnickschnack")
 
@@ -844,8 +859,8 @@ class StoreDownloadTest(WsTestCase):
             zf = zipfile.ZipFile(io.BytesIO(response.body), "r")
             info_list = zf.infolist()
             self.assertEqual(2, len(info_list))
-            self.assertEqual("archive/dataset-0.txt", info_list[0].filename)
-            self.assertEqual("archive/dataset-1.txt", info_list[1].filename)
+            self.assertEqual("archive/archive/dataset-0.txt", info_list[0].filename)
+            self.assertEqual("archive/archive/dataset-1.txt", info_list[1].filename)
         finally:
             if target_file_1 is not None:
                 os.remove(target_file_1)
@@ -858,11 +873,13 @@ class StoreDownloadTest(WsTestCase):
         target_dir = None
         target_file_1 = None
         try:
-            target_dir = os.path.join(self.ctx.store_path, "archive")
+            target_dir = os.path.join(self.ctx.store_path, '1_abc',
+                                      "archive", "archive")
             os.makedirs(target_dir)
 
             ds_ref_1 = add_dataset(self.ctx, new_test_dataset(0))
-            target_file_1 = os.path.join(self.ctx.store_path, ds_ref_1.path)
+            target_file_1 = os.path.join(self.ctx.store_path, '1_abc',
+                                         ds_ref_1.path, "archive", ds_ref_1.filename)
             with open(target_file_1, "w") as fp:
                 fp.write("firlefanz")
 
@@ -876,7 +893,7 @@ class StoreDownloadTest(WsTestCase):
             zf = zipfile.ZipFile(io.BytesIO(response.body), "r")
             info_list = zf.infolist()
             self.assertEqual(1, len(info_list))
-            self.assertEqual("archive/dataset-0.txt", info_list[0].filename)
+            self.assertEqual("archive/archive/dataset-0.txt", info_list[0].filename)
         finally:
             if target_file_1 is not None:
                 os.remove(target_file_1)

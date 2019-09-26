@@ -78,8 +78,6 @@ class StoreUploadSubmission(WsRequestHandler):
                                               arguments,
                                               files)
 
-        user = self.ws_context.get_user(user_name)
-
         submission_id = arguments.get("submissionid")
         submission_id = _ensure_string_argument(submission_id, "submissionid")
 
@@ -155,6 +153,9 @@ class StoreUploadSubmission(WsRequestHandler):
 
         sub_dict = submission.to_dict()
         sub_dict["date"] = sub_dict["date"].isoformat()
+        for f in sub_dict['files']:
+            if 'creationdate' in f and isinstance(f['creationdate'], datetime.datetime):
+                f['creationdate'] = f['creationdate'].isoformat()
 
         if sub_dict["publication_date"]:
             sub_dict["publication_date"] = sub_dict["publication_date"]
@@ -322,9 +323,13 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         index = int(index)
 
         submission_file = get_submission_file(ctx=self.ws_context, submission_id=submission_id, index=index)
+
         if submission_file is not None:
+            submission_file = submission_file.to_dict()
+            submission_file['creationdate'] = submission_file['creationdate'].isoformat()
+
             self.set_header('Content-Type', 'application/json')
-            self.finish(tornado.escape.json_encode(submission_file.to_dict()))
+            self.finish(tornado.escape.json_encode(submission_file))
         else:
             self.set_status(400, reason="No result found")
 
@@ -352,7 +357,15 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             self.set_status(400, reason="Invalid number of files supplied")
             return
 
-        add_submission_file(ctx=self.ws_context, submission=submission, file=files[0], typ=typ)
+        submission_file = get_submission_file_by_filename(ctx=self.ws_context, submission_id=submission_id,
+                                                          file_name=files[0].filename)
+
+        if not submission_file:
+            add_submission_file(ctx=self.ws_context, submission=submission, file=files[0], typ=typ)
+        else:
+            self.set_status(400,
+                            reason=f"File name {files[0].filename} exists already in submission. Please use re-upload feature")
+            return
 
         self.set_status(200, reason="OK")
 
@@ -371,6 +384,7 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             return
 
         index = int(index)
+
         if index >= len(submission.files) or index < 0:
             self.set_status(400, reason="Invalid submission file index")
             return

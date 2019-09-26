@@ -31,11 +31,14 @@ class DatasetRef(Model):
 
     def __init__(self,
                  id_: str,
-                 path: str):
+                 path: str,
+                 filename: str):
         assert_not_none(id_, name='id_')
         assert_not_none(path, name='path')
+        assert_not_none(filename, name='filename')
         self._id = id_
         self._path = path
+        self._filename = filename
 
     @property
     def id(self) -> str:
@@ -54,3 +57,12 @@ class DatasetRef(Model):
     def path(self, value: str):
         assert_not_none(value, name='value')
         self._path = value
+
+    @property
+    def filename(self) -> str:
+        return self._filename
+
+    @filename.setter
+    def filename(self, value: str):
+        assert_not_none(value, name='value')
+        self._filename = value

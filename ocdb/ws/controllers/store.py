@@ -20,6 +20,7 @@
 # SOFTWARE.
 import datetime
 import io
+import json
 import os
 import tempfile
 import time
@@ -252,6 +253,13 @@ def get_submission_file(ctx: WsContext,
     return result
 
 
+def get_submission_file_by_filename(ctx: WsContext,
+                                    submission_id: str,
+                                    file_name: str):
+    result = ctx.db_driver.get_submission_file_by_filename(submission_id=submission_id, file_name=file_name)
+    return result
+
+
 def update_submission_files(ctx: WsContext,
                             path: str,
                             store_user_path: str,
@@ -413,7 +421,7 @@ def _delete_submission_file(ctx, file_to_delete, submission):
 def _delete_submission(ctx, submission):
     import shutil
     path = ctx.get_submission_path(submission.store_sub_path)
-    shutil.rmtree(path)
+    shutil.rmtree(path, ignore_errors=True)
 
 
 def update_submission_file_status(ctx: WsContext, submission: DbSubmission, index: int, status: str) -> bool:
@@ -461,7 +469,7 @@ def download_store_files_by_id(ctx: WsContext,
                                docs: bool = False) -> zipfile.ZipFile:
     result_list = []
     for dsId in dataset_ids:
-        dataset_ref = DatasetRef(dsId, "fake_path")
+        dataset_ref = DatasetRef(dsId, "fake_path", 'fake_filename')
         result_list.append(dataset_ref)
 
     result = DatasetQueryResult(locations={}, total_count=len(result_list), datasets=result_list, query=DatasetQuery())
@@ -515,21 +523,23 @@ def _assemble_zip_archive(ctx, docs, result):
             if dataset is None:
                 continue
 
-            full_file_path = os.path.join(ctx.store_path, dataset.path)
+            full_file_path = os.path.join(ctx.store_path, dataset.user_id + '_' + dataset.submission_id, dataset.path,
+                                          "archive", dataset.filename)
             if not os.path.exists(full_file_path):
                 raise FileNotFoundError(f"Could not find file {full_file_path} on server. Please contact eumetsat.")
-            zip_file.write(full_file_path, dataset.path)
+            zip_file.write(full_file_path, os.path.join(dataset.path, "archive", dataset.filename))
 
             if not docs:
                 continue
 
             if "documents" in dataset.metadata:
-                doc_root_path = get_document_root_path(dataset.path)
+                doc_root_path = get_document_root_path(
+                    os.path.join(dataset.user_id + '_' + dataset.submission_id, dataset.path))
                 doc_archive_path = ctx.get_doc_files_store_path(doc_root_path)
-                zip_store_path = os.path.join(doc_root_path, "documents")
+                zip_store_path = os.path.join(dataset.path, "documents")
 
-                documents_string = dataset.metadata["documents"]
-                document_names = documents_string.split(",")
+                document_names = json.loads(dataset.metadata["documents"])
+
                 for document_name in document_names:
                     document_path = os.path.join(doc_archive_path, document_name)
                     document_zip_path = os.path.join(zip_store_path, document_name)
@@ -597,6 +607,12 @@ def _publish_submission(ctx: WsContext, submission: DbSubmission, status) -> boo
     source_meas_path = os.path.join(ctx.get_datasets_upload_path(submission_path))
     source_docs_path = os.path.join(ctx.get_doc_files_upload_path(submission_path))
 
+    # collect related documents
+    docs = []
+    for file in submission.files:
+        if file.filetype == TYPE_DOCUMENT:
+            docs.append(file.filename)
+
     datasets = []
     for file in submission.files:
         if file.filetype == TYPE_MEASUREMENT:
@@ -611,7 +627,9 @@ def _publish_submission(ctx: WsContext, submission: DbSubmission, status) -> boo
                 _LOG.warning("Error reading dataset: " + str(e))
                 raise e
 
-            dataset.path = submission_path
+            dataset.path = submission.path
+            dataset.metadata['documents'] = json.dumps(docs)
+            dataset.filename = file.filename
             dataset.submission_id = submission.submission_id
             dataset.user_id = submission.user_id
             dataset.status = status

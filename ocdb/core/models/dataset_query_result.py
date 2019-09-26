@@ -45,6 +45,7 @@ class DatasetQueryResult(Model):
         self._total_count = total_count
         self._datasets = datasets
         self._query = query
+        self._dataset_ids = [dataset.id for dataset in datasets]
 
     @property
     def locations(self) -> dict:
@@ -81,3 +82,12 @@ class DatasetQueryResult(Model):
     def query(self, value: DatasetQuery):
         assert_not_none(value, name='value')
         self._query = value
+
+    @property
+    def dataset_ids(self) -> List[str]:
+        return self._dataset_ids
+
+    @dataset_ids.setter
+    def dataset_ids(self, value: List[str]):
+        assert_not_none(value, name='value')
+        self._dataset_ids = value

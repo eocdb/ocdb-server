@@ -79,10 +79,12 @@ class MongoDbDriver(DbDriver):
             return DatasetQueryResult({}, total_num_results, [], query)
         else:
             dataset_refs = []
+            dataset_ids = []
             locations = {}
             for dataset_dict in cursor:
                 ds_ref, points = self._to_dataset_ref(dataset_dict, query.geojson)
                 dataset_refs.append(ds_ref)
+                dataset_ids.append(ds_ref.id)
                 if points is not None:
                     feature_collection = self._to_geojson(points)
                     locations.update({ds_ref.id: feature_collection})
@@ -107,6 +109,20 @@ class MongoDbDriver(DbDriver):
             return None
 
         return db_submission.files[index]
+
+    def get_submission_file_by_filename(self, submission_id: str, file_name: str) -> Optional[SubmissionFile]:
+        subm_dict = self._submit_collection.find_one({"submission_id": submission_id})
+        if subm_dict is None:
+            return None
+
+        del subm_dict["_id"]
+        db_submission = DbSubmission.from_dict(subm_dict)
+
+        for f in db_submission.files:
+            if file_name == f.filename:
+                return f
+
+        return None
 
     def get_submissions(self) -> List[DbSubmission]:
         submissions = []
@@ -347,7 +363,8 @@ class MongoDbDriver(DbDriver):
     def _to_dataset_ref(dataset_dict, geojson=False):
         dataset_id = str(dataset_dict.get("_id"))
         path = dataset_dict.get("path")
-        ds_ref = DatasetRef(dataset_id, path)
+        filename = dataset_dict.get("filename")
+        ds_ref = DatasetRef(dataset_id, path, filename)
 
         if geojson:
             lons = dataset_dict.get("longitudes")
