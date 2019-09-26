@@ -35,11 +35,7 @@ ADD . /ocdb-server
 
 # Setup eocdb-dev
 RUN source activate ocdb-server; \
-    python setup.py develop
-
-# Test eocdb-dev
-RUN source activate ocdb-server; \
-    pytest --cov=ocdb
+    python setup.py install
 
 # Export web server port 4000
 EXPOSE 4000
