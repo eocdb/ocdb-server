@@ -39,7 +39,7 @@ RUN source activate ocdb-server; \
 
 # Test eocdb-dev
 RUN source activate ocdb-server; \
-    pytest --cov=eocdb
+    pytest --cov=ocdb
 
 # Export web server port 4000
 EXPOSE 4000
