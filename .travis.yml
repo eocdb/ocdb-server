@@ -42,6 +42,6 @@ install:
   - conda list
   - python setup.py install
 
-  - pytest --cov=eocdb --cov-report html
+  - pytest --cov=ocdb --cov-report html
 
 
