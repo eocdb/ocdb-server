@@ -1,11 +1,11 @@
-name: ocdb-server
+name: ocdb-server2
 
 channels:
   - conda-forge
   - defaults
 
 dependencies:
-  - python =3.6*
+  - python >=3.6
   #
   # production dependencies
   #
