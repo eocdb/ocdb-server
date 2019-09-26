@@ -3,7 +3,11 @@
 # See http://conda.pydata.org/docs/travis.html for more info.
 #
 
-language: generic
+language: python
+
+python:
+  - "3.6"
+  - "3.7"
 
 os:
   - linux
