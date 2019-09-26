@@ -1,4 +1,4 @@
-name: ocdb-server2
+name: ocdb-server
 
 channels:
   - conda-forge
