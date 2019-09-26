@@ -39,22 +39,22 @@ packages = find_packages(exclude=["tests", "tests.*"])
 
 VERSION = None
 DESCRIPTION = None
-with open('eocdb/version.py') as f:
+with open('ocdb/version.py') as f:
     exec(f.read())
 
 setup(
-    name="eocdb-server",
+    name="ocdb-server",
     version=VERSION,
     description=DESCRIPTION,
     license='MIT',
     author='Brockmann Consult GmbH',
     packages=packages,
     package_data={
-        'eocdb.ws.res': ['**/*'],
+        'ocdb.ws.res': ['**/*'],
     },
     entry_points={
         'console_scripts': [
-            'eocdb-server = eocdb.ws.main:main',
+            'ocdb-server = ocdb.ws.main:main',
         ],
     },
     install_requires=requirements,
