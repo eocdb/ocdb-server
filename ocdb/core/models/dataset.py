@@ -38,7 +38,7 @@ class Dataset(Model):
                  user_id: str = None,
                  submission_id: str = None,
                  status: str = None
-            ):
+                 ):
         assert_not_none(metadata, name='metadata')
         assert_not_none(records, name='records')
         self._id = id_

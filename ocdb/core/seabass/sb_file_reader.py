@@ -319,6 +319,7 @@ class SbFileReader:
         return datetime.datetime(year, month, day, hour, minute, second)
 
 
+# noinspection PyArgumentList
 class SbFormatError(Exception):
     """
     This error is raised if SbFileReader encounters format errors.

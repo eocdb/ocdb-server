@@ -192,9 +192,13 @@ class StoreUploadSubmission(WsRequestHandler):
         path = _ensure_string_argument(path, "path")
 
         publication_date = body_dict["publicationdate"]
-        publication_date = _ensure_string_argument(publication_date, "publicationdate")
+        if publication_date is not None:
+            publication_date = _ensure_string_argument(publication_date, "publicationdate")
 
         allow_publication = body_dict["allowpublication"]
+
+        #if not allow_publication:
+        #    publication_date = None
 
         update_submission_files(ctx=self.ws_context,
                                 path=path,
@@ -364,7 +368,8 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             add_submission_file(ctx=self.ws_context, submission=submission, file=files[0], typ=typ)
         else:
             self.set_status(400,
-                            reason=f"File name {files[0].filename} exists already in submission. Please use re-upload feature")
+                            reason=f"File name {files[0].filename} "
+                            f"exists already in submission. Please use re-upload feature")
             return
 
         self.set_status(200, reason="OK")

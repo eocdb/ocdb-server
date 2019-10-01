@@ -34,16 +34,16 @@ Notes:
 
 """
 
-#==========================================================================================================================================
+# ==========================================================================================================================================
 
 import re
 from datetime import datetime
 from collections import OrderedDict
 
-#==========================================================================================================================================
+
+# ==========================================================================================================================================
 
 def is_number(s):
-
     """
     is_number determines if a given string is a number or not, does not handle complex numbers
     returns True for int, float, or long numbers, else False
@@ -51,15 +51,15 @@ def is_number(s):
     """
 
     try:
-        float(s) # handles int, long, and float, but not complex
+        float(s)  # handles int, long, and float, but not complex
     except ValueError:
         return False
     return True
 
-#==========================================================================================================================================
+
+# ==========================================================================================================================================
 
 def is_int(s):
-
     """
     is_int determines if a given string is an integer or not, uses int()
     returns True for int numbers, else False
@@ -67,15 +67,15 @@ def is_int(s):
     """
 
     try:
-        int(s) # handles int
+        int(s)  # handles int
     except ValueError:
         return False
     return True
 
-#==========================================================================================================================================
+
+# ==========================================================================================================================================
 
 def doy2mndy(yr, doy):
-
     """
     doy2mndy returns the month and day of month as integers
     given year and julian day
@@ -84,11 +84,12 @@ def doy2mndy(yr, doy):
 
     from datetime import datetime
 
-    dt = datetime.strptime('{:04d}{:03d}'.format(yr,doy), '%Y%j')
+    dt = datetime.strptime('{:04d}{:03d}'.format(yr, doy), '%Y%j')
 
-    return int(dt.strftime('%m')),int(dt.strftime('%d'))
+    return int(dt.strftime('%m')), int(dt.strftime('%d'))
 
-#==========================================================================================================================================
+
+# ==========================================================================================================================================
 
 class readSB:
     """ Read an FCHECK-verified SeaBASS formatted data file.
@@ -109,7 +110,8 @@ class readSB:
         .writeSBfile(ofile) - Writes headers, comments, and data into a SeaBASS file specified by ofile
     """
 
-    def __init__(self, filename, mask_missing=True, mask_above_detection_limit=True, mask_below_detection_limit=True, no_warn=False):
+    def __init__(self, filename, mask_missing=True, mask_above_detection_limit=True, mask_below_detection_limit=True,
+                 no_warn=False):
         """
         Required arguments:
         filename = name of SeaBASS input file (string)
@@ -120,24 +122,24 @@ class readSB:
         mask_below_detection_limit = flag to set below_detection_limit values to NaN, default set to True
         no_warn                    = flag to suppress warnings, default set to False
         """
-        self.filename          = filename
-        self.headers           = OrderedDict()
-        self.comments          = []
-        self.variables         = OrderedDict()
-        self.data              = OrderedDict()
-        self.missing           = ''
-        self.adl               = ''
-        self.bdl               = ''
-        self.length            = 0
+        self.filename = filename
+        self.headers = OrderedDict()
+        self.comments = []
+        self.variables = OrderedDict()
+        self.data = OrderedDict()
+        self.missing = ''
+        self.adl = ''
+        self.bdl = ''
+        self.length = 0
         self.optically_shallow = False
 
-        end_header             = False
+        end_header = False
 
         try:
-            fileobj = open(self.filename,'r')
+            fileobj = open(self.filename, 'r')
 
         except Exception as e:
-            raise Exception('Unable to open file for reading: {:}. Error: {:}'.format(self.filename,e))
+            raise Exception('Unable to open file for reading: {:}. Error: {:}'.format(self.filename, e))
             return
 
         try:
@@ -145,26 +147,28 @@ class readSB:
             fileobj.close()
 
         except Exception as e:
-            raise Exception('Unable to read data from file: {:}. Error: {:}'.format(self.filename,e))
+            raise Exception('Unable to read data from file: {:}. Error: {:}'.format(self.filename, e))
             return
 
         """ Remove any/all newline and carriage return characters """
-        lines = [re.sub("[\r\n]+",'',line).strip() for line in lines]
+        lines = [re.sub("[\r\n]+", '', line).strip() for line in lines]
 
         for line in lines:
 
             """ Extract header """
             if not end_header \
-                and not '/begin_header' in line.lower() \
-                and not '/end_header' in line.lower() \
-                and not '!' in line:
+                    and not '/begin_header' in line.lower() \
+                    and not '/end_header' in line.lower() \
+                    and not '!' in line:
                 try:
-                    [h,v] = line.split('=', 1)
+                    [h, v] = line.split('=', 1)
                     h = h.lower()
 
                 except:
                     if not no_warn:
-                        print('Warning: Unable to parse header key/value pair in file: {:}. In line: {:} Use no_warn=True to suppress this message.'.format(self.filename,line))
+                        print(
+                            'Warning: Unable to parse header key/value pair in file: {:}. In line: {:} Use no_warn=True to suppress this message.'.format(
+                                self.filename, line))
 
                 h = h[1:]
                 self.headers[h] = v
@@ -177,7 +181,8 @@ class readSB:
                         self.data[var] = []
 
                 except Exception as e:
-                    raise Exception('Unable to parse /fields in file: {:}. Error: {:}. In line: {:}'.format(self.filename,e,line))
+                    raise Exception(
+                        'Unable to parse /fields in file: {:}. Error: {:}. In line: {:}'.format(self.filename, e, line))
                     return
 
             """ Extract units """
@@ -190,7 +195,9 @@ class readSB:
                     self.missing = float(line.split('=', 1)[1])
 
                 except Exception as e:
-                    raise Exception('Unable to parse /missing value in file: {:}. Error: {:}. In line: {:}'.format(self.filename,e,line))
+                    raise Exception(
+                        'Unable to parse /missing value in file: {:}. Error: {:}. In line: {:}'.format(self.filename, e,
+                                                                                                       line))
                     return
 
             """ Extract optical depth warning """
@@ -205,7 +212,9 @@ class readSB:
                     self.bdl = float(line.split('=', 1)[1])
 
                 except Exception as e:
-                    raise Exception('Unable to parse /below_detection_limit value in file: {:}. Error: {:}. In line: {:}'.format(self.filename,e,line))
+                    raise Exception(
+                        'Unable to parse /below_detection_limit value in file: {:}. Error: {:}. In line: {:}'.format(
+                            self.filename, e, line))
                     return
 
             """ Extract below detection limit """
@@ -214,7 +223,9 @@ class readSB:
                     self.adl = float(line.split('=', 1)[1])
 
                 except Exception as e:
-                    raise Exception('Unable to parse /above_detection_limit value in file: {:}. Error: {:}. In line: {:}'.format(self.filename,e,line))
+                    raise Exception(
+                        'Unable to parse /above_detection_limit value in file: {:}. Error: {:}. In line: {:}'.format(
+                            self.filename, e, line))
                     return
 
             """ Extract delimiter """
@@ -223,10 +234,10 @@ class readSB:
                     delim = ',+'
                 elif 'space' in line.lower():
                     delim = '\s+'
-                elif 'tab'   in line.lower():
+                elif 'tab' in line.lower():
                     delim = '\t+'
                 else:
-                    raise Exception('Invalid delimiter detected in file: {:}. In line: {:}'.format(self.filename,line))
+                    raise Exception('Invalid delimiter detected in file: {:}. In line: {:}'.format(self.filename, line))
                     return
 
             """ Extract comments, but not history of metadata changes """
@@ -248,15 +259,21 @@ class readSB:
                     return
 
                 if self.optically_shallow == 1 and not no_warn:
-                    print('Warning: optical_depth_warning flag is set to true in file: {:}. This file contains measurements in optically shallow conditions (i.e. where there may be bottom reflectance, etc). Use with caution, exclude if performing validation or algorithm development. Use no_warn=True to suppress this message.'.format(self.filename))
+                    print(
+                        'Warning: optical_depth_warning flag is set to true in file: {:}. This file contains measurements in optically shallow conditions (i.e. where there may be bottom reflectance, etc). Use with caution, exclude if performing validation or algorithm development. Use no_warn=True to suppress this message.'.format(
+                            self.filename))
 
                 if mask_above_detection_limit and not no_warn:
                     if not self.adl:
-                        print('Warning: No above_detection_limit in file: {:}. Unable to mask values as NaNs. Use no_warn=True to suppress this message.'.format(self.filename))
+                        print(
+                            'Warning: No above_detection_limit in file: {:}. Unable to mask values as NaNs. Use no_warn=True to suppress this message.'.format(
+                                self.filename))
 
                 if mask_below_detection_limit and not no_warn:
                     if not self.bdl:
-                        print('Warning: No below_detection_limit in file: {:}. Unable to mask values as NaNs. Use no_warn=True to suppress this message.'.format(self.filename))
+                        print(
+                            'Warning: No below_detection_limit in file: {:}. Unable to mask values as NaNs. Use no_warn=True to suppress this message.'.format(
+                                self.filename))
 
                 end_header = True
                 continue
@@ -264,7 +281,7 @@ class readSB:
             """ Extract data after headers """
             if end_header and line:
                 try:
-                    for var,dat in zip(_vars,re.split(delim,line)):
+                    for var, dat in zip(_vars, re.split(delim, line)):
                         if is_number(dat):
                             if is_int(dat):
                                 dat = int(dat)
@@ -287,21 +304,25 @@ class readSB:
                     self.length = self.length + 1
 
                 except Exception as e:
-                    raise Exception('Unable to parse data from line in file: {:}. Error: {:}. In line: {:}'.format(self.filename,e,line))
+                    raise Exception(
+                        'Unable to parse data from line in file: {:}. Error: {:}. In line: {:}'.format(self.filename, e,
+                                                                                                       line))
                     return
 
         try:
-            self.variables = OrderedDict(zip(_vars,zip(_vars,_units)))
+            self.variables = OrderedDict(zip(_vars, zip(_vars, _units)))
 
         except:
             if not no_warn:
-                print('Warning: No valid units were detected in file: {:}. Use no_warn=True to suppress this message.'.format(self.filename))
+                print(
+                    'Warning: No valid units were detected in file: {:}. Use no_warn=True to suppress this message.'.format(
+                        self.filename))
 
-            self.variables = OrderedDict(zip(_vars,_vars))
+            self.variables = OrderedDict(zip(_vars, _vars))
 
         return
 
-#==========================================================================================================================================
+    # ==========================================================================================================================================
 
     def fd_datetime(self):
         """ Convert date and time information from the file's data to a Python list of datetime objects.
@@ -325,10 +346,10 @@ class readSB:
             raise ValueError('readSB.data structure is missing for file: {:}'.format(self.filename))
             return
 
-        if 'date'     in self.data and \
-           'time'     in self.data:
+        if 'date' in self.data and \
+                'time' in self.data:
 
-            for d,t in zip([str(de) for de in self.data['date']],self.data['time']):
+            for d, t in zip([str(de) for de in self.data['date']], self.data['time']):
                 da = re.search("(\d{4})(\d{2})(\d{2})", d)
                 ti = re.search("(\d{1,2})\:(\d{2})\:(\d{2})", t)
                 try:
@@ -339,17 +360,19 @@ class readSB:
                                        int(ti.group(2)), \
                                        int(ti.group(3))))
                 except:
-                    raise ValueError('date/time fields not formatted correctly; unable to parse in file: {:}'.format(self.filename))
+                    raise ValueError(
+                        'date/time fields not formatted correctly; unable to parse in file: {:}'.format(self.filename))
                     return
 
-        elif 'year'   in self.data and \
-             'month'  in self.data and \
-             'day'    in self.data and \
-             'hour'   in self.data and \
-             'minute' in self.data and \
-             'second' in self.data:
+        elif 'year' in self.data and \
+                'month' in self.data and \
+                'day' in self.data and \
+                'hour' in self.data and \
+                'minute' in self.data and \
+                'second' in self.data:
 
-            for y,m,d,h,mn,s in zip(self.data['year'], self.data['month'], self.data['day'], self.data['hour'], self.data['minute'], self.data['second']):
+            for y, m, d, h, mn, s in zip(self.data['year'], self.data['month'], self.data['day'], self.data['hour'],
+                                         self.data['minute'], self.data['second']):
                 try:
                     dt.append(datetime(int(y), \
                                        int(m), \
@@ -358,15 +381,17 @@ class readSB:
                                        int(mn), \
                                        int(s)))
                 except:
-                    raise ValueError('year/month/day/hour/minute/second fields not formatted correctly; unable to parse in file: {:}'.format(self.filename))
+                    raise ValueError(
+                        'year/month/day/hour/minute/second fields not formatted correctly; unable to parse in file: {:}'.format(
+                            self.filename))
                     return
 
-        elif 'year'   in self.data and \
-             'month'  in self.data and \
-             'day'    in self.data and \
-             'time'   in self.data:
+        elif 'year' in self.data and \
+                'month' in self.data and \
+                'day' in self.data and \
+                'time' in self.data:
 
-            for y,m,d,t in zip(self.data['year'], self.data['month'], self.data['day'], self.data['time']):
+            for y, m, d, t in zip(self.data['year'], self.data['month'], self.data['day'], self.data['time']):
                 ti = re.search("(\d{1,2})\:(\d{2})\:(\d{2})", t)
                 try:
                     dt.append(datetime(int(y), \
@@ -376,15 +401,18 @@ class readSB:
                                        int(ti.group(2)), \
                                        int(ti.group(3))))
                 except:
-                    raise ValueError('year/month/day/time fields not formatted correctly; unable to parse in file: {:}'.format(self.filename))
+                    raise ValueError(
+                        'year/month/day/time fields not formatted correctly; unable to parse in file: {:}'.format(
+                            self.filename))
                     return
 
-        elif 'date'   in self.data and \
-             'hour'   in self.data and \
-             'minute' in self.data and \
-             'second' in self.data:
+        elif 'date' in self.data and \
+                'hour' in self.data and \
+                'minute' in self.data and \
+                'second' in self.data:
 
-            for d,h,mn,s in zip([str(de) for de in self.data['date']], self.data['hour'], self.data['minute'], self.data['second']):
+            for d, h, mn, s in zip([str(de) for de in self.data['date']], self.data['hour'], self.data['minute'],
+                                   self.data['second']):
                 da = re.search("(\d{4})(\d{2})(\d{2})", d)
                 try:
                     dt.append(datetime(int(da.group(1)), \
@@ -394,7 +422,9 @@ class readSB:
                                        int(mn), \
                                        int(s)))
                 except:
-                    raise ValueError('date/hour/minute/second fields not formatted correctly; unable to parse in file: {:}'.format(self.filename))
+                    raise ValueError(
+                        'date/hour/minute/second fields not formatted correctly; unable to parse in file: {:}'.format(
+                            self.filename))
                     return
 
         elif 'date_time' in self.data:
@@ -409,17 +439,19 @@ class readSB:
                                        int(da.group(5)), \
                                        int(da.group(6))))
                 except:
-                    raise ValueError('date_time field not formatted correctly; unable to parse in file: {:}'.format(self.filename))
+                    raise ValueError(
+                        'date_time field not formatted correctly; unable to parse in file: {:}'.format(self.filename))
                     return
 
-        elif 'year'   in self.data and \
-             'sdy'    in self.data and \
-             'hour'   in self.data and \
-             'minute' in self.data and \
-             'second' in self.data:
+        elif 'year' in self.data and \
+                'sdy' in self.data and \
+                'hour' in self.data and \
+                'minute' in self.data and \
+                'second' in self.data:
 
-            for y,sdy,h,mn,s in zip(self.data['year'], self.data['sdy'], self.data['hour'], self.data['minute'], self.data['second']):
-                [m,d] = doy2mndy(y,sdy)
+            for y, sdy, h, mn, s in zip(self.data['year'], self.data['sdy'], self.data['hour'], self.data['minute'],
+                                        self.data['second']):
+                [m, d] = doy2mndy(y, sdy)
                 try:
                     dt.append(datetime(int(y), \
                                        int(m), \
@@ -428,15 +460,17 @@ class readSB:
                                        int(mn), \
                                        int(s)))
                 except:
-                    raise ValueError('year/sdy/hour/minute/second fields not formatted correctly; unable to parse in file: {:}'.format(self.filename))
+                    raise ValueError(
+                        'year/sdy/hour/minute/second fields not formatted correctly; unable to parse in file: {:}'.format(
+                            self.filename))
                     return
 
-        elif 'year'   in self.data and \
-             'sdy'    in self.data and \
-             'time'   in self.data:
+        elif 'year' in self.data and \
+                'sdy' in self.data and \
+                'time' in self.data:
 
-            for y,sdy,t in zip(self.data['year'], self.data['sdy'], self.data['time']):
-                [m,d] = doy2mndy(y,sdy)
+            for y, sdy, t in zip(self.data['year'], self.data['sdy'], self.data['time']):
+                [m, d] = doy2mndy(y, sdy)
                 ti = re.search("(\d{1,2})\:(\d{2})\:(\d{2})", t)
                 try:
                     dt.append(datetime(int(y), \
@@ -446,7 +480,9 @@ class readSB:
                                        int(ti.group(2)), \
                                        int(ti.group(3))))
                 except:
-                    raise ValueError('year/sdy/time fields not formatted correctly; unable to parse in file: {:}'.format(self.filename))
+                    raise ValueError(
+                        'year/sdy/time fields not formatted correctly; unable to parse in file: {:}'.format(
+                            self.filename))
                     return
 
         elif 'start_date' in self.headers and 'start_time' in self.headers:
@@ -462,15 +498,18 @@ class readSB:
                                        int(ti.group(2)), \
                                        int(ti.group(3))))
                 except:
-                    raise ValueError('/start_date and /start_time headers not formatted correctly; unable to parse in file: {:}'.format(self.filename))
+                    raise ValueError(
+                        '/start_date and /start_time headers not formatted correctly; unable to parse in file: {:}'.format(
+                            self.filename))
                     return
 
         else:
-            print('Warning: fd_datetime failed -- file must contain a valid combination of date/year/month/day/sdy and time/hour/minute/second as /fields.')
+            print(
+                'Warning: fd_datetime failed -- file must contain a valid combination of date/year/month/day/sdy and time/hour/minute/second as /fields.')
 
-        return(dt)
+        return (dt)
 
-#==========================================================================================================================================
+    # ==========================================================================================================================================
 
     def writeSBfile(self, ofile):
 
@@ -481,7 +520,7 @@ class readSB:
         """
         from math import isnan
 
-        fout = open(ofile,'w')
+        fout = open(ofile, 'w')
 
         fout.write('/begin_header\n')
 
@@ -493,11 +532,11 @@ class readSB:
 
         fout.write('/end_header\n')
 
-        if   'comma' in self.headers['delimiter']:
+        if 'comma' in self.headers['delimiter']:
             delim = ','
         elif 'space' in self.headers['delimiter']:
             delim = ' '
-        elif 'tab'   in self.headers['delimiter']:
+        elif 'tab' in self.headers['delimiter']:
             delim = '\t'
 
         for i in range(self.length):

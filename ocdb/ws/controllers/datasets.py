@@ -123,7 +123,7 @@ def update_dataset(ctx: WsContext,
 def delete_dataset(ctx: WsContext,
                    dataset_id: str):
     """Delete an existing dataset."""
-    #assert_not_none(api_key, name='api_key')
+    # assert_not_none(api_key, name='api_key')
     assert_not_none(dataset_id, name='dataset_id')
     deleted = ctx.db_driver.instance().delete_dataset(dataset_id)
     if not deleted:
