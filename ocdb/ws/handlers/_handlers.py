@@ -192,9 +192,13 @@ class StoreUploadSubmission(WsRequestHandler):
         path = _ensure_string_argument(path, "path")
 
         publication_date = body_dict["publicationdate"]
-        publication_date = _ensure_string_argument(publication_date, "publicationdate")
+        if publication_date is not None:
+            publication_date = _ensure_string_argument(publication_date, "publicationdate")
 
         allow_publication = body_dict["allowpublication"]
+
+        #if not allow_publication:
+        #    publication_date = None
 
         update_submission_files(ctx=self.ws_context,
                                 path=path,

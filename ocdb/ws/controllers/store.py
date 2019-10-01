@@ -271,7 +271,7 @@ def update_submission_files(ctx: WsContext,
     assert_not_none(submission_id)
     assert_not_none(path)
     assert_not_none(store_user_path)
-    assert_not_none(publication_date)
+    #assert_not_none(publication_date)
     assert_not_none(allow_publication)
 
     if new_submission_id == '':
