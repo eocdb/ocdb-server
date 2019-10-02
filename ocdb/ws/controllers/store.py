@@ -26,7 +26,7 @@ import tempfile
 import time
 import zipfile
 import chardet
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Union
 
 from ocdb.core.roles import Roles
 from ..context import WsContext, _LOG
@@ -58,14 +58,14 @@ def upload_submission_files(ctx: WsContext,
                             submission_id: str,
                             user_id: str,
                             dataset_files: List[UploadedFile],
-                            publication_date: datetime,
+                            publication_date: Union[datetime.datetime, type(None)],
                             allow_publication: bool,
                             doc_files: List[UploadedFile]) -> Dict[str, DatasetValidationResult]:
     """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
     assert_not_none(submission_id)
     assert_not_none(path)
     assert_not_none(store_user_path)
-    assert_not_none(publication_date)
+    #assert_not_none(publication_date)
     assert_not_none(allow_publication)
     assert_not_none(dataset_files)
     assert_not_none(doc_files)

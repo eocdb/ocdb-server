@@ -20,4 +20,5 @@
 # SOFTWARE.
 
 VERSION = "0.1.7"
+API_VERSION_TAG = "latest"
 DESCRIPTION = "Copernicus Ocean Colour In-Situ Database"

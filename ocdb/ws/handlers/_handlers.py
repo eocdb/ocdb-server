@@ -88,10 +88,9 @@ class StoreUploadSubmission(WsRequestHandler):
 
         publication_date = arguments.get("publicationdate")
         publication_date = _ensure_string_argument(publication_date, "publicationdate")
+        if publication_date == "null":
+            publication_date = None
         # publication_date = datetime.datetime.strptime(publication_date, '%Y-%m-%dT%H:%M:%S')
-
-        if publication_date == 'none':
-            publication_date = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         allow_publication = arguments.get("allowpublication")
         allow_publication = _ensure_string_argument(allow_publication, 'allowpublication')

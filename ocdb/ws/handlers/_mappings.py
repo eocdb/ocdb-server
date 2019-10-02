@@ -22,11 +22,11 @@
 
 from ._handlers import *
 from ..webservice import url_pattern
-from ...version import VERSION
+from ...version import API_VERSION_TAG
 from tornado import web
 
 
-API_URL_PREFIX = f"/ocdb/api/v{VERSION}"
+API_URL_PREFIX = f"/ocdb/api/{API_VERSION_TAG}"
 
 MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/service/info'), ServiceInfo),
