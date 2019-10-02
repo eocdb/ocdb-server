@@ -3,7 +3,7 @@
 - The system allows now adding submission files to a submission
 - A user can now validate a single submission file independent of submitting
 - The function download_datasets does now accept a dataset object as well as id strings
-- 
+- Ensures now None publication dates on submission with null publication date 
 
 # Changes in Version 0.1.6
 
