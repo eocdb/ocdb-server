@@ -19,7 +19,7 @@ install:
       choco install -y openssl;
       choco install -y miniconda3;
       export PATH="/c/tools/miniconda3/Scripts:$PATH";
-      source activate base
+      source activate base;
     else
       wget https://repo.continuum.io/miniconda/Miniconda3-latest-Linux-x86_64.sh -O miniconda.sh;
       bash miniconda.sh -b -p $HOME/miniconda;
