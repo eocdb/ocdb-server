@@ -112,7 +112,7 @@ class StoreUploadSubmission(WsRequestHandler):
                                          path=path,
                                          store_user_path=store_user_path,
                                          submission_id=submission_id,
-                                         user_id=user_name,
+                                         user_name=user_name,
                                          publication_date=publication_date,
                                          allow_publication=allow_publication,
                                          dataset_files=dataset_files,
