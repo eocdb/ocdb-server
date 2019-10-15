@@ -293,14 +293,12 @@ class StoreUploadUser(WsRequestHandler):
             return
 
         current_user = self.ws_context.get_user(current_user_name)
+
         if current_user is None:
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
-        if user_name is None:
-            user_name = current_user_name
-
-        result = get_submissions(ctx=self.ws_context, user=current_user, user_name=user_name)
+        result = get_submissions(ctx=self.ws_context, user=current_user)
 
         result_list = []
         for submission in result:
