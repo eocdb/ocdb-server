@@ -1,3 +1,7 @@
+# Changes in Version 0.1.9
+
+- Fixed submit users not able to list their submissions
+
 # Changes in Version 0.1.8
 
 - Introduced an API_VERSION_TAG and set it to latest. Ensures that software does
