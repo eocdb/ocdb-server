@@ -232,8 +232,8 @@ class WsRequestHandler(RequestHandler):
         return self._cookie
 
     def get_current_user(self):
-        if 'mode' in self.ws_context.config and self.ws_context.config['mode'] == 'dev':
-            return 'chef'
+        #if 'mode' in self.ws_context.config and self.ws_context.config['mode'] == 'dev':
+        #    return 'chef'
 
         cookie = self.get_secure_cookie("user")
         if cookie is not None:

@@ -28,7 +28,6 @@ import zipfile
 import chardet
 from typing import Dict, List, Optional, Union
 
-from ocdb.core.roles import Roles
 from ..context import WsContext, _LOG
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
@@ -220,15 +219,12 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     return ctx.db_driver.update_submission(submission)
 
 
-def get_submissions(ctx: WsContext, user: User) -> List[Submission]:
-    roles = user.roles
+def get_submissions(ctx: WsContext, user: Optional[User] = None) -> List[Submission]:
 
-    if Roles.is_admin(roles):
-        result = ctx.db_driver.get_submissions()
-    elif Roles.is_submit(roles):
-        result = ctx.db_driver.get_submissions_for_user(user.name, Roles.is_admin(roles))
+    if user:
+        result = ctx.db_driver.get_submissions_for_user(user.name)
     else:
-        result = []
+        result = ctx.db_driver.get_submissions()
 
     submissions = []
     for db_submission in result:

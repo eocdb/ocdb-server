@@ -140,7 +140,7 @@ class StoreUploadSubmission(WsRequestHandler):
 
     def get(self, submission_id: str):
         user_name = self.get_current_user()
-        if not (self.has_admin_rights() or self.is_self(user_name)):
+        if not self.has_admin_rights() or not self.has_submit_rights():
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
@@ -196,7 +196,7 @@ class StoreUploadSubmission(WsRequestHandler):
 
         allow_publication = body_dict["allowpublication"]
 
-        #if not allow_publication:
+        # if not allow_publication:
         #    publication_date = None
 
         update_submission_files(ctx=self.ws_context,
@@ -287,18 +287,22 @@ class StoreUploadUser(WsRequestHandler):
     def get(self, user_name: Optional[str] = None):
 
         current_user_name = self.get_current_user()
-
-        if current_user_name is None:
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         current_user = self.ws_context.get_user(current_user_name)
 
         if current_user is None:
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
-        result = get_submissions(ctx=self.ws_context, user=current_user)
+        if self.has_admin_rights():
+            if user_name:
+                user = self.ws_context.get_user(user_name)
+                result = get_submissions(ctx=self.ws_context, user=user)
+            else:
+                result = get_submissions(ctx=self.ws_context)
+        elif self.has_submit_rights():
+            result = get_submissions(ctx=self.ws_context, user=current_user)
+        else:
+            result = []
 
         result_list = []
         for submission in result:
@@ -314,14 +318,26 @@ class StoreUploadUser(WsRequestHandler):
 
 # noinspection PyAbstractClass
 class StoreUploadSubmissionFile(WsRequestHandler):
+    def allowed(self, submission_id: str, current_user_name: str):
+        current_user = self.ws_context.get_user(current_user_name)
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+
+        if current_user is None:
+            return False
+
+        if self.has_admin_rights() or (self.has_submit_rights() and submission.user_id == current_user_name):
+            return True
+        else:
+            return False
 
     def get(self, submission_id: str, index: str):
-        user_name = self.get_current_user()
-        if not (self.has_admin_rights() or self.is_self(user_name)):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
+        current_user_name = self.get_current_user()
 
         index = int(index)
+
+        if self.allowed(submission_id=submission_id, current_user_name=current_user_name):
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
 
         submission_file = get_submission_file(ctx=self.ws_context, submission_id=submission_id, index=index)
 
@@ -335,11 +351,15 @@ class StoreUploadSubmissionFile(WsRequestHandler):
             self.set_status(400, reason="No result found")
 
     def post(self, submission_id: str, typ: str):
-        user_name = self.get_current_user()
-        if not (self.has_admin_rights() or self.is_self(user_name)):
+        current_user_name = self.get_current_user()
+        current_user = self.ws_context.get_user(current_user_name)
+
+        if self.allowed(submission_id=submission_id, current_user_name=current_user_name):
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
+
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+
         if submission is None:
             self.set_status(404, reason="Submission not found")
             return
@@ -375,8 +395,9 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         self.finish(tornado.escape.json_encode({'Message': f'File {files[0].filename} added.'}))
 
     def put(self, submission_id: str, index: str):
-        user_name = self.get_current_user()
-        if not (self.has_admin_rights() or self.is_self(user_name)):
+        current_user_name = self.get_current_user()
+
+        if self.allowed(submission_id=submission_id, current_user_name=current_user_name):
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
@@ -416,8 +437,9 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         self.finish(tornado.escape.json_encode(result.to_dict()))
 
     def delete(self, submission_id: str, index: str):
-        user_name = self.get_current_user()
-        if not (self.has_admin_rights() or self.is_self(user_name)):
+        current_user_name = self.get_current_user()
+
+        if self.allowed(submission_id=submission_id, current_user_name=current_user_name):
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
@@ -440,10 +462,22 @@ class StoreUploadSubmissionFile(WsRequestHandler):
 
 # noinspection PyAbstractClass
 class StoreUpdateSubmissionFile(WsRequestHandler):
+    def allowed(self, submission_id: str, current_user_name: str):
+        current_user = self.ws_context.get_user(current_user_name)
+        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+
+        if current_user is None:
+            return False
+
+        if self.has_admin_rights() or (self.has_submit_rights() and submission.user_id == current_user_name):
+            return True
+        else:
+            return False
 
     def get(self, submission_id: str, index: str, status: str):
-        user_name = self.get_current_user()
-        if not (self.has_admin_rights() or self.is_self(user_name)):
+        current_user_name = self.get_current_user()
+
+        if self.allowed(submission_id=submission_id, current_user_name=current_user_name):
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
