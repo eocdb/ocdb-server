@@ -64,7 +64,7 @@ def upload_submission_files(ctx: WsContext,
     assert_not_none(submission_id)
     assert_not_none(path)
     assert_not_none(store_user_path)
-    #assert_not_none(publication_date)
+    # assert_not_none(publication_date)
     assert_not_none(allow_publication)
     assert_not_none(dataset_files)
     assert_not_none(doc_files)
@@ -220,7 +220,6 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 
 
 def get_submissions(ctx: WsContext, user: Optional[User] = None) -> List[Submission]:
-
     if user:
         result = ctx.db_driver.get_submissions_for_user(user.name)
     else:
@@ -263,7 +262,7 @@ def update_submission_files(ctx: WsContext,
     assert_not_none(submission_id)
     assert_not_none(path)
     assert_not_none(store_user_path)
-    #assert_not_none(publication_date)
+    # assert_not_none(publication_date)
     assert_not_none(allow_publication)
 
     if new_submission_id == '':
