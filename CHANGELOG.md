@@ -1,6 +1,8 @@
 # Changes in Version 0.1.9
 
 - Fixed submit users not able to list their submissions
+- Fixed [authorisation issues](https://gitlab.eumetsat.int/OC/External/OC-DB/ocdb-client/issues/23)
+- 
 
 # Changes in Version 0.1.8
 
