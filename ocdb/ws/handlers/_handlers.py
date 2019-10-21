@@ -18,6 +18,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
+import functools
 from time import strptime
 
 import tornado.escape
@@ -42,7 +43,6 @@ PMODE_DEFAULT = 'contains'
 
 # noinspection PyAbstractClass
 class ServiceInfo(WsRequestHandler):
-
     def get(self):
         """Provide API operation getServiceInfo()."""
         result = get_service_info(self.ws_context)
@@ -60,15 +60,93 @@ class StoreInfo(WsRequestHandler):
         self.finish(tornado.escape.json_encode(result))
 
 
-# noinspection PyAbstractClass,PyShadowingBuiltins
-class StoreUploadSubmission(WsRequestHandler):
+def _login_required(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        current_user_name = self.get_current_user()
+        current_user = self.ws_context.get_user(current_user_name)
 
+        if current_user is None:
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+
+        func(self, *args, **kwargs)
+
+    return wrapper
+
+
+def _admin_required(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        if not self.has_admin_rights:
+            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            return
+
+        func(self, *args, **kwargs)
+
+    return wrapper
+
+
+def _user_authorization_required(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        current_user_name = self.get_current_user()
+
+        user_name = kwargs['user_name'] if 'user_name' in kwargs else None
+
+        authorized = False
+        if self.has_admin_rights():
+            authorized = True
+        elif current_user_name == user_name:
+            authorized = True
+
+        if not authorized:
+            self.set_status(status_code=403, reason='Not enough access rights to perform operations on user '
+                                                    f'{user_name}.')
+            return
+
+        func(self, *args, **kwargs)
+
+    return wrapper
+
+
+def _submission_authorization_required(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        current_user_name = self.get_current_user()
+
+        submission_id = kwargs['submission_id'] if 'submission_id' in kwargs else None
+
+        authorized = False
+        if self.has_admin_rights():
+            authorized = True
+        elif self.has_submit_rights():
+            submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+            if not submission:
+                self.set_status(status_code=404, reason=f'{submission_id} not found.')
+                return
+
+            if submission.user_id == current_user_name:
+                authorized = True
+
+        if not authorized:
+            self.set_status(status_code=403, reason='Not enough access rights to perform operations on submission '
+                                                    f'{submission_id}.')
+            return
+
+        func(self, *args, **kwargs)
+
+    return wrapper
+
+
+# noinspection PyAbstractClass,PyShadowingBuiltins
+class HandleSubmission(WsRequestHandler):
+
+    @_login_required
+    @_submission_authorization_required
     def post(self):
         """Provide API operation uploadStoreFiles()."""
         user_name = self.get_current_user()
-        if not (self.has_admin_rights() or self.is_self(user_name)):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
 
         arguments = dict()
         files = dict()
@@ -120,12 +198,9 @@ class StoreUploadSubmission(WsRequestHandler):
         # Note, result is a Dict[filename, DatasetValidationResult]
         self.finish(tornado.escape.json_encode({k: v.to_dict() for k, v in result.items()}))
 
+    @_login_required
+    @_submission_authorization_required
     def delete(self, submission_id: str):
-        user_name = self.get_current_user()
-        if not (self.has_admin_rights() or self.is_self(user_name)):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
         if submission is None:
             self.set_status(404, reason="Submission not found")
@@ -138,12 +213,9 @@ class StoreUploadSubmission(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode({'message': f'{submission_id} deleted'}))
 
+    @_login_required
+    @_submission_authorization_required
     def get(self, submission_id: str):
-        user_name = self.get_current_user()
-        if not self.has_admin_rights() or not self.has_submit_rights():
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
 
         if submission is None:
@@ -162,12 +234,10 @@ class StoreUploadSubmission(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(sub_dict))
 
+    @_login_required
+    @_submission_authorization_required
     def put(self, submission_id: str):
         user_name = self.get_current_user()
-        if not (self.has_admin_rights() or self.is_self(user_name)):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         user = self.ws_context.get_user(user_name)
 
         if user is not None:
@@ -212,7 +282,9 @@ class StoreUploadSubmission(WsRequestHandler):
 
 
 # noinspection PyAbstractClass
-class StoreDownloadSubmissionFile(WsRequestHandler):
+class DownloadSubmissionFile(WsRequestHandler):
+    @_login_required
+    @_submission_authorization_required
     def get(self, submission_id: str, index: str):
         index = int(index)
 
@@ -244,14 +316,10 @@ class StoreDownloadSubmissionFile(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
-class StoreStatusSubmission(WsRequestHandler):
-
+class UpdateSubmissionStatus(WsRequestHandler):
+    @_login_required
+    @_submission_authorization_required
     def put(self, submission_id: str):
-        user_name = self.get_current_user()
-        if not (self.has_admin_rights() or self.is_self(user_name)):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
         if submission is None:
             self.set_status(404, reason="Submission not found")
@@ -282,16 +350,12 @@ class StoreStatusSubmission(WsRequestHandler):
 
 
 # noinspection PyAbstractClass
-class StoreUploadUser(WsRequestHandler):
-
+class GetSubmissionsForUser(WsRequestHandler):
+    @_login_required
     def get(self, user_name: Optional[str] = None):
 
         current_user_name = self.get_current_user()
         current_user = self.ws_context.get_user(current_user_name)
-
-        if current_user is None:
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
 
         if self.has_admin_rights():
             if user_name:
@@ -317,27 +381,11 @@ class StoreUploadUser(WsRequestHandler):
 
 
 # noinspection PyAbstractClass
-class StoreUploadSubmissionFile(WsRequestHandler):
-    def allowed(self, submission_id: str, current_user_name: str):
-        current_user = self.ws_context.get_user(current_user_name)
-        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
-
-        if current_user is None:
-            return False
-
-        if self.has_admin_rights() or (self.has_submit_rights() and submission.user_id == current_user_name):
-            return True
-        else:
-            return False
-
+class HandleSubmissionFile(WsRequestHandler):
+    @_login_required
+    @_submission_authorization_required
     def get(self, submission_id: str, index: str):
-        current_user_name = self.get_current_user()
-
         index = int(index)
-
-        if self.allowed(submission_id=submission_id, current_user_name=current_user_name):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
 
         submission_file = get_submission_file(ctx=self.ws_context, submission_id=submission_id, index=index)
 
@@ -350,14 +398,9 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         else:
             self.set_status(400, reason="No result found")
 
+    @_login_required
+    @_submission_authorization_required
     def post(self, submission_id: str, typ: str):
-        current_user_name = self.get_current_user()
-        current_user = self.ws_context.get_user(current_user_name)
-
-        if self.allowed(submission_id=submission_id, current_user_name=current_user_name):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
 
         if submission is None:
@@ -394,13 +437,9 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode({'Message': f'File {files[0].filename} added.'}))
 
+    @_login_required
+    @_submission_authorization_required
     def put(self, submission_id: str, index: str):
-        current_user_name = self.get_current_user()
-
-        if self.allowed(submission_id=submission_id, current_user_name=current_user_name):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
         if submission is None:
             self.set_status(404, reason="Submission not found")
@@ -436,13 +475,9 @@ class StoreUploadSubmissionFile(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
 
+    @_login_required
+    @_submission_authorization_required
     def delete(self, submission_id: str, index: str):
-        current_user_name = self.get_current_user()
-
-        if self.allowed(submission_id=submission_id, current_user_name=current_user_name):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
         if submission is None:
             self.set_status(404, reason="Submission not found")
@@ -461,26 +496,10 @@ class StoreUploadSubmissionFile(WsRequestHandler):
 
 
 # noinspection PyAbstractClass
-class StoreUpdateSubmissionFile(WsRequestHandler):
-    def allowed(self, submission_id: str, current_user_name: str):
-        current_user = self.ws_context.get_user(current_user_name)
-        submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
-
-        if current_user is None:
-            return False
-
-        if self.has_admin_rights() or (self.has_submit_rights() and submission.user_id == current_user_name):
-            return True
-        else:
-            return False
-
+class UpdateSubmissionFileStatus(WsRequestHandler):
+    @_login_required
+    @_submission_authorization_required
     def get(self, submission_id: str, index: str, status: str):
-        current_user_name = self.get_current_user()
-
-        if self.allowed(submission_id=submission_id, current_user_name=current_user_name):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
         if submission is None:
             self.set_status(404, reason="Submission not found")
@@ -500,7 +519,6 @@ class StoreUpdateSubmissionFile(WsRequestHandler):
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class StoreDownload(WsRequestHandler):
-
     def get(self):
         """Provide API operation downloadStoreFiles()."""
         # noinspection PyBroadException,PyUnusedLocal
@@ -551,13 +569,10 @@ class StoreDownload(WsRequestHandler):
 
 
 # noinspection PyAbstractClass
-class StoreUploadSubmissionValidate(WsRequestHandler):
+class ValidateSubmission(WsRequestHandler):
+    @_login_required
     def post(self):
         """Provide API operation validateDataset()."""
-        if not self.has_admin_rights():
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         # transform body with mime-type application/json into a Dataset
         data_dict = tornado.escape.json_decode(self.request.body)
         dataset = SbFileReader().read(io.StringIO(data_dict['data']))
@@ -570,7 +585,6 @@ class StoreUploadSubmissionValidate(WsRequestHandler):
 
 # noinspection PyAbstractClass
 class Datasets(WsRequestHandler):
-
     def get(self):
         """Provide API operation findDatasets()."""
         # noinspection PyBroadException,PyUnusedLocal
@@ -626,7 +640,7 @@ class Datasets(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
-class DatasetsId(WsRequestHandler):
+class GetDatasetsById(WsRequestHandler):
 
     def get(self, id: str):
         """Provide API operation getDatasetById()."""
@@ -648,21 +662,22 @@ class DatasetsId(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
-class DatasetsSubmissionId(WsRequestHandler):
+class GetDatasetsBySubmissionId(WsRequestHandler):
 
-    def get(self, submissionid: str):
+    def get(self, submission_id: str):
         """Provide API operation getDatasetById()."""
-        result = find_datasets(self.ws_context, submission_id=submissionid)
+        result = find_datasets(self.ws_context, submission_id=submission_id)
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
 
-    def delete(self, submissionid: str):
+    @_admin_required
+    def delete(self, submission_id: str):
         """Provide API operation deleteDatasets by submission ID()."""
-        result = find_datasets(self.ws_context, submission_id=submissionid)
+        result = find_datasets(self.ws_context, submission_id=submission_id)
         for ds in result.datasets:
             delete_dataset(ctx=self.ws_context, dataset_id=ds.id)
 
-        self.finish(tornado.escape.json_encode({'message': f'Datasets for {submissionid} deleted'}))
+        self.finish(tornado.escape.json_encode({'message': f'Datasets for {submission_id} deleted'}))
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
@@ -760,7 +775,7 @@ class DocfilesAffilProjectCruiseName(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
-class MatchupFiles(WsRequestHandler):
+class HandleMatchupFiles(WsRequestHandler):
     def get(self):
         import ftptool
 
@@ -777,14 +792,11 @@ class MatchupFiles(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
-class Users(WsRequestHandler):
-
+class HandleUsers(WsRequestHandler):
+    @_login_required
+    @_user_authorization_required
     def post(self):
         """Provide API operation createUser()."""
-        if not self.has_admin_rights():
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
         user = User.from_dict(data_dict)
@@ -793,11 +805,9 @@ class Users(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode({'message': f'User {user.name} added'}))
 
+    @_admin_required
     def get(self):
         """Provide API operation createUser()."""
-        if not self.has_admin_rights():
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
 
         # transform body with mime-type application/json into a User
         result = get_user_names(self.ws_context)
@@ -807,7 +817,7 @@ class Users(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
-class UsersLogin(WsRequestHandler):
+class LoginUser(WsRequestHandler):
     def get(self):
         current_user = self.get_current_user()
         if current_user is None:
@@ -830,6 +840,8 @@ class UsersLogin(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(user_info))
 
+    @_login_required
+    @_user_authorization_required
     def put(self):
         """Provide API operation changeLoginUser()."""
         current_user = self.get_current_user()
@@ -839,14 +851,6 @@ class UsersLogin(WsRequestHandler):
         new_password1 = credentials.get('newpassword1')
         new_password2 = credentials.get('newpassword2')
         old_password = credentials.get('oldpassword')
-
-        if current_user is None:
-            return self.finish(tornado.escape.json_encode({'message': f'Not Logged in'}))
-
-        if not self.has_admin_rights():
-            if current_user != username:
-                self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-                return
 
         if username is None:
             user = login_user(self.ws_context, username=current_user, password=old_password, retain_password=True)
@@ -859,7 +863,7 @@ class UsersLogin(WsRequestHandler):
                             reason='The user does not exist. If that is your own user name, contact: ops@eumetsat.int')
 
         if new_password1 != new_password2:
-            self.set_status(status_code=403, reason="Passwords Don't match")
+            self.set_status(status_code=403, reason="Passwords don't match")
             return
 
         user['password'] = new_password1
@@ -871,7 +875,7 @@ class UsersLogin(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
-class UsersLogout(WsRequestHandler):
+class LogoutUser(WsRequestHandler):
 
     def get(self):
         current_user = self.get_current_user()
@@ -883,25 +887,21 @@ class UsersLogout(WsRequestHandler):
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
-class UsersId(WsRequestHandler):
-
+class GetUserByName(WsRequestHandler):
+    @_login_required
+    @_user_authorization_required
     def get(self, user_name: str):
         """Provide API operation getUserByID()."""
-        if not (self.has_admin_rights() or
-                self.is_self(user_name)):
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
 
         result = get_user_by_name(self.ws_context, user_name=user_name)
         # transform result of type User into response with mime-type application/json
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result))
 
+    @_login_required
+    @_user_authorization_required
     def put(self, user_name: str):
         """Provide API operation updateUser()."""
-        if not self.has_admin_rights():
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
 
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
@@ -912,6 +912,7 @@ class UsersId(WsRequestHandler):
         update_user(self.ws_context, user_name=user_name, data=data)
         self.finish(tornado.escape.json_encode({'message': f'User {user_name} updated'}))
 
+    @_admin_required
     def delete(self, user_name: str):
         """Provide API operation deleteUser()."""
         if not self.has_admin_rights():
@@ -932,12 +933,9 @@ class Links(WsRequestHandler):
         self.set_header('Content-Type', 'application/txt')
         self.finish(tornado.escape.json_encode({'content': result['content']}))
 
+    @_admin_required
     def post(self):
         """Provide API operation getUserByID()."""
-        if not self.has_admin_rights():
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
         result = tornado.escape.json_decode(self.request.body)
 
         content = result['content']

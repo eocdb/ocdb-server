@@ -241,17 +241,6 @@ class StoreTest(unittest.TestCase):
             result = get_submissions(ctx=self.ctx, user=user)
             self.assertIsNotNone(result)
             self.assertEqual(1, len(result))
-
-            user.roles = ['submit']
-            result = get_submissions(ctx=self.ctx, user=user)
-            self.assertIsNotNone(result)
-            self.assertEqual(1, len(result))
-
-            # user_name None and user not admin
-            user.roles = []
-            result = get_submissions(ctx=self.ctx, user=user)
-            self.assertIsNotNone(result)
-            self.assertEqual(0, len(result))
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
