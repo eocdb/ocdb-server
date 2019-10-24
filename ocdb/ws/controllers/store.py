@@ -325,17 +325,14 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
         text = file.body.decode("utf-8")
         try:
             dataset = SbFileReader().read(io.StringIO(text))
+            validation_result = validator.validate_dataset(dataset, ctx.config)
         except SbFormatError as e:
-            return DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
+            validation_result = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
                                            [Issue(ISSUE_TYPE_ERROR,
                                                   f"Invalid format: {e}")])
         except OSError as e:
-            return DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
+            validation_result = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
                                            [Issue(ISSUE_TYPE_ERROR, f"OSError: {e}")])
-
-        validation_result = validator.validate_dataset(dataset, ctx.config)
-        # if DATASET_VALIDATION_RESULT_STATUS_ERROR == validation_result.status:
-        #    return validation_result
 
         write_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path, submission.path))
         os.makedirs(write_path, exist_ok=True)

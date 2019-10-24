@@ -841,26 +841,28 @@ class LoginUser(WsRequestHandler):
         self.finish(tornado.escape.json_encode(user_info))
 
     @_login_required
-    @_user_authorization_required
+    # @_user_authorization_required
     def put(self):
         """Provide API operation changeLoginUser()."""
         current_user = self.get_current_user()
         credentials = tornado.escape.json_decode(self.request.body)
         username = credentials.get('username')
-
         new_password1 = credentials.get('newpassword1')
         new_password2 = credentials.get('newpassword2')
         old_password = credentials.get('oldpassword')
 
         if username is None:
-            user = login_user(self.ws_context, username=current_user, password=old_password, retain_password=True)
             username = current_user
+            user = login_user(self.ws_context, username=current_user, password=old_password, retain_password=True)
+            if user is None:
+                self.set_status(status_code=403, reason="Old passwords does not match.")
+                return
         else:
-            user = get_user_by_name(self.ws_context, user_name=username, retain_password=True)
+            if not self.has_admin_rights():
+                self.set_status(status_code=403, reason="Not enough rights to perform this operation.")
+                return
 
-        if user is None:
-            self.set_status(status_code=404,
-                            reason='The user does not exist. If that is your own user name, contact: ops@eumetsat.int')
+            user = get_user_by_name(ctx=self.ws_context, user_name=username, retain_password=True)
 
         if new_password1 != new_password2:
             self.set_status(status_code=403, reason="Passwords don't match")
