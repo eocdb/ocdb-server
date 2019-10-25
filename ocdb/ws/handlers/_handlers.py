@@ -67,7 +67,7 @@ def _login_required(func):
         current_user = self.ws_context.get_user(current_user_name)
 
         if current_user is None:
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
+            self.set_status(status_code=403, reason='Please login.')
             return
 
         func(self, *args, **kwargs)
@@ -110,6 +110,22 @@ def _user_authorization_required(func):
     return wrapper
 
 
+def _submission_send_authorization_required(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        allowed = False
+        if self.has_admin_rights() or self.has_submit_rights():
+            allowed = True
+
+        if not allowed:
+            self.set_status(status_code=403, reason='Not enough access rights to perform a submission')
+            return
+
+        func(self, *args, **kwargs)
+
+    return wrapper
+
+
 def _submission_authorization_required(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
@@ -143,7 +159,7 @@ def _submission_authorization_required(func):
 class HandleSubmission(WsRequestHandler):
 
     @_login_required
-    @_submission_authorization_required
+    @_submission_send_authorization_required
     def post(self):
         """Provide API operation uploadStoreFiles()."""
         user_name = self.get_current_user()
@@ -352,6 +368,7 @@ class UpdateSubmissionStatus(WsRequestHandler):
 # noinspection PyAbstractClass
 class GetSubmissionsForUser(WsRequestHandler):
     @_login_required
+    # @_submission_authorization_required
     def get(self, user_name: Optional[str] = None):
 
         current_user_name = self.get_current_user()
@@ -832,7 +849,8 @@ class LoginUser(WsRequestHandler):
         password = credentials.get('password')
         user_info = login_user(self.ws_context, username=username, password=password)
         if user_info is not None:
-            self.set_secure_cookie("user", username, expires_days=1)
+            expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
+            self.set_secure_cookie("user", username, expires_days=None, expires=expires)
 
         if 'password' in user_info:
             del user_info['password']

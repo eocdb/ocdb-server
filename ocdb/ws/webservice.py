@@ -232,9 +232,6 @@ class WsRequestHandler(RequestHandler):
         return self._cookie
 
     def get_current_user(self):
-        #if 'mode' in self.ws_context.config and self.ws_context.config['mode'] == 'dev':
-        #    return 'chef'
-
         cookie = self.get_secure_cookie("user")
         if cookie is not None:
             return cookie.decode("utf-8")
@@ -281,9 +278,6 @@ class WsRequestHandler(RequestHandler):
         self.finish(self.to_json(obj))
 
     def has_admin_rights(self):
-        #if 'mode' in self.ws_context.config and self.ws_context.config['mode'] == 'dev':
-        #    return True
-
         user_name = self.get_current_user()
         if not user_name:
             return False
@@ -314,9 +308,6 @@ class WsRequestHandler(RequestHandler):
             return True
         else:
             return False
-
-
-
 
 
 class WsRequestHeader(RequestParams):
