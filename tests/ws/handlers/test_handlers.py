@@ -230,7 +230,7 @@ class HandleSubmissionTest(WsTestCase):
 
         response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf))
         self.assertEqual(403, response.code)
-        self.assertEqual("Not enough access rights to perform operation.", response.reason)
+        self.assertEqual("Please login.", response.reason)
 
     def test_delete_invalid_id(self):
         cookie = self.login_admin()
@@ -271,7 +271,7 @@ class HandleSubmissionTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/dontcare", method='DELETE')
 
         self.assertEqual(403, response.code)
-        self.assertEqual("Not enough access rights to perform operation.", response.reason)
+        self.assertEqual("Please login.", response.reason)
 
     def test_delete_not_belong(self):
         cookie = self.login_submit()
@@ -336,7 +336,7 @@ class HandleSubmissionTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/ABCDEFGHI", method='GET')
 
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_get_not_belong(self):
         cookie = self.login_submit()
@@ -415,7 +415,7 @@ class UpdateSubmissionStatusTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/store/status/submission/I_DO_EXIST", body=body, method='PUT')
 
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_put_not_belong(self):
         body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED, "date": "20170822"})
@@ -508,7 +508,7 @@ class HandleSubmissionFileTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='GET')
 
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_get_not_belong(self):
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/I_DO_EXIST/0", method='GET',
@@ -573,7 +573,7 @@ class HandleSubmissionFileTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/ABCDEFGHI/0", method='DELETE')
 
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_delete_not_belong(self):
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/I_DO_EXIST/0", method='DELETE',
@@ -729,7 +729,7 @@ class HandleSubmissionFileTest(WsTestCase):
                               body=bytes(mpf))
 
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_put_not_belong(self):
         submissionid = "I_DO_EXIST"
@@ -886,7 +886,7 @@ class UpdateSubmissionFileStatusTest(WsTestCase):
                               method='GET')
 
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_update_not_belong(self):
         submission_id = "I_DO_EXIST"
@@ -905,7 +905,7 @@ class GetSubmissionsForUserTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/store/upload/user", method='GET')
 
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_get_as_admin(self):
         cookie = self.login_admin()
@@ -1139,7 +1139,7 @@ class ValidateSubmissionTest(WsTestCase):
         body = tornado.escape.json_encode(data)
         response = self.fetch(API_URL_PREFIX + "/store/upload/submission/validate", method='POST', body=body)
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
 
 class DatasetsTest(WsTestCase):
@@ -1553,7 +1553,7 @@ class HandleUsersTest(WsTestCase):
 
         response = self.fetch(API_URL_PREFIX + "/users", method='POST', body=body)
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_add_admin(self):
         cookie = self.login_admin()
@@ -1675,7 +1675,7 @@ class GetUserByNameTest(WsTestCase):
         name = 'chef'
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='GET')
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_get_not_own_user_name(self):
         name = 'chef'
@@ -1714,7 +1714,7 @@ class GetUserByNameTest(WsTestCase):
         name = 'chef'
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=tornado.escape.json_encode({}))
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_put_not_own_user_name(self):
         user = DbUser(
