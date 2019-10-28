@@ -23,7 +23,6 @@
 from ._handlers import *
 from ..webservice import url_pattern
 from ...version import API_VERSION_TAG
-from tornado import web
 
 
 API_URL_PREFIX = f"/ocdb/api/{API_VERSION_TAG}"
@@ -59,5 +58,5 @@ MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/users/{user_name}'), GetUserByName),
     (url_pattern(API_URL_PREFIX + '/links'), Links),
     (url_pattern(API_URL_PREFIX + '/matchupfiles'), HandleMatchupFiles),
-    (r'/(.*)', web.StaticFileHandler, {"path": 'static/webui', 'default_filename': 'index.html'}),
+    #(r'/(.*)', web.StaticFileHandler, {"path": 'static/webui', 'default_filename': 'index.html'}),
 ]
