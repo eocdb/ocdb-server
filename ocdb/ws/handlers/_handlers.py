@@ -849,8 +849,8 @@ class LoginUser(WsRequestHandler):
         password = credentials.get('password')
         user_info = login_user(self.ws_context, username=username, password=password)
         if user_info is not None:
-            expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=5)
-            self.set_secure_cookie("user", username, expires_days=None, expires=expires)
+            #expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)
+            self.set_secure_cookie("user", username, expires_days=1, expires=None)
 
         if 'password' in user_info:
             del user_info['password']
