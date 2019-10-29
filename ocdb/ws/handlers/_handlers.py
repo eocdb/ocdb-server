@@ -189,7 +189,7 @@ class HandleSubmission(WsRequestHandler):
         allow_publication = arguments.get("allowpublication")
         allow_publication = _ensure_string_argument(allow_publication, 'allowpublication')
 
-        if allow_publication == 'true':
+        if allow_publication.lower() == 'true':
             allow_publication = True
         else:
             allow_publication = False
