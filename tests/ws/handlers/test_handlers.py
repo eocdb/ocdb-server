@@ -21,6 +21,7 @@
 import datetime
 import io
 import os
+import tempfile
 import unittest
 import urllib.parse
 import zipfile
@@ -46,6 +47,46 @@ from ocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestErro
     UpdateSubmissionStatus
 from tests.core.mpf import MultiPartForm
 from tests.helpers import new_test_service_context, new_test_dataset, NOW
+
+
+TEST_DATA = """/begin_header
+/identifier_product_doi=10.5067/SeaBASS/SCOTIA_PRINCE_FERRY/DATA001
+/received=20040220
+/affiliations=Bigelow_Laboratory_for_Ocean_Sciences
+/investigators=William_Balch
+/contact=bbalch@bigelow.org
+/experiment=Scotia_Prince_ferry
+/cruise=s030603w
+/data_type=cast
+/west_longitude=-66.4551[DEG]
+/east_longitude=-66.4551[DEG]
+/north_latitude=43.7621[DEG]
+/south_latitude=43.7621[DEG]
+/start_date=20030603
+/end_date=20030603
+/start_time=14:00:38[GMT]
+/end_time=14:00:38[GMT]
+/fields=date,time,lat,lon,depth,wt
+/units=yyyymmdd,hh:mm:ss,degrees,degrees,meters,degreesc
+/data_status=final
+/delimiter=space
+/documents=readme.txt
+/data_file_name=T0_00686.EDF
+/missing=-99.99
+/water_depth=NA
+/wind_speed=NA
+/wave_height=NA
+/secchi_depth=NA
+/cloud_percent=NA
+/station=NA
+/calibration_files=no-calibration-file.txt
+/end_header
+20030603 14:00:38 43.7620 -66.4551 0.60 8.37
+20030603 14:00:38 43.7620 -66.4551 1.30 7.05
+"""
+
+
+TEST_DATA_FILE_NAME = ""
 
 
 class WsTestCase(tornado.testing.AsyncHTTPTestCase):
@@ -119,6 +160,12 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
                                   files=files,
                                   store_user_path='Tom_Helge')
         self.ctx.db_driver.add_submission(submission)
+
+        fp = tempfile.NamedTemporaryFile(delete=False, suffix='.sb', mode='w')
+        fp.write(TEST_DATA)
+        global TEST_DATA_FILE_NAME
+        TEST_DATA_FILE_NAME = fp.name
+        fp.close()
 
     def get_app(self):
         """Implements AsyncHTTPTestCase.get_app()."""
@@ -221,6 +268,98 @@ class HandleSubmissionTest(WsTestCase):
                                   headers={"Cookie": cookie})
             self.assertEqual(400, response.code)
             self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+        finally:
+            self.logout_admin()
+
+    def test_post_submission(self):
+        cookie = self.login_admin()
+        try:
+
+            form = MultiPartForm()
+            form.add_field('path', "KK/KK/KK")
+            form.add_field('submissionid', "PUB_NOT_ALLOWED")
+
+            form.add_field('publicationdate', str(datetime.datetime(2001, 2, 3, 4, 5, 6)))
+            form.add_field('allowpublication', str(True))
+
+            form.add_file(f'datasetfiles', os.path.basename(TEST_DATA_FILE_NAME), TEST_DATA_FILE_NAME,
+                          mime_type="text/plain")
+
+            data = bytes(form)
+
+            response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=data,
+                                  headers={"Cookie": cookie, 'Content-length': len(data),
+                                           'Content-type': form.content_type})
+
+            self.assertEqual(200, response.code)
+
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/PUB_NOT_ALLOWED", method='GET',
+                                  headers={"Cookie": cookie})
+
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            actual_response_data = tornado.escape.json_decode(response.body)
+            del actual_response_data["id"]  # varies, therefore we do not check
+            del actual_response_data["date"]  # varies, therefore we do not check
+            del actual_response_data["files"][0]['creationdate']  # varies, therefore we do not check
+
+            expected_response_data = {'submission_id': 'PUB_NOT_ALLOWED',
+                                      'user_id': 'chef',
+                                      'status': 'VALIDATED',
+                                      'publication_date': '2001-02-03 04:05:06',
+                                      'qc_status': 'OK',
+                                      'file_refs': [],
+                                      'allow_publication': True,
+                                      'path': 'KK/KK/KK',
+                                      'store_sub_path': 'chef_PUB_NOT_ALLOWED',
+                                      'files': [
+                                          {'index': 0,
+                                           'submission_id': 'PUB_NOT_ALLOWED',
+                                           'filename': os.path.basename(TEST_DATA_FILE_NAME),
+                                           'filetype': 'MEASUREMENT',
+                                           'status': 'OK',
+                                           'result': {'status': 'OK', 'issues': []}
+                                           }
+                                      ]
+                                      }
+            self.assertEqual(expected_response_data, actual_response_data)
+
+        finally:
+            self.logout_admin()
+
+    def test_post_submission_pub_not_allowed(self):
+        cookie = self.login_admin()
+        try:
+
+            form = MultiPartForm()
+            form.add_field('path', "KK/KK/KK")
+            form.add_field('submissionid', "PUB_NOT_ALLOWED")
+
+            form.add_field('publicationdate', str(None))
+            form.add_field('allowpublication', str(False))
+
+            form.add_file(f'datasetfiles', os.path.basename(TEST_DATA_FILE_NAME), TEST_DATA_FILE_NAME,
+                          mime_type="text/plain")
+
+            data = bytes(form)
+
+            response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=data,
+                                  headers={"Cookie": cookie, 'Content-length': len(data),
+                                           'Content-type': form.content_type})
+
+            self.assertEqual(200, response.code)
+
+            response = self.fetch(API_URL_PREFIX + f"/store/upload/submission/PUB_NOT_ALLOWED", method='GET',
+                                  headers={"Cookie": cookie})
+
+            self.assertEqual(200, response.code)
+            self.assertEqual('OK', response.reason)
+
+            actual_response_data = tornado.escape.json_decode(response.body)
+            self.assertEqual(False, actual_response_data['allow_publication'])
+            self.assertEqual(None, actual_response_data['publication_date'])
+
         finally:
             self.logout_admin()
 
@@ -1663,7 +1802,7 @@ class GetUserByNameTest(WsTestCase):
     def test_get(self):
         name = 'chef'
 
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='GET',  headers={"Cookie": self.login_admin()})
+        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='GET', headers={"Cookie": self.login_admin()})
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
