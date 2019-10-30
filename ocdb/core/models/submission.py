@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from ...core.model import Model
 from ...core.models.submission_file_ref import SubmissionFileRef
@@ -16,7 +16,7 @@ class Submission(Model):
                  date: datetime,
                  status: str,
                  qc_status: str,
-                 publication_date: datetime,
+                 publication_date: Union[datetime, type(None)],
                  allow_publication: bool,
                  file_refs: List[SubmissionFileRef]):
         self._submission_id = submission_id

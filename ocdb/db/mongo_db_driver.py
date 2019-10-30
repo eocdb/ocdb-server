@@ -135,12 +135,10 @@ class MongoDbDriver(DbDriver):
 
         return submissions
 
-    def get_submissions_for_user(self, user_id: str, is_admin: bool = False) -> List[DbSubmission]:
+    def get_submissions_for_user(self, user_name: str) -> List[DbSubmission]:
         submissions = []
-        if is_admin:
-            cursor = self._submit_collection.find({})
-        else:
-            cursor = self._submit_collection.find({"user_id": user_id})
+        cursor = self._submit_collection.find({"user_id": user_name})
+
         for subm_dict in cursor:
             del subm_dict["_id"]
             subm = DbSubmission.from_dict(subm_dict)
