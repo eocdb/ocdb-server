@@ -28,7 +28,6 @@ import zipfile
 import chardet
 from typing import Dict, List, Optional, Union
 
-from ocdb.core.roles import Roles
 from ..context import WsContext, _LOG
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
@@ -56,7 +55,7 @@ def upload_submission_files(ctx: WsContext,
                             path: str,
                             store_user_path: str,
                             submission_id: str,
-                            user_id: str,
+                            user_name: str,
                             dataset_files: List[UploadedFile],
                             publication_date: Union[datetime.datetime, type(None)],
                             allow_publication: bool,
@@ -65,7 +64,7 @@ def upload_submission_files(ctx: WsContext,
     assert_not_none(submission_id)
     assert_not_none(path)
     assert_not_none(store_user_path)
-    #assert_not_none(publication_date)
+    # assert_not_none(publication_date)
     assert_not_none(allow_publication)
     assert_not_none(dataset_files)
     assert_not_none(doc_files)
@@ -164,7 +163,7 @@ def upload_submission_files(ctx: WsContext,
 
     # Insert submission into database
     submission = DbSubmission(submission_id=submission_id,
-                              user_id=user_id,
+                              user_id=user_name,
                               date=datetime.datetime.now(),
                               status=status,
                               qc_status=qc_status,
@@ -220,19 +219,11 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     return ctx.db_driver.update_submission(submission)
 
 
-def get_submissions(ctx: WsContext, user: User, user_name: Optional[str] = None) -> List[Submission]:
-    roles = []
-    quser = ctx.get_user(user_name)
-
-    if user is not None and user.roles is not None:
-        roles = user.roles
-
-    if Roles.is_admin(roles) and quser is None:
-        result = ctx.db_driver.get_submissions()
-    elif not Roles.is_admin(roles) and quser is None:
-        result = []
+def get_submissions(ctx: WsContext, user: Optional[User] = None) -> List[Submission]:
+    if user:
+        result = ctx.db_driver.get_submissions_for_user(user.name)
     else:
-        result = ctx.db_driver.get_submissions_for_user(quser.id, Roles.is_admin(roles))
+        result = ctx.db_driver.get_submissions()
 
     submissions = []
     for db_submission in result:
@@ -271,7 +262,7 @@ def update_submission_files(ctx: WsContext,
     assert_not_none(submission_id)
     assert_not_none(path)
     assert_not_none(store_user_path)
-    #assert_not_none(publication_date)
+    # assert_not_none(publication_date)
     assert_not_none(allow_publication)
 
     if new_submission_id == '':
@@ -334,17 +325,14 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
         text = file.body.decode("utf-8")
         try:
             dataset = SbFileReader().read(io.StringIO(text))
+            validation_result = validator.validate_dataset(dataset, ctx.config)
         except SbFormatError as e:
-            return DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
+            validation_result = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
                                            [Issue(ISSUE_TYPE_ERROR,
                                                   f"Invalid format: {e}")])
         except OSError as e:
-            return DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
+            validation_result = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
                                            [Issue(ISSUE_TYPE_ERROR, f"OSError: {e}")])
-
-        validation_result = validator.validate_dataset(dataset, ctx.config)
-        # if DATASET_VALIDATION_RESULT_STATUS_ERROR == validation_result.status:
-        #    return validation_result
 
         write_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path, submission.path))
         os.makedirs(write_path, exist_ok=True)

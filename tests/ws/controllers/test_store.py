@@ -69,7 +69,7 @@ class StoreTest(unittest.TestCase):
             result = upload_submission_files(ctx=self.ctx,
                                              path="test_files/cruise/experiment",
                                              submission_id="an_id",
-                                             user_id=user_id,
+                                             user_name=user_id,
                                              dataset_files=[uploaded_file],
                                              publication_date="2100-01-01",
                                              allow_publication=False,
@@ -106,7 +106,7 @@ class StoreTest(unittest.TestCase):
                 upload_submission_files(ctx=self.ctx,
                                         path="test_files",
                                         submission_id="",
-                                        user_id=user_id,
+                                        user_name=user_id,
                                         dataset_files=[uploaded_file],
                                         publication_date="2100-01-01",
                                         allow_publication=False,
@@ -129,7 +129,7 @@ class StoreTest(unittest.TestCase):
             result = upload_submission_files(ctx=self.ctx,
                                              path="test_files/cruise/experiment",
                                              submission_id="an_id",
-                                             user_id=user_id,
+                                             user_name=user_id,
                                              dataset_files=[uploaded_file],
                                              publication_date="2100-01-01",
                                              allow_publication=False,
@@ -155,7 +155,7 @@ class StoreTest(unittest.TestCase):
             result = upload_submission_files(ctx=self.ctx,
                                              path="test_files/cruise/experiment",
                                              submission_id="an_id",
-                                             user_id=user_id,
+                                             user_name=user_id,
                                              dataset_files=[uploaded_file],
                                              publication_date="2100-01-01",
                                              allow_publication=False,
@@ -193,7 +193,7 @@ class StoreTest(unittest.TestCase):
             result = upload_submission_files(ctx=self.ctx,
                                              path="test_files/cruise/experiment",
                                              submission_id="an_id",
-                                             user_id=user_id,
+                                             user_name=user_id,
                                              dataset_files=[uploaded_file],
                                              publication_date="2100-01-01",
                                              allow_publication=False,
@@ -209,7 +209,7 @@ class StoreTest(unittest.TestCase):
             user = User(name='scott1', password='abc', first_name='Scott', last_name='Tiger',
                         phone='', email='', roles=[])
 
-            user_id = create_user(ctx=self.ctx, user=user)
+            create_user(ctx=self.ctx, user=user)
 
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
@@ -229,7 +229,7 @@ class StoreTest(unittest.TestCase):
             upload_submission_files(ctx=self.ctx,
                                     path="test_files/cruise/experiment",
                                     submission_id="an_id",
-                                    user_id=user_id,
+                                    user_name=user.name,
                                     dataset_files=[uploaded_file],
                                     publication_date="2100-01-01",
                                     allow_publication=False,
@@ -238,31 +238,9 @@ class StoreTest(unittest.TestCase):
 
             # user_name None and user admin
             user.roles = ['admin']
-            result = get_submissions(ctx=self.ctx, user=user, user_name=None)
+            result = get_submissions(ctx=self.ctx, user=user)
             self.assertIsNotNone(result)
             self.assertEqual(1, len(result))
-
-            # user_name None and user not admin
-
-            user.roles = ['submit']
-            result = get_submissions(ctx=self.ctx, user=user, user_name=None)
-            self.assertIsNotNone(result)
-            self.assertEqual(0, len(result))
-
-            # user_name exist and user admin
-
-            user.roles = ['admin']
-            result = get_submissions(ctx=self.ctx, user=user, user_name="scott1")
-            self.assertIsNotNone(result)
-            self.assertEqual(1, len(result))
-
-            # user_name exist and user not admin
-
-            user.roles = ['submit']
-            result = get_submissions(ctx=self.ctx, user=user, user_name="scott1")
-            self.assertIsNotNone(result)
-            self.assertEqual(1, len(result))
-
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
@@ -271,7 +249,7 @@ class StoreTest(unittest.TestCase):
             user = User(name='scott', password='abc', first_name='Scott', last_name='Tiger',
                         phone='', email='', roles=['submit'])
 
-            user_id = create_user(ctx=self.ctx, user=user)
+            create_user(ctx=self.ctx, user=user)
 
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
@@ -295,7 +273,7 @@ class StoreTest(unittest.TestCase):
             result = upload_submission_files(ctx=self.ctx,
                                              path="test_files/cruise/experiment",
                                              submission_id="an_id",
-                                             user_id=user_id,
+                                             user_name=user.name,
                                              dataset_files=[uploaded_file],
                                              publication_date="2100-01-01",
                                              allow_publication=False,
@@ -304,7 +282,7 @@ class StoreTest(unittest.TestCase):
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
-            result = get_submissions(ctx=self.ctx, user=user, user_name='scott')
+            result = get_submissions(ctx=self.ctx, user=user)
             self.assertIsNotNone(result)
             self.assertEqual(1, len(result))
             self.assertEqual("an_id", result[0].submission_id)
@@ -317,7 +295,7 @@ class StoreTest(unittest.TestCase):
 
     def test_upload_and_download_submission_file(self):
         try:
-            user_id = "77616"
+            user_name = "helge"
             data_file_text = ("/begin_header\n"
                               "/received=20120330\n"
                               "/delimiter = comma\n"
@@ -340,7 +318,7 @@ class StoreTest(unittest.TestCase):
             result = upload_submission_files(ctx=self.ctx,
                                              path="test_files/cruise/experiment",
                                              submission_id="an_id",
-                                             user_id=user_id,
+                                             user_name=user_name,
                                              dataset_files=[uploaded_file],
                                              publication_date="2100-01-01",
                                              allow_publication=False,
