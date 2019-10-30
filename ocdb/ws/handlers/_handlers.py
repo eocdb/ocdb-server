@@ -622,6 +622,9 @@ class Datasets(WsRequestHandler):
         count = self.query.get_param_int('count', default=None)
         user_id = self.query.get_param_int('user_id', default=None)
 
+        if pname:
+            pname = [p.lower() for p in pname]
+
         if self.has_admin_rights():
             status = status
         elif self.has_submit_rights():
