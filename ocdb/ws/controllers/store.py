@@ -353,7 +353,7 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
             text = file.body.decode("utf-8")
             fp.write(text)
     else:
-        write_path = ctx.get_doc_files_upload_path(submission.path)
+        write_path = ctx.get_doc_files_upload_path(os.path.join(submission.store_sub_path, submission.path))
         os.makedirs(write_path, exist_ok=True)
         file_path = os.path.join(write_path, file.filename)
         with open(file_path, "wb") as fp:

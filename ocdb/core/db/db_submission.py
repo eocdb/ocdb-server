@@ -33,6 +33,8 @@ class DbSubmission(Submission):
 
     @property
     def next_index(self):
+        if len(self.files) == 0:
+            return 0
         max_index = 0
         for f in self.files:
             if f.index > max_index:
