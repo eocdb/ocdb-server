@@ -1,6 +1,7 @@
 # Changes in Version 0.1.11
 
 - Ensured that datasets attributes are always lower case
+- Removed static OCDB website
 
 # Changes in Version 0.1.10
 
