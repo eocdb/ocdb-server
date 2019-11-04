@@ -146,6 +146,7 @@ class Dataset(Model):
     @attributes.setter
     def attributes(self, value: List[str]):
         assert_not_none(value, name='attributes')
+        value = [a.lower() for a in value]
         self._attributes = value
 
     @property
