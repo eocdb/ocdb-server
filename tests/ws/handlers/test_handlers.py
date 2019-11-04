@@ -1345,7 +1345,7 @@ class DatasetsTest(WsTestCase):
         dataset.attributes = ['bottle']
         add_dataset(self.ctx, dataset)
         dataset = new_test_dataset(3)
-        dataset.attributes = ['bactabb']
+        dataset.attributes = ['BACTABB']
         add_dataset(self.ctx, dataset)
 
         query = 'mtype=all&wlmode=all&shallow=no&pmode=contains&pname=BACTABB&pname=bottle'

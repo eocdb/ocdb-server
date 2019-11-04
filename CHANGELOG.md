@@ -1,3 +1,7 @@
+# Changes in Version 0.1.11
+
+- Ensured that datasets attributes are always lower case
+
 # Changes in Version 0.1.10
 
 - Submission: Fixed downloading of added document files
