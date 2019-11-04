@@ -622,6 +622,7 @@ class Datasets(WsRequestHandler):
         count = self.query.get_param_int('count', default=None)
         user_id = self.query.get_param_int('user_id', default=None)
 
+        # Ensuring that the search  uses lower case pnames
         if pname:
             pname = [p.lower() for p in pname]
 
