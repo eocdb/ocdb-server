@@ -61,6 +61,11 @@ def find_datasets(ctx: WsContext,
     assert_one_of(pmode, ['contains', 'same_cruise', 'dont_apply'], name='pmode')
     if pgroup is not None:
         assert_instance(pgroup, [])
+
+    # Ensuring that the search  uses lower case pnames
+    if pname:
+        pname = [p.lower() for p in pname]
+
     query = DatasetQuery()
     query.expr = expr
     query.region = region
