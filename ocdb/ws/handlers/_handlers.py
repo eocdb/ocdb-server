@@ -512,6 +512,14 @@ class HandleSubmissionFile(WsRequestHandler):
             self.set_status(400, reason="Database error")
 
 
+class Handledecode(WsRequestHandler):
+    #def options(self):
+    #    print('Hello')
+
+    def get(self):
+        print(self.request.headers.get('Authorization'))
+        print('Hello')
+
 # noinspection PyAbstractClass
 class UpdateSubmissionFileStatus(WsRequestHandler):
     @_login_required
@@ -871,20 +879,21 @@ class LoginUser(WsRequestHandler):
 
         if username is None:
             username = current_user
-            user = login_user(self.ws_context, username=current_user, password=old_password, retain_password=True)
-            if user is None:
-                self.set_status(status_code=403, reason="Old passwords does not match.")
-                return
-        else:
-            if not self.has_admin_rights():
-                self.set_status(status_code=403, reason="Not enough rights to perform this operation.")
-                return
 
-            user = get_user_by_name(ctx=self.ws_context, user_name=username, retain_password=True)
+        user = self.ws_context.get_user(current_user, old_password)
+        if user is None:
+            self.set_status(status_code=403, reason="Current password does not match.")
+            return
+
+        if username != current_user and not self.has_admin_rights():
+            self.set_status(status_code=403, reason="Not enough rights to perform this operation.")
+            return
 
         if new_password1 != new_password2:
             self.set_status(status_code=403, reason="Passwords don't match")
             return
+
+        user = get_user_by_name(ctx=self.ws_context, user_name=username, retain_password=True)
 
         user['password'] = new_password1
 
