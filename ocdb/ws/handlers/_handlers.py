@@ -830,6 +830,7 @@ class HandleUsers(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode({'message': f'User {user.name} added'}))
 
+    @_login_required
     @_admin_required
     def get(self):
         """Provide API operation createUser()."""
