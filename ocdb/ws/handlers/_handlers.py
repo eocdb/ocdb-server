@@ -78,7 +78,7 @@ def _login_required(func):
 def _admin_required(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
-        if not self.has_admin_rights:
+        if not self.has_admin_rights():
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
 
