@@ -1,3 +1,12 @@
+# Changes in Version 0.1.12
+
+- Fixed check admin check not working
+
+# Changes in Version 0.1.11
+
+- Ensured that datasets attributes are always lower case
+- The OCDB server is not serving the static OCDB website anymore
+
 # Changes in Version 0.1.10
 
 - Submission: Fixed downloading of added document files
