@@ -26,6 +26,15 @@ from ...core.asserts import assert_not_none
 from ...core.models.user import User
 
 
+def check_password(ctx: WsContext, username: str, password: str):
+    assert_not_none(username, name='username')
+    assert_not_none(password, name='password')
+
+    user = ctx.get_user(username, password)
+    if not user:
+        raise WsUnauthorizedError("Unknown username or password")
+
+
 # noinspection PyUnusedLocal,PyTypeChecker
 def login_user(ctx: WsContext,
                username: str,
@@ -63,7 +72,7 @@ def create_user(ctx: WsContext,
 # noinspection PyUnusedLocal,PyTypeChecker
 def get_user_by_name(ctx: WsContext,
                      user_name: str,
-                     retain_password: bool = False) -> User:
+                     retain_password: bool = False) -> dict:
     assert_not_none(user_name, name='user_id')
 
     user = ctx.get_user(user_name)

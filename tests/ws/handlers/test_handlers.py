@@ -1781,6 +1781,80 @@ class LoginUsersTest(WsTestCase):
         actual_response_data['id'] = ''
         self.assertEqual(expected_response_data, actual_response_data)
 
+    def test_change_passwd(self):
+        cookie = self.login_admin()
+
+        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
+
+        create_user(self.ctx, user)
+
+        credentials = dict(username="scott", oldpassword="eocdb_chef", newpassword1='sdfv', newpassword2='sdfv')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+
+        expected_response_data = {'id': '', 'message': "User scott's password updated."}
+
+        actual_response_data = tornado.escape.json_decode(response.body)
+        actual_response_data['id'] = ''
+        self.assertEqual(expected_response_data, actual_response_data)
+
+    def test_change_own_passwd(self):
+        cookie = self.login_admin()
+
+        credentials = dict(username="submit", oldpassword="eocdb_chef", newpassword1='submit2', newpassword2='submit2')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        # self.assertEqual('submit2', user['password'])
+
+    def test_change_own_passwd_wrong_old_passwd(self):
+        cookie = self.login_submit()
+
+        credentials = dict(username="submit", oldpassword="submit22", newpassword1='submit2', newpassword2='submit2')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
+
+        self.assertEqual(403, response.code)
+        self.assertEqual('Current password does not match.', response.reason)
+
+    def test_change_passwd_as_admin(self):
+        cookie = self.login_admin()
+
+        credentials = dict(username='submit', oldpassword="eocdb_chef", newpassword1='submit2', newpassword2='submit2')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        # self.assertEqual('submit2', user['password'])
+
+    def test_change_passwd_from_somone_else_without_rights(self):
+        cookie = self.login_submit()
+
+        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
+
+        create_user(self.ctx, user)
+
+        credentials = dict(username="scott", oldpassword="tiger", newpassword1='sdfv', newpassword2='sdfv')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        self.assertEqual(403, response.code)
+        self.assertEqual('Current password does not match.', response.reason)
+
 
 class LogoutUsersTest(WsTestCase):
 
