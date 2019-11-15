@@ -45,7 +45,7 @@ MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/store/download'), StoreDownload),
     (url_pattern(API_URL_PREFIX + '/datasets'), Datasets),
     (url_pattern(API_URL_PREFIX + '/datasets/{id}'), GetDatasetsById),
-    (url_pattern(API_URL_PREFIX + '/datasets/submission/{submissionid}'), GetDatasetsBySubmissionId),
+    (url_pattern(API_URL_PREFIX + '/datasets/submission/{submission_id}'), GetDatasetsBySubmissionId),
     (url_pattern(API_URL_PREFIX + '/datasets/{id}/qcinfo'), DatasetsIdQcinfo),
     (url_pattern(API_URL_PREFIX + '/datasets/{affil}/{project}/{cruise}'), DatasetsAffilProjectCruise),
     (url_pattern(API_URL_PREFIX + '/datasets/{affil}/{project}/{cruise}/{name}'), DatasetsAffilProjectCruiseName),

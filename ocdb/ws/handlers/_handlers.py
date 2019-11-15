@@ -942,6 +942,7 @@ class GetUserByName(WsRequestHandler):
         update_user(self.ws_context, user_name=user_name, data=data)
         self.finish(tornado.escape.json_encode({'message': f'User {user_name} updated'}))
 
+    @_login_required
     @_admin_required
     def delete(self, user_name: str):
         """Provide API operation deleteUser()."""

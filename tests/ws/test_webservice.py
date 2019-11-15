@@ -27,11 +27,11 @@ class UrlPatternTest(unittest.TestCase):
         self.assertEqual(webservice.url_pattern('/version'),
                          '/version')
         self.assertEqual(webservice.url_pattern('{num}/get'),
-                         '(?P<num>[^\;\/\?\:\@\&\=\+\$\,]+)/get')
+                         r'(?P<num>[^\;\/\?\:\@\&\=\+\$\,]+)/get')
         self.assertEqual(webservice.url_pattern('/open/{ws_name}'),
-                         '/open/(?P<ws_name>[^\;\/\?\:\@\&\=\+\$\,]+)')
+                         r'/open/(?P<ws_name>[^\;\/\?\:\@\&\=\+\$\,]+)')
         self.assertEqual(webservice.url_pattern('/open/ws{id1}/wf{id2}'),
-                         '/open/ws(?P<id1>[^\;\/\?\:\@\&\=\+\$\,]+)/wf(?P<id2>[^\;\/\?\:\@\&\=\+\$\,]+)')
+                         r'/open/ws(?P<id1>[^\;\/\?\:\@\&\=\+\$\,]+)/wf(?P<id2>[^\;\/\?\:\@\&\=\+\$\,]+)')
 
     def test_url_pattern_fail(self):
         with self.assertRaises(ValueError) as cm:
