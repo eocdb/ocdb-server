@@ -1977,7 +1977,7 @@ class GetUserByNameTest(WsTestCase):
 
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='DELETE')
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Please login.', response.reason)
 
     def test_delete_not_admin(self):
         name = 'chef'
