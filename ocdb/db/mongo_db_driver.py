@@ -183,7 +183,7 @@ class MongoDbDriver(DbDriver):
 
     def update_user(self, user: DbUser):
         user_dict = user.to_dict()
-        result = self._user_collection.replace_one({'_id': user.id}, user_dict, upsert=True)
+        result = self._user_collection.replace_one({'name': user.name}, user_dict, upsert=True)
 
         if not result:
             return False
