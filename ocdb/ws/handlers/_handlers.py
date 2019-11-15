@@ -695,6 +695,7 @@ class GetDatasetsBySubmissionId(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
 
+    @_login_required
     @_admin_required
     def delete(self, submission_id: str):
         """Provide API operation deleteDatasets by submission ID()."""
@@ -702,7 +703,9 @@ class GetDatasetsBySubmissionId(WsRequestHandler):
         for ds in result.datasets:
             delete_dataset(ctx=self.ws_context, dataset_id=ds.id)
 
-        self.finish(tornado.escape.json_encode({'message': f'Datasets for {submission_id} deleted'}))
+        self.finish(tornado.escape.json_encode(
+            {'message': f'{result.total_count} Datasets for {submission_id} deleted'})
+        )
 
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
