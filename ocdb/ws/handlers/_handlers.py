@@ -271,6 +271,11 @@ class HandleSubmission(WsRequestHandler):
         new_submission_id = body_dict["submissionid"]
         new_submission_id = _ensure_string_argument(new_submission_id, "submissionid")
 
+        test_submission = get_submission(ctx=self.ws_context, submission_id=new_submission_id)
+        if test_submission is not None:
+            self.set_status(400, reason=f"Submission with ID {new_submission_id} exists already")
+            return
+
         temp_area_path = str(user_id) + "_" + submission_id
 
         path = body_dict["path"]
