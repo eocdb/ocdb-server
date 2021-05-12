@@ -1,3 +1,8 @@
+# Changes in Version 0.1.13
+
+- It is now possible to set a minimum client version. The Version is
+  tested on login.
+
 # Changes in Version 0.1.12
 
 - Fixed check admin check not working

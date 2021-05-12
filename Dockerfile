@@ -5,7 +5,7 @@ FROM continuumio/miniconda3:latest
 MAINTAINER helge.dzierzon@brockmann-consult.de
 
 LABEL name=ocdb-server
-LABEL version=0.1.0
+LABEL version=0.1.13
 LABEL conda_env=ocdb-server
 
 # Ensure usage of bash (simplifies source activate calls)
@@ -13,8 +13,6 @@ SHELL ["/bin/bash", "-c"]
 
 # Update system and install dependencies
 RUN apt-get -y update && apt-get -y upgrade && apt-get -y install sendmail
-
-# && apt-get -y install  git build-essential libyaml-cpp-dev
 
 
 # Setup conda environment
@@ -43,4 +41,4 @@ EXPOSE 4000
 # Start server
 
 ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["source activate ocdb-server && ocdb-server -a 0.0.0.0 -v -c eocdb/ws/res/demo/config.yml" ]
+CMD ["source activate ocdb-server && ocdb-server -a 0.0.0.0 -v -c ocdb/ws/res/demo/config.yml" ]
