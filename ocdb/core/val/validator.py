@@ -206,17 +206,23 @@ class Validator(MessageLibrary):
                 self._header_rules.append(rule)
             elif "field_required" == rule_type:
                 name = header_rule["name"]
-                error = header_rule["error"]
+                error = "Error not configured in validation config. Please advice admin."
+                if 'error' in header_rule:
+                    error = header_rule["error"]
                 rule = MetaFieldRequiredRule(name, error)
                 self._header_rules.append(rule)
             elif "field_optional" == rule_type:
                 name = header_rule["name"]
-                warning = header_rule["warning"]
+                warning = "Warning not configured in validation config. Please advice admin."
+                if 'warning' in header_rule:
+                    warning = header_rule["warning"]
                 rule = MetaFieldOptionalRule(name, warning)
                 self._header_rules.append(rule)
             elif "field_obsolete" == rule_type:
                 name = header_rule["name"]
-                warning = header_rule["warning"]
+                warning = "Warning not configured in validation config. Please advice admin."
+                if 'warning' in header_rule:
+                    warning = header_rule["warning"]
                 rule = MetaFieldObsoleteRule(name, warning)
                 self._header_rules.append(rule)
             else:

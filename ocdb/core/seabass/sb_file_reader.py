@@ -316,7 +316,10 @@ class SbFileReader:
         minute = int(tokens[1])
         second = int(tokens[2])
 
-        return datetime.datetime(year, month, day, hour, minute, second)
+        try:
+            return datetime.datetime(year, month, day, hour, minute, second)
+        except Exception as e:
+            raise SbFormatError(f"Invalid time format ({time_str}): {str(e)}")
 
 
 # noinspection PyArgumentList

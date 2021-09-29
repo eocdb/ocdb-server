@@ -601,11 +601,12 @@ class ValidateSubmission(WsRequestHandler):
         """Provide API operation validateDataset()."""
         # transform body with mime-type application/json into a Dataset
         data_dict = tornado.escape.json_decode(self.request.body)
+        self.set_header('Content-Type', 'application/json')
+
         dataset = SbFileReader().read(io.StringIO(data_dict['data']))
         # dataset = Dataset.from_dict(data_dict)
         result = validate_dataset(self.ws_context, dataset=dataset)
         # transform result of type DatasetValidationResult into response with mime-type application/json
-        self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
 
 
@@ -853,7 +854,7 @@ class LoginUser(WsRequestHandler):
         if current_user is None:
             return self.finish(tornado.escape.json_encode({'message': f'Not Logged in'}))
 
-        return self.finish(tornado.escape.json_encode({'message': f'I am {current_user}'}))
+        return self.finish(tornado.escape.json_encode({'message': f'I am {current_user}', 'name': current_user}))
 
     def post(self):
         """Provide API operation loginUser()."""
@@ -866,6 +867,7 @@ class LoginUser(WsRequestHandler):
             return self.finish(tornado.escape.json_encode({'message': f'You are using a deprecated version of '
                                                                       f'the ocdb client. Please use at least version '
                                                                       f'{MIN_CLIENT_VERSION}.'
+                                                                      f' Please update with conda update -c ocdb ocdb-client'
                                                            }))
 
         user_info = login_user(self.ws_context, username=username, password=password)
