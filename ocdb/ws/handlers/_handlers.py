@@ -865,9 +865,10 @@ class LoginUser(WsRequestHandler):
         if client_version is None or client_version < MIN_CLIENT_VERSION:
             self.set_header('Content-Type', 'application/json')
             return self.finish(tornado.escape.json_encode({'message': f'You are using a deprecated version of '
-                                                                      f'the ocdb client. Please use at least version '
-                                                                      f'{MIN_CLIENT_VERSION}.'
-                                                                      f' Please update with conda update -c ocdb ocdb-client'
+                                                                      f'the ocdb client. Please update to at least '
+                                                                      f'version {MIN_CLIENT_VERSION}.'
+                                                                      f' Please update with '
+                                                                      f'conda update -c ocdb ocdb-client'
                                                            }))
 
         user_info = login_user(self.ws_context, username=username, password=password)

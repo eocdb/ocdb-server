@@ -178,7 +178,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
         return self._app.ws_context
 
     def login_admin(self) -> Optional[str]:
-        credentials = dict(username="chef", password="eocdb_chef")
+        credentials = {'username': "chef", 'password': "eocdb_chef", 'client-version': "0.2.7"}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
         self.assertEqual(200, response.code)
@@ -190,7 +190,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(200, response.code)
 
     def login_submit(self) -> Optional[str]:
-        credentials = dict(username="submit", password="submit")
+        credentials = {'username': "submit", 'password': "submit", 'client-version': "0.2.7"}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
@@ -214,7 +214,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("ocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.0-dev.22", result["info"].get("version"))
+        self.assertEqual("0.1.14", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -1725,7 +1725,7 @@ class LoginUsersTest(WsTestCase):
 
         create_user(self.ctx, user)
 
-        credentials = dict(username="scott", password="tiger")
+        credentials = {'username': "scott", 'password': "tiger", 'client-version': '0.2.7'}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
@@ -1752,7 +1752,7 @@ class LoginUsersTest(WsTestCase):
 
         create_user(self.ctx, user)
 
-        credentials = dict(username="scott", password="lion")
+        credentials = {'username': "scott", 'password': "lion", 'client-version': '0.2.7'}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
@@ -1760,7 +1760,8 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual('Unknown username or password', response.reason)
 
     def test_login_unknown_user(self):
-        credentials = dict(username="malcolm", password="rattenloch")
+        credentials = {'username': "malcolm", 'password': "rattenloch", 'client-version': '0.2.7'}
+
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
@@ -1768,7 +1769,7 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual('Unknown username or password', response.reason)
 
     def test_login_admin(self):
-        credentials = dict(username="chef", password="eocdb_chef")
+        credentials = {'username': "chef", 'password': "eocdb_chef", 'client-version': '0.2.7'}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
