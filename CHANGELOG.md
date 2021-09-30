@@ -1,11 +1,7 @@
-# Changes in Version 0.1.14 (in development)
+# Changes in Version 0.1.15
 
 - Fixed 500 error thrown if the SB file contains a wrongly formatted datetime in the data section. Throws now a proper SbFormatError. This will also ensure that the error os reported.
 - Ensured that the server does not throw a http 500 error if an optional field has not warning configured and a required field no error. The error report will include a message advising to contact teh admin die to a misconfigured validation json. 
-
-
-# Changes in Version 0.1.13
-
 - It is now possible to set a minimum client version. The Version is
   tested on login.
 
