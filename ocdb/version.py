@@ -21,6 +21,6 @@
 
 VERSION = "0.1.16"
 API_VERSION_TAG = "latest"
-MIN_CLIENT_VERSION = "0.2.7"
+MIN_CLIENT_VERSION = "0.2.8"
 MIN_WEBUI_VERSION = "0.2.1"
 DESCRIPTION = "Copernicus Ocean Colour In-Situ Database"
