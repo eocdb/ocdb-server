@@ -34,7 +34,7 @@ from ..controllers.users import *
 from ..webservice import WsRequestHandler
 from ...core.models.dataset_ids import DatasetIds
 from ...core.models.user import User
-from ...version import MIN_CLIENT_VERSION
+from ...version import MIN_CLIENT_VERSION, MIN_WEBUI_VERSION
 
 MTYPE_DEFAULT = 'all'
 WLMODE_DEFAULT = 'all'
@@ -861,9 +861,20 @@ class LoginUser(WsRequestHandler):
         credentials = tornado.escape.json_decode(self.request.body)
         username = credentials.get('username')
         password = credentials.get('password')
-        client_version = credentials.get('client-version')
-        if client_version is None or client_version < MIN_CLIENT_VERSION:
+        client_version = credentials.get('client_version', 0)
+        client = credentials.get('client', 'cli')
+
+        client_allowed = True
+
+        if client == 'cli' and client_version < MIN_CLIENT_VERSION:
+            client_allowed = False
+
+        if client == 'webui' and client_version < MIN_WEBUI_VERSION:
+            client_allowed = False
+
+        if not client_allowed:
             self.set_header('Content-Type', 'application/json')
+            self.set_status(403)
             return self.finish(tornado.escape.json_encode({'message': f'You are using a deprecated version of '
                                                                       f'the ocdb client. Please update to at least '
                                                                       f'version {MIN_CLIENT_VERSION}.'

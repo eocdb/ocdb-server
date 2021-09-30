@@ -178,7 +178,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
         return self._app.ws_context
 
     def login_admin(self) -> Optional[str]:
-        credentials = {'username': "chef", 'password': "eocdb_chef", 'client-version': "0.2.7"}
+        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': "0.2.7"}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
         self.assertEqual(200, response.code)
@@ -190,7 +190,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(200, response.code)
 
     def login_submit(self) -> Optional[str]:
-        credentials = {'username': "submit", 'password': "submit", 'client-version': "0.2.7"}
+        credentials = {'username': "submit", 'password': "submit", 'client_version': "0.2.7"}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
@@ -1725,7 +1725,7 @@ class LoginUsersTest(WsTestCase):
 
         create_user(self.ctx, user)
 
-        credentials = {'username': "scott", 'password': "tiger", 'client-version': '0.2.7'}
+        credentials = {'username': "scott", 'password': "tiger", 'client_version': '0.2.7'}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
@@ -1752,7 +1752,7 @@ class LoginUsersTest(WsTestCase):
 
         create_user(self.ctx, user)
 
-        credentials = {'username': "scott", 'password': "lion", 'client-version': '0.2.7'}
+        credentials = {'username': "scott", 'password': "lion", 'client_version': '0.2.7'}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
@@ -1760,7 +1760,7 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual('Unknown username or password', response.reason)
 
     def test_login_unknown_user(self):
-        credentials = {'username': "malcolm", 'password': "rattenloch", 'client-version': '0.2.7'}
+        credentials = {'username': "malcolm", 'password': "rattenloch", 'client_version': '0.2.7'}
 
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
@@ -1769,7 +1769,7 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual('Unknown username or password', response.reason)
 
     def test_login_admin(self):
-        credentials = {'username': "chef", 'password': "eocdb_chef", 'client-version': '0.2.7'}
+        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': '0.2.7'}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 

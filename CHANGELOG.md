@@ -1,3 +1,7 @@
+# Changes in Version 0.1.16
+
+- Fixed login from WebUI
+
 # Changes in Version 0.1.15
 
 - Fixed 500 error thrown if the SB file contains a wrongly formatted datetime in the data section. Throws now a proper SbFormatError. This will also ensure that the error os reported.
