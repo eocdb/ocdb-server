@@ -5,6 +5,15 @@
 - It is now possible to set a minimum client version. The Version is
   tested on login.
 
+# Changes in Version 0.1.14
+
+- Fixed update own pwd. Not duplicating users anymore
+
+# Changes in Version 0.1.13
+
+- Fixed issue that admin could not delete users
+- Fixed listing datasets by submission
+
 # Changes in Version 0.1.12
 
 - Fixed check admin check not working
