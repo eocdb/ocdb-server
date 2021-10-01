@@ -10,6 +10,7 @@ class SbFileReaderTest(unittest.TestCase):
     # def test_read(self):
     #     reader = SbFileReader()
     #     data_record = reader.read("/fs1/temp/Tom/test2.txt")
+    #     # data_record = reader.read('L:/ongoing/FRM4SOC/data/AERONET-OC/Downloads/LWN/LWN20/ALL_POINTS/ocdb_00_sample_files/20020101_20210904_Abu_Al_Bukhoosh.csv')
     #     print(data_record)
 
     def setUp(self):

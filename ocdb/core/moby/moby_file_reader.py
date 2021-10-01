@@ -21,14 +21,14 @@ EOF = 'end_of_file'
 
 class MobyFileReader:
 
-    def __init__(self, fn):
+    def __init__(self):
         self._delimiter = ','
         self._lines = []
         self._line_index = 0
         self._field_list = None
-        self._filename = fn
+        self._filename = None
 
-    def read(self, file_obj: Any) -> Dataset:
+    def read(self, file_obj: Any, debug=False) -> Dataset:
         """
         Read a Dataset from plain text file in MOBY format.
 
@@ -39,10 +39,12 @@ class MobyFileReader:
         self._filename = file_obj
 
         if hasattr(file_obj, 'readlines'):
-            return self._parse(file_obj.readlines())
+            moby_file_content = self._parse(file_obj.readlines(), debug=debug)
+            return moby_file_content
         else:
             with open(file_obj, 'r') as fp:
-                return self._parse(fp.readlines())
+                moby_file_content = self._parse(fp.readlines(), debug=debug)
+                return moby_file_content
 
     def _check_line_for_filename(self, str_line):
         """Check whether string contains filename:
@@ -58,13 +60,15 @@ class MobyFileReader:
             raise MobyFormatError(err_msg)
         # Check for filename
         file, ext = os.path.splitext(os.path.basename(self._filename))
-        if file[5:] + '.mby' not in str_line.lower():
+        if file[5:] + '.MBY' not in str_line:
+            print(file[5:] + '.MBY')
+            print(str_line)
             err_msg = 'First line does not contain filename'
             raise MobyFormatError(err_msg)
 
         return True
 
-    def _parse(self, lines: Sequence[str]) -> DbDataset:
+    def _parse(self, lines: Sequence[str], debug=False) -> DbDataset:
 
         self._lines = lines
 
@@ -77,11 +81,11 @@ class MobyFileReader:
         contains_fn = self._check_line_for_filename(line)
         if contains_fn is True:
             self.handle_header = True
-            self.metadata = self._parse_header()
+            self.metadata = self._parse_header(debug=debug)
 
         # delimiter_regex = self._extract_delimiter_regex(metadata)
         delimiter_regex = self._delimiter    # + '+'
-        records = self._parse_records(delimiter_regex)
+        records = self._parse_records(delimiter_regex, debug=debug)
         dataset = DbDataset(self.metadata, records)
         
         dataset.attributes = self._extract_field_list()
@@ -94,22 +98,31 @@ class MobyFileReader:
 
         return dataset
 
-    def _parse_records(self, delimiter_regex) -> List[List[Dataset.Field]]:
+    def _parse_records(self, delimiter_regex, debug=False) -> List[List[Dataset.Field]]:
         records = []
+
+        num_tokens = 0
 
         while True:
             line = self._next_line()
-
             if line == EOF:
                 break
-            if line == '\n':
+            if line == '\n' or line == '':
                 continue
             line = " ".join(line.split()).replace(' ', '')
             tokens = re.split(delimiter_regex, line)
-            if len(tokens) <= 1:
-                # some files have whitespace between header and records -
-                # skip this here tb 2018-09-21
-                continue
+            if num_tokens  == 0:
+                num_tokens = len(tokens)
+            if num_tokens != len(tokens):
+                if debug:
+                    print('Error in line ' + str(self._line_index) + ':' + line + '.')
+                raise MobyFormatError('Wrong number of values.')
+
+            # if len(tokens) <= 1:
+            #     # some files have whitespace between header and records -
+            #     # skip this here tb 2018-09-21
+            #     # _next_line() skips empty lines anyway ul 2021-09-30
+            #     continue
 
             record = []
             for token in tokens:
@@ -126,6 +139,8 @@ class MobyFileReader:
                     record.append(token)
 
             records.append(record)
+            if debug:
+                print(line)
 
         return records
 
@@ -186,8 +201,7 @@ class MobyFileReader:
         else:
             print('Start string is unknown!')
             raise MobyFormatError
-
-        line = self._next_line()
+        line = self._current_line()
         while line.find(start_str) == 0:
             if start_str == 'DscS':
                 if (line.find('Water-Leaving Radiance') > -1 and
@@ -221,7 +235,7 @@ class MobyFileReader:
         col_names = str_col_names.split(' ')
         if col_names[0:6] != date_time_columns:
             err_msg = 'Date and time columns missing in metadata columns, ' + \
-                  'i. e. Year, Mon, Day, Hour, Min, Sec.'
+                  'i. e. Year, Mon, Day, Hour, Min, Sec, ... .'
             raise MobyFormatError(err_msg)
 
         return col_names
@@ -237,7 +251,8 @@ class MobyFileReader:
         str_units = str_units.replace('deg True', 'deg_True')
         str_units = " ".join(str_units.split())
         metadata_units = ['', '', '', '', '', ''] + str_units.split(' ')
-
+        if len(metadata_units) != 11:
+            raise MobyFormatError('Wrong number of metadata column units.')
         return metadata_units
 
     def _collect_lw_ids(self):
@@ -262,6 +277,9 @@ class MobyFileReader:
             lw_ids.append(lw_id)
             line = self._next_line()
 
+        if len(lw_ids) == 0:
+            raise MobyFormatError('Lw metadata missing.')
+
         return lw_ids, lw_values_list
 
     def _collect_es_ids(self):
@@ -284,9 +302,12 @@ class MobyFileReader:
             es_ids.append(es_id)
             line = self._next_line()
 
+        if len(es_ids) == 0:
+            raise MobyFormatError('Es metadata missing.')
+
         return es_ids, es_values_list
 
-    def _parse_header(self) -> dict:
+    def _parse_header(self, debug=False) -> dict:
 
         metadata = {}
 
@@ -299,6 +320,7 @@ class MobyFileReader:
         metadata['num_rows'] = num_rows
 
         # 2.3 File headers
+        line = self._next_line()
         comment_lines = self._get_comment_lines('FhdS')
 
         metadata['comments'] = comment_lines
@@ -353,7 +375,7 @@ class MobyFileReader:
             else:
                 raise IOError('Error while parsing file ' + self._filename + '.')
         else:
-            raise IOError('"Xdat:" not found in file ' + self._filename + '.')
+            raise MobyFormatError('"Xdat:" not found.')
 
         metadata['skip_rows'] = self._line_index
 
@@ -366,6 +388,7 @@ class MobyFileReader:
             # Add groups for MOBY attributes/fields
             groups = get_groups_for_product(field[0:2])
             if len(groups) == 0:
+                print('Todo: determine parameter groups!.')
                 continue
 
             for group in groups:
@@ -384,7 +407,6 @@ class MobyFileReader:
         self._extract_times(dataset)
 
     def _extract_times(self, dataset):
-
         # Todo: Calculate mean lat and lon
         if 'lw_values' in self.metadata.keys() and 'es_values' in self.metadata.keys():
 
@@ -459,12 +481,12 @@ class MobyFileReader:
 
         return True
 
-    def _extract_geo_location_from_header(self, dataset):
-        east_lon_string = dataset.metadata['east_longitude']
-        lon = self._extract_angle(east_lon_string)
-        north_lat_string = dataset.metadata['north_latitude']
-        lat = self._extract_angle(north_lat_string)
-        dataset.add_geo_location(lon, lat)
+    # def _extract_geo_location_from_header(self, dataset):
+    #     east_lon_string = dataset.metadata['east_longitude']
+    #     lon = self._extract_angle(east_lon_string)
+    #     north_lat_string = dataset.metadata['north_latitude']
+    #     lat = self._extract_angle(north_lat_string)
+    #     dataset.add_geo_location(lon, lat)
 
     @classmethod
     def extract_value_if_present(cls, key, metadata):
