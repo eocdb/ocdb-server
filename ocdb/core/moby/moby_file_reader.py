@@ -21,12 +21,12 @@ EOF = 'end_of_file'
 
 class MobyFileReader:
 
-    def __init__(self):
+    def __init__(self, fn):
         self._delimiter = ','
         self._lines = []
         self._line_index = 0
         self._field_list = None
-        self._filename = None
+        self._filename = fn
 
     def read(self, file_obj: Any, debug=False) -> Dataset:
         """
@@ -36,7 +36,6 @@ class MobyFileReader:
         :return: A Dataset
         """
         self._line_index = 0
-        self._filename = file_obj
 
         if hasattr(file_obj, 'readlines'):
             moby_file_content = self._parse(file_obj.readlines(), debug=debug)
@@ -60,7 +59,7 @@ class MobyFileReader:
             raise MobyFormatError(err_msg)
         # Check for filename
         file, ext = os.path.splitext(os.path.basename(self._filename))
-        if file[5:] + '.MBY' not in str_line:
+        if file[5:] + '.mby' not in str_line.lower():
             print(file[5:] + '.MBY')
             print(str_line)
             err_msg = 'First line does not contain filename'
@@ -68,10 +67,57 @@ class MobyFileReader:
 
         return True
 
+    def _collect_metadata(self, ds):
+
+        metadata = {}
+
+        metadata['investigators'] = 'Mark Yarbourgh, Paul DiGiacomo, Carol Johnson, Ken Voss'
+        metadata['affiliations'] = 'MLML, NOAA, NIST, University of Miami'
+        metadata['contact'] = 'mlml-info@sjsu.edu'
+        metadata['experiment'] = 'MOBY'
+        metadata['cruise'] = 'Harvester'
+        metadata['data_file_name'] = self._filename
+        metadata['documents'] = []
+        metadata['calibration_files'] = []
+        metadata['data_type'] = 'mooring'
+        meas_time = ds.times[0]
+        date_yyyymmdd = str(meas_time.year) + str(meas_time.month).zfill(2) + str(meas_time.day).zfill(2)
+        metadata['start_date'] = date_yyyymmdd
+        metadata['end_date'] = date_yyyymmdd
+        time_gmt = str(meas_time.hour).zfill(2) + ':' + str(meas_time.minute).zfill(2) + str(meas_time.second).zfill(2) + '[GMT]'
+        metadata['start_time'] = time_gmt
+        metadata['end_time'] = time_gmt
+        metadata['north_latitude'] = str(ds.latitudes[0]) + '[DEG]'
+        metadata['south_latitude'] = str(ds.latitudes[0]) + '[DEG]'
+        metadata['west_longitude'] = str(ds.longitudes[0]) + '[DEG]'
+        metadata['east_longitude'] = str(ds.longitudes[0]) + '[DEG]'
+        metadata['water_depth'] = '5'
+        metadata['measurement_depth'] = '5'
+        metadata['missing'] = '-999'
+        metadata['delimiter'] = 'comma'
+        metadata['fields'] = ds.attribute_names.join(',')
+        units = ''
+        for field in ds.attribute_names:
+            if field == '':
+                units += ','
+            elif field[0:2] == 'lw':
+                units += 'µW/cm²/nm/sr,'
+            elif field[0:2] == 'ed':
+                units += 'µW/cm²/nm,'
+
+        metadata['units'] = ''
+        # / water_depth = NA
+        # / measurement_depth = 0
+        # / missing = -999.0
+        # / delimiter = comma
+        # / fields = date, time, sdy, SZA412, SZA440, SZA443, SZA490, SZA500, SZA532, SZA551, SZA555, SZA667, SZA675, SZA870, SZA1020, SAZ412, SAZ440, SAZ443, SAZ490, SAZ500, SAZ532, SAZ551, SAZ555, SAZ667, SAZ675, SAZ870, SAZ1020, Lt412, Lt440, Lt443, Lt490, Lt500, Lt532, Lt551, Lt555, Lt667, Lt675, Lt870, Lt1020, Lsky412, Lsky440, Lsky443, Lsky490, Lsky500, Lsky532, Lsky551, Lsky555, Lsky667, Lsky675, Lsky870, Lsky1020, wind, pressure_atm, Lw412, Lw440, Lw443, Lw490, Lw500, Lw532, Lw551, Lw555, Lw667, Lw675, Lw870, Lw1020, Lwn412, Lwn440, Lwn443, Lwn490, Lwn500, Lwn532, Lwn551, Lwn555, Lwn667, Lwn675, Lwn870, Lwn1020, lat, lon
+        # / units = yyyymmdd, hh:mm: ss, ddd, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, degrees, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, m / s, mbar, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, uW / cm ^ 2 / nm / sr, degrees, degrees
+
+        return True
+
     def _parse(self, lines: Sequence[str], debug=False) -> DbDataset:
 
         self._lines = lines
-
         self.handle_header = None
 
         metadata = {}
@@ -81,18 +127,22 @@ class MobyFileReader:
         contains_fn = self._check_line_for_filename(line)
         if contains_fn is True:
             self.handle_header = True
-            self.metadata = self._parse_header(debug=debug)
+            self.metadata_suppl = self._parse_header(debug=debug)
 
         # delimiter_regex = self._extract_delimiter_regex(metadata)
         delimiter_regex = self._delimiter    # + '+'
         records = self._parse_records(delimiter_regex, debug=debug)
+
+        self.metadata = {}
+
         dataset = DbDataset(self.metadata, records)
-        
+        dataset.filename = self._filename
+        dataset.datasource_type = 'MOBY'
         dataset.attributes = self._extract_field_list()
         # Todo: Add groups for MOBY attributes/fields.
         dataset.groups = self._extract_group_list()
-        self._extract_searchfields(dataset, metadata)
-
+        self._extract_searchfields(dataset)
+        self._collect_metadata(dataset)
         if self.handle_header is None or self.handle_header is True:
             raise MobyFormatError('Parsing error')
 
@@ -386,8 +436,9 @@ class MobyFileReader:
         group_list = []
         for field in full_field_list:
             # Add groups for MOBY attributes/fields
-            groups = get_groups_for_product(field[0:2])
-            if len(groups) == 0:
+            product = field[0:2]
+            groups = get_groups_for_product(product)
+            if len(groups) == 0 and product != 'la':
                 print('Todo: determine parameter groups!.')
                 continue
 
@@ -402,17 +453,17 @@ class MobyFileReader:
             raise MobyFormatError('Missing header tag "fields"')
         return self._field_list.lower().split(',')
 
-    def _extract_searchfields(self, dataset, metadata):
+    def _extract_searchfields(self, dataset):
         self._extract_geo_locations(dataset)
         self._extract_times(dataset)
 
     def _extract_times(self, dataset):
         # Todo: Calculate mean lat and lon
-        if 'lw_values' in self.metadata.keys() and 'es_values' in self.metadata.keys():
+        if 'lw_values' in self.metadata_suppl.keys() and 'es_values' in self.metadata_suppl.keys():
 
             dates = []
 
-            lw_value_lists = self.metadata['lw_values']
+            lw_value_lists = self.metadata_suppl['lw_values']
             for lw_values in lw_value_lists:
                 year = lw_values[0]
                 month = lw_values[1]
@@ -425,7 +476,7 @@ class MobyFileReader:
                 date += str(minute).zfill(2) + ':' + str(sec).zfill(2)
                 dates.append(date)
 
-            es_value_lists = self.metadata['es_values']
+            es_value_lists = self.metadata_suppl['es_values']
             for es_values in es_value_lists:
                 year = es_values[0]
                 month = es_values[1]
@@ -456,8 +507,8 @@ class MobyFileReader:
         lon = None
         lat = None
 
-        if 'lw_values' in self.metadata.keys():
-            lw_value_lists = self.metadata['lw_values']
+        if 'lw_values' in self.metadata_suppl.keys():
+            lw_value_lists = self.metadata_suppl['lw_values']
 
             for lw_values in lw_value_lists:
                 lat = lw_values[6]
@@ -467,8 +518,8 @@ class MobyFileReader:
         else:
             raise MobyFormatError('Lw values not found in metadata.')
                     
-        if 'es_values' in self.metadata.keys():
-            es_value_lists = self.metadata['es_values']
+        if 'es_values' in self.metadata_suppl.keys():
+            es_value_lists = self.metadata_suppl['es_values']
             for es_values in es_value_lists:
                 lat = es_values[6]
                 lon = es_values[7]

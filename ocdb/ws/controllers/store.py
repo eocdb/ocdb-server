@@ -52,6 +52,22 @@ def get_store_info(ctx: WsContext) -> Dict:
     return dict(products=get_products(), productGroups=get_product_groups())
 
 
+def get_datasource_type(fn):
+
+    ext = fn[-3:]
+    if ext.lower() == 'mby':
+        datasource_type = 'MOBY'
+    elif ext.lower() == 'sb':
+        datasource_type = 'SEABASS'
+    else:
+        # For the moment let's assume that: "If it's not MOBY, it's SEABASS".
+        datasource_type = 'SEABASS'
+        # Otherwise raise an error
+        # raise IOError('Unknown file format.')
+
+    return datasource_type
+
+
 def upload_submission_files(ctx: WsContext,
                             path: str,
                             store_user_path: str,
@@ -96,19 +112,19 @@ def upload_submission_files(ctx: WsContext,
 
         try:
             # dataset = SbFileReader().read(io.StringIO(text))
-            fobj = open(text, 'r')
-            first_line = fobj[0]
-            fobj.close()
+            # fobj = open(text, 'r')
+            # first_line = fobj[0]
+            # fobj.close()
 
-            data_source = ''
-            if '/begin_header' in first_line.lower():
-                dataset = SbFileReader().read(io.StringIO(text))
-                data_source = 'SEABASS'
-            elif 'Filename:' in first_line.lower():
-                dataset = MobyFileReader().read(io.StringIO(text))
-                data_source = 'MOBY'
+            fn = file.filename
+            datasource_type = get_datasource_type(fn)
+
+            if datasource_type == 'MOBY':
+                moby_file_reader = MobyFileReader(fn)
+                dataset = moby_file_reader.read(io.StringIO(text))
             else:
-                raise IOError('Unknown file format.')
+                # raise IOError('Unknown file format.')
+                dataset = SbFileReader().read(io.StringIO(text))
 
         except MobyFormatError as e:
             dataset = None

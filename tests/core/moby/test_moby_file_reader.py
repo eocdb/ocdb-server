@@ -213,7 +213,6 @@ class MobyFileReaderTest(unittest.TestCase):
                      '   lambda,         Lw1,         Lw2,         Lw7,  Ed Sfc,  Ed Sfc,  Ed Sfc,        Lw21,        Lw27,        Lw22\n',
                      '348.4221, 0.988740, 0.977193, 0.908520,,,, 0.988740, 0.908520, 0.977193\n',
                      '348.9953, 0.975660, 0.965026, 0.905604,,, 0.975660, 0.905604, 0.965026'
-
         ]
         with self.assertRaises(MobyFormatError) as cm:
             self.reader._filename = moby_path + moby_fn
