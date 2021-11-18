@@ -73,6 +73,7 @@ class MongoDbDriver(DbDriver):
 
         query_dict = self._query_converter.to_dict(query)
 
+        # Line 330: self._collection = self._client.ocdb.sb_datasets
         cursor = self._collection.find(query_dict, skip=start_index, limit=count)
         total_num_results = self._collection.count_documents(query_dict)
 
