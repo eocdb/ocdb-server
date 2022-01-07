@@ -1,3 +1,7 @@
+# Changes in Version 0.1.17 (in development)
+
+- Changed static cookie secret in app.py to a random string 
+
 # Changes in Version 0.1.16
 
 - Fixed login from WebUI
