@@ -188,7 +188,6 @@ class StoreTest(unittest.TestCase):
                                         allow_publication=False,
                                         doc_files=[],
                                         store_user_path='Tom_Helge')
-
             self.assertEqual("HTTP 400: Please use characters, numbers and underscores for the SUBMISSION_LABEL, EXPERIMENT, and CRUISE only.", f"{cm.exception}")
 
         finally:

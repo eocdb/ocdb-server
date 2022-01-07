@@ -156,6 +156,14 @@ def _submission_authorization_required(func):
     return wrapper
 
 
+def _ensure_valid_submission_id(path: str) -> bool:
+    prog = re.compile(r'^.*[\./]+.*$')
+    if prog.match(path):
+        raise WsBadRequestError("Please do not use dots and slashes in your submission id.")
+    else:
+        return True
+
+
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class HandleSubmission(WsRequestHandler):
 
@@ -175,6 +183,7 @@ class HandleSubmission(WsRequestHandler):
 
         submission_id = arguments.get("submissionid")
         submission_id = _ensure_string_argument(submission_id, "submissionid")
+        _ensure_valid_submission_id(submission_id)
 
         store_user_path = str(user_name) + "_" + submission_id
 
