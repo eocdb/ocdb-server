@@ -19,7 +19,6 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import functools
-import re
 from time import strptime
 
 import tornado.escape
@@ -157,14 +156,6 @@ def _submission_authorization_required(func):
     return wrapper
 
 
-def _ensure_valid_path(path: str) -> bool:
-    prog = re.compile(r'^[a-zA-Z0-9]*/[a-zA-Z0-9]*/[a-zA-Z0-9]*$')
-    if prog.match(path):
-        return True
-    else:
-        raise WsBadRequestError("Please use characters, numbers and two slashes only.")
-
-
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class HandleSubmission(WsRequestHandler):
 
@@ -189,7 +180,6 @@ class HandleSubmission(WsRequestHandler):
 
         path = arguments.get("path")
         path = _ensure_string_argument(path, "path")
-        _ensure_valid_path(path)
 
         publication_date = arguments.get("publicationdate")
         publication_date = _ensure_string_argument(publication_date, "publicationdate")

@@ -22,6 +22,7 @@ import datetime
 import io
 import json
 import os
+import re
 import tempfile
 import time
 import zipfile
@@ -47,6 +48,15 @@ from ...ws.controllers.datasets import find_datasets, get_dataset_by_id, delete_
 from ...ws.errors import WsBadRequestError
 
 
+def _ensure_valid_path(path: str) -> bool:
+    prog = re.compile(r'^[a-zA-Z0-9_]*/[a-zA-Z0-9_]*/[a-zA-Z0-9_]*$')
+    if prog.match(path):
+        return True
+    else:
+        raise WsBadRequestError("Please use characters, numbers and underscores for the SUBMISSION_LABEL, "
+                                "EXPERIMENT, and CRUISE only.")
+
+
 # noinspection PyUnusedLocal
 def get_store_info(ctx: WsContext) -> Dict:
     return dict(products=get_products(), productGroups=get_product_groups())
@@ -69,6 +79,7 @@ def upload_submission_files(ctx: WsContext,
     assert_not_none(allow_publication)
     assert_not_none(dataset_files)
     assert_not_none(doc_files)
+    _ensure_valid_path(path)
 
     if submission_id == '':
         raise WsBadRequestError(f"Submission label is empty!")
