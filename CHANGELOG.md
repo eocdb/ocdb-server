@@ -1,4 +1,4 @@
-# Changes in Version 0.1.17
+# Changes in Version 0.1.17 (in development)
 
 - Changed static cookie secret in app.py to a random string 
 
