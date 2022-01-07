@@ -1,6 +1,8 @@
 # Changes in Version 0.1.17 (in development)
 
-- Changed static cookie secret in app.py to a random string 
+- Changed static cookie secret in app.py to a random string [#103]
+- The ocdb server is now preventing a Path Traversal vulnerability on the Submission
+  File Upload & Download feature in multiple parameters  [#104]
 
 # Changes in Version 0.1.16
 

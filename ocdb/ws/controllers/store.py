@@ -48,6 +48,14 @@ from ...ws.controllers.datasets import find_datasets, get_dataset_by_id, delete_
 from ...ws.errors import WsBadRequestError
 
 
+def _ensure_valid_submission_id(path: str) -> bool:
+    prog = re.compile(r'^.*[\./]+.*$')
+    if prog.match(path):
+        raise WsBadRequestError("Please do not use dots and slashes in your submission id.")
+    else:
+        return True
+
+
 def _ensure_valid_path(path: str) -> bool:
     prog = re.compile(r'^[a-zA-Z0-9_]*/[a-zA-Z0-9_]*/[a-zA-Z0-9_]*$')
     if prog.match(path):
@@ -83,6 +91,8 @@ def upload_submission_files(ctx: WsContext,
 
     if submission_id == '':
         raise WsBadRequestError(f"Submission label is empty!")
+
+    _ensure_valid_submission_id(submission_id)
 
     result = ctx.db_driver.get_submission(submission_id)
     if result is not None:
