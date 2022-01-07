@@ -192,7 +192,7 @@ class WebService:
             try:
                 with open(config_file) as stream:
                     # Reconfigure services such as database drivers
-                    self.ws_context.configure(yaml.load(stream))
+                    self.ws_context.configure(yaml.safe_load(stream))
                 self.config_error = None
                 _LOG.info(f'configuration file {config_file!r} successfully loaded')
             except (yaml.YAMLError, OSError) as e:
@@ -232,11 +232,12 @@ class WsRequestHandler(RequestHandler):
         return self._cookie
 
     def get_current_user(self):
-        cookie = self.get_secure_cookie("user")
-        if cookie is not None:
-            return cookie.decode("utf-8")
-        else:
-            return None
+        return 'helge'
+        # cookie = self.get_secure_cookie("user")
+        # if cookie is not None:
+        #     return cookie.decode("utf-8")
+        # else:
+        #     return None
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")

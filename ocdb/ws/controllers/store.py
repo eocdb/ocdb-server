@@ -85,6 +85,7 @@ def upload_submission_files(ctx: WsContext,
 
     datasets = dict()
     validation_results = dict()
+    data_source = ''
 
     # Read dataset files and make sure their format is ok.
     for file in dataset_files:
@@ -95,11 +96,8 @@ def upload_submission_files(ctx: WsContext,
             raise WsBadRequestError("Decoding error for file: " + file.filename + '.\n' + str(e))
 
         try:
-            fobj = open(text, 'r')
-            first_line = fobj[0]
-            fobj.close()
-
-            data_source = ''
+            with open(text, 'r') as f:
+                first_line = f.readline()
 
             if '/begin_header' in first_line.lower():
                 dataset = SbFileReader().read(io.StringIO(text))
