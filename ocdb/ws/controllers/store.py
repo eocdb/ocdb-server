@@ -40,7 +40,7 @@ from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMEN
 from ...core.models.submission_file import SubmissionFile
 from ...core.models.uploaded_file import UploadedFile
 from ...core.seabass.sb_file_reader import SbFileReader, SbFormatError
-from ...core.seabass.moby_file_reader import MobyFileReader, MobyFormatError
+# from ...core.seabass.moby_file_reader import MobyFileReader, MobyFormatError
 from ...core.val import validator
 from ...db.static_data import get_product_groups, get_products
 from ...ws.controllers.datasets import find_datasets, get_dataset_by_id, delete_dataset
@@ -96,15 +96,15 @@ def upload_submission_files(ctx: WsContext,
             raise WsBadRequestError("Decoding error for file: " + file.filename + '.\n' + str(e))
 
         try:
-            with open(text, 'r') as f:
-                first_line = f.readline()
+            fobj = text.split('\n')
+            first_line = fobj[0]
 
             if '/begin_header' in first_line.lower():
                 dataset = SbFileReader().read(io.StringIO(text))
                 data_source = 'SEABASS'
-            elif 'Filename:' in first_line.lower():
-                dataset = MobyFileReader().read(io.StringIO(text))
-                data_source = 'MOBY'
+            # elif 'Filename:' in first_line.lower():
+            #     dataset = MobyFileReader().read(io.StringIO(text))
+            #     data_source = 'MOBY'
             else:
                 raise IOError('Unknown file format.')
 
@@ -113,11 +113,11 @@ def upload_submission_files(ctx: WsContext,
             validation_results[file.filename] = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
                                                                         [Issue(ISSUE_TYPE_ERROR,
                                                                                f"Invalid format: {e}")])
-        except MobyFormatError as e:
-            dataset = None
-            validation_results[file.filename] = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
-                                                                                    [Issue(ISSUE_TYPE_ERROR,
-                                                                                           f"Invalid format: {e}")])
+        # except MobyFormatError as e:
+        #     dataset = None
+        #     validation_results[file.filename] = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
+        #                                                                             [Issue(ISSUE_TYPE_ERROR,
+        #                                                                                    f"Invalid format: {e}")])
 
         except OSError as e:
             dataset = None
