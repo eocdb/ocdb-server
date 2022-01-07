@@ -158,7 +158,7 @@ def _submission_authorization_required(func):
 
 
 def _ensure_valid_path(path: str) -> bool:
-    prog = re.compile(r'^[a-zA-Z0-9]/[a-zA-Z0-9]/[a-zA-Z0-9]$')
+    prog = re.compile(r'^[a-zA-Z0-9]*/[a-zA-Z0-9]*/[a-zA-Z0-9]*$')
     if prog.match(path):
         return True
     else:
