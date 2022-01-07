@@ -192,7 +192,7 @@ class WebService:
             try:
                 with open(config_file) as stream:
                     # Reconfigure services such as database drivers
-                    self.ws_context.configure(yaml.load(stream))
+                    self.ws_context.configure(yaml.safe_load(stream))
                 self.config_error = None
                 _LOG.info(f'configuration file {config_file!r} successfully loaded')
             except (yaml.YAMLError, OSError) as e:

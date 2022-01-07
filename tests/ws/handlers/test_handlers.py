@@ -38,6 +38,7 @@ from ocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, \
 from ocdb.core.models.submission import Submission, TYPE_MEASUREMENT
 from ocdb.core.models.submission_file import SubmissionFile
 from ocdb.core.roles import Roles
+from ocdb.version import MIN_CLIENT_VERSION
 from ocdb.ws.app import new_application
 from ocdb.ws.controllers.datasets import add_dataset, get_dataset_qc_info
 from ocdb.ws.controllers.users import create_user
@@ -178,7 +179,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
         return self._app.ws_context
 
     def login_admin(self) -> Optional[str]:
-        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': "0.2.7"}
+        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': MIN_CLIENT_VERSION}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
         self.assertEqual(200, response.code)
@@ -190,7 +191,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
         self.assertEqual(200, response.code)
 
     def login_submit(self) -> Optional[str]:
-        credentials = {'username': "submit", 'password': "submit", 'client_version': "0.2.7"}
+        credentials = {'username': "submit", 'password': "submit", 'client_version': MIN_CLIENT_VERSION}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
@@ -242,6 +243,20 @@ class HandleSubmissionTest(WsTestCase):
 
             response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf),
                                   headers={"Cookie": cookie})
+            self.assertEqual(400, response.code)
+            self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+        finally:
+            self.logout_admin()
+
+    def test_post_invalid_path(self):
+        cookie = self.login_admin()
+        try:
+            mpf = MultiPartForm(boundary="HEFFALUMP")
+            mpf.add_field("path", "/home/helge/ohje")
+
+            response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf),
+                                  headers={"Cookie": cookie})
+
             self.assertEqual(400, response.code)
             self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
         finally:
@@ -1725,7 +1740,7 @@ class LoginUsersTest(WsTestCase):
 
         create_user(self.ctx, user)
 
-        credentials = {'username': "scott", 'password': "tiger", 'client_version': '0.2.7'}
+        credentials = {'username': "scott", 'password': "tiger", 'client_version': MIN_CLIENT_VERSION}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
@@ -1752,7 +1767,7 @@ class LoginUsersTest(WsTestCase):
 
         create_user(self.ctx, user)
 
-        credentials = {'username': "scott", 'password': "lion", 'client_version': '0.2.7'}
+        credentials = {'username': "scott", 'password': "lion", 'client_version': MIN_CLIENT_VERSION}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
@@ -1760,7 +1775,7 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual('Unknown username or password', response.reason)
 
     def test_login_unknown_user(self):
-        credentials = {'username': "malcolm", 'password': "rattenloch", 'client_version': '0.2.7'}
+        credentials = {'username': "malcolm", 'password': "rattenloch", 'client_version': MIN_CLIENT_VERSION}
 
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
@@ -1769,7 +1784,7 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual('Unknown username or password', response.reason)
 
     def test_login_admin(self):
-        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': '0.2.7'}
+        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': MIN_CLIENT_VERSION}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 

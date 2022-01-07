@@ -1015,7 +1015,6 @@ def _ensure_string_argument(arg_value, arg_name: str):
 
     return arg_value
 
-
 def _ensure_int_argument(arg_value, arg_name: str):
     if isinstance(arg_value, list):
         if len(arg_value) != 1:
