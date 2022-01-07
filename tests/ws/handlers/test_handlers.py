@@ -247,6 +247,20 @@ class HandleSubmissionTest(WsTestCase):
         finally:
             self.logout_admin()
 
+    def test_post_invalid_path(self):
+        cookie = self.login_admin()
+        try:
+            mpf = MultiPartForm(boundary="HEFFALUMP")
+            mpf.add_field("path", "/home/helge/ohje")
+
+            response = self.fetch(API_URL_PREFIX + "/store/upload/submission", method='POST', body=bytes(mpf),
+                                  headers={"Cookie": cookie})
+
+            self.assertEqual(400, response.code)
+            self.assertEqual("Invalid argument 'submissionid' in body: None", response.reason)
+        finally:
+            self.logout_admin()
+
     def test_post_submission_id_already_present(self):
         cookie = self.login_admin()
         try:

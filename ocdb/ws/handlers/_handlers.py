@@ -19,6 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import functools
+import re
 from time import strptime
 
 import tornado.escape
@@ -180,6 +181,7 @@ class HandleSubmission(WsRequestHandler):
 
         path = arguments.get("path")
         path = _ensure_string_argument(path, "path")
+        _ensure_valid_path(path)
 
         publication_date = arguments.get("publicationdate")
         publication_date = _ensure_string_argument(publication_date, "publicationdate")
@@ -1014,6 +1016,14 @@ def _ensure_string_argument(arg_value, arg_name: str):
         arg_value = arg_value.decode("utf-8")
 
     return arg_value
+
+
+def _ensure_valid_path(path: str) -> bool:
+    prog = re.compile(r'^[a-zA-Z0-9]/[a-zA-Z0-9]/[a-zA-Z0-9]$')
+    if prog.match(path):
+        return True
+    else:
+        raise WsBadRequestError("Please use characters, numbers and two slashes only.")
 
 
 def _ensure_int_argument(arg_value, arg_name: str):
