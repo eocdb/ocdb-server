@@ -193,6 +193,67 @@ class StoreTest(unittest.TestCase):
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
+    def test_submission_with_invalid_submission(self):
+        user_id = "77618"
+        try:
+            data_file_text = ("/begin_header\n"
+                              "/investigators=Marks and Spencer\n"
+                              "/affiliations=the Institute\n"
+                              "/received=20120330\n"
+                              "/delimiter = comma\n"
+                              "/north_latitude=42.598[DEG]\n"
+                              "/south_latitude=42.598[DEG]\n"
+                              "/east_longitude=-67.105[DEG]\n"
+                              "/west_longitude=-67.105[DEG][DEG]\n"
+                              "/start_date=20101117\n"
+                              "/end_date=20101117\n"
+                              "/start_time=20:14:00[GMT]\n"
+                              "/end_time=20:14:00[GMT]\n"
+                              "/fields = station, SN, lat, lon, year, month, day, hour, minute, pressure, wt, sal, CHL, Epar, oxygen\n"
+                              "/units = none, none, degrees, degrees, yyyy, mo, dd, hh, mn, dbar, degreesC, PSU, mg/m^3, uE/cm^2s, ml/L\n"
+                              "/end_header\n"
+                              "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
+            uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
+
+            with self.assertRaises(WsBadRequestError) as cm:
+                upload_submission_files(ctx=self.ctx,
+                                        path="test_files/exp/cruise",
+                                        submission_id="anid/../hh",
+                                        user_name=user_id,
+                                        dataset_files=[uploaded_file],
+                                        publication_date="2100-01-01",
+                                        allow_publication=False,
+                                        doc_files=[],
+                                        store_user_path='Tom_Helge')
+            self.assertEqual("HTTP 400: Please do not use dots and slashes in your submission id.", f"{cm.exception}")
+
+            with self.assertRaises(WsBadRequestError) as cm:
+                upload_submission_files(ctx=self.ctx,
+                                        path="test_files/exp/cruise",
+                                        submission_id="/anid/hh",
+                                        user_name=user_id,
+                                        dataset_files=[uploaded_file],
+                                        publication_date="2100-01-01",
+                                        allow_publication=False,
+                                        doc_files=[],
+                                        store_user_path='Tom_Helge')
+            self.assertEqual("HTTP 400: Please do not use dots and slashes in your submission id.", f"{cm.exception}")
+
+            with self.assertRaises(WsBadRequestError) as cm:
+                upload_submission_files(ctx=self.ctx,
+                                        path="test_files/exp/cruise",
+                                        submission_id="anid..hh",
+                                        user_name=user_id,
+                                        dataset_files=[uploaded_file],
+                                        publication_date="2100-01-01",
+                                        allow_publication=False,
+                                        doc_files=[],
+                                        store_user_path='Tom_Helge')
+            self.assertEqual("HTTP 400: Please do not use dots and slashes in your submission id.", f"{cm.exception}")
+
+        finally:
+            self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
+
     def test_upload_store_files_corrupt_file(self):
         user_id = "77618"
         try:
