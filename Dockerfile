@@ -2,10 +2,8 @@
 FROM continuumio/miniconda3:latest
 
 # Person responsible
-MAINTAINER helge.dzierzon@brockmann-consult.de
-
+LABEL maintainer=helge.dzierzon@brockmann-consult.de
 LABEL name=ocdb-server
-LABEL version=0.1.13
 LABEL conda_env=ocdb-server
 
 # Ensure usage of bash (simplifies source activate calls)
@@ -22,7 +20,6 @@ ADD environment.yml /tmp/environment.yml
 # Update conda and install dependecies specified in environment.yml
 RUN  conda update -n base conda; \
     conda env create -f=/tmp/environment.yml; \
-    echo "test"
 
 # Set work directory for eocdb installation
 RUN mkdir /ocdb-server ;

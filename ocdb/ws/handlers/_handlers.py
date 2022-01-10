@@ -883,7 +883,7 @@ class LoginUser(WsRequestHandler):
 
         if not client_allowed:
             self.set_header('Content-Type', 'application/json')
-            self.set_status(403)
+            self.set_status(409)
             return self.finish(tornado.escape.json_encode({'message': f'You are using a deprecated version of '
                                                                       f'the ocdb client. Please update to at least '
                                                                       f'version {MIN_CLIENT_VERSION}.'

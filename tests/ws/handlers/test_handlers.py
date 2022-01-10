@@ -178,8 +178,9 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
     def ctx(self):
         return self._app.ws_context
 
-    def login_admin(self) -> Optional[str]:
-        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': MIN_CLIENT_VERSION}
+    def login_admin(self, client_version=None) -> Optional[str]:
+        client_version = client_version or MIN_CLIENT_VERSION
+        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': client_version}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
         self.assertEqual(200, response.code)
@@ -189,6 +190,13 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
     def logout_admin(self):
         response = self.fetch(API_URL_PREFIX + "/users/logout", method='GET')
         self.assertEqual(200, response.code)
+
+    def login_admin_no_assert(self, client_version=None):
+        client_version = client_version or MIN_CLIENT_VERSION
+        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': client_version}
+        body = tornado.escape.json_encode(credentials)
+
+        return self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
 
     def login_submit(self) -> Optional[str]:
         credentials = {'username': "submit", 'password': "submit", 'client_version': MIN_CLIENT_VERSION}
@@ -1796,6 +1804,10 @@ class LoginUsersTest(WsTestCase):
         actual_response_data = tornado.escape.json_decode(response.body)
         actual_response_data['id'] = ''
         self.assertEqual(expected_response_data, actual_response_data)
+
+    def test_login_too_low_client_version(self):
+        res = self.login_admin_no_assert(client_version="0.1")
+        self.assertEqual(409, res.code)
 
     def test_change_passwd(self):
         cookie = self.login_admin()
