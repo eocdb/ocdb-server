@@ -1,3 +1,8 @@
+# Changes in Version 0.1.18
+
+- Tightened user permissions in the docker image. A container will now be run as user `ocdb` and teh configs file is
+  not writable for the ocdb user. 
+
 # Changes in Version 0.1.17
 
 - Changed static cookie secret in app.py to a random string [Issue 103](https://gitlab.eumetsat.int/OC/External/OC-DB/ocdb-webui/-/issues/103)

@@ -1,5 +1,5 @@
 store_path: ~/.ocdb/store
-
+# jj
 admin_user:
   name: chef
   id: eocdb_administrator

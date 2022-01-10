@@ -6,7 +6,7 @@ services:
     image: mongo:4.2.1
     restart: always
     ports:
-      - 27017:27017
+      - "27017:27017"
   ocdb-server:
     build: .
     image: ocdb-server:0.1.17

@@ -39,7 +39,6 @@ RUN source activate ocdb-server; \
     python setup.py develop
 
 # Set work directory for eocdb installation
-RUN mkdir /config && chmod +s /config
 RUN mkdir /ocdb-server && chown $OCDB_USERNAME:$OCDB_GROUP /ocdb-server;
 
 USER $OCDB_USERNAME
@@ -51,5 +50,4 @@ EXPOSE 4000
 
 # Start server
 
-ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["source activate ocdb-server && ocdb-server -a 0.0.0.0 -v -c /tmp/ocdb/ws/res/demo/config.yml" ]
+CMD ["bash", "-c", "source activate ocdb-server && ocdb-server -a 0.0.0.0 -v -c /tmp/ocdb/ws/res/demo/config.yml" ]
