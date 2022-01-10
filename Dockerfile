@@ -7,6 +7,9 @@ LABEL name=ocdb-server
 LABEL conda_env=ocdb-server
 
 ENV OCDB_USERNAME=ocdb
+ENV OCDB_GROUP=ocdb
+ENV OCDB_USER_ID=1002
+ENV OCDB_GROUP_ID=1002
 
 # Ensure usage of bash (simplifies source activate calls)
 SHELL ["/bin/bash", "-c"]
@@ -16,7 +19,8 @@ RUN apk upgrade
 
 USER root
 SHELL ["/bin/bash", "-c"]
-RUN adduser -u 1000 -G users --disabled-password -H -s /bin/bash ${OCDB_USERNAME}
+RUN addgroup -g $OCDB_GROUP_ID ocdb
+RUN adduser -u $OCDB_USER_ID -G $OCDB_GROUP --disabled-password -H -s /bin/bash ${OCDB_USERNAME}
 
 WORKDIR /tmp
 
@@ -35,7 +39,7 @@ RUN source activate ocdb-server; \
     python setup.py develop
 
 # Set work directory for eocdb installation
-RUN mkdir /ocdb-server && chown $OCDB_USERNAME:users /ocdb-server;
+RUN mkdir /ocdb-server && chown $OCDB_USERNAME:$OCDB_GROUP /ocdb-server;
 
 USER $OCDB_USERNAME
 WORKDIR /ocdb-server
