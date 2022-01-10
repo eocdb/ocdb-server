@@ -48,6 +48,7 @@ from ...ws.errors import WsBadRequestError
 
 
 def _ensure_valid_submission_id(path: str) -> bool:
+    # noinspection RegExpRedundantEscape
     prog = re.compile(r'^.*[\./]+.*$')
     if prog.match(path):
         raise WsBadRequestError("Please do not use dots and slashes in your submission id.")
@@ -60,8 +61,8 @@ def _ensure_valid_path(path: str) -> bool:
     if prog.match(path):
         return True
     else:
-        raise WsBadRequestError("Please use characters, numbers and underscores for the SUBMISSION_LABEL, "
-                                "EXPERIMENT, and CRUISE only.")
+        raise WsBadRequestError("Please provide the path as format: AFFILIATION (acronym)/EXPERIMENT/CRUISE and use "
+                                "characters, numbers and underscores only.")
 
 
 # noinspection PyUnusedLocal
