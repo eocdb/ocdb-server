@@ -1,8 +1,10 @@
-# Changes in Version 0.1.17 (in development)
+# Changes in Version 0.1.17
 
-- Changed static cookie secret in app.py to a random string [#103]
+- Changed static cookie secret in app.py to a random string [Issue 103](https://gitlab.eumetsat.int/OC/External/OC-DB/ocdb-webui/-/issues/103)
 - The ocdb server is now preventing a Path Traversal vulnerability on the Submission
-  File Upload & Download feature in multiple parameters  [#104]
+  File Upload & Download feature in multiple parameters [Issue 104](https://gitlab.eumetsat.int/OC/External/OC-DB/ocdb-webui/-/issues/104)
+- The docker image uses now an alpine base image. These base images tend to be smaller and have therefore less 
+  security issues
 
 # Changes in Version 0.1.16
 

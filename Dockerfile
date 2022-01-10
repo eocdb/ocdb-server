@@ -1,36 +1,45 @@
 # Image from https://hub.docker.com (syntax: repo/image:version)
-FROM continuumio/miniconda3:latest
+FROM continuumio/miniconda3:4.10.3-alpine
 
 # Person responsible
 LABEL maintainer=helge.dzierzon@brockmann-consult.de
 LABEL name=ocdb-server
 LABEL conda_env=ocdb-server
 
+ENV OCDB_USERNAME=ocdb
+
 # Ensure usage of bash (simplifies source activate calls)
 SHELL ["/bin/bash", "-c"]
 
 # Update system and install dependencies
-RUN apt-get -y update && apt-get -y upgrade && apt-get -y install sendmail
+RUN apk upgrade
 
+USER root
+SHELL ["/bin/bash", "-c"]
+RUN adduser -u 1000 -G users --disabled-password -H -s /bin/bash ${OCDB_USERNAME}
+
+WORKDIR /tmp
 
 # Setup conda environment
 # Copy yml config into image
-ADD environment.yml /tmp/environment.yml
+ADD environment.yml ./environment.yml
 
 # Update conda and install dependecies specified in environment.yml
-RUN  conda update -n base conda; \
-    conda env create -f=/tmp/environment.yml; \
-
-# Set work directory for eocdb installation
-RUN mkdir /ocdb-server ;
-WORKDIR /ocdb-server
+RUN conda env create
 
 # Copy local github repo into image (will be replaced by either git clone or as a conda dep)
-ADD . /ocdb-server
+ADD . ./
 
 # Setup eocdb-dev
 RUN source activate ocdb-server; \
     python setup.py develop
+
+# Set work directory for eocdb installation
+RUN mkdir /ocdb-server && chown $OCDB_USERNAME:users /ocdb-server;
+
+USER $OCDB_USERNAME
+WORKDIR /ocdb-server
+
 
 # Export web server port 4000
 EXPOSE 4000
@@ -38,4 +47,4 @@ EXPOSE 4000
 # Start server
 
 ENTRYPOINT ["/bin/bash", "-c"]
-CMD ["source activate ocdb-server && ocdb-server -a 0.0.0.0 -v -c ocdb/ws/res/demo/config.yml" ]
+CMD ["source activate ocdb-server && ocdb-server -a 0.0.0.0 -v -c /tmp/ocdb/ws/res/demo/config.yml" ]
