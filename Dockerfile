@@ -19,7 +19,7 @@ RUN apk upgrade
 
 USER root
 SHELL ["/bin/bash", "-c"]
-RUN addgroup -g $OCDB_GROUP_ID ocdb
+RUN addgroup -g $OCDB_GROUP_ID $OCDB_GROUP
 RUN adduser -u $OCDB_USER_ID -G $OCDB_GROUP --disabled-password -H -s /bin/bash ${OCDB_USERNAME}
 
 WORKDIR /tmp
@@ -49,5 +49,5 @@ WORKDIR /ocdb-server
 EXPOSE 4000
 
 # Start server
-
-CMD ["bash", "-c", "source activate ocdb-server && ocdb-server -a 0.0.0.0 -v -c /tmp/ocdb/ws/res/demo/config.yml" ]
+ENTRYPOINT ["/bin/bash", "-c"]
+CMD ["source activate ocdb-server && ocdb-server -a 0.0.0.0 -v -c /tmp/ocdb/ws/res/demo/config.yml" ]

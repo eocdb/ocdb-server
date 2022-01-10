@@ -9,7 +9,7 @@ services:
       - "27017:27017"
   ocdb-server:
     build: .
-    image: quay.io/bcdev/ocdb-server:0.1.18
+    image: quay.io/bcdev/eocdb-server:v0.1.18
     ports:
       - "4001:4000"
     command: >
