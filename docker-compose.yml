@@ -9,7 +9,7 @@ services:
       - "27017:27017"
   ocdb-server:
     build: .
-    image: ocdb-server:0.1.17
+    image: ocdb-server:0.1.18
     ports:
       - "4001:4000"
     command: >
