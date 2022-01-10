@@ -11,7 +11,7 @@ databases:
     type: ocdb.db.mongo_db_driver.MongoDbDriver
     primary: true
     parameters:
-        url: "mongodb://localhost:27017/ocdb"
+        url: "mongodb://ocdb-db:27017/ocdb"
 
 
 mode: dev

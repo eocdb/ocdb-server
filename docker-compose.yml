@@ -2,13 +2,21 @@ version: "3.0"
 
 
 services:
-  eocdb-server:
-    build: .
-    image: eocdb-server:0.1.0
+  ocdb-db:
+    image: mongo:4.2.1
+    restart: always
     ports:
-      - "4000:4000"
+      - 27017:27017
+  ocdb-server:
+    build: .
+    image: ocdb-server:0.1.17
+    ports:
+      - "4001:4000"
     command: >
-      "source activate eocdb-dev && eocdb-server -a 0.0.0.0 -v -c eocdb/ws/res/demo/config.yml"
+      "source activate ocdb-server && ocdb-server -a 0.0.0.0 -v -c /config/config.yml"
+    volumes:
+      - ./ocdb/ws/res/demo/config.yml:/config/config.yml
+      - ../ocdb-server-sbfiles:/data/store
     healthcheck:
       test: ["CMD", "curl", "localhost:4000/"]
       interval: 30s

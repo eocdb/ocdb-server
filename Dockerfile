@@ -39,6 +39,7 @@ RUN source activate ocdb-server; \
     python setup.py develop
 
 # Set work directory for eocdb installation
+RUN mkdir /config && chmod +s /config
 RUN mkdir /ocdb-server && chown $OCDB_USERNAME:$OCDB_GROUP /ocdb-server;
 
 USER $OCDB_USERNAME
