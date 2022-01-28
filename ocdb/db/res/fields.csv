@@ -88,7 +88,7 @@ Chl_c1;mg/m^3;HPLC Chlorophyll c1
 Chl_c1c2;mg/m^3;HPLC Chlorophyll c1 + c2 + Mg_DVP
 Chl_c2;mg/m^3;HPLC Chlorophyll c2
 Chl_c3;mg/m^3;HPLC Chlorophyll c3
-Chl_ex;mg/m^3;Chlorophyll a derived via experiment, or experimental methods. See specific documentation for more information.
+Chl_experiment;mg/m^3;Chlorophyll a derived via experiment, or experimental methods. See specific documentation for more information.
 Chl_stimf;mg/m^3  ;Chlorophyll a derived from a calibrated in situ fluorometer
 Chlide_a;mg/m^3;HPLC Chlorophyllide a
 Chlide_b;mg/m^3;HPLC Chlorophyllide b
@@ -181,6 +181,7 @@ Lu;uW/cm^2/nm/sr;Upwelling radiance
 LuGND;volts;Dark current values for Lu sensor
 Lut;mg/m^3;HPLC Lutein
 Lw;uW/cm^2/nm/sr;Water leaving radiance
+Lw_unc;uW/cm^2/nm/sr;Accumulated estimate of standard uncertainty associated with the derivation of water leaving radiance (Lw) via error propagation through the air-water interface.
 Lwn;uW/cm^2/nm/sr;Normalized water leaving radiance ( Lwn = Lw * F0 / Es )
 Lwnex;uW/cm^2/nm/sr;Exact normalized water leaving radiance ( e.g., Morel et al. 2002 )
 Lyco;mg/m^3;HPLC Lycopene
@@ -203,8 +204,8 @@ N2avg;s^-2;The mean squared buoyancy frequency (Brunt–Väisälä frequency) be
 nadir;degrees;Sensor nadir angle (the nadir is the downward facing viewing geometry, opposite the zenith)
 nanoeukaryote;(see Field Name Suffixes table);Phytoplankton taxonomic label for nanoeukaryote. Use in combination with the supported suffixes in the Field Name Suffixes Table.
 natf;nE/m^2/sr/s;natural fluorescence of chlorophyll a
-NCCb;mmol/m^2/hr;Net Benthic Community Calcification, expressed as the millimole production of CaCO3 per benthic area per hour
-NCPb;mmol/m^2/hr;Net Benthic Community Productivity, expressed as the millimole production of O2 per benthic area per hour
+NCCb;mmol/m^2/d;Net Benthic Community Calcification, expressed as the millimole production of CaCO3 per benthic area per hour
+NCPb;mmol/m^2/d;Net Benthic Community Productivity, expressed as the millimole production of O2 per benthic area per hour
 Neo;mg/m^3;HPLC Neoxanthin
 NH4;mmol/m^3;NH4
 NO2;mmol/m^3;Nitrite
@@ -218,7 +219,7 @@ oxygen_saturation;%;Percent oxygen saturation
 Oz;dobson;Column Ozone
 P-457;mg/m^3;HPLC P-457
 PAR;uE/cm^2/s;PAR measured at the sea surface
-PC;mg/m^3;Phycocyanin derived fluorometrically/spectrophotometrically
+PC;mmol/m^3;Phycocyanin derived fluorometrically/spectrophotometrically
 pCO2;uatm;Surface water partial pressure of carbon dioxide
 pDrift;mbar;Pressure in the drift tube of the PTR-TOF/MS.
 Perid;mg/m^3;HPLC Peridinin
