@@ -74,7 +74,11 @@ class MongoDbDriver(DbDriver):
         query_dict = self._query_converter.to_dict(query)
 
         # Line 330: self._collection = self._client.ocdb.sb_datasets
-        cursor = self._collection.find(query_dict, skip=start_index, limit=count)
+        if query.is_last_page:
+            cursor = self._collection.find(query_dict, limit=count).sort([("_id", pymongo.DESCENDING), ])
+        else:
+            cursor = self._collection.find(query_dict, limit=count)
+
         total_num_results = self._collection.count_documents(query_dict)
 
         if query.count == 0:
@@ -491,5 +495,8 @@ class MongoDbDriver(DbDriver):
 
             if query.user_id is not None:
                 query_dict.update({'user_id': query.user_id})
+
+            if query.last_id is not None:
+                query_dict.update({'_id': {'$gt': bson.ObjectId(f"{query.last_id}")}})
 
             return query_dict

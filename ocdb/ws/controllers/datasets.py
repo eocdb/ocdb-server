@@ -54,6 +54,8 @@ def find_datasets(ctx: WsContext,
                   geojson: bool = False,
                   offset: int = 1,
                   user_id: str = None,
+                  last_id: str = None,
+                  is_last_page: bool = False,
                   count: int = 1000) -> DatasetQueryResult:
     """Find datasets."""
     assert_one_of(shallow, ['no', 'yes', 'exclusively'], name='shallow')
@@ -82,6 +84,8 @@ def find_datasets(ctx: WsContext,
     query.offset = offset
     query.count = count
     query.user_id = user_id
+    query.last_id = last_id
+    query.is_last_page = is_last_page
 
     result = DatasetQueryResult({}, 0, [], query)
     for driver in ctx.db_drivers:

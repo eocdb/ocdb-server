@@ -46,6 +46,8 @@ class DatasetQuery(Model):
                  offset: int = 1,
                  user_id: str = None,
                  wlmode: str = None,
+                 last_id: str = None,
+                 is_last_page: bool = False,
                  count: int = 1000):
         self._expr = expr
         self._region = region
@@ -62,6 +64,8 @@ class DatasetQuery(Model):
         self._offset = offset
         self._count = count
         self._wlmode = wlmode
+        self._last_id = last_id
+        self._is_last_page = is_last_page
         self._user_id = user_id
 
     @property
@@ -191,3 +195,19 @@ class DatasetQuery(Model):
     @user_id.setter
     def user_id(self, value: Optional[int]):
         self._user_id = value
+
+    @property
+    def last_id(self) -> Optional[str]:
+        return self._last_id
+
+    @last_id.setter
+    def last_id(self, value: Optional[str]):
+        self._last_id = value
+
+    @property
+    def is_last_page(self) -> Optional[bool]:
+        return self._is_last_page
+
+    @is_last_page.setter
+    def is_last_page(self, value: Optional[bool]):
+        self._is_last_page = value

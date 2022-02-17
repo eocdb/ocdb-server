@@ -639,24 +639,27 @@ class Datasets(WsRequestHandler):
         geojson = self.query.get_param_bool('geojson', default=False)
         offset = self.query.get_param_int('offset', default=None)
         count = self.query.get_param_int('count', default=None)
+        last_id = self.query.get_param('last_id', default=None)
+        is_last_page = self.query.get_param_bool('is_last_page', default=False)
         user_id = self.query.get_param_int('user_id', default=None)
 
+        # Ensure that only admin and submit users can see all submission entries in the DB (PUBLISHED and PROCESSED)
+        # Submission users will only see their own submissions
         if self.has_admin_rights():
-            status = status
+            status = None
         elif self.has_submit_rights():
-            if status != 'PUBLISHED':
-                user = self.ws_context.get_user(self.get_current_user())
-                user_id = user.id
+            user = self.ws_context.get_user(self.get_current_user())
+            user_id = user.id
 
-            status = 'PUBLISHED'
+            status = None
         else:
             status = 'PUBLISHED'
 
         try:
             result = find_datasets(self.ws_context, expr=expr, region=region, time=tim, wdepth=wdepth, mtype=mtype,
                                    wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup, pname=pname,
-                                   submission_id=submission_id, status=status,
-                                   offset=offset, count=count, geojson=geojson, user_id=user_id)
+                                   submission_id=submission_id, status=status, is_last_page=is_last_page,
+                                   offset=offset, count=count, geojson=geojson, user_id=user_id, last_id=last_id)
         except Exception as e:
             self.set_status(status_code=403, reason=str(e))
             return
