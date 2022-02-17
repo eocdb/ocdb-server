@@ -45,6 +45,7 @@ class DatasetQuery(Model):
                  geojson: bool=False,
                  offset: int = 1,
                  user_id: str = None,
+                 wlmode: str = None,
                  count: int = 1000):
         self._expr = expr
         self._region = region
@@ -60,6 +61,7 @@ class DatasetQuery(Model):
         self._geojson = geojson
         self._offset = offset
         self._count = count
+        self._wlmode = wlmode
         self._user_id = user_id
 
     @property
@@ -101,6 +103,14 @@ class DatasetQuery(Model):
     @mtype.setter
     def mtype(self, value: Optional[str]):
         self._mtype = value
+
+    @property
+    def wlmode(self) -> Optional[str]:
+        return self._wlmode
+
+    @wlmode.setter
+    def wlmode(self, value: Optional[str]):
+        self._wlmode = value
 
     @property
     def shallow(self) -> Optional[str]:

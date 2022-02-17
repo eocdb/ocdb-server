@@ -631,7 +631,7 @@ class Datasets(WsRequestHandler):
         submission_id = self.query.get_param('submission_id', default=None)
         status = self.query.get_param('status', default=None)
         mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
-        wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)
+        wlmode = self.query.get_param('wlmode', default=None)
         shallow = self.query.get_param('shallow', default=SHALLOW_DEFAULT)
         pmode = self.query.get_param('pmode', default=PMODE_DEFAULT)
         pgroup = self.query.get_param_list('pgroup', default=None)

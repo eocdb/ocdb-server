@@ -126,9 +126,10 @@ class MongoDbDriver(DbDriver):
 
         return None
 
-    def get_submissions(self) -> List[DbSubmission]:
+    def get_submissions(self, page: int = None, page_size: int = None, last_fetch_id: str = None) -> List[DbSubmission]:
         submissions = []
         cursor = self._submit_collection.find()
+
         for subm_dict in cursor:
             del subm_dict["_id"]
             subm = DbSubmission.from_dict(subm_dict)
@@ -470,7 +471,11 @@ class MongoDbDriver(DbDriver):
                 query_dict.update({'groups': {'$in': query.pgroup}})
 
             if query.pname is not None:
+                query.pname = [pn.lower() for pn in query.pname]
                 query_dict.update({'attributes': {'$in': query.pname}})
+
+            if query.wdepth is not None:
+                query_dict.update({'water_depth': {'$gte': query.wdepth[0], '$lte': query.wdepth[1]}})
 
             if query.shallow is not None:
                 if query.shallow == 'no':
@@ -480,5 +485,11 @@ class MongoDbDriver(DbDriver):
 
             if query.mtype != 'all':
                 query_dict.update({'metadata.data_type': query.mtype})
+
+            if query.wlmode is not None:
+                query_dict.update({'wavelength_option': query.wlmode})
+
+            if query.user_id is not None:
+                query_dict.update({'user_id': query.user_id})
 
             return query_dict

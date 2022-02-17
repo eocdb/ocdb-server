@@ -20,7 +20,7 @@
 # SOFTWARE.
 
 from abc import abstractmethod, ABCMeta
-from typing import Optional, List
+from typing import Optional, List, Union
 
 from .errors import WsBadRequestError
 from ..core import UNDEFINED
@@ -117,7 +117,7 @@ class RequestParams(metaclass=ABCMeta):
     @classmethod
     def to_int_list(cls,
                     name: str,
-                    value: str,
+                    value: Union[str, List[str]],
                     minimum: int = None,
                     maximum: int = None) -> List[int]:
         """
@@ -132,7 +132,10 @@ class RequestParams(metaclass=ABCMeta):
         if value is None or value is UNDEFINED:
             raise cls._error_missing(name)
         try:
-            arr = list(map(int, value.split(',')))
+            if isinstance(value, list):
+                arr = list(map(int, value))
+            else:
+                arr = list(map(int, value.split(',')))
             cls._check_list_min_max(name, arr, maximum, minimum)
             return arr
         except ValueError as e:
@@ -141,7 +144,7 @@ class RequestParams(metaclass=ABCMeta):
     @classmethod
     def to_float_list(cls,
                       name: str,
-                      value: str,
+                      value: Union[str, List[str]],
                       minimum: float = None,
                       maximum: float = None) -> List[float]:
         """
@@ -156,7 +159,10 @@ class RequestParams(metaclass=ABCMeta):
         if value is None or value is UNDEFINED:
             raise cls._error_missing(name)
         try:
-            arr = list(map(float, value.split(',')))
+            if isinstance(value, list):
+                arr = list(map(float, value))
+            else:
+                arr = list(map(float, value.split(',')))
             cls._check_list_min_max(name, arr, maximum, minimum)
             return arr
         except ValueError as e:
@@ -259,7 +265,7 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         value = self.get_param(name, default=None)
-        if isinstance(value, str):
+        if isinstance(value, str) or isinstance(value, list):
             return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
         elif value is None or len(value) == 0:
             return default
@@ -280,8 +286,8 @@ class RequestParams(metaclass=ABCMeta):
         :return: float value
         :raise: WsBadRequestError
         """
-        value = self.get_param(name, default=None)
-        if isinstance(value, str):
+        value = self.get_params(name)
+        if isinstance(value, str) or isinstance(value, list):
             return self.to_float_list(name, value, minimum=minimum, maximum=maximum) if value else default
         elif value is None or len(value) == 0:
             return default
