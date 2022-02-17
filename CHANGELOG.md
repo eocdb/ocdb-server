@@ -1,3 +1,9 @@
+# Changes in Version 0.1.19 (in development)
+
+- The server can now correcltly handle query parameters that are lists if numbers (i.e. int and float)
+- The server can noa also handle query parameters `user_id` and `wlmode`
+- The query parameter `wdepth` is now handles correctly
+
 # Changes in Version 0.1.18
 
 - Tightened user permissions in the docker image. A container will now be run as user `ocdb` and teh configs file is
