@@ -157,6 +157,7 @@ def _submission_authorization_required(func):
 
 
 def _ensure_valid_submission_id(path: str) -> bool:
+    # noinspection RegExpRedundantEscape
     prog = re.compile(r'^.*[\./]+.*$')
     if prog.match(path):
         raise WsBadRequestError("Please do not use dots and slashes in your submission id.")
@@ -376,22 +377,39 @@ class UpdateSubmissionStatus(WsRequestHandler):
 
 
 # noinspection PyAbstractClass
-class GetSubmissionsForUser(WsRequestHandler):
+class GetSubmissions(WsRequestHandler):
     @_login_required
     # @_submission_authorization_required
-    def get(self, user_name: Optional[str] = None):
+    def get(self):
+        offset = self.query.get_param_int('offset', default=None)
+        count = self.query.get_param_int('count', default=None)
+        query_column = self.query.get_param('query-column', default=None)
+        query_value = self.query.get_param('query-value', default=None)
+        sort_column = self.query.get_param('sort-column', default=None)
+        sort_order = self.query.get_param('sort-order', default=None)
+        user_id = self.query.get_param('user-id', default=None)
 
         current_user_name = self.get_current_user()
-        current_user = self.ws_context.get_user(current_user_name)
+        tot_count = 0
 
-        if self.has_admin_rights():
-            if user_name:
-                user = self.ws_context.get_user(user_name)
-                result = get_submissions(ctx=self.ws_context, user=user)
-            else:
-                result = get_submissions(ctx=self.ws_context)
-        elif self.has_submit_rights():
-            result = get_submissions(ctx=self.ws_context, user=current_user)
+        if self.has_submit_rights():
+            result, tot_count = get_submissions(ctx=self.ws_context,
+                                                user_id=current_user_name,
+                                                offset=offset,
+                                                count=count,
+                                                query_column=query_column,
+                                                query_value=query_value,
+                                                sort_column=sort_column,
+                                                sort_order=sort_order)
+        elif self.has_admin_rights():
+            result, tot_count = get_submissions(ctx=self.ws_context,
+                                                user_id=user_id,
+                                                offset=offset,
+                                                count=count,
+                                                query_column=query_column,
+                                                query_value=query_value,
+                                                sort_column=sort_column,
+                                                sort_order=sort_order)
         else:
             result = []
 
@@ -404,7 +422,9 @@ class GetSubmissionsForUser(WsRequestHandler):
             result_list.append(sub_dict)
 
         self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result_list))
+        self.finish(tornado.escape.json_encode(
+            {'submissions': result_list, 'tot_count': tot_count}
+        ))
 
 
 # noinspection PyAbstractClass
@@ -530,6 +550,7 @@ class Handledecode(WsRequestHandler):
         print(self.request.headers.get('Authorization'))
         print('Hello')
 
+
 # noinspection PyAbstractClass
 class UpdateSubmissionFileStatus(WsRequestHandler):
     @_login_required
@@ -642,13 +663,12 @@ class Datasets(WsRequestHandler):
         user_id = self.query.get_param_int('user_id', default=None)
 
         if self.has_admin_rights():
-            status = status
+            status = None
         elif self.has_submit_rights():
-            if status != 'PUBLISHED':
-                user = self.ws_context.get_user(self.get_current_user())
-                user_id = user.id
+            user = self.ws_context.get_user(self.get_current_user())
+            user_id = user.id
 
-            status = 'PUBLISHED'
+            status = None
         else:
             status = 'PUBLISHED'
 

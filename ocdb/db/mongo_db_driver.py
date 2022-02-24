@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Any, Dict, Optional, List
+from typing import Any, Dict, Optional, List, Tuple
 
 import bson.objectid
 import numpy as np
@@ -26,6 +26,18 @@ LON_INDEX_NAME = "_longitudes_"
 ATTRIBUTES_INDEX_NAME = "_attributes_"
 TIMES_INDEX_NAME = "_times_"
 USER_ID_INDEX_NAME = "_userid_"
+
+
+def _collect_query(user_id: str = None, query_column: str = None,
+                   query_value: str = None):
+    query_dict = dict()
+    if user_id is not None:
+        query_dict['user_id'] = user_id
+
+    if query_value is not None and query_column is not None:
+        query_dict[query_column] = query_value
+
+    return query_dict
 
 
 class MongoDbDriver(DbDriver):
@@ -126,20 +138,34 @@ class MongoDbDriver(DbDriver):
 
         return None
 
-    def get_submissions(self, page: int = None, page_size: int = None, last_fetch_id: str = None) -> List[DbSubmission]:
+    def get_submissions(self, offset: int = None, count: int = None, user_id: str = None, query_column: str = None,
+                        query_value: str = None, sort_column: str = None, sort_order: str = None) -> \
+            Tuple[List[DbSubmission], int]:
         submissions = []
-        cursor = self._submit_collection.find()
+
+        query_dict = _collect_query(user_id=user_id, query_column=query_column, query_value=query_value)
+
+        tot_ct = self._submit_collection.find(query_dict).count()
+
+        if sort_column and sort_order:
+            order = -1 if sort_order == "desc" else 1
+            cursor = self._submit_collection.find(query_dict, skip=offset, limit=count).sort(sort_column, order)
+        else:
+            cursor = self._submit_collection.find(query_dict, skip=offset, limit=count)
 
         for subm_dict in cursor:
             del subm_dict["_id"]
             subm = DbSubmission.from_dict(subm_dict)
             submissions.append(subm)
 
-        return submissions
+        return submissions, tot_ct
 
-    def get_submissions_for_user(self, user_name: str) -> List[DbSubmission]:
+    def get_submissions_for_user(self, user_id: str, offset: int = None, count: int = None) -> List[DbSubmission]:
         submissions = []
-        cursor = self._submit_collection.find({"user_id": user_name})
+        if offset is not None and count is not None:
+            cursor = self._submit_collection.find({"user_id": user_id}, skip=offset, limit=count)
+        else:
+            cursor = self._submit_collection.find({"user_id": user_id})
 
         for subm_dict in cursor:
             del subm_dict["_id"]

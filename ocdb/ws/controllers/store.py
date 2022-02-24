@@ -27,14 +27,14 @@ import tempfile
 import time
 import zipfile
 import chardet
-from typing import Dict, List, Optional, Union
+from typing import Dict, List, Optional, Union, Tuple
 
 from ..context import WsContext, _LOG
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
     DATASET_VALIDATION_RESULT_STATUS_WARNING, QC_STATUS_SUBMITTED, QC_STATUS_VALIDATED, \
-    QC_STATUS_PUBLISHED, QC_STATUS_CANCELED, QC_STATUS_PROCESSED, User
+    QC_STATUS_PUBLISHED, QC_STATUS_CANCELED, QC_STATUS_PROCESSED
 from ...core.models.dataset_validation_result import DatasetValidationResult, DATASET_VALIDATION_RESULT_STATUS_ERROR
 from ...core.models.issue import Issue, ISSUE_TYPE_ERROR
 from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMENT
@@ -251,18 +251,27 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     return ctx.db_driver.update_submission(submission)
 
 
-def get_submissions(ctx: WsContext, user: Optional[User] = None) -> List[Submission]:
-    if user:
-        result = ctx.db_driver.get_submissions_for_user(user.name)
-    else:
-        result = ctx.db_driver.get_submissions()
+def get_submissions(ctx: WsContext, user_id: str = None, offset: int = None, count: int = None,
+                    query_column: str = None,
+                    query_value: str = None,
+                    sort_column: str = None,
+                    sort_order: str = None) \
+        -> Tuple[List[Submission], int]:
+
+    result, tot_count = ctx.db_driver.get_submissions(offset=offset,
+                                                      count=count,
+                                                      user_id=user_id,
+                                                      query_column=query_column,
+                                                      query_value=query_value,
+                                                      sort_column=sort_column,
+                                                      sort_order=sort_order)
 
     submissions = []
     for db_submission in result:
         submission = db_submission.to_submission()
         submissions.append(submission)
 
-    return submissions
+    return submissions, tot_count
 
 
 def get_submission(ctx: WsContext, submission_id: str) -> Optional[DbSubmission]:

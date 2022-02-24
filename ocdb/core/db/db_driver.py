@@ -46,11 +46,12 @@ class DbDriver(Service):
         """Get existing submission_file by file name."""
 
     @abstractmethod
-    def get_submissions(self) -> List[DbSubmission]:
+    def get_submissions(self, offset: int = None, count: int = None, user_id: str = None, query_column: str = None,
+                        query_value: str = None, sort_column: str = None, sort_order: str = None) -> List[DbSubmission]:
         """Get existing submissions for user."""
 
     @abstractmethod
-    def get_submissions_for_user(self, user_name: str) -> List[DbSubmission]:
+    def get_submissions_for_user(self, user_name: str, offset: int = None, count: int = None) -> List[DbSubmission]:
         """Get existing submissions for user."""
 
     @abstractmethod
