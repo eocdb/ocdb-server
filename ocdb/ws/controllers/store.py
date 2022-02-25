@@ -254,6 +254,7 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 def get_submissions(ctx: WsContext, user_id: str = None, offset: int = None, count: int = None,
                     query_column: str = None,
                     query_value: str = None,
+                    query_operator: str = None,
                     sort_column: str = None,
                     sort_order: str = None) \
         -> Tuple[List[Submission], int]:
@@ -263,6 +264,7 @@ def get_submissions(ctx: WsContext, user_id: str = None, offset: int = None, cou
                                                       user_id=user_id,
                                                       query_column=query_column,
                                                       query_value=query_value,
+                                                      query_operator=query_operator,
                                                       sort_column=sort_column,
                                                       sort_order=sort_order)
 

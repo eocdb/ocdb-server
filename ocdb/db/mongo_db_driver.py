@@ -1,3 +1,4 @@
+import re
 from datetime import datetime
 from typing import Any, Dict, Optional, List, Tuple
 
@@ -29,13 +30,29 @@ USER_ID_INDEX_NAME = "_userid_"
 
 
 def _collect_query(user_id: str = None, query_column: str = None,
-                   query_value: str = None):
+                   query_value: str = None, query_operator: str = None):
     query_dict = dict()
     if user_id is not None:
         query_dict['user_id'] = user_id
 
     if query_value is not None and query_column is not None:
-        query_dict[query_column] = query_value
+        if query_operator == 'contains':
+            regx = re.compile(rf"{query_value}", re.IGNORECASE)
+            query_dict[query_column] = regx
+        elif query_operator == 'startsWith':
+            regx = re.compile(rf"^{query_value}.*", re.IGNORECASE)
+            query_dict[query_column] = regx
+        elif query_operator == 'endsWith':
+            regx = re.compile(rf".*{query_value}$", re.IGNORECASE)
+            query_dict[query_column] = regx
+        elif query_operator == 'isEmpty':
+            query_dict[query_column] = {"$exists": False, "$eq": ""}
+        elif query_operator == 'isNotEmpty':
+            query_dict[query_column] = {"$exists": True, "$ne": ""}
+        elif query_operator == 'isAnyOf':
+            query_dict[query_column] = {"$in": query_value.split(',')}
+        else:
+            query_dict[query_column] = query_value
 
     return query_dict
 
@@ -139,19 +156,27 @@ class MongoDbDriver(DbDriver):
         return None
 
     def get_submissions(self, offset: int = None, count: int = None, user_id: str = None, query_column: str = None,
-                        query_value: str = None, sort_column: str = None, sort_order: str = None) -> \
+                        query_value: str = None, query_operator: str = None, sort_column: str = None,
+                        sort_order: str = None) -> \
             Tuple[List[DbSubmission], int]:
         submissions = []
 
-        query_dict = _collect_query(user_id=user_id, query_column=query_column, query_value=query_value)
+        query_dict = _collect_query(user_id=user_id, query_column=query_column, query_value=query_value,
+                                    query_operator=query_operator)
 
         tot_ct = self._submit_collection.find(query_dict).count()
 
         if sort_column and sort_order:
             order = -1 if sort_order == "desc" else 1
-            cursor = self._submit_collection.find(query_dict, skip=offset, limit=count).sort(sort_column, order)
+            if offset is not None and count is not None:
+                cursor = self._submit_collection.find(query_dict, skip=offset, limit=count).sort(sort_column, order)
+            else:
+                cursor = self._submit_collection.find(query_dict).sort(sort_column, order)
         else:
-            cursor = self._submit_collection.find(query_dict, skip=offset, limit=count)
+            if offset is not None and count is not None:
+                cursor = self._submit_collection.find(query_dict, skip=offset, limit=count)
+            else:
+                cursor = self._submit_collection.find(query_dict)
 
         for subm_dict in cursor:
             del subm_dict["_id"]

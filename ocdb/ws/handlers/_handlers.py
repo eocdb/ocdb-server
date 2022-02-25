@@ -385,6 +385,7 @@ class GetSubmissions(WsRequestHandler):
         count = self.query.get_param_int('count', default=None)
         query_column = self.query.get_param('query-column', default=None)
         query_value = self.query.get_param('query-value', default=None)
+        query_operator = self.query.get_param('query-operator', default=None)
         sort_column = self.query.get_param('sort-column', default=None)
         sort_order = self.query.get_param('sort-order', default=None)
         user_id = self.query.get_param('user-id', default=None)
@@ -399,6 +400,7 @@ class GetSubmissions(WsRequestHandler):
                                                 count=count,
                                                 query_column=query_column,
                                                 query_value=query_value,
+                                                query_operator=query_operator,
                                                 sort_column=sort_column,
                                                 sort_order=sort_order)
         elif self.has_admin_rights():
@@ -408,6 +410,7 @@ class GetSubmissions(WsRequestHandler):
                                                 count=count,
                                                 query_column=query_column,
                                                 query_value=query_value,
+                                                query_operator=query_operator,
                                                 sort_column=sort_column,
                                                 sort_order=sort_order)
         else:

@@ -47,7 +47,8 @@ class DbDriver(Service):
 
     @abstractmethod
     def get_submissions(self, offset: int = None, count: int = None, user_id: str = None, query_column: str = None,
-                        query_value: str = None, sort_column: str = None, sort_order: str = None) -> List[DbSubmission]:
+                        query_value: str = None, query_operator: str = None, sort_column: str = None,
+                        sort_order: str = None) -> List[DbSubmission]:
         """Get existing submissions for user."""
 
     @abstractmethod
