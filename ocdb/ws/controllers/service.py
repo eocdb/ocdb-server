@@ -32,4 +32,4 @@ from ..context import WsContext
 def get_service_info(ctx: WsContext) -> Dict:
     file = os.path.join(os.path.dirname(__file__), "..", "res", "openapi.yml")
     with open(file) as fp:
-        return yaml.load(fp)
+        return yaml.safe_load(fp)
