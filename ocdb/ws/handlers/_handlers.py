@@ -32,6 +32,7 @@ from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
 from ..webservice import WsRequestHandler
+from ...core import UNDEFINED
 from ...core.models.dataset_ids import DatasetIds
 from ...core.models.user import User
 from ...version import MIN_CLIENT_VERSION, MIN_WEBUI_VERSION
@@ -380,7 +381,7 @@ class UpdateSubmissionStatus(WsRequestHandler):
 class GetSubmissions(WsRequestHandler):
     @_login_required
     # @_submission_authorization_required
-    def get(self):
+    def get(self, user_name: str = None):
         offset = self.query.get_param_int('offset', default=None)
         count = self.query.get_param_int('count', default=None)
         query_column = self.query.get_param('query-column', default=None)
@@ -396,30 +397,23 @@ class GetSubmissions(WsRequestHandler):
         user_id = self.query.get_param('user-id', default=None)
 
         current_user_name = self.get_current_user()
-        tot_count = 0
 
         if self.has_submit_rights():
-            result, tot_count = get_submissions(ctx=self.ws_context,
-                                                user_id=current_user_name,
-                                                offset=offset,
-                                                count=count,
-                                                query_column=query_column,
-                                                query_value=query_value,
-                                                query_operator=query_operator,
-                                                sort_column=sort_column,
-                                                sort_order=sort_order)
+            user_id = current_user_name
         elif self.has_admin_rights():
-            result, tot_count = get_submissions(ctx=self.ws_context,
-                                                user_id=user_id,
-                                                offset=offset,
-                                                count=count,
-                                                query_column=query_column,
-                                                query_value=query_value,
-                                                query_operator=query_operator,
-                                                sort_column=sort_column,
-                                                sort_order=sort_order)
+            user_id = user_id
         else:
-            result = []
+            user_id = UNDEFINED
+
+        result, tot_count = get_submissions(ctx=self.ws_context,
+                                            user_id=user_id,
+                                            offset=offset,
+                                            count=count,
+                                            query_column=query_column,
+                                            query_value=query_value,
+                                            query_operator=query_operator,
+                                            sort_column=sort_column,
+                                            sort_order=sort_order)
 
         result_list = []
         for submission in result:

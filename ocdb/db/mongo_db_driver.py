@@ -10,7 +10,7 @@ from bson import errors
 
 from ocdb.core.db.db_links import DbLinks
 from ocdb.core.db.db_user import DbUser
-from ..core import QueryParser
+from ..core import QueryParser, UNDEFINED
 from ..core.db.db_driver import DbDriver
 from ..core.db.db_submission import DbSubmission
 from ..core.db.errors import OperationalError
@@ -173,7 +173,10 @@ class MongoDbDriver(DbDriver):
                         query_value: str = None, query_operator: str = None, sort_column: str = None,
                         sort_order: str = None) -> \
             Tuple[List[DbSubmission], int]:
-        submissions = []
+        submissions: List[DbSubmission] = list()
+
+        if user_id == UNDEFINED:
+            return submissions, 0
 
         query_dict = _collect_query(user_id=user_id, query_column=query_column, query_value=query_value,
                                     query_operator=query_operator)

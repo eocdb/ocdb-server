@@ -34,7 +34,7 @@ MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/store/upload/submission/validate'), ValidateSubmission),
     (url_pattern(API_URL_PREFIX + '/store/upload/submission/{submission_id}'), HandleSubmission),
     (url_pattern(API_URL_PREFIX + '/store/status/submission/{submission_id}'), UpdateSubmissionStatus),
-    (url_pattern(API_URL_PREFIX + '/store/upload/user'), GetSubmissions),
+    (url_pattern(API_URL_PREFIX + '/store/upload/user/{user_name}'), GetSubmissions),
     (url_pattern(API_URL_PREFIX + '/store/add/submissionfile/{submission_id}/{typ}'), HandleSubmissionFile),
     (url_pattern(API_URL_PREFIX + '/store/upload/submissionfile/{submission_id}/{index}'), HandleSubmissionFile),
     (url_pattern(API_URL_PREFIX + '/store/download/submissionfile/{submission_id}/{index}'),
