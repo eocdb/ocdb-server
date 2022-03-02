@@ -496,6 +496,11 @@ class MongoDbDriver(DbDriver):
         # noinspection PyMethodMayBeStatic
         def to_dict(self, query: DatasetQuery) -> dict:
             query_dict = {}
+
+            if query.user_id is not None:
+                query_dict.update({'user_id': query.user_id})
+                query.user_id = None
+
             if query.expr is not None:
                 query_generator = MongoQueryGenerator()
                 q = QueryParser.parse(query.expr)
@@ -553,8 +558,5 @@ class MongoDbDriver(DbDriver):
 
             if query.wlmode is not None:
                 query_dict.update({'wavelength_option': query.wlmode})
-
-            if query.user_id is not None:
-                query_dict.update({'user_id': query.user_id})
 
             return query_dict

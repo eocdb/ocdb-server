@@ -667,9 +667,6 @@ class Datasets(WsRequestHandler):
         if self.has_admin_rights():
             status = None
         elif self.has_submit_rights():
-            user = self.ws_context.get_user(self.get_current_user())
-            user_id = user.id
-
             status = None
         else:
             status = 'PUBLISHED'
