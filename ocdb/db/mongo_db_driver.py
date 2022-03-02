@@ -33,8 +33,6 @@ USER_ID_INDEX_NAME = "_userid_"
 def _collect_query(user_id: str = None, query_column: str = None,
                    query_value: str = None, query_operator: str = None):
     query_dict = dict()
-    if user_id is not None:
-        query_dict['user_id'] = user_id
 
     if query_value is not None and query_column is not None:
         if query_operator == 'contains':
@@ -64,9 +62,11 @@ def _collect_query(user_id: str = None, query_column: str = None,
             query_dict[query_column] = {"$lt": query_value}
         elif query_operator == 'onOrBefore':
             query_dict[query_column] = {"$lte": query_value}
-
         else:
             query_dict[query_column] = query_value
+
+    if user_id is not None:
+        query_dict['user-id'] = user_id
 
     return query_dict
 
