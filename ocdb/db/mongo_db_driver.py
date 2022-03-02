@@ -66,7 +66,7 @@ def _collect_query(user_id: str = None, query_column: str = None,
             query_dict[query_column] = query_value
 
     if user_id is not None:
-        query_dict['user-id'] = user_id
+        query_dict['user_id'] = user_id
 
     return query_dict
 
