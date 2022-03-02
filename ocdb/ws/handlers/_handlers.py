@@ -385,6 +385,11 @@ class GetSubmissions(WsRequestHandler):
         count = self.query.get_param_int('count', default=None)
         query_column = self.query.get_param('query-column', default=None)
         query_value = self.query.get_param('query-value', default=None)
+        if query_value:
+            if query_value in ['true', 'false', 'any']:
+                query_value = self.query.to_bool('query_value', query_value)
+            else:
+                query_value = self.query.to_date('query_value', query_value, raises=False)
         query_operator = self.query.get_param('query-operator', default=None)
         sort_column = self.query.get_param('sort-column', default=None)
         sort_order = self.query.get_param('sort-order', default=None)

@@ -20,6 +20,7 @@
 # SOFTWARE.
 
 from abc import abstractmethod, ABCMeta
+from datetime import datetime
 from typing import Optional, List, Union
 
 from .errors import WsBadRequestError
@@ -28,7 +29,7 @@ from ..core import UNDEFINED
 
 class RequestParams(metaclass=ABCMeta):
     @classmethod
-    def to_bool(cls, name: str, value: str) -> bool:
+    def to_bool(cls, name: str, value: str) -> Union[bool, None]:
         """
         Convert str value to int.
         :param name: Name of the value
@@ -44,9 +45,30 @@ class RequestParams(metaclass=ABCMeta):
                 return True
             if value == 'false':
                 return False
+            if value == 'any':
+                return None
             return bool(int(value))
         except ValueError as e:
             raise cls._error_wrong_type(name, "boolean") from e
+
+    @classmethod
+    def to_date(cls, name: str, value: str, raises: bool = True) -> Union[datetime, str]:
+        """
+        Convert str value to int.
+        :param name: Name of the value
+        :param value: The string value
+        :param raises: If true thei method will raise an error otherwise return the value unchanged
+        :return: The datetime value
+        :raise: WsBadRequestError
+        """
+        if value is None or value is UNDEFINED:
+            raise cls._error_missing(name)
+        try:
+            return datetime.strptime(value, '%Y-%m-%dT%H:%M')
+        except ValueError as e:
+            if not raises:
+                return value
+            raise cls._error_wrong_type(name, "datetime") from e
 
     @classmethod
     def to_int(cls,

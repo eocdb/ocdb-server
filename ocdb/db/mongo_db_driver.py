@@ -22,6 +22,7 @@ from ..core.models.submission_file import SubmissionFile
 from ..core.time_helper import TimeHelper
 from ..db.mongo_query_generator import MongoQueryGenerator
 
+
 LAT_INDEX_NAME = "_latitudes_"
 LON_INDEX_NAME = "_longitudes_"
 ATTRIBUTES_INDEX_NAME = "_attributes_"
@@ -51,6 +52,19 @@ def _collect_query(user_id: str = None, query_column: str = None,
             query_dict[query_column] = {"$exists": True, "$ne": ""}
         elif query_operator == 'isAnyOf':
             query_dict[query_column] = {"$in": query_value.split(',')}
+        elif query_operator == 'is':
+            query_dict[query_column] = query_value
+        elif query_operator == 'isNot':
+            query_dict[query_column] = {"$ne": query_value}
+        elif query_operator == 'after':
+            query_dict[query_column] = {"$gt": query_value}
+        elif query_operator == 'onOrAfter':
+            query_dict[query_column] = {"$gte": query_value}
+        elif query_operator == 'before':
+            query_dict[query_column] = {"$lt": query_value}
+        elif query_operator == 'onOrBefore':
+            query_dict[query_column] = {"$lte": query_value}
+
         else:
             query_dict[query_column] = query_value
 
