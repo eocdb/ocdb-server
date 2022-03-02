@@ -375,6 +375,7 @@ See also validation rule configuration section for further details.
     LuGND                               | volts                        |                   |          |       |                         |
     Lut                                 | mg/m^3,ug/l                  |                   |          |       |                         |
     Lw                                  | uW/cm^2/nm/sr,uWcm-2nm-1sr-1 |                   | -0.001   | 5.0   | field_out_of_bounds     |
+    Lw_unc                              | uW/cm^2/nm/sr,uWcm-2nm-1sr-1 |                   |          |       |                         |
     Lwn                                 | uW/cm^2/nm/sr,uWcm-2nm-1sr-1 |                   | -0.001   |       |                         |
     Lwnex                               | uW/cm^2/nm/sr,uWcm-2nm-1sr-1 |                   | -0.001   |       |                         |
     Lyco                                | mg/m^3,ug/l                  | positive          |          |       |                         |

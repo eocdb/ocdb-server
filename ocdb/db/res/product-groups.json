@@ -35,6 +35,7 @@
       "lt",
       "lu",
       "lw",
+      "lw_unc",
       "lwn",
       "lwnex",
       "r",
@@ -109,8 +110,7 @@
       "cdom",
       "dic",
       "doc",
-      "pco2",
-      "ta"
+      "pco2"
     ]
   },
   {
@@ -127,10 +127,10 @@
     "products": [
       "allo",
       "alpha*",
-      "beta-*",
-      "beta_alpha-car",
       "anth",
       "asta",
+      "beta-*",
+      "beta-epi-car",
       "cantha",
       "diadchr",
       "diadino",
@@ -199,6 +199,7 @@
     "name": "PC",
     "description": "Particulated carbon",
     "products": [
+      "pc",
       "pic",
       "poc"
     ]

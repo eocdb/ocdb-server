@@ -43,6 +43,33 @@ To run the server with the default config in a docker container using docker-com
     $ docker build -t eocdb-server:0.1.0 .
     $ docker run -d -p 4000:4000 eocdb-server:0.1.0
 
+
+## Changing validation_config.json
+
+Go to directory ```/home/ubuntu/ocdb-services/config/ocdb-server``` and edit 
+_validation_config.json_.
+
+If you can, validate your the json file or use a json editor. There are several around. On the command line you can validate your json using:
+
+```
+ python -m json.tool < validation_config.json
+ ```
+
+After that run:
+
+```
+cd /home/ubuntu/ocdb-services
+docker-compose kill
+docker-compose up -d   
+```
+
+## Changing product-groups.json
+
+Go to directory ```/home/ubuntu/ocdb-services/config/ocdb-server``` and edit 
+_product-groups.json_.
+
+Same procedure as for validation_config.json?
+
 ## Web Service API
 
 The web service API can be found [here](https://app.swaggerhub.com/apis-docs/forman/eocdb-server/0.1.0-dev.1).
