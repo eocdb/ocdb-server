@@ -41,6 +41,7 @@ class TestMongoQueryConverter(unittest.TestCase):
         self.assertEqual({'times': {'$gte': datetime.datetime(2016, 1, 1, 0, 0)}}, mongo_dict)
 
     def test_to_dict_both_None(self):
+        # noinspection PyTypeChecker
         query = DatasetQuery(time=[None, None])
         try:
             self.converter.to_dict(query)
