@@ -61,16 +61,16 @@ class TestMongoQueryConverter(unittest.TestCase):
         self.assertEqual({'groups': {'$in': ['sal', 'Chl']}}, mongo_dict)
 
     def test_to_dict_one_pnamep(self):
-        query = DatasetQuery(pname=["Diato"])
+        query = DatasetQuery(pname=["diato"])
 
         mongo_dict = self.converter.to_dict(query)
-        self.assertEqual({'attributes': {'$in': ['Diato']}}, mongo_dict)
+        self.assertEqual({'attributes': {'$in': ['diato']}}, mongo_dict)
 
     def test_to_dict_two_pname(self):
-        query = DatasetQuery(pname=["Fuco", "Perid"])
+        query = DatasetQuery(pname=["fuco", "perid"])
 
         mongo_dict = self.converter.to_dict(query)
-        self.assertEqual({'attributes': {'$in': ['Fuco', 'Perid']}}, mongo_dict)
+        self.assertEqual({'attributes': {'$in': ['fuco', 'perid']}}, mongo_dict)
 
     def test_to_dict_shallow_no(self):
         query = DatasetQuery(shallow='no')

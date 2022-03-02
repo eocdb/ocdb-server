@@ -181,7 +181,7 @@ class ValidatorTest(TestCase):
     def test_validate_dataset_float_and_string_error_empty_string(self):
         dataset = self._create_valid_dataset()
 
-        dataset.metadata["fields"] = "aph,associated_files,ap_unc"
+        dataset.metadata["fields"] = "ap,associated_files,ap_unc"
         dataset.metadata["units"] = "1/m,none,1/m"
         dataset.records = [[5.0, "willi", 7.2],
                            [6.1, "", 8.3],

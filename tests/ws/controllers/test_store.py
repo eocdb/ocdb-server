@@ -21,6 +21,7 @@
 import unittest
 
 from ocdb.core.db.db_user import DbUser
+from ocdb.core.models import User
 from ocdb.ws.controllers.store import *
 from ocdb.ws.controllers.store import _get_summary_validation_status
 from ocdb.ws.controllers.users import create_user
@@ -376,9 +377,10 @@ class StoreTest(unittest.TestCase):
 
             # user_name None and user admin
             user.roles = ['admin']
-            result = get_submissions(ctx=self.ctx, user=user)
+            result, tot_num = get_submissions(ctx=self.ctx, user_id=user.name)
             self.assertIsNotNone(result)
             self.assertEqual(1, len(result))
+            self.assertEqual(1, tot_num)
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
@@ -420,9 +422,10 @@ class StoreTest(unittest.TestCase):
             self.assertEqual([], result["DEL1012_Station_097_CTD_Data.txt"].issues)
             self.assertEqual("OK", result["DEL1012_Station_097_CTD_Data.txt"].status)
 
-            result = get_submissions(ctx=self.ctx, user=user)
+            result, tot_num = get_submissions(ctx=self.ctx, user_id=user.name)
             self.assertIsNotNone(result)
             self.assertEqual(1, len(result))
+            self.assertEqual(1, tot_num)
             self.assertEqual("an_id", result[0].submission_id)
 
             file_refs = result[0].file_refs

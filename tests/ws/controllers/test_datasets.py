@@ -71,7 +71,7 @@ class DatasetsTest(unittest.TestCase):
         time = None
         wdepth = None
         mtype = None
-        wlmode = 'all'
+        wlmode = None
         shallow = 'no'
         pmode = 'contains'
         pgroup = None
@@ -115,7 +115,7 @@ class DatasetsTest(unittest.TestCase):
         time = None
         wdepth = None
         mtype = None
-        wlmode = 'all'
+        wlmode = None
         shallow = 'no'
         pmode = 'contains'
         pgroup = ['sal']
@@ -159,7 +159,7 @@ class DatasetsTest(unittest.TestCase):
         time = None
         wdepth = None
         mtype = None
-        wlmode = 'all'
+        wlmode = None
         shallow = 'no'
         pmode = 'contains'
         pgroup = None
@@ -206,7 +206,7 @@ class DatasetsTest(unittest.TestCase):
         time = None
         wdepth = None
         mtype = None
-        wlmode = 'all'
+        wlmode = None
         shallow = 'no'
         pmode = 'contains'
         pgroup = None

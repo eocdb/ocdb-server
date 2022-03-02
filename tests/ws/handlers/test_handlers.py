@@ -223,7 +223,7 @@ class ServiceInfoTest(WsTestCase):
         self.assertIn("info", result)
         self.assertIsInstance(result["info"], dict)
         self.assertEqual("ocdb-server", result["info"].get("title"))
-        self.assertEqual("0.1.14", result["info"].get("version"))
+        self.assertEqual("0.1.19", result["info"].get("version"))
         self.assertIsNotNone(result["info"].get("description"))
         self.assertEqual("RESTful API for the EUMETSAT Ocean C",
                          result["info"].get("description")[0:36])
@@ -1063,8 +1063,13 @@ class UpdateSubmissionFileStatusTest(WsTestCase):
 
 
 class GetSubmissionsForUserTest(WsTestCase):
-    def test_get_not_logged_in(self):
+    def test_get_not_logged_in1(self):
         response = self.fetch(API_URL_PREFIX + f"/store/upload/user", method='GET')
+
+        self.assertEqual(404, response.code)
+
+    def test_get_not_logged_in2(self):
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/helge", method='GET')
 
         self.assertEqual(403, response.code)
         self.assertEqual('Please login.', response.reason)
@@ -1072,7 +1077,7 @@ class GetSubmissionsForUserTest(WsTestCase):
     def test_get_as_admin(self):
         cookie = self.login_admin()
 
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/user", method='GET', headers={"Cookie": cookie})
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/helge", method='GET', headers={"Cookie": cookie})
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(200, response.code)
         self.assertEqual(2, len(actual_response_data))
@@ -1081,10 +1086,10 @@ class GetSubmissionsForUserTest(WsTestCase):
     def test_get_as_submit(self):
         cookie = self.login_submit()
 
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/user", method='GET', headers={"Cookie": cookie})
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/tom", method='GET', headers={"Cookie": cookie})
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(200, response.code)
-        self.assertEqual(1, len(actual_response_data))
+        self.assertEqual(2, len(actual_response_data))
         self.logout_submit()
 
 
@@ -1316,10 +1321,10 @@ class DatasetsTest(WsTestCase):
         region = None
         time = None
         wdepth = None
-        mtype = "all"
-        wlmode = "all"
-        shallow = "no"
-        pmode = 'contains'
+        mtype = None
+        wlmode = None
+        shallow = None
+        pmode = None
         pgroup = None
         pname = None
         offset = None
@@ -1349,7 +1354,7 @@ class DatasetsTest(WsTestCase):
         dataset.groups = ['b_part']
         add_dataset(self.ctx, dataset)
 
-        query = 'mtype=all&wlmode=all&shallow=no&pmode=contains&pgroup=chl_a&pgroup=a_pig'
+        query = 'pgroup=chl_a&pgroup=a_pig'
 
         response = self.fetch(API_URL_PREFIX + f"/datasets?{query}", method='GET')
         self.assertEqual(200, response.code)
@@ -1371,7 +1376,7 @@ class DatasetsTest(WsTestCase):
         dataset.attributes = ['BACTABB']
         add_dataset(self.ctx, dataset)
 
-        query = 'mtype=all&wlmode=all&shallow=no&pmode=contains&pname=BACTABB&pname=bottle'
+        query = 'pname=BACTABB&pname=bottle'
 
         response = self.fetch(API_URL_PREFIX + f"/datasets?{query}", method='GET')
         self.assertEqual(200, response.code)
