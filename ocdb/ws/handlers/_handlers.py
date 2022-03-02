@@ -32,7 +32,6 @@ from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
 from ..webservice import WsRequestHandler
-from ...core import UNDEFINED
 from ...core.models.dataset_ids import DatasetIds
 from ...core.models.user import User
 from ...version import MIN_CLIENT_VERSION, MIN_WEBUI_VERSION
@@ -394,16 +393,17 @@ class GetSubmissions(WsRequestHandler):
         query_operator = self.query.get_param('query-operator', default=None)
         sort_column = self.query.get_param('sort-column', default=None)
         sort_order = self.query.get_param('sort-order', default=None)
-        user_id = self.query.get_param('user-id', default=None)
 
         current_user_name = self.get_current_user()
+        if current_user_name != user_name:
+            raise WsUnauthorizedError('User not allowed.')
 
         if self.has_submit_rights():
             user_id = current_user_name
         elif self.has_admin_rights():
-            user_id = user_id
+            user_id = None
         else:
-            user_id = UNDEFINED
+            raise WsUnauthorizedError('You are not allowed querying submissions.')
 
         result, tot_count = get_submissions(ctx=self.ws_context,
                                             user_id=user_id,
