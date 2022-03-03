@@ -253,7 +253,7 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
 
 def get_submissions(ctx: WsContext, user_id: str = None, offset: int = None, count: int = None,
                     query_column: str = None,
-                    query_value: str = None,
+                    query_value: Union[str, datetime.datetime, bool] = None,
                     query_operator: str = None,
                     sort_column: str = None,
                     sort_order: str = None) \

@@ -45,8 +45,6 @@ class RequestParams(metaclass=ABCMeta):
                 return True
             if value == 'false':
                 return False
-            if value == 'any':
-                return None
             return bool(int(value))
         except ValueError as e:
             raise cls._error_wrong_type(name, "boolean") from e

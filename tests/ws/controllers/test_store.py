@@ -343,6 +343,91 @@ class StoreTest(unittest.TestCase):
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
+    def _make_submission(self):
+        user = User(name='scott1', password='abc', first_name='Scott', last_name='Tiger',
+                    phone='', email='', roles=[])
+
+        create_user(ctx=self.ctx, user=user)
+
+        data_file_text = ("/begin_header\n"
+                          "/received=20120330\n"
+                          "/delimiter = comma\n"
+                          "/north_latitude=42.598[DEG]\n"
+                          "/east_longitude=-67.105[DEG]\n"
+                          "/start_date=20101117\n"
+                          "/end_date=20101117\n"
+                          "/start_time=20:14:00[GMT]\n"
+                          "/end_time=20:14:00[GMT]\n"
+                          "/fields = station, SN, lat, lon, year, month, day, hour, minute, pressure, wt, sal, CHL, Epar, oxygen\n"
+                          "/units = none, none, degrees, degrees, yyyy, mo, dd, hh, mn, dbar, degreesC, PSU, mg/m^3, uE/cm^2s, ml/L\n"
+                          "/end_header\n"
+                          "97,420,42.598,-67.105,2010,11,17,20,14,3,11.10,33.030,2.47,188,6.1\n")
+        uploaded_file = UploadedFile("DEL1012_Station_097_CTD_Data.txt", "text", data_file_text.encode("utf-8"))
+
+        upload_submission_files(ctx=self.ctx,
+                                path="test_files/cruise/experiment",
+                                submission_id="an_id",
+                                user_name=user.name,
+                                dataset_files=[uploaded_file],
+                                publication_date="2100-01-01",
+                                allow_publication=False,
+                                doc_files=[],
+                                store_user_path='Tom_Helge')
+
+        return user
+
+    def test_get_submission_using_query(self):
+        user = self._make_submission()
+        user.roles = ['admin']
+
+        result, tot_num = get_submissions(ctx=self.ctx,
+                                          user_id=None,
+                                          query_column='user_id',
+                                          query_value='scott1',
+                                          query_operator='equals')
+
+        self.assertEqual(1, tot_num)
+
+        result, tot_num = get_submissions(ctx=self.ctx,
+                                          user_id=None,
+                                          query_column='user_id',
+                                          query_value='scott',
+                                          query_operator='equals')
+
+        self.assertEqual(0, tot_num)
+
+        result, tot_num = get_submissions(ctx=self.ctx,
+                                          user_id=None,
+                                          query_column='submission_id',
+                                          query_value='an_id',
+                                          query_operator='equals')
+
+        self.assertEqual(1, tot_num)
+
+        result, tot_num = get_submissions(ctx=self.ctx,
+                                          user_id=None,
+                                          query_column='submission_id',
+                                          query_value='an_id2',
+                                          query_operator='equals')
+
+        self.assertEqual(0, tot_num)
+
+        result, tot_num = get_submissions(ctx=self.ctx,
+                                          user_id=None,
+                                          query_column='allow_publication',
+                                          query_value=False,
+                                          query_operator='is')
+
+        self.assertEqual(1, tot_num)
+
+        result, tot_num = get_submissions(ctx=self.ctx,
+                                          user_id=None,
+                                          query_column='allow_publication',
+                                          query_value=True,
+                                          query_operator='is')
+
+        self.assertEqual(0, tot_num)
+
     def test_get_submission(self):
         try:
             user = User(name='scott1', password='abc', first_name='Scott', last_name='Tiger',

@@ -1,6 +1,6 @@
 import re
 from datetime import datetime
-from typing import Any, Dict, Optional, List, Tuple
+from typing import Any, Dict, Optional, List, Tuple, Union
 
 import bson.objectid
 import numpy as np
@@ -31,8 +31,11 @@ USER_ID_INDEX_NAME = "_userid_"
 
 
 def _collect_query(user_id: str = None, query_column: str = None,
-                   query_value: str = None, query_operator: str = None):
+                   query_value: Union[str, datetime, bool] = None, query_operator: str = None):
     query_dict = dict()
+
+    if not query_value:
+        return query_dict
 
     if query_value is not None and query_column is not None:
         if query_operator == 'contains':
@@ -170,8 +173,8 @@ class MongoDbDriver(DbDriver):
         return None
 
     def get_submissions(self, offset: int = None, count: int = None, user_id: str = None, query_column: str = None,
-                        query_value: str = None, query_operator: str = None, sort_column: str = None,
-                        sort_order: str = None) -> \
+                        query_value: Union[str, datetime, bool] = None, query_operator: str = None,
+                        sort_column: str = None, sort_order: str = None) -> \
             Tuple[List[DbSubmission], int]:
         submissions: List[DbSubmission] = list()
 
