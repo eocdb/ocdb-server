@@ -21,7 +21,7 @@
 
 from abc import abstractmethod, ABCMeta
 from datetime import datetime
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Any
 
 from .errors import WsBadRequestError
 from ..core import UNDEFINED
@@ -50,7 +50,7 @@ class RequestParams(metaclass=ABCMeta):
             raise cls._error_wrong_type(name, "boolean") from e
 
     @classmethod
-    def to_date(cls, name: str, value: str, raises: bool = True) -> Union[datetime, str, None]:
+    def to_date(cls, name: str, value: str, raises: bool = True) -> Union[datetime, Any]:
         """
         Convert str value to int.
         :param name: Name of the value
