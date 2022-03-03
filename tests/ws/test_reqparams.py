@@ -1,4 +1,5 @@
 import unittest
+from datetime import datetime
 
 from ocdb.ws.errors import WsBadRequestError
 from ocdb.ws.reqparams import RequestParams
@@ -10,6 +11,7 @@ class RequestParamsTest(unittest.TestCase):
         self.assertEqual(['a'], RequestParams.to_list('x', 'a'))
         self.assertEqual(['a', 'b', 'c'], RequestParams.to_list('x', 'a,b,c'))
         with self.assertRaises(WsBadRequestError):
+            # noinspection PyTypeChecker
             RequestParams.to_list('x', None)
         with self.assertRaises(WsBadRequestError):
             RequestParams.to_list('x', '')
@@ -18,6 +20,7 @@ class RequestParamsTest(unittest.TestCase):
         self.assertEqual([21], RequestParams.to_int_list('x', '21'))
         self.assertEqual([21, 22, -25], RequestParams.to_int_list('x', '21,22,-25', minimum=-30, maximum=30))
         with self.assertRaises(WsBadRequestError):
+            # noinspection PyTypeChecker
             RequestParams.to_int_list('x', None)
         with self.assertRaises(WsBadRequestError):
             RequestParams.to_int_list('x', '')
@@ -68,6 +71,30 @@ class RequestParamsTest(unittest.TestCase):
             RequestParams.to_float('x', '12', minimum=20)
         with self.assertRaises(WsBadRequestError):
             RequestParams.to_float('x', '12', maximum=10)
+
+    def test_to_date(self):
+        res = RequestParams.to_date('test', '2022-02-01T10:00')
+        expected = datetime.strptime('2022-02-01T10:00', '%Y-%m-%dT%H:%M')
+        self.assertIsInstance(res, datetime)
+        self.assertEqual(expected, res)
+
+        res = RequestParams.to_date('test', 'test', raises=False)
+        self.assertIsInstance(res, str)
+        self.assertEqual('test', res)
+
+        res = RequestParams.to_date('test', None, raises=False)
+        self.assertIsInstance(res, type(None))
+        self.assertEqual(None, res)
+
+        with self.assertRaises(WsBadRequestError) as e:
+            RequestParams.to_date('test', 'test', raises=True)
+
+        self.assertEqual("HTTP 400: Value for parameter 'test' must be a datetime", str(e.exception))
+
+        with self.assertRaises(WsBadRequestError) as e:
+            RequestParams.to_date('test', None, raises=True)
+
+        self.assertEqual("HTTP 400: Missing value for parameter 'test'", str(e.exception))
 
     def test_to_float(self):
         self.assertEqual(-0.2, RequestParams.to_float('x', '-0.2', minimum=-1.0, maximum=1.0))

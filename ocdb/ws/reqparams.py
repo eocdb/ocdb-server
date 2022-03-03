@@ -29,7 +29,7 @@ from ..core import UNDEFINED
 
 class RequestParams(metaclass=ABCMeta):
     @classmethod
-    def to_bool(cls, name: str, value: str) -> Union[bool, None]:
+    def to_bool(cls, name: str, value: Optional[str]) -> bool:
         """
         Convert str value to int.
         :param name: Name of the value
@@ -50,7 +50,7 @@ class RequestParams(metaclass=ABCMeta):
             raise cls._error_wrong_type(name, "boolean") from e
 
     @classmethod
-    def to_date(cls, name: str, value: str, raises: bool = True) -> Union[datetime, Any]:
+    def to_date(cls, name: str, value: Any, raises: bool = True) -> Union[datetime, Any]:
         """
         Convert str value to int.
         :param name: Name of the value
@@ -73,7 +73,7 @@ class RequestParams(metaclass=ABCMeta):
     @classmethod
     def to_int(cls,
                name: str,
-               value: str,
+               value: Optional[str],
                minimum: int = None,
                maximum: int = None) -> int:
         """
@@ -97,7 +97,7 @@ class RequestParams(metaclass=ABCMeta):
     @classmethod
     def to_float(cls,
                  name: str,
-                 value: str,
+                 value: Optional[str],
                  minimum: float = None,
                  maximum: float = None) -> float:
         """
@@ -166,7 +166,7 @@ class RequestParams(metaclass=ABCMeta):
     @classmethod
     def to_float_list(cls,
                       name: str,
-                      value: Union[str, List[str]],
+                      value: Optional[Union[str, List[str]]],
                       minimum: float = None,
                       maximum: float = None) -> List[float]:
         """
