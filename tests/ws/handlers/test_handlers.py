@@ -1077,7 +1077,7 @@ class GetSubmissionsForUserTest(WsTestCase):
     def test_get_as_admin(self):
         cookie = self.login_admin()
 
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/helge", method='GET', headers={"Cookie": cookie})
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/chef", method='GET', headers={"Cookie": cookie})
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(200, response.code)
         self.assertEqual(2, len(actual_response_data))
@@ -1086,10 +1086,31 @@ class GetSubmissionsForUserTest(WsTestCase):
     def test_get_as_submit(self):
         cookie = self.login_submit()
 
-        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/tom", method='GET', headers={"Cookie": cookie})
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/submit", method='GET', headers={"Cookie": cookie})
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(200, response.code)
         self.assertEqual(2, len(actual_response_data))
+        self.logout_submit()
+
+    def test_get_query_user_as_submit(self):
+        cookie = self.login_submit()
+
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/submit?"
+                                               f"query-column=user_id&query-operator=equals&query-value=submit2",
+                              method='GET', headers={"Cookie": cookie})
+        actual_response_data = tornado.escape.json_decode(response.body)
+        self.assertEqual(200, response.code)
+        self.assertEqual(2, len(actual_response_data))
+        self.assertEqual('submit', actual_response_data['submissions'][0]['user_id'])
+        self.logout_submit()
+
+    def test_get_submit_attempt_query_other_user(self):
+        cookie = self.login_submit()
+
+        response = self.fetch(API_URL_PREFIX + f"/store/upload/user/submit2?"
+                                               f"query-column=user_id&query-operator=equals&query-value=submit2",
+                              method='GET', headers={"Cookie": cookie})
+        self.assertEqual(401, response.code)
         self.logout_submit()
 
 

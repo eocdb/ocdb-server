@@ -50,7 +50,7 @@ class RequestParams(metaclass=ABCMeta):
             raise cls._error_wrong_type(name, "boolean") from e
 
     @classmethod
-    def to_date(cls, name: str, value: str, raises: bool = True) -> Union[datetime, str]:
+    def to_date(cls, name: str, value: str, raises: bool = True) -> Union[datetime, str, None]:
         """
         Convert str value to int.
         :param name: Name of the value
@@ -60,6 +60,8 @@ class RequestParams(metaclass=ABCMeta):
         :raise: WsBadRequestError
         """
         if value is None or value is UNDEFINED:
+            if not raises:
+                return value
             raise cls._error_missing(name)
         try:
             return datetime.strptime(value, '%Y-%m-%dT%H:%M')
