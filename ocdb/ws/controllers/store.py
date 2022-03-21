@@ -22,7 +22,6 @@ import datetime
 import io
 import json
 import os
-import re
 import tempfile
 import time
 import zipfile
@@ -30,6 +29,7 @@ import chardet
 from typing import Dict, List, Optional, Union, Tuple
 
 from ..context import WsContext, _LOG
+from ..utils import ensure_valid_path, ensure_valid_submission_id
 from ...core.asserts import assert_not_none
 from ...core.db.db_submission import DbSubmission
 from ...core.models import DatasetRef, DatasetQueryResult, DatasetQuery, DATASET_VALIDATION_RESULT_STATUS_OK, \
@@ -45,24 +45,6 @@ from ...core.val import validator
 from ...db.static_data import get_product_groups, get_products
 from ...ws.controllers.datasets import find_datasets, get_dataset_by_id, delete_dataset
 from ...ws.errors import WsBadRequestError
-
-
-def _ensure_valid_submission_id(path: str) -> bool:
-    # noinspection RegExpRedundantEscape
-    prog = re.compile(r'^.*[\./]+.*$')
-    if prog.match(path):
-        raise WsBadRequestError("Please do not use dots and slashes in your submission id.")
-    else:
-        return True
-
-
-def _ensure_valid_path(path: str) -> bool:
-    prog = re.compile(r'^[a-zA-Z0-9_]*/[a-zA-Z0-9_]*/[a-zA-Z0-9_]*$')
-    if prog.match(path):
-        return True
-    else:
-        raise WsBadRequestError("Please provide the path as format: AFFILIATION (acronym)/EXPERIMENT/CRUISE and use "
-                                "characters, numbers and underscores only.")
 
 
 # noinspection PyUnusedLocal
@@ -87,12 +69,11 @@ def upload_submission_files(ctx: WsContext,
     assert_not_none(allow_publication)
     assert_not_none(dataset_files)
     assert_not_none(doc_files)
-    _ensure_valid_path(path)
+    ensure_valid_path(path)
+    ensure_valid_submission_id(submission_id)
 
     if submission_id == '':
         raise WsBadRequestError(f"Submission label is empty!")
-
-    _ensure_valid_submission_id(submission_id)
 
     result = ctx.db_driver.get_submission(submission_id)
     if result is not None:
@@ -229,6 +210,8 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     # new_stati = QC_TRANSITIONS[old_status]
     # if status not in new_stati:
     #    return False
+    ensure_valid_path(submission.path)
+    ensure_valid_submission_id(submission.submission_id)
 
     submission.publication_date = None
     submission.status = status
@@ -307,6 +290,9 @@ def update_submission_files(ctx: WsContext,
     assert_not_none(store_user_path)
     # assert_not_none(publication_date)
     assert_not_none(allow_publication)
+
+    ensure_valid_path(path)
+    ensure_valid_submission_id(submission_id)
 
     if new_submission_id == '':
         raise WsBadRequestError(f"Submission label is empty!")

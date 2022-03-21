@@ -31,6 +31,7 @@ from ..controllers.docfiles import *
 from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
+from ..utils import ensure_valid_submission_id, ensure_valid_path
 from ..webservice import WsRequestHandler
 from ...core.models.dataset_ids import DatasetIds
 from ...core.models.user import User
@@ -156,15 +157,6 @@ def _submission_authorization_required(func):
     return wrapper
 
 
-def _ensure_valid_submission_id(path: str) -> bool:
-    # noinspection RegExpRedundantEscape
-    prog = re.compile(r'^.*[\./]+.*$')
-    if prog.match(path):
-        raise WsBadRequestError("Please do not use dots and slashes in your submission id.")
-    else:
-        return True
-
-
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class HandleSubmission(WsRequestHandler):
 
@@ -184,12 +176,13 @@ class HandleSubmission(WsRequestHandler):
 
         submission_id = arguments.get("submissionid")
         submission_id = _ensure_string_argument(submission_id, "submissionid")
-        _ensure_valid_submission_id(submission_id)
+        ensure_valid_submission_id(submission_id)
 
         store_user_path = str(user_name) + "_" + submission_id
 
         path = arguments.get("path")
         path = _ensure_string_argument(path, "path")
+        ensure_valid_path(path)
 
         publication_date = arguments.get("publicationdate")
         publication_date = _ensure_string_argument(publication_date, "publicationdate")
@@ -281,11 +274,13 @@ class HandleSubmission(WsRequestHandler):
         body_dict = tornado.escape.json_decode(self.request.body)
         new_submission_id = body_dict["submissionid"]
         new_submission_id = _ensure_string_argument(new_submission_id, "submissionid")
+        ensure_valid_submission_id(new_submission_id)
 
         temp_area_path = str(user_id) + "_" + submission_id
 
         path = body_dict["path"]
         path = _ensure_string_argument(path, "path")
+        ensure_valid_path(path)
 
         publication_date = body_dict["publicationdate"]
         if publication_date is not None:
