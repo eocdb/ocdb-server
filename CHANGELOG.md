@@ -7,7 +7,7 @@
 
 # Changes in Version 0.1.18
 
-- Tightened user permissions in the docker image. A container will now be run as user `ocdb` and teh configs file is
+- Tightened user permissions in the docker image. A container will now be run as user `ocdb` and the configs file is
   not writable for the ocdb user. 
 
 # Changes in Version 0.1.17
