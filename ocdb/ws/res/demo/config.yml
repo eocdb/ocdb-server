@@ -1,11 +1,5 @@
 store_path: ~/.ocdb/store
 # jj
-admin_user:
-  name: chef
-  id: eocdb_administrator
-  password: eocdb_chef
-  roles: [admin, submit]
-
 databases:
   default:
     type: ocdb.db.mongo_db_driver.MongoDbDriver

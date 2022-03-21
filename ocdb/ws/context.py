@@ -134,17 +134,7 @@ class WsContext:
         self._db_drivers.dispose()
 
     def get_user(self, user_name: str, password: str = None) -> Optional[DbUser]:
-        user = self.db_driver.get_user(user_name=user_name, password=password)
-        if user is None:
-            user_dict = self.config["admin_user"]
-            user = DbUser.from_dict(user_dict)
-            if not user.name == user_name:
-                return None
-            if password is not None:
-                if not password == user.password:
-                    return None
-
-        return user
+        return self.db_driver.get_user(user_name=user_name, password=password)
 
     def _extract_path(self, property_name, default_path):
         path = self.config.get(property_name, default_path)
