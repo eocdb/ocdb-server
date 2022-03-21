@@ -105,6 +105,18 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
         )
         create_user(ctx=self.ctx, user=user)
 
+        user = DbUser(
+            id_='eocdb_chef_id',
+            name="chef",
+            password="eocdb_chef",
+            first_name='eocdb',
+            last_name="chef",
+            email="",
+            phone="",
+            roles=["submit", "admin"]
+        )
+        create_user(ctx=self.ctx, user=user)
+
         submission_id = "I_DO_EXIST"
         files = [SubmissionFile(submission_id=submission_id,
                                 index=0,
@@ -1817,20 +1829,6 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual(401, response.code)
         self.assertEqual('Unknown username or password', response.reason)
 
-    def test_login_admin(self):
-        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': MIN_CLIENT_VERSION}
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        expected_response_data = {'id': '', 'name': 'chef', 'roles': ['admin', 'submit']}
-
-        actual_response_data = tornado.escape.json_decode(response.body)
-        actual_response_data['id'] = ''
-        self.assertEqual(expected_response_data, actual_response_data)
-
     def test_login_too_low_client_version(self):
         res = self.login_admin_no_assert(client_version="0.1")
         self.assertEqual(409, res.code)
@@ -1934,9 +1932,9 @@ class GetUserByNameTest(WsTestCase):
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        expected_response_data = {'id': 'eocdb_administrator', 'name': 'chef', 'roles': ['admin', 'submit']}
         actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual(expected_response_data, actual_response_data)
+        self.assertEqual("chef", actual_response_data['name'])
+        self.assertEquals(['submit', 'admin'], actual_response_data['roles'])
 
     def test_get_not_logged_in(self):
         name = 'chef'
