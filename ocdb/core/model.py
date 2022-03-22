@@ -1,4 +1,5 @@
 import pprint
+from datetime import datetime
 from typing import Any, Dict, Type, TypeVar
 
 T = TypeVar('T')
@@ -60,6 +61,8 @@ class Model(object):
                 result[prop_name] = value.to_dict()
             elif isinstance(value, dict):
                 result[prop_name] = dict(map(self._to_dict_pair, value.items()))
+            elif isinstance(value, datetime):
+                result[prop_name] = str(value)
             else:
                 result[prop_name] = value
 
@@ -67,6 +70,9 @@ class Model(object):
 
     @classmethod
     def _to_dict(cls, x):
+        if isinstance(x, datetime):
+            return str(x)
+
         return x.to_dict() if hasattr(x, "to_dict") else x
 
     @classmethod

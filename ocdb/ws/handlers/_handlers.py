@@ -686,6 +686,8 @@ class Datasets(WsRequestHandler):
         start_time = self.query.get_param('start_time', default=None)
         end_time = self.query.get_param('end_time', default=None)
         if start_time is not None or end_time is not None:
+            start_time = self.query.to_date('start_time', start_time + "T00:00", raises=True)
+            end_time = self.query.to_date('start_time', end_time + "T23:59", raises=True)
             t = [start_time, end_time]
         else:
             t = None

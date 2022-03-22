@@ -9,7 +9,8 @@
 - Added option DOTALL to regex validating the submission path and submission ID fixing security issues. Without 
   DOTALL malicious code could be imputed after a new line to be executed on server side.
 - path and submission ID is now validated also in PUT operations. The path and submission ID could have been used 
-  to impute malicious code to be executed on server side. 
+  to impute malicious code to be executed on server side.
+- Ensured that time ranges are sent as dates to the mongodb when filtering.
 
 # Changes in Version 0.1.18
 
