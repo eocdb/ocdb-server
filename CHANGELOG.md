@@ -4,6 +4,12 @@
 - The server can now also handle query parameters `user_id` and `wlmode`
 - The query parameter `wdepth` is now handled correctly
 - Added submission query parameters allowing filtering and sorting submissions
+- Removed auto-loading of validation file. Does not work as the validation file is opened on validation in class Validation.
+- Ensured that the bbox is translated correctly to an array
+- Added option DOTALL to regex validating the submission path and submission ID fixing security issues. Without 
+  DOTALL malicious code could be imputed after a new line to be executed on server side.
+- path and submission ID is now validated also in PUT operations. The path and submission ID could have been used 
+  to impute malicious code to be executed on server side. 
 
 # Changes in Version 0.1.18
 
