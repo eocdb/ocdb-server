@@ -182,7 +182,11 @@ class RequestParams(metaclass=ABCMeta):
             raise cls._error_missing(name)
         try:
             if isinstance(value, list):
-                arr = list(map(float, value))
+                if isinstance(value[0], str):
+                    arr = value[0].split(',')
+                    arr = list(map(float, arr))
+                else:
+                    arr = list(map(float, value))
             else:
                 arr = list(map(float, value.split(',')))
             cls._check_list_min_max(name, arr, maximum, minimum)

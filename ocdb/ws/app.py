@@ -23,7 +23,6 @@
 import os
 import secrets
 
-from tornado import autoreload
 from tornado.web import Application, StaticFileHandler
 
 from .handlers import MAPPINGS
@@ -33,6 +32,4 @@ def new_application():
     mappings = [('/res/(.*)', StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), 'res')})] + MAPPINGS
     secret = secrets.token_urlsafe(512)
     application = Application(mappings, cookie_secret=secret)
-    autoreload.add_reload_hook('ocdb/core/res/validation_config.json')
-    autoreload.start()
     return application

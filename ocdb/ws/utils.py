@@ -13,7 +13,7 @@ def ensure_valid_submission_id(path: str) -> bool:
 
 
 def ensure_valid_path(path: str) -> bool:
-    prog = re.compile(r'^[a-zA-Z0-9_]*/[a-zA-Z0-9_]*/[a-zA-Z0-9_]*$', re.DOTALL)
+    prog = re.compile(r'^[a-zA-Z0-9_-]*/[a-zA-Z0-9_-]*/[a-zA-Z0-9_-]*$', re.DOTALL)
     if prog.match(path):
         return True
     else:
