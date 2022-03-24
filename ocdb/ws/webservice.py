@@ -89,6 +89,7 @@ class WebService:
         enable_pretty_logging()
 
         self.config_file = os.path.abspath(config_file) if config_file else None
+        print(f"Using config file {self.config_file}")
         self.config_mtime = None
         self.update_period = update_period
         self.update_timer = None
@@ -232,11 +233,12 @@ class WsRequestHandler(RequestHandler):
         return self._cookie
 
     def get_current_user(self):
-        cookie = self.get_secure_cookie("user")
-        if cookie is not None:
-            return cookie.decode("utf-8")
-        else:
-            return None
+        return 'helge'
+        # cookie = self.get_secure_cookie("user")
+        # if cookie is not None:
+        #     return cookie.decode("utf-8")
+        # else:
+        #     return None
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")

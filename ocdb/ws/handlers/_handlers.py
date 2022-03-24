@@ -243,7 +243,8 @@ class HandleSubmission(WsRequestHandler):
             return
 
         sub_dict = submission.to_dict()
-        sub_dict["date"] = sub_dict["date"].isoformat()
+        if isinstance(sub_dict["date"], datetime.datetime):
+            sub_dict["date"] = sub_dict["date"].isoformat()
         for f in sub_dict['files']:
             if 'creationdate' in f and isinstance(f['creationdate'], datetime.datetime):
                 f['creationdate'] = f['creationdate'].isoformat()
@@ -416,7 +417,9 @@ class GetSubmissions(WsRequestHandler):
         result_list = []
         for submission in result:
             sub_dict = submission.to_dict()
-            sub_dict["date"] = sub_dict["date"].isoformat()
+            if isinstance(sub_dict["date"], datetime.datetime):
+                sub_dict["date"] = sub_dict["date"].isoformat()
+
             if sub_dict["publication_date"]:
                 sub_dict["publication_date"] = sub_dict["publication_date"]
             result_list.append(sub_dict)
