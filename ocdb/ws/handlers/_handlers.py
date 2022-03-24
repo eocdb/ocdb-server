@@ -188,7 +188,6 @@ class HandleSubmission(WsRequestHandler):
         publication_date = _ensure_string_argument(publication_date, "publicationdate")
         if publication_date == "null" or publication_date == "None":
             publication_date = None
-        # publication_date = datetime.datetime.strptime(publication_date, '%Y-%m-%dT%H:%M:%S')
 
         allow_publication = arguments.get("allowpublication")
         allow_publication = _ensure_string_argument(allow_publication, 'allowpublication')

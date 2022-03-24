@@ -140,6 +140,7 @@ class MongoDbDriver(DbDriver):
             return DatasetQueryResult(locations, total_num_results, dataset_refs, query)
 
     def add_submission(self, submission: DbSubmission):
+        submission.created_date = datetime.now()
         sf_dict = submission.to_dict()
         result = self._submit_collection.insert_one(sf_dict)
         return str(result.inserted_id)
@@ -231,6 +232,7 @@ class MongoDbDriver(DbDriver):
         if obj_id is None:
             return False
 
+        submission.updated_date = datetime.now()
         submission_dict = submission.to_dict()
         if "id" in submission_dict:
             submission_dict["id"] = None

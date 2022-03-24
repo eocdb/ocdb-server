@@ -19,9 +19,21 @@ class DbSubmission(Submission):
                  files: List[SubmissionFile],
                  id_: str = None,
                  publication_date: Union[datetime, str] = None,
+                 created_date: Union[datetime, str] = None,
+                 updated_date: Union[datetime, str] = None,
                  allow_publication: bool = None):
-        super().__init__(submission_id, user_id, date, status, qc_status, publication_date,
-                         allow_publication, [])
+        super().__init__(
+            submission_id=submission_id,
+            user_id=user_id,
+            date=date,
+            status=status,
+            qc_status=qc_status,
+            publication_date=publication_date,
+            created_date=created_date,
+            updated_date=updated_date,
+            allow_publication=allow_publication,
+            file_refs=[]
+        )
 
         self._id = id_
         self._path = path
@@ -111,5 +123,7 @@ class DbSubmission(Submission):
                           status=self._status,
                           publication_date=self._publication_date,
                           allow_publication=self._allow_publication,
+                          created_date=self._created_date,
+                          updated_date=self._updated_date,
                           file_refs=file_refs)
         return subm

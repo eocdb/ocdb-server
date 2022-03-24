@@ -17,6 +17,8 @@ class Submission(Model):
                  status: str,
                  qc_status: str,
                  publication_date: Union[datetime, type(None)],
+                 created_date: Union[datetime, str],
+                 updated_date: Union[datetime, str],
                  allow_publication: bool,
                  file_refs: List[SubmissionFileRef]):
         self._submission_id = submission_id
@@ -27,6 +29,8 @@ class Submission(Model):
         self._qc_status = qc_status
         self._file_refs = file_refs
         self._allow_publication = allow_publication
+        self._created_date = created_date
+        self._updated_date = updated_date
 
     @property
     def submission_id(self):
@@ -75,6 +79,22 @@ class Submission(Model):
     @publication_date.setter
     def publication_date(self, value: datetime):
         self._publication_date = value
+
+    @property
+    def created_date(self) -> Optional[datetime]:
+        return self._created_date
+
+    @created_date.setter
+    def created_date(self, value: datetime):
+        self._created_date = value
+
+    @property
+    def updated_date(self) -> Optional[datetime]:
+        return self._updated_date
+
+    @updated_date.setter
+    def updated_date(self, value: datetime):
+        self._updated_date = value
 
     @property
     def qc_status(self):
