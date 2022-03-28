@@ -233,12 +233,11 @@ class WsRequestHandler(RequestHandler):
         return self._cookie
 
     def get_current_user(self):
-        return 'helge'
-        # cookie = self.get_secure_cookie("user")
-        # if cookie is not None:
-        #     return cookie.decode("utf-8")
-        # else:
-        #     return None
+        cookie = self.get_secure_cookie("user")
+        if cookie is not None:
+            return cookie.decode("utf-8")
+        else:
+            return None
 
     def set_default_headers(self):
         self.set_header("Access-Control-Allow-Origin", "*")
