@@ -101,7 +101,7 @@ class WebService:
         self.ws_context = WsContext(base_dir=os.path.dirname(self.config_file or os.path.abspath('')))
 
         application.ws_context = self.ws_context
-        application.time_of_last_activity = time.clock()
+        application.time_of_last_activity = time.process_time()
         self.application = application
 
         from tornado.httpserver import HTTPServer
@@ -253,7 +253,7 @@ class WsRequestHandler(RequestHandler):
         """
         Store time of last activity so we can measure time of inactivity and then optionally auto-exit.
         """
-        self.application.time_of_last_activity = time.clock()
+        self.application.time_of_last_activity = time.process_time()
 
     @classmethod
     def to_json(cls, obj) -> str:

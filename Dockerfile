@@ -29,7 +29,8 @@ WORKDIR /tmp
 ADD environment.yml ./environment.yml
 
 # Update conda and install dependecies specified in environment.yml
-RUN conda env create
+RUN conda install -c conda-forge mamba
+RUN mamba env create
 
 # Copy local github repo into image (will be replaced by either git clone or as a conda dep)
 ADD . ./
