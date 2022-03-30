@@ -275,11 +275,6 @@
       "type": "field_obsolete",
       "warning": "@obsolete_field"
     },
-	{
-      "name": "geoform_originljdyspo",
-      "type": "field_obsolete",
-      "warning": "@obsolete_field"
-    },
     {
       "name": "geoform",
       "type": "field_obsolete",
@@ -391,7 +386,32 @@
       "operation": "!=",
       "data_type": "string",
       "error": "@cruise_same_as_experiment"
-    }
+    },
+    {
+      "name": "calibration_date",
+      "type": "field_optional",
+      "warning": "@field_value_missing"
+    },
+	  {
+      "name": "instrument_manufacturer",
+      "type": "field_optional",
+      "warning": "@field_value_missing"
+    },
+	{
+      "name": "instrument_model",
+      "type": "field_optional",
+      "warning": "@field_value_missing"
+	},
+	{
+      "name": "wavelength_option",
+      "type": "field_optional",
+      "warning": "@field_value_missing"
+	},
+	{
+      "name": "processed",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+	}
   ],
   "record": [
     {
@@ -433,6 +453,30 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "abs_blank_ad",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs_blank_ag",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "abs_blank_ap",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "abs*",
       "unit": "m^2/mg",
       "lower_bound": 0,
@@ -458,30 +502,6 @@
     },
     {
       "name": "abs_ap",
-      "unit": "none",
-      "lower_bound": 0,
-      "data_type": "number",
-      "value_error": "@field_out_of_bounds",
-      "unit_error": "@field_has_wrong_unit"
-    },
-    {
-      "name": "abs_blank_ad",
-      "unit": "none",
-      "lower_bound": 0,
-      "data_type": "number",
-      "value_error": "@field_out_of_bounds",
-      "unit_error": "@field_has_wrong_unit"
-    },
-    {
-      "name": "abs_blank_ag",
-      "unit": "none",
-      "lower_bound": 0,
-      "data_type": "number",
-      "value_error": "@field_out_of_bounds",
-      "unit_error": "@field_has_wrong_unit"
-    },
-    {
-      "name": "abs_blank_ap",
       "unit": "none",
       "lower_bound": 0,
       "data_type": "number",
@@ -622,7 +642,7 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
-      "name": "aph_unc",
+      "name": "ap_unc",
       "unit": "1/m",
       "lower_bound": 0,
       "data_type": "number",
@@ -630,7 +650,15 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
-      "name": "ap_unc",
+      "name": "aph",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "aph_unc",
       "unit": "1/m",
       "lower_bound": 0,
       "data_type": "number",
@@ -644,12 +672,20 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
-      "name": "associated_file_types",
+      "name": "aph_unc",
+      "unit": "1/m",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "associated_files",
       "data_type": "string",
       "error": "@field_is_empty"
     },
     {
-      "name": "associated_files",
+      "name": "associated_file_types",
       "data_type": "string",
       "error": "@field_is_empty"
     },
