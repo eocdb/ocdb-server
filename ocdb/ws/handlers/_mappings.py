@@ -58,5 +58,4 @@ MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/links'), Links),
     (url_pattern(API_URL_PREFIX + '/matchupfiles'), HandleMatchupFiles),
     (url_pattern('/jwt/decode'), Handledecode)
-    #(r'/(.*)', web.StaticFileHandler, {"path": 'static/webui', 'default_filename': 'index.html'}),
 ]

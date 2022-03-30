@@ -14,13 +14,13 @@ class SubmissionFile(Model):
                  filetype: str,
                  status: str,
                  result: Optional[DatasetValidationResult],
-                 creationdate: Optional[date] = datetime.now()):
+                 created_date: Optional[date] = datetime.now()):
         self._index = index
         self._submission_id = submission_id
         self._filename = filename
         self._filetype = filetype
         self._status = status
-        self._creationdate = creationdate
+        self._created_date = created_date
         self._result = result
 
     @property
@@ -64,12 +64,12 @@ class SubmissionFile(Model):
         self._status = value
 
     @property
-    def creationdate(self):
-        return self._creationdate
+    def created_date(self):
+        return self._created_date
 
-    @creationdate.setter
-    def creationdate(self, value: str):
-        self._creationdate = value
+    @created_date.setter
+    def created_date(self, value: str):
+        self._created_date = value
 
     @property
     def result(self):
@@ -84,4 +84,5 @@ class SubmissionFile(Model):
                                  submission_id=self._submission_id,
                                  filename=self._filename,
                                  filetype=self._filetype,
+                                 created_date=self._created_date,
                                  status=self._status)

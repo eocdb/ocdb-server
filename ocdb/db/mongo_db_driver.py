@@ -182,7 +182,7 @@ class MongoDbDriver(DbDriver):
         query_dict = _collect_query(user_id=user_id, query_column=query_column, query_value=query_value,
                                     query_operator=query_operator)
 
-        tot_ct = self._submit_collection.find(query_dict).count()
+        tot_ct = len(list(self._submit_collection.find(query_dict)))
 
         if sort_column and sort_order:
             order = -1 if sort_order == "desc" else 1

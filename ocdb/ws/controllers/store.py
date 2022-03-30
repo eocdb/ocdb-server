@@ -325,6 +325,7 @@ def update_submission_files(ctx: WsContext,
     submission.store_sub_path = store_user_path
     submission.publication_date = publication_date
     submission.allow_publication = allow_publication
+    submission.updated_date = datetime.datetime.now()
 
     ctx.db_driver.delete_submission(submission_id)
     ctx.db_driver.add_submission(submission)
@@ -335,6 +336,7 @@ def update_submission_files(ctx: WsContext,
 def add_submission_file(ctx: WsContext, submission: DbSubmission, file: UploadedFile, typ: str) -> \
         Optional[DatasetValidationResult]:
     submission = get_submission(ctx, submission_id=submission.submission_id)
+    submission.updated_date = datetime.datetime.now()
 
     index = submission.next_index
 
@@ -406,6 +408,7 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
         return DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
                                        [Issue(ISSUE_TYPE_ERROR, "Database access error")])
 
+    submission.updated_date = datetime.datetime.now()
     return validation_result
 
 

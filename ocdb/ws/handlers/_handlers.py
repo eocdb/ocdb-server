@@ -287,9 +287,6 @@ class HandleSubmission(WsRequestHandler):
 
         allow_publication = body_dict["allowpublication"]
 
-        # if not allow_publication:
-        #    publication_date = None
-
         update_submission_files(ctx=self.ws_context,
                                 path=path,
                                 store_user_path=temp_area_path,
@@ -359,6 +356,7 @@ class UpdateSubmissionStatus(WsRequestHandler):
         except SbFormatError as e:
             self.set_status(403, reason="Error in data format. If status is VALIDATED please contact ops: " + str(e))
 
+        submission.updated_date = datetime.datetime.now()
         self.finish(tornado.escape.json_encode({'message': f'Status of {submission_id} set to {status}'}))
 
     @staticmethod
@@ -478,6 +476,7 @@ class HandleSubmissionFile(WsRequestHandler):
                             f"exists already in submission. Please use re-upload feature")
             return
 
+        submission.updated_date = datetime.datetime.now()
         self.set_status(200, reason="OK")
 
         self.set_header('Content-Type', 'application/json')
@@ -518,6 +517,7 @@ class HandleSubmissionFile(WsRequestHandler):
         if result is None:
             return
 
+        submission.updated_date = datetime.datetime.now()
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(result.to_dict()))
 
@@ -566,6 +566,7 @@ class UpdateSubmissionFileStatus(WsRequestHandler):
             return
 
         result = update_submission_file_status(ctx=self.ws_context, submission=submission, index=index, status=status)
+        submission.updated_date = datetime.datetime.now()
         if result:
             self.set_status(200, reason="OK")
         else:

@@ -11,7 +11,7 @@ class SubmissionFileTest(TestCase):
         dsvr = DatasetValidationResult(status="OK", issues=[])
         sf = SubmissionFile(index=11,
                             submission_id="yeswecan",
-                            creationdate=NOW,
+                            created_date=NOW,
                             filename="is_a_secret",
                             filetype="DOC",
                             status=QC_STATUS_SUBMITTED,
@@ -20,7 +20,7 @@ class SubmissionFileTest(TestCase):
         sf_dict = sf.to_dict()
         self.assertEqual({'filename': 'is_a_secret',
                           'filetype': 'DOC',
-                          'creationdate': NOW,
+                          'created_date': '2009-08-07 06:05:04',
                           'index': 11,
                           'result': {'issues': [], 'status': 'OK'},
                           'status': QC_STATUS_SUBMITTED,

@@ -11,12 +11,12 @@ class SubmissionFileRef(Model):
                  filename: str,
                  filetype: str,
                  status: str,
-                 creationdate: Optional[datetime] = None):
+                 created_date: Optional[datetime] = None):
         self._index = index
         self._submission_id = submission_id
         self._filename = filename
         self._filetype = filetype
-        self._creationdate = creationdate
+        self._created_date = created_date
         self._status = status
 
     @property
@@ -60,9 +60,9 @@ class SubmissionFileRef(Model):
         self._status = value
 
     @property
-    def creationdate(self):
-        return self._creationdate
+    def created_date(self):
+        return self._created_date
 
-    @creationdate.setter
-    def creationdate(self, value: str):
-        self._creationdate = value
+    @created_date.setter
+    def created_date(self, value: str):
+        self._created_date = value

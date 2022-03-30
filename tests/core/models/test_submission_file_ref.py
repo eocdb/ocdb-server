@@ -10,7 +10,7 @@ class SubmissionFileRefTest(TestCase):
     def test_to_dict(self):
         sfr = SubmissionFileRef(index=12,
                                 submission_id="suppe",
-                                creationdate=NOW,
+                                created_date=NOW,
                                 filename="Margarete",
                                 filetype="mixed",
                                 status=QC_STATUS_APPROVED)
@@ -18,7 +18,7 @@ class SubmissionFileRefTest(TestCase):
         self.assertEqual({'filename': 'Margarete',
                           'filetype': 'mixed',
                           'index': 12,
-                          'creationdate': NOW,
+                          'created_date': '2009-08-07 06:05:04',
                           'status': QC_STATUS_APPROVED,
                           'submission_id': 'suppe'}, sfr.to_dict())
 

@@ -19,7 +19,6 @@ class DbSubmission(Submission):
                  files: List[SubmissionFile],
                  id_: str = None,
                  publication_date: Union[datetime, str] = None,
-                 created_date: Union[datetime, str] = None,
                  updated_date: Union[datetime, str] = None,
                  allow_publication: bool = None):
         super().__init__(
@@ -29,7 +28,6 @@ class DbSubmission(Submission):
             status=status,
             qc_status=qc_status,
             publication_date=publication_date,
-            created_date=created_date,
             updated_date=updated_date,
             allow_publication=allow_publication,
             file_refs=[]
@@ -39,9 +37,6 @@ class DbSubmission(Submission):
         self._path = path
         self._store_sub_path = store_user_path
         self._files = files
-
-    #def __repr__(self):
-    #    return json.dumps(self.to_dict())
 
     @property
     def next_index(self):
@@ -86,7 +81,7 @@ class DbSubmission(Submission):
 
     @classmethod
     def from_dict(cls: Type[T], dictionary: Dict[str, Any]):
-        subm = super().from_dict(dictionary)
+        subm = Submission.from_dict(dictionary)
 
         subm_files_array = []
         files_array = dictionary["files"]
@@ -108,6 +103,7 @@ class DbSubmission(Submission):
                             store_user_path=dictionary['store_sub_path'],
                             publication_date=subm.publication_date,
                             allow_publication=subm.allow_publication,
+                            updated_date=subm.updated_date,
                             files=subm_files_array,
                             id_=id_)
 
@@ -123,7 +119,6 @@ class DbSubmission(Submission):
                           status=self._status,
                           publication_date=self._publication_date,
                           allow_publication=self._allow_publication,
-                          created_date=self._created_date,
                           updated_date=self._updated_date,
                           file_refs=file_refs)
         return subm
