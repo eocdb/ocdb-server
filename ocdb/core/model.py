@@ -61,8 +61,6 @@ class Model(object):
                 result[prop_name] = value.to_dict()
             elif isinstance(value, dict):
                 result[prop_name] = dict(map(self._to_dict_pair, value.items()))
-            elif isinstance(value, datetime):
-                result[prop_name] = str(value)
             else:
                 result[prop_name] = value
 

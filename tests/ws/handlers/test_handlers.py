@@ -544,7 +544,7 @@ class UpdateSubmissionStatusTest(WsTestCase):
                                       date=datetime.datetime.now(),
                                       status=QC_STATUS_VALIDATED,
                                       qc_status="OK",
-                                      path="temp",
+                                      path="tt/tt/temp",
                                       publication_date=datetime.datetime(2001, 2, 3, 4, 5, 6),
                                       allow_publication=False,
                                       files=[],
@@ -572,7 +572,7 @@ class UpdateSubmissionStatusTest(WsTestCase):
             self.assertEqual({
                 'file_refs': [],
                 'files': [],
-                'path': 'temp',
+                'path': 'tt/tt/temp',
                 'qc_status': 'OK',
 
                 'status': QC_STATUS_APPROVED,
