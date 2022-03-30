@@ -24,9 +24,9 @@ class Parser:
     def from_yaml(cls, file: Union[IOBase, str]) -> OpenAPI:
         if isinstance(file, str):
             with open(file) as fp:
-                yaml_dict = yaml.load(fp)
+                yaml_dict = yaml.safe_load(fp)
         else:
-            yaml_dict = yaml.load(file)
+            yaml_dict = yaml.safe_load(file)
         return cls.from_dict(yaml_dict)
 
     @classmethod

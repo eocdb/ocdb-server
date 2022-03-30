@@ -9,10 +9,10 @@ dependencies:
   #
   # production dependencies
   #
-  - numpy =1.14.3
-  - pymongo =3.7.1
-  - pyyaml =3.12
-  - tornado =5.0.2
+  - numpy
+  - pymongo
+  - pyyaml
+  - tornado
   - chardet
   - pip
   - pip:
@@ -20,10 +20,10 @@ dependencies:
     #
     # development dependencies
     #
-    - mongomock==3.12.0
+    - mongomock
   #
   # development dependencies
   #
-  - pytest =3.5.1
-  - pytest-cov =2.5.1
-  - flake8 =3.5.0
+  - pytest
+  - pytest-cov
+  - flake8
