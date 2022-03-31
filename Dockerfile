@@ -36,7 +36,7 @@ RUN mamba env create
 ADD . ./
 
 # Setup eocdb-dev
-RUN source activate ocdb-server; \
+RUN source /opt/conda/bin/activate ocdb-server; \
     python setup.py develop
 
 # Set work directory for eocdb installation
