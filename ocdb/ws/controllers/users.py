@@ -80,7 +80,7 @@ def get_user_by_name(ctx: WsContext,
         raise WsBadRequestError(f"Could not find user {user_name}")
 
     user_dict = user.to_dict()
-    if not retain_password:
+    if not retain_password and 'password' in user_dict:
         del user_dict['password']
     return user_dict
 

@@ -12,6 +12,7 @@
   to impute malicious code to be executed on server side.
 - Ensured that time ranges are sent as dates to the mongodb when filtering.
 - Ensured that to_dict in models can handle datetimes and arrays of datetimes.
+- Fixed error hen user details are updated using the ocdb command line client
 
 # Changes in Version 0.1.18
 
