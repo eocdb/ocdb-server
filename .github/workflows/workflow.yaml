@@ -19,7 +19,7 @@ jobs:
         with:
           mamba-version: "*"
           channels: conda-forge
-          activate-environment: xcube-hub
+          activate-environment: ocdb-server
           environment-file: environment.yml
       - name: setup xcube-hub
         shell: bash -l {0}
