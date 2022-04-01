@@ -1,4 +1,4 @@
-# Changes in Version 0.1.19 (in development)
+# Changes in Version 0.1.19
 
 - The server can now correctly handle query parameters that are lists if numbers (i.e. int and float)
 - The server can now also handle query parameters `user_id` and `wlmode`
