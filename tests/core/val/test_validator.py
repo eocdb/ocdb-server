@@ -293,7 +293,7 @@ class ValidatorTest(TestCase):
         self.assertIsNotNone(result)
         self.assertEqual("ERROR", result.status)
         self.assertEqual(1, len(result.issues))
-        self.assertEqual({'description': "Too few entries in dataframe line(s): 2",
+        self.assertEqual({'description': "Wrong number of entries in dataframe line(s): 2",
                           'type': 'ERROR'}, result.issues[0].to_dict())
 
     def test_validate_dataset_too_many_entries(self):
