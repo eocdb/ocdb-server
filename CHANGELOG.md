@@ -18,6 +18,8 @@
 
 # Changes in Version 0.1.18
 
+- This version has only been released as docker image which was an oversight as only the docker image bit not the 
+  actual software was changed. 
 - Tightened user permissions in the docker image. A container will now be run as user `ocdb` and the configs file is
   not writable for the ocdb user. 
 
