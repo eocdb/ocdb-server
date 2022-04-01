@@ -1,21 +1,20 @@
 # Changes in Version 0.1.19
 
-- The server can now correctly handle query parameters that are lists if numbers (i.e. int and float)
-- The server can now also handle query parameters `user_id` and `wlmode`
-- The query parameter `wdepth` is now handled correctly
-- Added submission query parameters allowing filtering and sorting submissions
+- The server can now correctly handle query parameters that are lists of numbers (i.e. int and float) (appeared during Issue #72 dependency updates)
+- The server can now also handle query parameters `user_id` and `wlmode` (appeared during Issue #72 dependency updates)
+- The query parameter `wdepth` is now handled correctly (appeared during Issue #72 dependency updates)
+- Added submission query parameters allowing filtering and sorting submissions (appeared during Issue #72 dependency updates)
 - Removed auto-loading of validation file. Does not work as the validation file is opened on validation in class Validation.
-- Ensured that the bbox is translated correctly to an array
-- Added option DOTALL to regex validating the submission path and submission ID fixing security issues. Without 
-  DOTALL malicious code could be imputed after a new line to be executed on server side.
-- path and submission ID is now validated also in PUT operations. The path and submission ID could have been used 
-  to impute malicious code to be executed on server side.
+- Ensured that the bbox is translated correctly to an array (appeared during Issue #72 dependency updates)
+- Added option DOTALL to regex validating the submission path and submission ID fixing security issues. Without
+  DOTALL malicious code could be imputed after a new line to be executed on server side. (Reported by EUMETSAT IT document CERT-1057.doc)
+- path and submission ID is now validated also in PUT operations. The path and submission ID could have been used
+  to impute malicious code to be executed on server side. (Reported by EUMETSAT IT document CERT-1057.doc)
 - Ensured that time ranges are sent as dates to the mongodb when filtering.
-- Ensured that to_dict in models can handle datetimes and arrays of datetimes.
-- Fixed error hen user details are updated using the ocdb command line client
+- Fixed error when user details are updated using the ocdb command line client. (#36)
 - The validation process is now reports an error if the numbers of entries in rows in a dataframe does not correspond
-  to the number of fields (closing #37 ocdb-client) 
-
+  to the number of fields (closing #37 ocdb-client)
+ 
 # Changes in Version 0.1.18
 
 - This version has only been released as docker image which was an oversight as only the docker image bit not the 
