@@ -101,12 +101,13 @@ class Validator(MessageLibrary):
                                 "Number of fields and units does not match. Skipping parsing of measurement records."))
             return 1
 
+        errors = 0
         missing_value = None
         if "missing" in dataset.metadata:
             missing_value = float(dataset.metadata["missing"])
 
         index = 0
-        errors = 0
+        errored_lines = list()
         for variable in var_names:
             if self._check_modifiers(variable):
                 continue
@@ -123,8 +124,16 @@ class Validator(MessageLibrary):
 
             rule = self._record_rules[variable]
             values = []
+            ct = 0
             for record in dataset.records:
-                values.append(record[index])
+                ct += 1
+                # Check whether the row has the correct number of entries
+                if len(var_names) != len(record):
+                    if str(ct) not in errored_lines:
+                        errored_lines.append(str(ct))
+                    errors += 1
+                else:
+                    values.append(record[index])
 
             record_issues = rule.eval(units[index], values, self, missing_value)
             if record_issues is not None:
@@ -134,6 +143,9 @@ class Validator(MessageLibrary):
                         errors += 1
 
             index += 1
+        if len(errored_lines) > 0:
+            issues.append(Issue(ISSUE_TYPE_ERROR,
+                                "Wrong number of entries in dataframe line(s): " + ','.join(errored_lines)))
 
         return errors
 

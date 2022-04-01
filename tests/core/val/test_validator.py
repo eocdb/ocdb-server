@@ -280,6 +280,38 @@ class ValidatorTest(TestCase):
         stripped = self._validator._strip_wavelength("bzgd669")
         self.assertEqual("bzgd", stripped)
 
+    def test_validate_dataset_too_few_entries(self):
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["fields"] = "abs_blank_ag,abs*,abs_ad"
+        dataset.metadata["units"] = "none,m^2/mg,none"
+        dataset.records = [[5.0, 6.1, 7.2],
+                           [6.1, 7.2],
+                           [6.2, 1.0, 8.4]]
+
+        result = self._validator.validate_dataset(dataset)
+        self.assertIsNotNone(result)
+        self.assertEqual("ERROR", result.status)
+        self.assertEqual(1, len(result.issues))
+        self.assertEqual({'description': "Too few entries in dataframe line(s): 2",
+                          'type': 'ERROR'}, result.issues[0].to_dict())
+
+    def test_validate_dataset_too_many_entries(self):
+        dataset = self._create_valid_dataset()
+
+        dataset.metadata["fields"] = "abs_blank_ag,abs*,abs_ad"
+        dataset.metadata["units"] = "none,m^2/mg,none"
+        dataset.records = [[5.0, 6.1, 7.2],
+                           [6.1, 7.2, 1.0, 2.0],
+                           [6.2, 1.0, 8.4, 3]]
+
+        result = self._validator.validate_dataset(dataset)
+        self.assertIsNotNone(result)
+        self.assertEqual("ERROR", result.status)
+        self.assertEqual(1, len(result.issues))
+        self.assertEqual({'description': "Wrong number of entries in dataframe line(s): 2,3",
+                          'type': 'ERROR'}, result.issues[0].to_dict())
+
     @staticmethod
     def _create_valid_dataset():
         return Dataset({"investigators": "Daniel_Duesentrieb",
@@ -304,9 +336,3 @@ class ValidatorTest(TestCase):
                         "end_time": "02:12:06[GMT]",
                         "start_date": "20110624",
                         "end_date": "20110726"}, [[5], [6]], path="archive/chl01.csv")
-
-    # def test_delete_me(self):
-    #     reader = SbFileReader()
-    #     data_record = reader.read("/usr/local/data/OC_DB/seabass_extract/USF/HU/DISCOVER_AQ/archive/chl/DISCOVER_AQ_2011_chl.txt")
-    #     result = self._validator.validate_dataset(data_record)
-    #     print(result)

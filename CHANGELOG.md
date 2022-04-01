@@ -13,6 +13,8 @@
 - Ensured that time ranges are sent as dates to the mongodb when filtering.
 - Ensured that to_dict in models can handle datetimes and arrays of datetimes.
 - Fixed error hen user details are updated using the ocdb command line client
+- The validation process is now reports an error if the numbers of entries in rows in a dataframe does not correspond
+  to the number of fields (closing #37 ocdb-client) 
 
 # Changes in Version 0.1.18
 

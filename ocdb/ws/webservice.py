@@ -28,7 +28,7 @@ import sys
 import time
 import traceback
 from datetime import datetime
-from typing import Optional
+from typing import Optional, List
 
 import tornado.options
 import yaml
@@ -353,7 +353,7 @@ class WsRequestQuery(RequestParams):
             return self.handler.get_query_argument(name)
         return self.handler.get_query_argument(name, default=default)
 
-    def get_params(self, name: str) -> Optional[str]:
+    def get_params(self, name: str) -> List[str]:
         """
         Get query argument array.
         :param name: Query argument name
