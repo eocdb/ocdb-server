@@ -1145,7 +1145,7 @@ class TestMongoDbDriver(unittest.TestCase):
 
         self._driver.add_user(user)
         user.last_name = 'Tiger'
-        result = self._driver.update_user(user)
+        result = self._driver.update_user({'name': 'Tiger'})
         self.assertIs(result, True)
 
     def test_get_user_not_exists(self):

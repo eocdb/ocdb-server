@@ -98,9 +98,7 @@ class UsersTest(unittest.TestCase):
 
         create_user(self.ctx, user)
 
-        user.first_name = 'Tom'
-
-        result = update_user(self.ctx, 'scott', data=user)
+        result = update_user(self.ctx, 'scott', data={'name': 'Tom'})
         self.assertIs(result, True)
 
     def test_delete_user(self):

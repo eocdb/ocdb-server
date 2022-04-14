@@ -251,9 +251,8 @@ class MongoDbDriver(DbDriver):
         result = self._user_collection.insert_one(user_dict)
         return str(result.inserted_id)
 
-    def update_user(self, user: DbUser):
-        user_dict = user.to_dict()
-        result = self._user_collection.replace_one({'name': user.name}, user_dict, upsert=True)
+    def update_user(self, user_dict: dict):
+        result = self._user_collection.update_one({'name': user_dict['name']}, {'$set': user_dict})
 
         if not result:
             return False

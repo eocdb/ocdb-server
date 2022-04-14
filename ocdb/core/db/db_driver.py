@@ -76,7 +76,7 @@ class DbDriver(Service):
         """Add new user"""
 
     @abstractmethod
-    def update_user(self, user: DbUser) -> bool:
+    def update_user(self, user_dict: dict) -> bool:
         """Update existing user"""
 
     @abstractmethod

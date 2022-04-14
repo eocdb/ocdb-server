@@ -24,7 +24,6 @@ from time import strptime
 import tornado.escape
 import tornado.httputil
 
-from ocdb.core.db.db_user import DbUser
 from ocdb.ws.controllers.links import get_links, update_links
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
@@ -955,7 +954,7 @@ class LoginUser(WsRequestHandler):
 
         user['password'] = new_password1
 
-        update_user(self.ws_context, user_name=username, data=DbUser.from_dict(user))
+        update_user(self.ws_context, user_name=username, data=user)
 
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode({'message': f'User {username}\'s password updated.'}))
@@ -992,11 +991,11 @@ class GetUserByName(WsRequestHandler):
 
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
-        data = DbUser.from_dict(data_dict)
+
         if not user_name:
             user_name = self.get_current_user()
 
-        update_user(self.ws_context, user_name=user_name, data=data)
+        update_user(self.ws_context, user_name=user_name, data=data_dict)
         self.finish(tornado.escape.json_encode({'message': f'User {user_name} updated'}))
 
     @_login_required

@@ -1,3 +1,8 @@
+# Changes in Version 0.1.20 (in development)
+
+- Fixing (#46) users cannot login anymore when details have changed using the ocdb-cli.
+
+
 # Changes in Version 0.1.19
 
 - The server can now correctly handle query parameters that are lists of numbers (i.e. int and float) (appeared during Issue #72 dependency updates)

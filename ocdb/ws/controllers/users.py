@@ -92,12 +92,12 @@ def get_user_names(ctx: WsContext):
 # noinspection PyUnusedLocal
 def update_user(ctx: WsContext,
                 user_name: str,
-                data: User):
+                data: dict):
     assert_not_none(user_name, name='user_name')
     updated = ctx.db_driver.instance().update_user(data)
 
     if not updated:
-        raise WsBadRequestError(f"Could not update user {data.name}")
+        raise WsBadRequestError(f"Could not update user {data['name']}")
 
     return updated
 
