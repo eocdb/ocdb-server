@@ -1934,7 +1934,7 @@ class GetUserByNameTest(WsTestCase):
 
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual("chef", actual_response_data['name'])
-        self.assertEquals(['submit', 'admin'], actual_response_data['roles'])
+        self.assertEqual(['submit', 'admin'], actual_response_data['roles'])
 
     def test_get_not_logged_in(self):
         name = 'chef'

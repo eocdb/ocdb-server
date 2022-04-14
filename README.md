@@ -1,8 +1,8 @@
-[![Docker Repository on Quay](https://quay.io/repository/bcdev/eocdb-server/status "Docker Repository on Quay")](https://quay.io/repository/bcdev/eocdb-server)
+[![Docker Repository on Quay](https://quay.io/repository/bcdev/ocdb-server/status "Docker Repository on Quay")](https://quay.io/repository/bcdev/ocdb-server)
 [![Build Status](https://travis-ci.org/bcdev/ocdb-server.svg?branch=master)](https://travis-ci.org/bcdev/ocdb-server)
-[![swagger-api validator-badge]({https://github.com/bcdev/eocdb-server/tree/master/eocdb/ws/res/openapi.yml}task-list-api-swagger-definition.yaml)](ocdb/ws/res/openapi.yml)
+[![swagger-api validator-badge]({https://github.com/bcdev/ocdb-server/tree/master/ocdb/ws/res/openapi.yml}task-list-api-swagger-definition.yaml)](ocdb/ws/res/openapi.yml)
 
-# eocdb-server
+# ocdb-server
 
 EUMETSAT Ocean Colour Database (OCDB) Server
 
@@ -10,38 +10,38 @@ EUMETSAT Ocean Colour Database (OCDB) Server
 
 Initially
 
-    $ git clone https://github.com/bcdev/eocdb-server.git
-    $ cd eocdb-server
+    $ git clone https://github.com/bcdev/ocdb-server.git
+    $ cd ocdb-server
     $ conda env create
 
-If the last command fails because `eocdb-server` environment already exists, then just update it
+If the last command fails because `ocdb-server` environment already exists, then just update it
 
     $ conda env update
 
 Once in a while
 
-    $ cd eocdb-server
+    $ cd ocdb-server
     $ git pull
 
 Install
 
-    $ source activate eocdb-dev
-    $ python setup.py develop
-    $ pytest --cov=eocdb --cov-report html
+    $ conda activate ocdb-server
+    $ python setup.py develop   ... todo -> replace because it is deprecated
+    $ pytest --cov=ocdb --cov-report html
 
 To run the server on its default port:
 
-    $ eocdb-server -v -c eocdb/ws/res/demo/config.yml
+    $ ocdb-server -v -c ocdb/ws/res/demo/config.yml
     
 To run the server with the default config in a docker container using docker-compose:
 
-    $ docker-compose build  eocdb-server
-    $ docker-compose up -d eocdb-server
+    $ docker-compose build  ocdb-server
+    $ docker-compose up -d ocdb-server
     
  To run the server with the default config in a docker container without docker-compose:
  
-    $ docker build -t eocdb-server:0.1.0 .
-    $ docker run -d -p 4000:4000 eocdb-server:0.1.0
+    $ docker build -t ocdb-server:0.1.0 .
+    $ docker run -d -p 4000:4000 ocdb-server:0.1.0
 
 
 ## Changing validation_config.json
@@ -72,10 +72,10 @@ Same procedure as for validation_config.json?
 
 ## Web Service API
 
-The web service API can be found [here](https://app.swaggerhub.com/apis-docs/forman/eocdb-server/0.1.0-dev.1).
+The web service API can be found [here](https://app.swaggerhub.com/apis-docs/forman/ocdb-server/0.1.0-dev.1).
 
 ## Development Guide
 
-Our development guide can be found [here](https://github.com/bcdev/eocdb-server/tree/master/docs/devguide.md).
+Our development guide can be found [here](https://github.com/bcdev/ocdb-server/tree/master/docs/devguide.md).
 
 
