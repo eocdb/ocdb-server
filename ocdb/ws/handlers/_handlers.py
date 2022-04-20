@@ -30,6 +30,7 @@ from ..controllers.docfiles import *
 from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
+from ..errors import WsUnprocessable
 from ..utils import ensure_valid_submission_id, ensure_valid_path
 from ..webservice import WsRequestHandler
 from ...core.models.dataset_ids import DatasetIds
@@ -991,6 +992,9 @@ class GetUserByName(WsRequestHandler):
 
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
+
+        if 'password' in data_dict:
+            raise WsUnprocessable("Cannot handle a password on oser update. Use specific password (pwd) operation.")
 
         if not user_name:
             user_name = self.get_current_user()

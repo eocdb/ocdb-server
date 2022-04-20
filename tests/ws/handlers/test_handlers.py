@@ -1949,10 +1949,9 @@ class GetUserByNameTest(WsTestCase):
         self.assertEqual('Not enough access rights to perform operations on user chef.', response.reason)
 
     def test_put(self):
-        user = DbUser(
+        data = dict(
             id_='asdoökvn',
             name="submit",
-            password="submit",
             first_name='Submit',
             last_name="Submit",
             email="sdfv",
@@ -1961,8 +1960,6 @@ class GetUserByNameTest(WsTestCase):
         )
 
         name = 'chef'
-
-        data = user.to_dict()
 
         body = tornado.escape.json_encode(data)
 
@@ -1974,6 +1971,21 @@ class GetUserByNameTest(WsTestCase):
         expected_response_data = {'message': 'User chef updated'}
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
+
+    def test_put_prevent_key_password(self):
+        data = dict(
+            password="submit",
+        )
+
+        name = 'chef'
+
+        body = tornado.escape.json_encode(data)
+
+        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
+                              headers={"Cookie": self.login_admin()})
+        self.assertEqual(422, response.code)
+        self.assertEqual('Cannot handle a password on oser update. Use specific password (pwd) operation.',
+                         response.reason)
 
     def test_put_not_logged_in(self):
         name = 'chef'

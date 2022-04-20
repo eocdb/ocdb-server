@@ -1,7 +1,8 @@
 # Changes in Version 0.1.20 (in development)
 
 - Fixing (#46) users cannot login anymore when details have changed using the ocdb-cli.
-
+- Fixing (#36) credentials fail after using `ocdb-cli user udpate -k password -v newpassword`. User are now prevented
+  using `udpate` for changing passwords. Users should use `ocdb-cli user pwd`.
 
 # Changes in Version 0.1.19
 

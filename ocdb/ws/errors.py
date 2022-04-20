@@ -31,6 +31,16 @@ class WsError(HTTPError):
         super().__init__(status_code=status_code, log_message=log_message, reason=reason)
 
 
+class WsUnprocessable(WsError):
+    """
+    Exception raised when the server understands the content type of the request entity,
+    and the syntax of the request entity is correct, but it was unable to process the contained instructions.
+    """
+
+    def __init__(self, reason: str, log_message: str = None):
+        super().__init__(reason, status_code=422, log_message=log_message)
+
+
 class WsConfigError(WsError):
     """
     Exception raised by tile service request handlers.
