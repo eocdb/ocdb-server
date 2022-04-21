@@ -178,7 +178,7 @@ class HandleSubmission(WsRequestHandler):
         submission_id = _ensure_string_argument(submission_id, "submissionid")
         ensure_valid_submission_id(submission_id)
 
-        store_user_path = str(user_name) + "_" + submission_id
+        store_user_path = str(user_name)
 
         path = arguments.get("path")
         path = _ensure_string_argument(path, "path")

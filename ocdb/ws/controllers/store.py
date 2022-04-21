@@ -131,7 +131,7 @@ def upload_submission_files(ctx: WsContext,
     # Write dataset files into upload space and record as submission files
     submission_files = []
     index = 0
-    datasets_dir_path = ctx.get_datasets_upload_path(os.path.join(store_user_path, submission_id, 'archive'))
+    datasets_dir_path = ctx.get_datasets_store_path(user_id=user_name, submission_id=submission_id)
     os.makedirs(datasets_dir_path, exist_ok=True)
     for file in dataset_files:
         file_path = os.path.join(datasets_dir_path, file.filename)
@@ -155,7 +155,7 @@ def upload_submission_files(ctx: WsContext,
         index += 1
 
     # Write documentation files into store
-    docs_dir_path = ctx.get_doc_files_upload_path(os.path.join(store_user_path, submission_id, 'docs'))
+    docs_dir_path = ctx.get_doc_files_store_path(user_id=user_name, submission_id=submission_id)
     os.makedirs(docs_dir_path, exist_ok=True)
     for file in doc_files:
         file_path = os.path.join(docs_dir_path, file.filename)
@@ -338,14 +338,14 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
             validation_result = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
                                            [Issue(ISSUE_TYPE_ERROR, f"OSError: {e}")])
 
-        write_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path, submission.path))
+        write_path = ctx.get_datasets_store_path(user_id=submission.user_id, submission_id=submission.submission_id)
         os.makedirs(write_path, exist_ok=True)
         file_path = os.path.join(write_path, file.filename)
         with open(file_path, "w") as fp:
             text = file.body.decode("utf-8")
             fp.write(text)
     else:
-        write_path = ctx.get_doc_files_upload_path(os.path.join(submission.store_sub_path, submission.path))
+        write_path = ctx.get_doc_files_store_path(user_id=submission.user_id, submission_id=submission.submission_id)
         os.makedirs(write_path, exist_ok=True)
         file_path = os.path.join(write_path, file.filename)
         with open(file_path, "wb") as fp:
@@ -413,7 +413,7 @@ def _delete_submission_file(ctx, file_to_delete, submission):
 
 def _delete_submission(ctx, submission):
     import shutil
-    path = ctx.get_submission_path(submission.store_sub_path)
+    path = ctx.get_submission_path(user_id=submission.user_id, submission_id=submission.submission_id)
     shutil.rmtree(path, ignore_errors=True)
 
 
@@ -485,13 +485,12 @@ def download_submission_file_by_id(ctx: WsContext,
 
     submission_file = get_submission_file(ctx, submission_id, index)
 
-    path = os.path.join(submission.store_sub_path, submission.submission_id)
     if submission_file.filetype == TYPE_MEASUREMENT:
-        source_path = os.path.join(ctx.get_datasets_upload_path(path))
+        source_path = ctx.get_datasets_store_path(user_id=submission.user_id, submission_id=submission_id)
     else:
-        source_path = os.path.join(ctx.get_doc_files_upload_path(path))
+        source_path = ctx.get_doc_files_store_path(user_id=submission.user_id, submission_id=submission_id)
 
-    return _assemble_submission_file_zip_archive(submission_file, source_path, path)
+    return _assemble_submission_file_zip_archive(submission_file, source_path, submission.path)
 
 
 def _assemble_submission_file_zip_archive(submission_file: SubmissionFile, source_path: str, path: str):
@@ -515,9 +514,8 @@ def _assemble_zip_archive(ctx, docs, result):
             dataset = get_dataset_by_id(ctx, dataset_ref.id)
             if dataset is None:
                 continue
-
-            full_file_path = os.path.join(ctx.store_path, dataset.user_id + '_' + dataset.submission_id, dataset.submission_id,
-                                          "archive", dataset.filename)
+            root_dir = ctx.get_datasets_store_path(user_id=dataset.user_id, submission_id=dataset.submission_id)
+            full_file_path = os.path.join(root_dir, dataset.filename)
             if not os.path.exists(full_file_path):
                 raise FileNotFoundError(f"Could not find file {full_file_path} on server. Please contact eumetsat.")
             zip_file.write(full_file_path, os.path.join(dataset.path, "archive", dataset.filename))
@@ -526,15 +524,15 @@ def _assemble_zip_archive(ctx, docs, result):
                 continue
 
             if "documents" in dataset.metadata:
-                doc_root_path = get_document_root_path(
-                    os.path.join(dataset.user_id + '_' + dataset.submission_id, dataset.submission_id))
-                doc_archive_path = ctx.get_doc_files_store_path(doc_root_path)
+                root_dir = ctx.get_doc_files_store_path(user_id=dataset.user_id, submission_id=dataset.submission_id)
+                full_file_path = os.path.join(root_dir, dataset.filename)
+
                 zip_store_path = os.path.join(dataset.path, "documents")
 
                 document_names = json.loads(dataset.metadata["documents"])
 
                 for document_name in document_names:
-                    document_path = os.path.join(doc_archive_path, document_name)
+                    document_path = os.path.join(full_file_path, document_name)
                     document_zip_path = os.path.join(zip_store_path, document_name)
                     if os.path.isfile(document_path):
                         zip_file.write(document_path, document_zip_path)
@@ -596,9 +594,8 @@ def _update_validation_status(submission: DbSubmission):
 
 
 def _publish_submission(ctx: WsContext, submission: DbSubmission, status) -> bool:
-    submission_path = os.path.join(submission.store_sub_path, submission.path)
-    source_meas_path = os.path.join(ctx.get_datasets_upload_path(submission_path))
-    source_docs_path = os.path.join(ctx.get_doc_files_upload_path(submission_path))
+    source_meas_path = ctx.get_datasets_store_path(user_id=submission.user_id, submission_id=submission.submission_id)
+    source_docs_path = ctx.get_doc_files_store_path(user_id=submission.user_id, submission_id=submission.submission_id)
 
     # collect related documents
     docs = []

@@ -593,7 +593,7 @@ class StoreTest(unittest.TestCase):
         self.assertEqual(DATASET_VALIDATION_RESULT_STATUS_ERROR, _get_summary_validation_status(validation_results))
 
     def delete_test_file(self, filename: str):
-        target_file = os.path.join(self.ctx.get_datasets_store_path("test_files"),
+        target_file = os.path.join(self.ctx.get_datasets_store_path(user_id="joe", submission_id='submission'),
                                    filename)
         if os.path.isfile(target_file):
             os.remove(target_file)

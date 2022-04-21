@@ -37,33 +37,21 @@ class WsContextTest(unittest.TestCase):
 
     def test_get_datasets_store_path(self):
         ctx = new_test_service_context()
-        path = ctx.get_datasets_store_path("BIGELOW/BALCH/gnats")
+        path = ctx.get_datasets_store_path(user_id='joe', submission_id='joessubmission')
         self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/BIGELOW/BALCH/gnats/archive"))
+        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/joe/joessubmission/archive"))
 
     def test_get_doc_files_store_path(self):
         ctx = new_test_service_context()
-        path = ctx.get_doc_files_store_path("BIGELOW/BALCH/gnats")
+        path = ctx.get_doc_files_store_path(user_id='joe', submission_id='joessubmission')
         self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/BIGELOW/BALCH/gnats/documents"))
-
-    def test_get_datasets_upload_path(self):
-        ctx = new_test_service_context()
-        path = ctx.get_datasets_upload_path("INPE/Ubatuba")
-        self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/INPE/Ubatuba/archive"))
-
-    def test_get_doc_files_upload_path(self):
-        ctx = new_test_service_context()
-        path = ctx.get_doc_files_upload_path("INPE/Ubatuba")
-        self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/INPE/Ubatuba/documents"))
+        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/joe/joessubmission/documents"))
 
     def test_submission_path(self):
         ctx = new_test_service_context()
-        path = ctx.get_submission_path("LAVAL_U/babin/ICESCAPE")
+        path = ctx.get_submission_path(user_id='joe', submission_id='joessubmission')
         self.assertIsInstance(path, str)
-        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/LAVAL_U/babin/ICESCAPE"))
+        self.assertTrue(path.replace("\\", "/").endswith("/.ocdb/store/joe/joessubmission"))
 
     def test_db_driver(self):
         ctx = new_test_service_context()

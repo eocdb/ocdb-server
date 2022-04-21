@@ -347,7 +347,7 @@ class HandleSubmissionTest(WsTestCase):
                                       'file_refs': [],
                                       'allow_publication': True,
                                       'path': 'KK/KK/KK',
-                                      'store_sub_path': 'chef_PUB_NOT_ALLOWED',
+                                      'store_sub_path': 'chef',
                                       'files': [
                                           {'index': 0,
                                            'submission_id': 'PUB_NOT_ALLOWED',
@@ -1170,19 +1170,18 @@ class StoreDownloadTest(WsTestCase):
         target_file_1 = None
         target_file_2 = None
         try:
-            target_dir = os.path.join(self.ctx.store_path, '1_abc',
-                                      "archive", "archive")
+            target_dir = self.ctx.get_datasets_store_path(user_id='1', submission_id='abc')
             os.makedirs(target_dir, exist_ok=True)
 
             ds_ref_1 = add_dataset(self.ctx, new_test_dataset(0))
-            target_file_1 = os.path.join(self.ctx.store_path, '1_abc',
-                                         ds_ref_1.path, "archive", ds_ref_1.filename)
+            target_file_1 = os.path.join(target_dir,
+                                         ds_ref_1.filename)
             with open(target_file_1, "w") as fp:
                 fp.write("firlefanz")
 
             ds_ref_2 = add_dataset(self.ctx, new_test_dataset(1))
-            target_file_2 = os.path.join(self.ctx.store_path, '1_abc',
-                                         ds_ref_2.path, "archive", ds_ref_2.filename)
+            target_file_2 = os.path.join(target_dir,
+                                         ds_ref_2.filename)
             with open(target_file_2, "w") as fp:
                 fp.write("schnickschnack")
 
@@ -1210,13 +1209,11 @@ class StoreDownloadTest(WsTestCase):
         target_dir = None
         target_file_1 = None
         try:
-            target_dir = os.path.join(self.ctx.store_path, '1_abc',
-                                      "archive", "archive")
-            os.makedirs(target_dir)
+            target_dir = self.ctx.get_datasets_store_path(user_id='1', submission_id='abc')
+            os.makedirs(target_dir, exist_ok=True)
 
             ds_ref_1 = add_dataset(self.ctx, new_test_dataset(0))
-            target_file_1 = os.path.join(self.ctx.store_path, '1_abc',
-                                         ds_ref_1.path, "archive", ds_ref_1.filename)
+            target_file_1 = os.path.join(target_dir, ds_ref_1.filename)
             with open(target_file_1, "w") as fp:
                 fp.write("firlefanz")
 
