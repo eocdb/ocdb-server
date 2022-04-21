@@ -1984,7 +1984,7 @@ class GetUserByNameTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
                               headers={"Cookie": self.login_admin()})
         self.assertEqual(422, response.code)
-        self.assertEqual('Cannot handle a password on oser update. Use specific password (pwd) operation.',
+        self.assertEqual("Cannot handle changing password using 'user update'. Use specific password (pwd) operation.",
                          response.reason)
 
     def test_put_not_logged_in(self):
