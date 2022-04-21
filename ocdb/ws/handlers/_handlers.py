@@ -994,7 +994,8 @@ class GetUserByName(WsRequestHandler):
         data_dict = tornado.escape.json_decode(self.request.body)
 
         if 'password' in data_dict:
-            raise WsUnprocessable("Cannot handle a password on oser update. Use specific password (pwd) operation.")
+            raise WsUnprocessable("Cannot handle changing password using 'user update'. Use specific password (pwd) "
+                                  "operation.")
 
         if not user_name:
             user_name = self.get_current_user()
