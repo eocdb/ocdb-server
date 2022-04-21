@@ -5,7 +5,7 @@ from ocdb.ws.errors import WsBadRequestError
 
 def ensure_valid_submission_id(path: str) -> bool:
     # noinspection RegExpRedundantEscape
-    prog = re.compile(r'^.*[\./]+.*$', re.DOTALL)
+    prog = re.compile(r'^[a-zA-Z\d_-]*$', re.DOTALL)
     if prog.match(path):
         raise WsBadRequestError("Please do not use dots and slashes in your submission id.")
     else:
