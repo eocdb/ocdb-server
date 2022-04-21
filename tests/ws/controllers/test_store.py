@@ -228,7 +228,7 @@ class StoreTest(unittest.TestCase):
                                         allow_publication=False,
                                         doc_files=[],
                                         store_user_path='Tom_Helge')
-            self.assertEqual("HTTP 400: Please do not use dots and slashes in your submission id.", f"{cm.exception}")
+            self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", f"{cm.exception}")
 
             with self.assertRaises(WsBadRequestError) as cm:
                 upload_submission_files(ctx=self.ctx,
@@ -240,7 +240,7 @@ class StoreTest(unittest.TestCase):
                                         allow_publication=False,
                                         doc_files=[],
                                         store_user_path='Tom_Helge')
-            self.assertEqual("HTTP 400: Please do not use dots and slashes in your submission id.", f"{cm.exception}")
+            self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", f"{cm.exception}")
 
             with self.assertRaises(WsBadRequestError) as cm:
                 upload_submission_files(ctx=self.ctx,
@@ -252,7 +252,7 @@ class StoreTest(unittest.TestCase):
                                         allow_publication=False,
                                         doc_files=[],
                                         store_user_path='Tom_Helge')
-            self.assertEqual("HTTP 400: Please do not use dots and slashes in your submission id.", f"{cm.exception}")
+            self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", f"{cm.exception}")
 
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")

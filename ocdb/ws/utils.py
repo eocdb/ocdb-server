@@ -3,13 +3,13 @@ import re
 from ocdb.ws.errors import WsBadRequestError
 
 
-def ensure_valid_submission_id(path: str) -> bool:
+def ensure_valid_submission_id(submission_id: str) -> bool:
     # noinspection RegExpRedundantEscape
     prog = re.compile(r'^[a-zA-Z\d_-]*$', re.DOTALL)
-    if prog.match(path):
-        raise WsBadRequestError("Please do not use dots and slashes in your submission id.")
-    else:
+    if prog.match(submission_id):
         return True
+    else:
+        raise WsBadRequestError("Please use only alphanumeric characters or underscore in your submission id.")
 
 
 def ensure_valid_path(path: str) -> bool:
