@@ -98,8 +98,8 @@ def upload_submission_files(ctx: WsContext,
             raise WsBadRequestError("Decoding error for file: " + file.filename + '.\n' + str(e))
 
         try:
-            fobj = text.split('\n')
-            first_line = fobj[0]
+            buffer = text.split('\n')
+            first_line = buffer[0]
 
             if '/begin_header' in first_line.lower():
                 dataset = SbFileReader().read(io.StringIO(text))
@@ -131,7 +131,7 @@ def upload_submission_files(ctx: WsContext,
     # Write dataset files into upload space and record as submission files
     submission_files = []
     index = 0
-    datasets_dir_path = ctx.get_datasets_upload_path(os.path.join(store_user_path, path))
+    datasets_dir_path = ctx.get_datasets_upload_path(os.path.join(store_user_path, submission_id, 'archive'))
     os.makedirs(datasets_dir_path, exist_ok=True)
     for file in dataset_files:
         file_path = os.path.join(datasets_dir_path, file.filename)
@@ -155,7 +155,7 @@ def upload_submission_files(ctx: WsContext,
         index += 1
 
     # Write documentation files into store
-    docs_dir_path = ctx.get_doc_files_upload_path(os.path.join(store_user_path, path))
+    docs_dir_path = ctx.get_doc_files_upload_path(os.path.join(store_user_path, submission_id, 'docs'))
     os.makedirs(docs_dir_path, exist_ok=True)
     for file in doc_files:
         file_path = os.path.join(docs_dir_path, file.filename)
@@ -193,9 +193,7 @@ def upload_submission_files(ctx: WsContext,
 def delete_submission(ctx: WsContext, submission_id: str) -> bool:
     submission = ctx.db_driver.get_submission(submission_id)
     _delete_submission(ctx, submission)
-    # for file in submission.files:
-    #    _delete_submission_file(ctx=ctx, file_to_delete=file, submission=submission)
-
+    # TODO: Change to
     result = find_datasets(ctx=ctx, submission_id=submission_id)
 
     for ds in result.datasets:
@@ -205,11 +203,6 @@ def delete_submission(ctx: WsContext, submission_id: str) -> bool:
 
 
 def update_submission(ctx: WsContext, submission: DbSubmission, status: str, publication_date: datetime) -> bool:
-    # old_status = submission.status
-
-    # new_stati = QC_TRANSITIONS[old_status]
-    # if status not in new_stati:
-    #    return False
     ensure_valid_path(submission.path)
     ensure_valid_submission_id(submission.submission_id)
 
@@ -300,25 +293,7 @@ def update_submission_files(ctx: WsContext,
     if path.count('/') < 2:
         raise WsBadRequestError(f"Please provide the path as format: acronym of affiliation/cruise/experiment")
 
-    # archive_path = ctx.get_submission_path(path)
-
     submission = ctx.db_driver.get_submission(submission_id)
-    submission_path = ctx.get_submission_path(os.path.join(submission.store_sub_path, ''))
-
-    old_path = submission.path.split('/')
-    new_path = path.split('/')
-
-    import shutil
-    if old_path[0] != new_path[0]:
-        shutil.move(os.path.join(submission_path, old_path[0]), os.path.join(submission_path, new_path[0]))
-
-    if old_path[1] != new_path[1]:
-        shutil.move(os.path.join(submission_path, old_path[0], old_path[1]),
-                    os.path.join(submission_path, new_path[0], new_path[1]))
-
-    if old_path[2] != new_path[2]:
-        shutil.move(os.path.join(submission_path, old_path[0], old_path[1], old_path[2]),
-                    os.path.join(submission_path, new_path[0], new_path[1], new_path[2]))
 
     submission.submission_id = new_submission_id
     submission.path = path
@@ -425,9 +400,10 @@ def delete_submission_file(ctx: WsContext, submission: DbSubmission, index: int)
 
 def _delete_submission_file(ctx, file_to_delete, submission):
     if file_to_delete.filetype == TYPE_MEASUREMENT:
-        root_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path, submission.path))
+        root_path = ctx.get_datasets_store_path(submission.user_id, submission.submission_id)
     else:
-        root_path = ctx.get_doc_files_upload_path(os.path.join(submission.store_sub_path, submission.path))
+        root_path = ctx.get_doc_files_store_path(submission.user_id, submission.submission_id)
+
     file_path = os.path.join(root_path, file_to_delete.filename)
     if os.path.isfile(file_path):
         os.remove(file_path)
@@ -509,7 +485,7 @@ def download_submission_file_by_id(ctx: WsContext,
 
     submission_file = get_submission_file(ctx, submission_id, index)
 
-    path = os.path.join(submission.store_sub_path, submission.path)
+    path = os.path.join(submission.store_sub_path, submission.submission_id)
     if submission_file.filetype == TYPE_MEASUREMENT:
         source_path = os.path.join(ctx.get_datasets_upload_path(path))
     else:
@@ -540,7 +516,7 @@ def _assemble_zip_archive(ctx, docs, result):
             if dataset is None:
                 continue
 
-            full_file_path = os.path.join(ctx.store_path, dataset.user_id + '_' + dataset.submission_id, dataset.path,
+            full_file_path = os.path.join(ctx.store_path, dataset.user_id + '_' + dataset.submission_id, dataset.submission_id,
                                           "archive", dataset.filename)
             if not os.path.exists(full_file_path):
                 raise FileNotFoundError(f"Could not find file {full_file_path} on server. Please contact eumetsat.")
@@ -551,7 +527,7 @@ def _assemble_zip_archive(ctx, docs, result):
 
             if "documents" in dataset.metadata:
                 doc_root_path = get_document_root_path(
-                    os.path.join(dataset.user_id + '_' + dataset.submission_id, dataset.path))
+                    os.path.join(dataset.user_id + '_' + dataset.submission_id, dataset.submission_id))
                 doc_archive_path = ctx.get_doc_files_store_path(doc_root_path)
                 zip_store_path = os.path.join(dataset.path, "documents")
 

@@ -104,20 +104,14 @@ class WsContext:
         # noinspection PyTypeChecker
         return primary_db_driver
 
-    def get_datasets_store_path(self, sub_path: str) -> str:
-        return os.path.join(self.store_path, sub_path, DATASETS_DIR_NAME)
+    def get_datasets_store_path(self, user_id: str, submission_id: str) -> str:
+        return os.path.join(self.upload_path, user_id, submission_id, DATASETS_DIR_NAME)
 
-    def get_datasets_upload_path(self, sub_path: str) -> str:
-        return os.path.join(self.upload_path, sub_path, DATASETS_DIR_NAME)
+    def get_submission_path(self, user_id: str, submission_id: str) -> str:
+        return os.path.join(self.upload_path, user_id, submission_id)
 
-    def get_submission_path(self, sub_path: str) -> str:
-        return os.path.join(self.upload_path, sub_path)
-
-    def get_doc_files_store_path(self, sub_path: str) -> str:
-        return os.path.join(self.store_path, sub_path, DOC_FILES_DIR_NAME)
-
-    def get_doc_files_upload_path(self, sub_path: str) -> str:
-        return os.path.join(self.upload_path, sub_path, DOC_FILES_DIR_NAME)
+    def get_doc_files_store_path(self, user_id: str, submission_id: str) -> str:
+        return os.path.join(self.store_path, user_id, submission_id, DOC_FILES_DIR_NAME)
 
     def configure(self, new_config: Config):
         old_config = self._config
