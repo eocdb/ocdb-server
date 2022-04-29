@@ -40,7 +40,6 @@ from ...core.models.submission import Submission, TYPE_MEASUREMENT, TYPE_DOCUMEN
 from ...core.models.submission_file import SubmissionFile
 from ...core.models.uploaded_file import UploadedFile
 from ...core.seabass.sb_file_reader import SbFileReader, SbFormatError
-from ...core.moby.moby_file_reader import MobyFileReader, MobyFormatError
 from ...core.val import validator
 from ...db.static_data import get_product_groups, get_products
 from ...ws.controllers.datasets import find_datasets, get_dataset_by_id, delete_dataset
@@ -50,22 +49,6 @@ from ...ws.errors import WsBadRequestError
 # noinspection PyUnusedLocal
 def get_store_info(ctx: WsContext) -> Dict:
     return dict(products=get_products(), productGroups=get_product_groups())
-
-
-def get_datasource_type(fn):
-
-    ext = fn[-3:]
-    if ext.lower() == 'mby':
-        datasource_type = 'MOBY'
-    elif ext.lower() == 'sb':
-        datasource_type = 'SEABASS'
-    else:
-        # For the moment let's assume that: "If it's not MOBY, it's SEABASS".
-        datasource_type = 'SEABASS'
-        # Otherwise raise an error
-        # raise IOError('Unknown file format.')
-
-    return datasource_type
 
 
 def upload_submission_files(ctx: WsContext,
@@ -111,27 +94,7 @@ def upload_submission_files(ctx: WsContext,
             raise WsBadRequestError("Decoding error for file: " + file.filename + '.\n' + str(e))
 
         try:
-            # dataset = SbFileReader().read(io.StringIO(text))
-            # fobj = open(text, 'r')
-            # first_line = fobj[0]
-            # fobj.close()
-
-            fn = file.filename
-            datasource_type = get_datasource_type(fn)
-
-            if datasource_type == 'MOBY':
-                moby_file_reader = MobyFileReader(fn)
-                dataset = moby_file_reader.read(io.StringIO(text))
-            else:
-                # raise IOError('Unknown file format.')
-                dataset = SbFileReader().read(io.StringIO(text))
-
-        except MobyFormatError as e:
-            dataset = None
-            validation_results[file.filename] = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
-                                                                        [Issue(ISSUE_TYPE_ERROR,
-                                                                               f"Invalid format: {e}")])
-
+            dataset = SbFileReader().read(io.StringIO(text))
         except SbFormatError as e:
             dataset = None
             validation_results[file.filename] = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
