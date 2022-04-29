@@ -80,46 +80,6 @@ class StoreTest(unittest.TestCase):
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
 
-    def test_upload_moby_store_files(self):
-        user_id = "77618"
-        moby_fn = 'M203_1997072021d.mby'
-        try:
-            data_file_text = ('File: ' + moby_fn[5:].replace('txt', 'MBY') + '\n'
-                              '594 Variables, 629 Data Points\n'
-                              'FhdS\n'
-                              '          META DATA:\n'
-                              '          Year  Mon  Day Hour  Min  Sec       Lat       Lon   X-tilt   Y-tilt  Arm dir\n'
-                              '                                             (DD.MMmm)  (DD.MMmm)  (deg)  (deg)  (deg True)\n'
-                              '\n'
-                              '\n'
-                              '  LW1:          1997    7   20   21   49   39   20.4840 -157.1140    -0.46    -0.82   176.03 \n'
-                              '  ES for LW1:   1997    7   20   21   49   54   20.4840 -157.1140    -0.80    -1.29   178.46 \n'
-                              '  ##hkjghjgghgh\n'
-                              '  DscS  1: MOS Calibrated Wavelength (nm)  \n'
-                              'Xdat:\n'
-                              '   lambda,         Lw1,         Lw2,         Lw7,  Ed Sfc,  Ed Sfc,  Ed Sfc,        Lw21,        Lw27,        Lw22\n'
-                              '348.4221, 0.988740, 0.977193, 0.908520,,, 0.988740, 0.908520, 0.977193\n'
-                              '348.9953, 0.975660, 0.965026, 0.905604,,, 0.975660, 0.905604, 0.965026'
-                               )
-            uploaded_file = UploadedFile(moby_fn, "text", data_file_text.encode("utf-8"))
-
-            result = upload_submission_files(ctx=self.ctx,
-                                             path="test_moby/moby_cruise/moby_experiment",
-                                             submission_id="moby_id",
-                                             user_name=user_id,
-                                             dataset_files=[uploaded_file],
-                                             publication_date="2100-01-01",
-                                             allow_publication=False,
-                                             doc_files=[],
-                                             store_user_path='UweL')
-
-            self.assertEqual([], result['M203_1997072021d.mby'].issues)
-            self.assertEqual("OK", result['M203_1997072021d.mby'].status)
-
-        finally:
-
-            self.delete_test_file('M203_1997072021d.mby')
-
     def test_upload_store_files_empty_submission_id(self):
         user_id = "77618"
         try:
