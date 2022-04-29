@@ -245,6 +245,10 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
         for ds in result.datasets:
             delete_dataset(ctx=ctx, dataset_id=ds.id)
 
+        # Sollte das besser "_resubmit_submission" statt _publish_submission heißen?
+        # Hier wird ja entweder:
+        # - vom Status "Validated" auf den Status "Processed" oder
+        # - vom Status "Processed" auf "Published" umgestellt.
         _publish_submission(ctx, submission, status)
 
     if status == QC_STATUS_CANCELED:

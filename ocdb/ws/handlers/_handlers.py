@@ -344,7 +344,12 @@ class UpdateSubmissionStatus(WsRequestHandler):
 
         body_dict = tornado.escape.json_decode(self.request.body)
         status = body_dict["status"]
+        # Das vom Nutzer (im Falle von UpdateSubmissionStatus NICHT) gewählte Publikationsdatum:
         publication_date = self._extract_date(body_dict)
+        # Damit das aktuelle Publikationsdatum der existierenden Submission nicht verlorengeht,
+        # muss hier nach meinem Verständnis stehen:
+        # if publication_date is None:
+        #     publication_date = submission.publication_date
 
         try:
             success = update_submission(ctx=self.ws_context, submission=submission, status=status,
@@ -360,7 +365,15 @@ class UpdateSubmissionStatus(WsRequestHandler):
     @staticmethod
     def _extract_date(body_dict):
         if "date" in body_dict:
+            # Todo: In OCDBApi.py steht aber:
+            # data = {'status': status, 'publication_date': '2020-01-01'}
+            # Das passt nicht zu 'date', nicht wahr? Siehe nächste Anweisung.
+            # Müsste es in OCDBApi.py nicht heißen:
+            # current_publication_date = existing_submissions_publication_date
+            # data = {'status': status, 'date': current_publication_date}
             publication_date = strptime(body_dict["date"], "%Y%m%d")
+            # Falls der Nutzer das Datum nicht ändern möchte, dann würde hier der Wert auf None gesetzt sein, richtig?
+            # Siehe hierzu: die obige Anweisung.
         else:
             publication_date = None
         return publication_date
