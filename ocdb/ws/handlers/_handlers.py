@@ -964,7 +964,8 @@ class LoginUser(WsRequestHandler):
         if username is None:
             username = current_user
 
-        user = self.ws_context.get_user(current_user, old_password)
+        # current_user changed to user_name
+        user = self.ws_context.get_user(username, old_password)
         if user is None:
             self.set_status(status_code=403, reason="Current password does not match.")
             return
@@ -981,6 +982,7 @@ class LoginUser(WsRequestHandler):
 
         user['password'] = new_password1
 
+        # Todo: SE, please check whether password is encrypted
         update_user(self.ws_context, user_name=username, data=user)
 
         self.set_header('Content-Type', 'application/json')
