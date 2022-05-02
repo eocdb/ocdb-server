@@ -65,9 +65,37 @@ class SbFileReader:
 
         delimiter_regex = self._extract_delimiter_regex(metadata)
         records = self._parse_records(delimiter_regex)
+
+        # @Sabine: Folgende Änderungen habe ich durchgeführt, um den Bug ocdb-cli#37 zu lösen.
+        #          "Explain inconsistency in number of fields, units and columns"
+        #
+        #          Es sollte erst geprüft werden, ob die Anzahl von Fields, Units und Columns
+        #          identisch sind, bevor aus den beiden Spalte "date" und "time" der Zeitpunkt
+        #          ausgelesen wird. Schließlich kann dieser Fehler der Auslöser sein, warum die
+        #          Zeit- oder Datumsangabe nicht in der richtigen Spalte steht und damit der
+        #          Formattest nicht erfolgreich verläuft.
+        #          Offene Fragen:
+        #          Gehe ich richtig in der Annahme, dass der Submit-Vorgang über die Web-UI
+        #          abgebrochen wird und unten links die Fehlermeldung erscheint?
+        #          Auf dem CLI würde die Meldung entsprechend als Text ausgegeben, richtig?
+        #
+        #          Fortsetzung in _extract_date(cls, date_str, time_str, check_gmt=False).
+
+        num_fields = len(metadata['fields'].split(delimiter_regex[0]))
+        num_units = len(metadata['units'].split(delimiter_regex[0]))
+        len_record = len(records[0])
+
+        if num_fields != num_units:
+            raise SbFormatError('Number of fields (' + str(num_fields) + ') does not match ' +
+                                'number of units (' + str(num_units) + ').')
+        if num_fields != len_record:
+            raise SbFormatError('Number of fields (' + str(num_fields) + ') does not match ' +
+                                'number of columns (' + str(len_record) + ').')
+
         dataset = DbDataset(metadata, records)
         dataset.attributes = self._extract_field_list()
         dataset.groups = self._extract_group_list()
+
         self._extract_searchfields(dataset)
 
         if self.handle_header is None or self.handle_header is True:
@@ -143,6 +171,8 @@ class SbFileReader:
         self._extract_times(dataset)
 
     def _extract_times(self, dataset):
+        # Check for '[GMT]' if start_time from Metadata is used,
+        # otherwise use check_gmt=False.
         if 'date' in dataset.attribute_names and 'time' in dataset.attribute_names:
             # all time info in records as 'date' and 'time'
             date_index = dataset.attribute_names.index('date')
@@ -150,9 +180,9 @@ class SbFileReader:
             for record in dataset.records:
                 date_string = str(record[date_index])
                 time_string = str(record[time_index])
-                timestamp = self._extract_date(date_string, time_string)
+                timestamp = self._extract_date(date_string, time_string, check_gmt=False)
                 dataset.add_time(timestamp)
-
+        # Year, month, day, hour, min and second defined per record
         elif 'year' in dataset.attribute_names and 'hour' in dataset.attribute_names:
             year_index = dataset.attribute_names.index('year')
             month_index = dataset.attribute_names.index('month')
@@ -180,21 +210,23 @@ class SbFileReader:
             time_index = dataset.attribute_names.index('time')
             for record in dataset.records:
                 time_string = str(record[time_index])
-                timestamp = self._extract_date(start_date_string, time_string)
+                timestamp = self._extract_date(start_date_string, time_string, check_gmt=False)
                 dataset.add_time(timestamp)
 
-        elif 'start_date' in dataset.metadata:
+        elif 'start_date' in dataset.metadata and 'start_time' in dataset.metadata:
             # time info solely in header
             start_date_string = dataset.metadata['start_date']
             start_time_string = dataset.metadata['start_time']
-            timestamp = self._extract_date(start_date_string, start_time_string, check_gmt=False)
+            timestamp = self._extract_date(start_date_string, start_time_string, check_gmt=True)
             # temporarily disabled, there are datasets in the SeaBASS excerpt that contain no time zone.
             # check docs if we allow for this .... tb 2018-09-20
             # timestamp = self._extract_date(start_date_string, start_time_string, check_gmt=True)
             dataset.add_time(timestamp)
 
         else:
-            raise SbFormatError("Acquisition time not properly encoded")
+            # Todo update to ocdb.readthedocs.io as soon as the website is repaired,
+            #  i. e. the menu becomes visible.
+            raise SbFormatError("Acquisition time not properly encoded. For details see: https://seabass.gsfc.nasa.gov/wiki/stdfields or https://seabass.gsfc.nasa.gov/wiki/metadataheaders#Example%20Header.")
 
     def _extract_geo_locations(self, dataset):
         if 'lon' in dataset.attribute_names and 'lat' in dataset.attribute_names:
@@ -298,29 +330,57 @@ class SbFileReader:
 
     @classmethod
     def _extract_date(cls, date_str, time_str, check_gmt=False):
+
         time_str = time_str.upper()
+
+        # Check time syntax in metadata (start_time)
         if check_gmt:
+            # Check time syntax in metadata (start_time)
             if '[GMT]' not in time_str:
                 raise SbFormatError("No time zone given. Required all times be expressed as [GMT]")
 
-        year = int(date_str[0:4])
-        month = int(date_str[4:6])
-        day = int(date_str[6:8])
+        if len(date_str) != 8:
+            raise SbFormatError(f"Invalid date format ({date_str}). Format must correspond to YYYYMMDD.")
+
+        try:
+            year = int(date_str[0:4])
+            month = int(date_str[4:6])
+            day = int(date_str[6:8])
+        except Exception as e:
+            raise SbFormatError(f"Invalid date format ({date_str}). Format must correspond to YYYYMMDD: {str(e)}")
+
+        current_year = datetime.datetime.now().year
+        if (not(1900 <= year <= current_year) or
+                not(1 <= month <= 12) or
+                not(1 <= day <= 31)):
+            raise SbFormatError(f"Invalid date format ({date_str}). Format must correspond to YYYYMMDD {str(e)}")
 
         if '[GMT]' in time_str:
             gmt_index = time_str.index('[GMT]')
             time_str = time_str[0:gmt_index]
 
+        if len(time_str) != 8:
+            raise SbFormatError(f"Invalid time format ({time_str}). Format must correspond to HH:MM:SS.")
+
         tokens = time_str.split(':')
-        hour = int(tokens[0])
-        minute = int(tokens[1])
-        second = int(tokens[2])
+
+        try:
+            hour = int(tokens[0])
+            minute = int(tokens[1])
+            second = int(tokens[2])
+        except Exception as e:
+            raise SbFormatError(f"Invalid time format ({time_str}). Format must correspond to HH:MM:SS: {str(e)}")
+
+        if (not(0 <= hour < 24) or
+            not(0 <= minute < 60) or
+            not(0 <= second < 60)):
+            raise SbFormatError(f"Invalid time format ({time_str}). Format must correspond to HH:MM:SS: {str(e)}")
 
         try:
             return datetime.datetime(year, month, day, hour, minute, second)
         except Exception as e:
-            raise SbFormatError(f"Invalid time format ({time_str}): {str(e)}")
-
+            date_time_str = date_str + ' ' + time_str
+            raise SbFormatError(f"Invalid date or time format ({date_time_str}): {str(e)}")
 
 # noinspection PyArgumentList
 class SbFormatError(Exception):
