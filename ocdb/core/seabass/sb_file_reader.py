@@ -327,10 +327,6 @@ class SbFileReader:
             if '[GMT]' not in time_str:
                 raise SbFormatError("No time zone given. Required all times be expressed as [GMT]")
 
-            # year = int(date_str[0:4])
-            # month = int(date_str[4:6])
-            # day = int(date_str[6:8])
-
         if len(date_str) != 13:    # 8 chars for datetime (yyyymmdd) + 5 for '[GMT]
             raise SbFormatError(f"Invalid date format ({date_str}). Format must correspond to YYYYMMDD[GMT].")
 
