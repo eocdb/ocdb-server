@@ -65,9 +65,32 @@ class SbFileReader:
 
         delimiter_regex = self._extract_delimiter_regex(metadata)
         records = self._parse_records(delimiter_regex)
+        # @Sabine: Folgende Änderungen habe ich durchgeführt, um den Bug ocdb-cli#37 zu lösen.
+        #          "Explain inconsistency in number of fields, units and columns"
+        #          Es sollte erst geprüft werden, ob die Anzahl von Fields, Units und Columns
+        #          identisch sind, bevor aus den beiden Spalte "date" und "time" der Zeitpunkt
+        #          ausgelesen wird.
+        #          Gehe ich richtig in der Annahme, dass der Submit-Vorgang über die Web-UI
+        #          abgebrochen wird und unten links die Fehlermeldung erscheint?
+        #          Auf dem CLI würde die Meldung entsprechend als Text ausgegeben, richtig?
+        #
+        #          Fortsetzung in _extract_date(cls, date_str, time_str, check_gmt=False).
+
+        num_fields = len(metadata['fields'].split(delimiter_regex[0]))
+        num_units = len(metadata['units'].split(delimiter_regex[0]))
+        len_record = len(records[0])
+
+        if num_fields != num_units:
+            raise SbFormatError('Number of fields (' + str(num_fields) + ') does not match ' +
+                                'number of units (' + str(num_units) + ').')
+        if num_fields != len_record:
+            raise SbFormatError('Number of fields (' + str(num_fields) + ') does not match ' +
+                                'number of columns (' + str(len_record) + ').')
+
         dataset = DbDataset(metadata, records)
         dataset.attributes = self._extract_field_list()
         dataset.groups = self._extract_group_list()
+
         self._extract_searchfields(dataset)
 
         if self.handle_header is None or self.handle_header is True:
@@ -211,7 +234,8 @@ class SbFileReader:
         else:
             raise SbFormatError("Geolocation not properly encoded")
 
-    def _extract_geo_location_from_header(self, dataset):
+    def \
+            _extract_geo_location_from_header(self, dataset):
         east_lon_string = dataset.metadata['east_longitude']
         lon = self._extract_angle(east_lon_string)
         north_lat_string = dataset.metadata['north_latitude']
@@ -303,23 +327,43 @@ class SbFileReader:
             if '[GMT]' not in time_str:
                 raise SbFormatError("No time zone given. Required all times be expressed as [GMT]")
 
-        year = int(date_str[0:4])
-        month = int(date_str[4:6])
-        day = int(date_str[6:8])
+            # year = int(date_str[0:4])
+            # month = int(date_str[4:6])
+            # day = int(date_str[6:8])
+
+        if len(date_str) != 13:    # 8 chars for datetime (yyyymmdd) + 5 for '[GMT]
+            raise SbFormatError(f"Invalid date format ({date_str}). Format must correspond to YYYYMMDD[GMT].")
+
+        try:
+            year = int(date_str[0:4])
+            month = int(date_str[4:6])
+            day = int(date_str[6:8])
+        except Exception as e:
+            raise SbFormatError(f"Invalid date format ({date_str}). Format must correspond to YYYYMMDD[GMT]: {str(e)}")
 
         if '[GMT]' in time_str:
             gmt_index = time_str.index('[GMT]')
             time_str = time_str[0:gmt_index]
 
         tokens = time_str.split(':')
-        hour = int(tokens[0])
-        minute = int(tokens[1])
-        second = int(tokens[2])
+
+        # hour = int(tokens[0])
+        # minute = int(tokens[1])
+        # second = int(tokens[2])
+        # if tokens is not None and len(tokens) == 3:
+
+        try:
+            hour = int(tokens[0])
+            minute = int(tokens[1])
+            second = int(tokens[2])
+        except Exception as e:
+            raise SbFormatError(f"Invalid time format ({time_str}). Format must correspond to HH:MM:SS: {str(e)}")
 
         try:
             return datetime.datetime(year, month, day, hour, minute, second)
         except Exception as e:
-            raise SbFormatError(f"Invalid time format ({time_str}): {str(e)}")
+            date_time_str = date_str + ' ' + time_str
+            raise SbFormatError(f"Invalid date or time format ({date_time_str}): {str(e)}")
 
 
 # noinspection PyArgumentList
