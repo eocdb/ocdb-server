@@ -337,31 +337,57 @@ class DownloadSubmissionFile(WsRequestHandler):
                     break
                 self.write(data)
 
+# Todo: The class UpdateSubmissionStatus is misleading and should be refactored to
+#       UpdateSubmissionDetails (see name of former action button!).
+#       If the code is correct, the action button might work again and could be enabled.
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class UpdateSubmissionStatus(WsRequestHandler):
     @_login_required
     @_submission_authorization_required
     def put(self, submission_id: str):
+
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+
         if submission is None:
             self.set_status(404, reason="Submission not found")
             return
 
         body_dict = tornado.escape.json_decode(self.request.body)
-        status = body_dict["status"]
-        publication_date = self._extract_date(body_dict)
+        # Todo: Sabine, please assure that body_dict contains value publication date for key date!
+        #       Let's discuss together if required.
+        #       Submission has two date attributes: date and publication_data (see submission.py).
+        #       _extract_date(body_dict) searches for 'date'! This might be correct, but is misleading.
+
+        # Does the value None for key publication_date corresponds to and is interpreted as 'unset'?
+        new_publication_date = self._extract_date(body_dict)
+
+        current_publication_date = submission.publication_date
+        if new_publication_date is None:
+            new_publication_date = current_publication_date
+
+        # Does the value None for key status corresponds to and is interpreted as 'unset'?
+        if 'status' in body_dict:
+            new_status = body_dict["status"]
+        else:
+            new_status = None
+
+        if new_status is None:
+            current_status = submission.status
+            new_status = current_status
 
         try:
-            success = update_submission(ctx=self.ws_context, submission=submission, status=status,
-                                        publication_date=publication_date)
+            success = update_submission(ctx=self.ws_context, submission=submission, status=new_status,
+                                        publication_date=new_publication_date)
             if not success:
-                self.set_status(400, reason="Error updating submission")
+                self.set_status(400, reason="Error updating submission details (" + str(submission_id) + '/' +
+                                            new_status + '/' + str(new_publication_date) + ')'
+                                )
 
         except SbFormatError as e:
             self.set_status(403, reason="Error in data format. If status is VALIDATED please contact ops: " + str(e))
 
-        self.finish(tornado.escape.json_encode({'message': f'Status of {submission_id} set to {status}'}))
+        self.finish(tornado.escape.json_encode({'message': f'Status of {submission_id} set to {new_status}'}))
 
     @staticmethod
     def _extract_date(body_dict):
