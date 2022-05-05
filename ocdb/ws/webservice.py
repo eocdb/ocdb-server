@@ -206,6 +206,7 @@ class WebService:
 # noinspection PyAbstractClass
 class WsRequestHandler(RequestHandler):
 
+    # todo se ... not overwrite __init__ ... see documentation of superclass
     def __init__(self, application, request, **kwargs):
         super(WsRequestHandler, self).__init__(application, request, **kwargs)
         self._header = WsRequestHeader(self)

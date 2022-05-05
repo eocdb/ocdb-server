@@ -26,7 +26,7 @@ Once in a while
 Install
 
     $ conda activate ocdb-server
-    $ python setup.py develop   ... todo -> replace because it is deprecated
+    $ python -m pip install -e .
     $ pytest --cov=ocdb --cov-report html
 
 To run the server on its default port:
