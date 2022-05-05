@@ -340,6 +340,11 @@ class DownloadSubmissionFile(WsRequestHandler):
 # Todo: The class UpdateSubmissionStatus is misleading and should be refactored to
 #       UpdateSubmissionDetails (see name of former action button!).
 #       If the code is correct, the action button might work again and could be enabled.
+#       This class is called by two client actions:
+#       - updateSubmissionStatus
+#       - updateSubmissionDetails
+#       If the class name will be changed in the future, take care that the url dispatching
+#       is not broken. @see ws.handlers._mappings.py
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class UpdateSubmissionStatus(WsRequestHandler):
@@ -368,7 +373,7 @@ class UpdateSubmissionStatus(WsRequestHandler):
 
         # Does the value None for key status corresponds to and is interpreted as 'unset'?
         if 'status' in body_dict:
-            new_status = body_dict["status"]
+            new_status = body_dict.status
         else:
             new_status = None
 
