@@ -819,7 +819,7 @@ paths:
       tags:
         - Users
       summary: Update user information
-      description: Uopdates user information by user ID. This can only be done by the logged in user.
+      description: Updates user information by user ID. This can only be done by the logged in user.
       operationId: updateUser
       parameters:
         - $ref: '#/components/parameters/userIdParam'

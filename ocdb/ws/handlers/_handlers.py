@@ -609,17 +609,18 @@ class StoreDownload(WsRequestHandler):
     def get(self):
         """Provide API operation downloadStoreFiles()."""
         # noinspection PyBroadException,PyUnusedLocal
-        expr = self.query.get_param('expr', default=None)
+        # todo se --> see comments in the lines below
+        expr = self.query.get_param('expr', default=None)    # expr ?
         region = self.query.get_param_float_list('region', default=None)
-        s_time = self.query.get_param_list('time', default=None)
-        wdepth = self.query.get_param_float_list('wdepth', default=None)
-        mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)
-        wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)
-        shallow = self.query.get_param('shallow', default=SHALLOW_DEFAULT)
-        pmode = self.query.get_param('pmode', default=PMODE_DEFAULT)
-        pgroup = self.query.get_param_list('pgroup', default=None)
-        pname = self.query.get_param_list('pname', default=None)
-        docs = self.query.get_param_bool('docs', default=None)
+        s_time = self.query.get_param_list('time', default=None)  # which time ?
+        wdepth = self.query.get_param_float_list('wdepth', default=None)   # wdepth ?
+        mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)   # mtype ?
+        wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)  # wlmode ?
+        shallow = self.query.get_param('shallow', default=SHALLOW_DEFAULT)  # shallow ?
+        pmode = self.query.get_param('pmode', default=PMODE_DEFAULT)   # pmode ?
+        pgroup = self.query.get_param_list('pgroup', default=None)   # pgroup ?
+        pname = self.query.get_param_list('pname', default=None)  # pname ?
+        docs = self.query.get_param_bool('docs', default=None)  # docs ?
 
         result = download_store_files(self.ws_context, expr=expr, region=region, s_time=s_time, wdepth=wdepth,
                                       mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
