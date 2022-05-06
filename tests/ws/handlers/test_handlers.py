@@ -1780,6 +1780,9 @@ class HandleUsersTest(WsTestCase):
 
 class LoginUsersTest(WsTestCase):
 
+    # Todo: Shall this test could be split into "ocdb-cli user login" (PUT) and "ocdb-cli user pwd" (POST)?
+
+    # 1. Tests for ocdb-cli command "user login": method LoginUser ('/users/login', POST)
     def test_login_existing_user(self):
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
                     first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
@@ -1804,6 +1807,7 @@ class LoginUsersTest(WsTestCase):
         }
 
         actual_response_data = tornado.escape.json_decode(response.body)
+        # Since the created ID is unknown in beforehand ...
         actual_response_data['id'] = ''
         self.assertEqual(expected_response_data, actual_response_data)
 
@@ -1829,10 +1833,81 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual(401, response.code)
         self.assertEqual('Unknown username or password', response.reason)
 
-    def test_login_too_low_client_version(self):
-        res = self.login_admin_no_assert(client_version="0.1")
-        self.assertEqual(409, res.code)
+    # 2. Tests for ocdb-cli command "user pwd": method LoginUser ('/users/login', PUT)
 
+    # 2.1 Submit user logs in and changes own password
+    def test_submit_user_changes_own_password(self):
+        cookie = self.login_submit()
+
+        credentials = dict(username="submit", oldpassword="submit", newpassword1='submit2', newpassword2='submit2')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        # self.assertEqual('submit2', user['password'])
+
+    # 2.2 Submit user logs in and changes own password without specifying username
+    def test_submit_user_changes_own_password_without_username(self):
+        cookie = self.login_submit()
+
+        credentials = dict(oldpassword="submit", newpassword1='submit2', newpassword2='submit2')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        # self.assertEqual('submit2', user['password'])
+
+    # 2.3.1 Submit user logs in and tries to change own password with wrong oldpassword
+    def test_submit_user_changes_own_passwd_with_wrong_old_passwd(self):
+        cookie = self.login_submit()
+
+        credentials = dict(username="submit", oldpassword="submit22", newpassword1='submit2', newpassword2='submit2')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
+
+        self.assertEqual(403, response.code)
+        self.assertEqual('Current password does not match.', response.reason)
+
+    # 2.3.2 Submit user logs in and tries to change own password with wrong newpassword2
+    def test_submit_user_changes_own_passwd_with_wrong_newpassword2(self):
+        cookie = self.login_submit()
+
+        # Todo: Does the initial password submit is correct or the changed password submit2, meanwhile? My first guess is submit 2.
+        credentials = dict(username="submit", oldpassword="submit2", newpassword1='submit2', newpassword2='wrongpassword2')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
+
+        self.assertEqual(403, response.code)
+        # Todo: Please check error message!
+        self.assertEqual("Passwords don't match.", response.reason)
+
+    # 2.3.3 Submit user logs in and tries to change password of another user
+    def test_submit_user_changes_passwd_from_someone_else_without_admin_rights(self):
+        cookie = self.login_submit()
+
+        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
+                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
+
+        create_user(self.ctx, user)
+
+        credentials = dict(username="scott", oldpassword="tiger", newpassword1='sdfv', newpassword2='sdfv')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough rights to perform this operation.', response.reason)
+
+    # 2.4 Admin creates new user and changes password
     def test_change_passwd(self):
         cookie = self.login_admin()
 
@@ -1854,20 +1929,8 @@ class LoginUsersTest(WsTestCase):
         actual_response_data['id'] = ''
         self.assertEqual(expected_response_data, actual_response_data)
 
-    def test_change_own_password(self):
-        cookie = self.login_submit()
-
-        credentials = dict(username="submit", oldpassword="submit", newpassword1='submit2', newpassword2='submit2')
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
-
-        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-        # self.assertEqual('submit2', user['password'])
-
-    def test_admin_will_change_the_passwd_of_another_user(self):
+    # 2.5.1 Admin will change password of existing submit user without oldpassword
+    def test_admin_will_change_the_passwd_of_submit_user_without_oldpassword(self):
         cookie = self.login_admin()
 
         credentials = dict(username='submit', newpassword1='submit2', newpassword2='submit2')
@@ -1880,19 +1943,8 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual('OK', response.reason)
         self.assertEqual('submit2', user['password'])
 
-    def test_change_own_passwd_wrong_old_passwd(self):
-        cookie = self.login_submit()
-
-        credentials = dict(username="submit", oldpassword="submit22", newpassword1='submit2', newpassword2='submit2')
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
-
-        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
-
-        self.assertEqual(403, response.code)
-        self.assertEqual('Current password does not match.', response.reason)
-
-    def test_change_passwd_as_admin(self):
+    # 2.5.2 Admin will change password of existing submit user with "oldpassword"
+    def test_admin_will_change_the_passwd_of_submit_user(self):
         cookie = self.login_admin()
 
         credentials = dict(username='submit', oldpassword="eocdb_chef", newpassword1='submit2', newpassword2='submit2')
@@ -1905,20 +1957,13 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual('OK', response.reason)
         # self.assertEqual('submit2', user['password'])
 
-    def test_change_passwd_from_somone_else_without_admin_rights(self):
-        cookie = self.login_submit()
+    # 3. Use case "ocdb-cl user whoami": method LoginUser ('/users/login, GET)
+    # Todo: To be developed
 
-        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
-
-        create_user(self.ctx, user)
-
-        credentials = dict(username="scott", oldpassword="tiger", newpassword1='sdfv', newpassword2='sdfv')
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
-
-        self.assertEqual(403, response.code)
-        self.assertEqual('Not enough rights to perform this operation.', response.reason)
+    # 4. Use case "Check client version required for login"
+    def test_login_too_low_client_version(self):
+        res = self.login_admin_no_assert(client_version="0.1")
+        self.assertEqual(409, res.code)
 
 
 class LogoutUsersTest(WsTestCase):
@@ -1938,7 +1983,8 @@ class LogoutUsersTest(WsTestCase):
 
 class GetUserByNameTest(WsTestCase):
 
-    def test_get(self):
+    # 1. Test for ocdb-cli command user get ('/users/{username}', GET)
+    def test_get_as_admin(self):
         name = 'chef'
 
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='GET', headers={"Cookie": self.login_admin()})
@@ -1955,24 +2001,32 @@ class GetUserByNameTest(WsTestCase):
         self.assertEqual(403, response.code)
         self.assertEqual('Please login.', response.reason)
 
-    def test_get_not_own_user_name(self):
+    def test_get_as_submit_user_own_user_name(self):
+        name = 'submit'
+        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='GET', headers={"Cookie": self.login_submit()})
+        self.assertEqual(200, response.code)
+        # Todo: Any other test?
+
+    def test_get_as_submit_user_not_own_user_name(self):
         name = 'chef'
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='GET', headers={"Cookie": self.login_submit()})
         self.assertEqual(403, response.code)
         self.assertEqual('Not enough access rights to perform operations on user chef.', response.reason)
 
-    def test_put(self):
+    # 2. Test for ocdb-cli command "user update" ('/users/{username}', PUT)
+    # 2.1 Admin changes email of user submit
+    def test_put_change_email(self):
         data = dict(
             id_='asdoökvn',
             name="submit",
             first_name='Submit',
             last_name="Submit",
-            email="sdfv",
+            email="new_email",
             phone="",
             roles=["submit", ]
         )
 
-        name = 'chef'
+        name = 'submit'
 
         body = tornado.escape.json_encode(data)
 
@@ -1981,7 +2035,7 @@ class GetUserByNameTest(WsTestCase):
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        expected_response_data = {'message': 'User chef updated'}
+        expected_response_data = {'message': 'User submit updated'}
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
@@ -1998,6 +2052,21 @@ class GetUserByNameTest(WsTestCase):
                               headers={"Cookie": self.login_admin()})
         self.assertEqual(422, response.code)
         self.assertEqual("Cannot handle changing password using 'user update'. Use specific password (pwd) operation.",
+                         response.reason)
+
+    def test_put_prevent_key_username(self):
+        data = dict(
+            name="submit",
+        )
+
+        name = 'chef'
+
+        body = tornado.escape.json_encode(data)
+
+        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
+                              headers={"Cookie": self.login_admin()})
+        self.assertEqual(422, response.code)
+        self.assertEqual("Cannot handle changing username.",
                          response.reason)
 
     def test_put_not_logged_in(self):
@@ -2028,6 +2097,22 @@ class GetUserByNameTest(WsTestCase):
         self.assertEqual(403, response.code)
         self.assertEqual('Not enough access rights to perform operations on user chef.', response.reason)
 
+    # Todo: Check the added test
+    def test_put_submit_user_changes_own_role(self):
+        user = DbUser(
+            roles=["admin", ]
+        )
+        name = 'submit'
+        data = user.to_dict()
+        body = tornado.escape.json_encode(data)
+        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
+                              headers={"Cookie": self.login_submit()})
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operations on user submit.', response.reason)
+
+    # Todo: Shall we prevent user from changing id_?
+
+    # 3. Test for ocdb-cli command user delete ('/users/{username}', DELETE)
     def test_delete(self):
         user = DbUser(
             id_='asdoökvnd',

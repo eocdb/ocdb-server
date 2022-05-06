@@ -993,7 +993,7 @@ class LoginUser(WsRequestHandler):
             return
 
         if new_password1 != new_password2:
-            self.set_status(status_code=403, reason="Passwords don't match")
+            self.set_status(status_code=403, reason="Passwords don't match.")
             return
 
         user = get_user_by_name(ctx=self.ws_context, user_name=username, retain_password=True)
@@ -1040,8 +1040,15 @@ class GetUserByName(WsRequestHandler):
         data_dict = tornado.escape.json_decode(self.request.body)
 
         if 'password' in data_dict:
-            raise WsUnprocessable("Cannot handle changing password using 'user update'. Use specific password (pwd) "
-                                  "operation.")
+            raise WsUnprocessable("Cannot handle changing password using 'user update'. " +
+                                  "Use specific password operation (e. g. 'ocdb-cli user pwd').")
+
+        # Todo: Check key used for user name!
+        if 'user_name' in data_dict or 'username' in data_dict or 'name' in data_dict:
+            raise WsUnprocessable("Cannot handle changing username.")
+
+        if 'id_' in data_dict or 'id' in data_dict:
+            raise WsUnprocessable("Cannot handle changing user id.")
 
         if not user_name:
             user_name = self.get_current_user()
