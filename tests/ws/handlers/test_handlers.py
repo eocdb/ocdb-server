@@ -49,7 +49,6 @@ from ocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestErro
 from tests.core.mpf import MultiPartForm
 from tests.helpers import new_test_service_context, new_test_dataset, NOW
 
-
 TEST_DATA = """/begin_header
 /identifier_product_doi=10.5067/SeaBASS/SCOTIA_PRINCE_FERRY/DATA001
 /received=20040220
@@ -85,7 +84,6 @@ TEST_DATA = """/begin_header
 20030603 14:00:38 43.7620 -66.4551 0.60 8.37
 20030603 14:00:38 43.7620 -66.4551 1.30 7.05
 """
-
 
 TEST_DATA_FILE_NAME = ""
 
@@ -1833,9 +1831,11 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual(401, response.code)
         self.assertEqual('Unknown username or password', response.reason)
 
-    # 2. Tests for ocdb-cli command "user pwd": method LoginUser ('/users/login', PUT)
 
-    # 2.1 Submit user logs in and changes own password
+# Tests e.g. for ocdb-cli command "user pwd": method LoginUser ('/users/login', PUT)
+class UsecasesForChangingPasswordsTest(WsTestCase):
+
+    # Submit user is logged in and tries to change its own password
     def test_submit_user_changes_own_password(self):
         cookie = self.login_submit()
 
@@ -1881,7 +1881,8 @@ class LoginUsersTest(WsTestCase):
         cookie = self.login_submit()
 
         # Todo: Does the initial password submit is correct or the changed password submit2, meanwhile? My first guess is submit 2.
-        credentials = dict(username="submit", oldpassword="submit2", newpassword1='submit2', newpassword2='wrongpassword2')
+        credentials = dict(username="submit", oldpassword="submit", newpassword1='submit2',
+                           newpassword2='wrongpassword2')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
 
@@ -2015,23 +2016,25 @@ class GetUserByNameTest(WsTestCase):
 
     # 2. Test for ocdb-cli command "user update" ('/users/{username}', PUT)
     # 2.1 Admin changes email of user submit
-    def test_put_change_email(self):
-        data = dict(
+    def test_put_change(self):
+        cookie = self.login_admin()
+
+        new_data = dict(
             id_='asdoökvn',
             name="submit",
             first_name='Submit',
             last_name="Submit",
-            email="new_email",
+            email="Submit",
             phone="",
             roles=["submit", ]
         )
 
-        name = 'submit'
+        name = 'chef'
 
-        body = tornado.escape.json_encode(data)
+        body = tornado.escape.json_encode(new_data)
 
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
-                              headers={"Cookie": self.login_admin()})
+                              headers={"Cookie": cookie})
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 

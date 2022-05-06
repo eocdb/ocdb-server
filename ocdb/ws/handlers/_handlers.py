@@ -1041,7 +1041,9 @@ class GetUserByName(WsRequestHandler):
 
         if 'password' in data_dict:
             raise WsUnprocessable("Cannot handle changing password using 'user update'. " +
-                                  "Use specific password operation (e. g. 'ocdb-cli user pwd').")
+                                  "Use specific password operation (e.g. 'ocdb-cli user pwd').")
+
+        want_to_change_username = data_dict["name"] != user_name
 
         # Todo: Check key used for user name!
         if 'user_name' in data_dict or 'username' in data_dict or 'name' in data_dict:
