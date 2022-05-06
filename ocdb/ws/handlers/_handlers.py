@@ -609,18 +609,24 @@ class StoreDownload(WsRequestHandler):
     def get(self):
         """Provide API operation downloadStoreFiles()."""
         # noinspection PyBroadException,PyUnusedLocal
-        # todo se --> see comments in the lines below
-        expr = self.query.get_param('expr', default=None)    # expr ?
-        region = self.query.get_param_float_list('region', default=None)
-        s_time = self.query.get_param_list('time', default=None)  # which time ?
-        wdepth = self.query.get_param_float_list('wdepth', default=None)   # wdepth ?
-        mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)   # mtype ?
-        wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)  # wlmode ?
-        shallow = self.query.get_param('shallow', default=SHALLOW_DEFAULT)  # shallow ?
-        pmode = self.query.get_param('pmode', default=PMODE_DEFAULT)   # pmode ?
-        pgroup = self.query.get_param_list('pgroup', default=None)   # pgroup ?
-        pname = self.query.get_param_list('pname', default=None)  # pname ?
-        docs = self.query.get_param_bool('docs', default=None)  # docs ?
+        # For details see: https://ocdb.readthedocs.io/en/latest/ocdb-api-cli.html
+        expr = self.query.get_param('expr', default=None)                     # Looks for any files containing any of the words passed. Also, Lucene syntax can be used
+        region = self.query.get_param_float_list('region', default=None)      # Looks for files containing measurements collected in the polygon defined by specified coordinates (format: “[West],[South],[East],[North]”)
+        # Todo: Check, whether it's s_time or start_time
+        s_time = self.query.get_param_list('time', default=None)              # Looks for any files containing measurement collected later than the selected date (format: “2016-07-01”)
+        # Todo: Check, whether it's e_time or end_time
+        # e_time = self.query.get_param_list('time', default=None)              # Looks for any files containing measurement collected earlier than the selected date (format: “2016-07-01”)
+        wdepth = self.query.get_param_float_list('wdepth', default=None)      # Looks for any files containing measurements collected within the defined range of water (bottom) depth (format:”[[min_depth],[max_depth]]”)
+        mtype = self.query.get_param('mtype', default=MTYPE_DEFAULT)          # Measurement type: Filters radiometric data depending on wavelength option. Could be ‘all’, ‘multispectral’ or ‘hyperspectral’
+        wlmode = self.query.get_param('wlmode', default=WLMODE_DEFAULT)       #
+        shallow = self.query.get_param('shallow', default=SHALLOW_DEFAULT)    # Shallow waters: Set to ‘yes’ to include also measurements indicated as done in shallow waters by the PIs (Default is ‘no’)
+        # Can be set either to ‘contains’ (to filter results based on selected pgroup or variables), or
+        # to ‘same_cruise’ (to include measurements from cruise during which __all__ the selected groups/variables were acquired), or
+        # to ‘do_not_filter’ (to not filter results at all)
+        pmode = self.query.get_param('pmode', default=PMODE_DEFAULT)
+        pgroup = self.query.get_param_list('pgroup', default=None)            # Parameter group: Looks for files containing only certain geophysical variable types. Refer to [Search](ocdb-search.md) chapter for the complete list
+        pname = self.query.get_param_list('pname', default=None)              # Parameter (Variable): Looks for files containing only the specified variables. A complete list of queryable variables are available [here](ocdb-standard-field-unit.md)
+        docs = self.query.get_param_bool('docs', default=None)                #
 
         result = download_store_files(self.ws_context, expr=expr, region=region, s_time=s_time, wdepth=wdepth,
                                       mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
