@@ -337,6 +337,7 @@ class DownloadSubmissionFile(WsRequestHandler):
                     break
                 self.write(data)
 
+
 # Todo: The class UpdateSubmissionStatus is misleading and should be refactored to
 #       UpdateSubmissionDetails (see name of former action button!).
 #       If the code is correct, the action button might work again and could be enabled.
@@ -373,7 +374,7 @@ class UpdateSubmissionStatus(WsRequestHandler):
 
         # Does the value None for key status corresponds to and is interpreted as 'unset'?
         if 'status' in body_dict:
-            new_status = body_dict.status
+            new_status = body_dict['status']
         else:
             new_status = None
 
@@ -510,7 +511,7 @@ class HandleSubmissionFile(WsRequestHandler):
         else:
             self.set_status(400,
                             reason=f"File name {files[0].filename} "
-                            f"exists already in submission. Please use re-upload feature")
+                                   f"exists already in submission. Please use re-upload feature")
             return
 
         self.set_status(200, reason="OK")
@@ -577,7 +578,7 @@ class HandleSubmissionFile(WsRequestHandler):
 
 
 class Handledecode(WsRequestHandler):
-    #def options(self):
+    # def options(self):
     #    print('Hello')
 
     def get(self):
@@ -946,7 +947,7 @@ class LoginUser(WsRequestHandler):
 
         user_info = login_user(self.ws_context, username=username, password=password)
         if user_info is not None:
-            #expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)
+            # expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)
             self.set_secure_cookie("user", username, expires_days=1, expires=None)
 
         if 'password' in user_info:
@@ -964,15 +965,27 @@ class LoginUser(WsRequestHandler):
         username = credentials.get('username')
         new_password1 = credentials.get('newpassword1')
         new_password2 = credentials.get('newpassword2')
-        old_password = credentials.get('oldpassword')
 
         if username is None:
             username = current_user
 
-        # current_user changed to user_name
-        user = self.ws_context.get_user(username, old_password)
+        same = username == current_user
+
+        if same and not ('oldpassword' in credentials):
+            self.set_status(status_code=403, reason="Old password is missing.")
+            return
+
+        if same:
+            oldpassword = credentials.get('oldpassword')
+            user = self.ws_context.get_user(username, oldpassword)
+            if user is None:
+                self.set_status(status_code=403, reason="Current password does not match.")
+                return
+        else:
+            user = self.ws_context.get_user(username)
+
         if user is None:
-            self.set_status(status_code=403, reason="Current password does not match.")
+            self.set_status(status_code=403, reason='User with name "' + username + '" does not exist.')
             return
 
         if username != current_user and not self.has_admin_rights():
@@ -1082,6 +1095,7 @@ def _ensure_string_argument(arg_value, arg_name: str):
         arg_value = arg_value.decode("utf-8")
 
     return arg_value
+
 
 def _ensure_int_argument(arg_value, arg_name: str):
     if isinstance(arg_value, list):

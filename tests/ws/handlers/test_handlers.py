@@ -552,8 +552,8 @@ class UpdateSubmissionStatusTest(WsTestCase):
             self.ctx.db_driver.add_submission(submission)
 
             body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED,
-                                               "date": "20180923",
-                                               'publication_date': '20180923',
+                                               "date": "20250923",
+                                               'publication_date': '20250923',
                                                'allow_publication': False,
                                                })
             response = self.fetch(API_URL_PREFIX + f"/store/status/submission/{submission_id}", body=body, method='PUT',
@@ -1854,10 +1854,10 @@ class LoginUsersTest(WsTestCase):
         actual_response_data['id'] = ''
         self.assertEqual(expected_response_data, actual_response_data)
 
-    def test_change_own_passwd(self):
-        cookie = self.login_admin()
+    def test_change_own_password(self):
+        cookie = self.login_submit()
 
-        credentials = dict(username="submit", oldpassword="eocdb_chef", newpassword1='submit2', newpassword2='submit2')
+        credentials = dict(username="submit", oldpassword="submit", newpassword1='submit2', newpassword2='submit2')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
 
@@ -1866,6 +1866,19 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
         # self.assertEqual('submit2', user['password'])
+
+    def test_admin_will_change_the_passwd_of_another_user(self):
+        cookie = self.login_admin()
+
+        credentials = dict(username='submit', newpassword1='submit2', newpassword2='submit2')
+        body = tornado.escape.json_encode(credentials)
+        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+
+        user = self.ctx.get_user('submit').to_dict()
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('OK', response.reason)
+        self.assertEqual('submit2', user['password'])
 
     def test_change_own_passwd_wrong_old_passwd(self):
         cookie = self.login_submit()
@@ -1892,7 +1905,7 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual('OK', response.reason)
         # self.assertEqual('submit2', user['password'])
 
-    def test_change_passwd_from_somone_else_without_rights(self):
+    def test_change_passwd_from_somone_else_without_admin_rights(self):
         cookie = self.login_submit()
 
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
@@ -1905,7 +1918,7 @@ class LoginUsersTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
 
         self.assertEqual(403, response.code)
-        self.assertEqual('Current password does not match.', response.reason)
+        self.assertEqual('Not enough rights to perform this operation.', response.reason)
 
 
 class LogoutUsersTest(WsTestCase):
