@@ -626,7 +626,7 @@ class StoreDownload(WsRequestHandler):
         pmode = self.query.get_param('pmode', default=PMODE_DEFAULT)
         pgroup = self.query.get_param_list('pgroup', default=None)            # Parameter group: Looks for files containing only certain geophysical variable types. Refer to [Search](ocdb-search.md) chapter for the complete list
         pname = self.query.get_param_list('pname', default=None)              # Parameter (Variable): Looks for files containing only the specified variables. A complete list of queryable variables are available [here](ocdb-standard-field-unit.md)
-        docs = self.query.get_param_bool('docs', default=None)                #
+        docs = self.query.get_param_bool('docs', default=None)                # Shall documents be downloaded as well?
 
         result = download_store_files(self.ws_context, expr=expr, region=region, s_time=s_time, wdepth=wdepth,
                                       mtype=mtype, wlmode=wlmode, shallow=shallow, pmode=pmode, pgroup=pgroup,
