@@ -2016,7 +2016,7 @@ class GetUserByNameTest(WsTestCase):
 
     # 2. Test for ocdb-cli command "user update" ('/users/{username}', PUT)
     # 2.1 Admin changes email of user submit
-    def test_put_change(self):
+    def test_put_admin_changes_own_name(self):
         cookie = self.login_admin()
 
         new_data = dict(
@@ -2044,7 +2044,7 @@ class GetUserByNameTest(WsTestCase):
 
     def test_put_prevent_key_password(self):
         data = dict(
-            password="submit",
+            password="new_password",
         )
 
         name = 'chef'
@@ -2054,12 +2054,12 @@ class GetUserByNameTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
                               headers={"Cookie": self.login_admin()})
         self.assertEqual(422, response.code)
-        self.assertEqual("Cannot handle changing password using 'user update'. Use specific password (pwd) operation.",
+        self.assertEqual("Cannot handle changing password using 'user update'. Use specific password operation (e.g. 'ocdb-cli user pwd').",
                          response.reason)
 
-    def test_put_prevent_key_username(self):
+    def test_put_prevent_key_id(self):
         data = dict(
-            name="submit",
+            id_="new_id",
         )
 
         name = 'chef'
@@ -2069,7 +2069,7 @@ class GetUserByNameTest(WsTestCase):
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
                               headers={"Cookie": self.login_admin()})
         self.assertEqual(422, response.code)
-        self.assertEqual("Cannot handle changing username.",
+        self.assertEqual("Changing user id is not allowed. Delete user (including submissions!) and add new user instead.",
                          response.reason)
 
     def test_put_not_logged_in(self):
@@ -2078,7 +2078,7 @@ class GetUserByNameTest(WsTestCase):
         self.assertEqual(403, response.code)
         self.assertEqual('Please login.', response.reason)
 
-    def test_put_not_own_user_name(self):
+    def test_put_submit_user_changes_other_user_name(self):
         user = DbUser(
             id_='asdoökvn',
             name="helge",
@@ -2117,9 +2117,10 @@ class GetUserByNameTest(WsTestCase):
 
     # 3. Test for ocdb-cli command user delete ('/users/{username}', DELETE)
     def test_delete(self):
+        new_user = 'new_user'
         user = DbUser(
-            id_='asdoökvnd',
-            name="helge",
+            id_='asdoökvn',
+            name=new_user,
             password="submit",
             first_name='Submit',
             last_name="Submit",
@@ -2129,11 +2130,12 @@ class GetUserByNameTest(WsTestCase):
         )
         create_user(self.ctx, user=user)
 
-        response = self.fetch(API_URL_PREFIX + "/users/helge", method='DELETE', headers={'Cookie': self.login_admin()})
+        response = self.fetch(API_URL_PREFIX + "/users/" + new_user,
+                              method='DELETE', headers={'Cookie': self.login_admin()})
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        expected_response_data = {'message': 'User helge deleted'}
+        expected_response_data = {'message': 'User ' + new_user + ' deleted'}
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
