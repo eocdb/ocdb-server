@@ -1840,6 +1840,7 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
     def test_submit_user_changes_own_password(self):
         cookie = self.login_submit()
 
+        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         credentials = dict(username="submit", oldpassword="submit", newpassword1='submit2', newpassword2='submit2')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
@@ -1854,6 +1855,7 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
     def test_submit_user_changes_own_password_without_username(self):
         cookie = self.login_submit()
 
+        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         credentials = dict(oldpassword="submit", newpassword1='submit2', newpassword2='submit2')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
@@ -1868,6 +1870,7 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
     def test_submit_user_changes_own_passwd_with_wrong_old_passwd(self):
         cookie = self.login_submit()
 
+        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         credentials = dict(username="submit", oldpassword="submit22", newpassword1='submit2', newpassword2='submit2')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
@@ -1881,7 +1884,7 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
     def test_submit_user_changes_own_passwd_with_wrong_newpassword2(self):
         cookie = self.login_submit()
 
-        # Todo: Does the initial password submit is correct or the changed password submit2, meanwhile? My first guess is submit 2.
+        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         credentials = dict(username="submit", oldpassword="submit", newpassword1='submit2',
                            newpassword2='wrongpassword2')
         body = tornado.escape.json_encode(credentials)
@@ -1902,6 +1905,7 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
 
         create_user(self.ctx, user)
 
+        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         credentials = dict(username="scott", oldpassword="tiger", newpassword1='sdfv', newpassword2='sdfv')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
@@ -1918,6 +1922,7 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
 
         create_user(self.ctx, user)
 
+        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         credentials = dict(username="scott", oldpassword="eocdb_chef", newpassword1='sdfv', newpassword2='sdfv')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
@@ -1935,6 +1940,7 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
     def test_admin_will_change_the_passwd_of_submit_user_without_oldpassword(self):
         cookie = self.login_admin()
 
+        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         credentials = dict(username='submit', newpassword1='submit2', newpassword2='submit2')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
@@ -1949,6 +1955,7 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
     def test_admin_will_change_the_passwd_of_submit_user(self):
         cookie = self.login_admin()
 
+        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         credentials = dict(username='submit', oldpassword="eocdb_chef", newpassword1='submit2', newpassword2='submit2')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})

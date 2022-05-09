@@ -971,6 +971,7 @@ class LoginUser(WsRequestHandler):
 
         same = username == current_user
 
+        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         if same and not ('oldpassword' in credentials):
             self.set_status(status_code=403, reason="Old password is missing.")
             return
