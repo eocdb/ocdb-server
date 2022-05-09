@@ -719,6 +719,7 @@ class HandleSubmissionFileTest(WsTestCase):
                                     status=QC_STATUS_VALIDATED,
                                     result=DatasetValidationResult(status="WARNING", issues=[
                                         Issue(type="WARNING", description="This might be wrong")]))]
+            # user.id ruft die Getter-Methode auf um die Property "id_" zu bekommen!
             db_subm = DbSubmission(status="Hellyeah", user_id=user.id, submission_id="submitme", files=files,
                                    qc_status="OK",
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),

@@ -1070,12 +1070,16 @@ class GetUserByName(WsRequestHandler):
         if want_to_change_roles and authorized is False:
             raise WsUnprocessable("Not enough access rights to change roles.")
 
-        update_user(self.ws_context, user_name=user_name, data=data_dict)
+        updated = update_user(self.ws_context, user_name=user_name, data=data_dict)
 
-        msg = f'User {user_name} updated.'
-        if user_name != new_user_name:
-            msg += ' User has been renamed to ' + new_user_name + '.'
-        self.finish(tornado.escape.json_encode({'message': msg}))
+        if updated:
+            msg = f'User {user_name} updated.'
+            if user_name != new_user_name:
+                msg += ' User has been renamed to ' + new_user_name + '.'
+            self.finish(tornado.escape.json_encode({'message': msg}))
+        else:
+            msg = f'User {user_name} not updated.'
+            self.finish(tornado.escape.json_encode({'message': msg}))
 
     @_login_required
     @_admin_required
