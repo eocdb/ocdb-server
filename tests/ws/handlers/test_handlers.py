@@ -2113,17 +2113,14 @@ class GetUserByNameTest(WsTestCase):
 
     # 2. Test for ocdb-cli command "user update" ('/users/{username}', PUT)
     # 2.1 Admin changes email of user submit
-    def test_put_admin_changes_own_name(self):
-        cookie = self.login_admin()
-
+    def test_put_admin_changes_several_fields(self):
         new_data = dict(
-            id_='asdoökvn',
             name="submit",
             first_name='Submit',
             last_name="Submit",
             email="Submit",
             phone="",
-            roles=["submit", ]
+            roles=["submit"]
         )
 
         name = 'chef'
@@ -2131,15 +2128,30 @@ class GetUserByNameTest(WsTestCase):
         body = tornado.escape.json_encode(new_data)
 
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
-                              headers={"Cookie": cookie})
+                              headers={"Cookie": self.login_admin()})
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
 
-        expected_response_data = {'message': 'User submit updated'}
+        expected_response_data = {'message': 'User chef updated. User has been renamed to submit.'}
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(expected_response_data, actual_response_data)
 
-    def test_put_prevent_key_password(self):
+    def test_put_changing_user_id_is_not_allowed(self):
+
+        new_data = dict(
+            id="gaga"
+        )
+
+        name = 'chef'
+
+        body = tornado.escape.json_encode(new_data)
+
+        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
+                              headers={"Cookie": self.login_admin()})
+        self.assertEqual(422, response.code)
+        self.assertEqual("Changing the user id is not allowed.", response.reason)
+
+    def test_put_changing_password_is_not_possible_using_the_method_user_update(self):
         data = dict(
             password="new_password",
         )
@@ -2152,21 +2164,6 @@ class GetUserByNameTest(WsTestCase):
                               headers={"Cookie": self.login_admin()})
         self.assertEqual(422, response.code)
         self.assertEqual("Cannot handle changing password using 'user update'. Use specific password operation (e.g. 'ocdb-cli user pwd').",
-                         response.reason)
-
-    def test_put_prevent_key_id(self):
-        data = dict(
-            id_="new_id",
-        )
-
-        name = 'chef'
-
-        body = tornado.escape.json_encode(data)
-
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
-                              headers={"Cookie": self.login_admin()})
-        self.assertEqual(422, response.code)
-        self.assertEqual("Changing user id is not allowed. Delete user (including submissions!) and add new user instead.",
                          response.reason)
 
     def test_put_not_logged_in(self):
@@ -2198,17 +2195,16 @@ class GetUserByNameTest(WsTestCase):
         self.assertEqual('Not enough access rights to perform operations on user chef.', response.reason)
 
     # Todo: Check the added test
-    def test_put_submit_user_changes_own_role(self):
-        user = DbUser(
-            roles=["admin", ]
+    def test_put_changing_of_own_role_not_allowed_for_submit_user(self):
+        data = dict(
+            roles=["admin"]
         )
         name = 'submit'
-        data = user.to_dict()
         body = tornado.escape.json_encode(data)
         response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
                               headers={"Cookie": self.login_submit()})
-        self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operations on user submit.', response.reason)
+        self.assertEqual(401, response.code)
+        self.assertEqual('Admin role required to change roles.', response.reason)
 
     # Todo: Shall we prevent user from changing id_?
 

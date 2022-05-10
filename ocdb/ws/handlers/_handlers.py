@@ -971,7 +971,6 @@ class LoginUser(WsRequestHandler):
 
         same = username == current_user
 
-        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         if same and not ('oldpassword' in credentials):
             self.set_status(status_code=403, reason="Old password is missing.")
             return
@@ -1042,10 +1041,8 @@ class GetUserByName(WsRequestHandler):
 
         current_user_infos = get_user_by_name(self.ws_context, user_name=user_name)
 
-        current_user_id = current_user_infos['id_']
-        new_user_id = data_dict['id_']
-        if current_user_id != new_user_id:
-            raise WsUnprocessable("Changing user id is not allowed. Delete user (including submissions!) and add new user instead.")
+        if 'id' in data_dict:
+            raise WsUnprocessable("Changing the user id is not allowed.")
 
         if 'password' in data_dict:
             raise WsUnprocessable("Cannot handle changing password using 'user update'. " +
@@ -1054,28 +1051,31 @@ class GetUserByName(WsRequestHandler):
         if not user_name:
             user_name = self.get_current_user()
 
-        new_user_name = data_dict['name']
-
-        want_to_change_username = new_user_name != user_name
         authorized = self.has_admin_rights()
-        if want_to_change_username and authorized is False:
-            raise WsUnprocessable("Not enough access rights to change user name.")
 
-        current_roles = current_user_infos['roles']
-        new_roles = data_dict['roles']
-        # sorting both the lists
-        current_roles.sort()
-        new_roles.sort()
-        # using == to check if lists are equal
-        want_to_change_roles = current_roles != new_roles
-        if want_to_change_roles and authorized is False:
-            raise WsUnprocessable("Not enough access rights to change roles.")
+        want_to_change_username = False
+        if 'name' in data_dict:
+            new_user_name = data_dict['name']
+            want_to_change_username = new_user_name != user_name
+            if want_to_change_username and authorized is False:
+                raise WsUnauthorizedError("Admin role required to change user name.")
+
+        if 'roles' in data_dict:
+            current_roles = current_user_infos['roles']
+            new_roles = data_dict['roles']
+            # sorting both the lists
+            current_roles.sort()
+            new_roles.sort()
+            # using == to check if lists are equal
+            want_to_change_roles = current_roles != new_roles
+            if want_to_change_roles and authorized is False:
+                raise WsUnauthorizedError("Admin role required to change roles.")
 
         updated = update_user(self.ws_context, user_name=user_name, data=data_dict)
 
         if updated:
             msg = f'User {user_name} updated.'
-            if user_name != new_user_name:
+            if want_to_change_username:
                 msg += ' User has been renamed to ' + new_user_name + '.'
             self.finish(tornado.escape.json_encode({'message': msg}))
         else:
