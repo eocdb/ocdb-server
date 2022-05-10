@@ -104,10 +104,10 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
         create_user(ctx=self.ctx, user=user)
 
         user = DbUser(
-            id_='eocdb_chef_id',
+            id_='ocdb_chef_id',
             name="chef",
-            password="eocdb_chef",
-            first_name='eocdb',
+            password="ocdb_chef",
+            first_name='ocdb',
             last_name="chef",
             email="",
             phone="",
@@ -190,7 +190,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def login_admin(self, client_version=None) -> Optional[str]:
         client_version = client_version or MIN_CLIENT_VERSION
-        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': client_version}
+        credentials = {'username': "chef", 'password': "ocdb_chef", 'client_version': client_version}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
         self.assertEqual(200, response.code)
@@ -203,7 +203,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def login_admin_no_assert(self, client_version=None):
         client_version = client_version or MIN_CLIENT_VERSION
-        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': client_version}
+        credentials = {'username': "chef", 'password': "ocdb_chef", 'client_version': client_version}
         body = tornado.escape.json_encode(credentials)
 
         return self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
@@ -1904,8 +1904,10 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual(401, response.code)
         self.assertEqual('Unknown username or password', response.reason)
 
-    # 1.2 Tests for ocdb-cli command "user login": method LoginUser ('/users/login', GET)
-    # who_am_i_response = self.fetch(API_URL_PREFIX + '/users/login', method='GET', body=body, headers={"Cookie": cookie})
+
+class WhoamiTest(WsTestCase):
+
+    # Tests for ocdb-cli command "user whoami": method LoginUser ('/users/login', GET)
     def test_who_am_i_as_submit(self):
         cookie = self.login_submit()
 
@@ -1923,12 +1925,13 @@ class LoginUsersTest(WsTestCase):
 
 
 # Tests e.g. for ocdb-cli command "user pwd": method LoginUser ('/users/login', PUT)
-class UsecasesForChangingPasswordsTest(WsTestCase):
+class ChangingPasswordTest(WsTestCase):
 
     # 2.1 Submit user is logged in and tries to change its own password
-    def test_submit_user_changes_own_password(self):
+    def test_submit_user_changes_own_password_with_username(self):
         cookie = self.login_submit()
 
+        # username is not required to change own pwd.
         # Oldpassword is required to change own password, not to change pwd of other users (admins only).
         credentials = dict(username="submit", oldpassword="submit", newpassword1='submit2', newpassword2='submit2')
         body = tornado.escape.json_encode(credentials)
@@ -1936,6 +1939,13 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
 
         # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
 
+        # Todo:
+        #   When executing:
+        #  "ocdb-cli user pwd --username test1 --oldpassword secret --newpassword1 secret2 --newpassword2 secret2":
+        #  The following failure is raised:
+        #  "Error: no such option: --username"
+        #  because the key --username has to be omitted.
+        #  How can we test this?
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
         # self.assertEqual('submit2', user['password'])
@@ -1970,20 +1980,23 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
         self.assertEqual('Current password does not match.', response.reason)
 
     # 2.3.2 Submit user logs in and tries to change own password with wrong newpassword2
-    def test_submit_user_changes_own_passwd_with_wrong_newpassword2(self):
-        cookie = self.login_submit()
-
-        # Oldpassword is required to change own password, not to change pwd of other users (admins only).
-        credentials = dict(username="submit", oldpassword="submit", newpassword1='submit2',
-                           newpassword2='wrongpassword2')
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
-
-        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
-
-        self.assertEqual(403, response.code)
-        # Todo: Please check error message!
-        self.assertEqual("Passwords don't match.", response.reason)
+    #
+    # Currently, Iam not aware of a ocdb-cli or webui use case, in which user inputs
+    #
+    # def test_submit_user_changes_own_passwd_with_wrong_newpassword2(self):
+    #     cookie = self.login_submit()
+    #
+    #     # Oldpassword is required to change own password, not to change pwd of other users (admins only).
+    #     credentials = dict(username="submit", oldpassword="submit", newpassword1='submit2',
+    #                        newpassword2='wrongpassword2')
+    #     body = tornado.escape.json_encode(credentials)
+    #     response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
+    #
+    #     # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
+    #
+    #     self.assertEqual(403, response.code)
+    #     # Todo: Please check error message!
+    #     self.assertEqual("Passwords don't match.", response.reason)
 
     # 2.3.3 Submit user logs in and tries to change password of another user
     def test_submit_user_changes_passwd_from_someone_else_without_admin_rights(self):
@@ -2003,7 +2016,7 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
         self.assertEqual('Not enough rights to perform this operation.', response.reason)
 
     # 2.4 Admin creates new user and changes password
-    def test_change_passwd(self):
+    def test_admin_change_passwd_of_submit_user(self):
         cookie = self.login_admin()
 
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
@@ -2012,7 +2025,7 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
         create_user(self.ctx, user)
 
         # Oldpassword is required to change own password, not to change pwd of other users (admins only).
-        credentials = dict(username="scott", oldpassword="eocdb_chef", newpassword1='sdfv', newpassword2='sdfv')
+        credentials = dict(username="scott", newpassword1='sdfv', newpassword2='sdfv')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
 
@@ -2044,21 +2057,16 @@ class UsecasesForChangingPasswordsTest(WsTestCase):
     def test_admin_will_change_the_passwd_of_submit_user(self):
         cookie = self.login_admin()
 
+        # Username is not required to change own password
         # Oldpassword is required to change own password, not to change pwd of other users (admins only).
-        credentials = dict(username='submit', oldpassword="eocdb_chef", newpassword1='submit2', newpassword2='submit2')
+        credentials = dict(oldpassword="ocdb_chef", newpassword1='submit2', newpassword2='submit2')
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
 
-        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
-
         self.assertEqual(200, response.code)
         self.assertEqual('OK', response.reason)
-        # self.assertEqual('submit2', user['password'])
 
-    # 3. Use case "ocdb-cl user whoami": method LoginUser ('/users/login, GET)
-    # Todo: To be developed
-
-    # 4. Use case "Check client version required for login"
+    # 3. Use case "Check client version required for login"
     def test_login_too_low_client_version(self):
         res = self.login_admin_no_assert(client_version="0.1")
         self.assertEqual(409, res.code)
