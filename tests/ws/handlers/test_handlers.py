@@ -1738,7 +1738,56 @@ class DocfilesAffilProjectCruiseNameTest(WsTestCase):
 
 class HandleUsersTest(WsTestCase):
 
-    def test_add_no_admin(self):
+    def test_list_user_as_admin(self):
+        cookie = self.login_admin()
+
+        response = self.fetch(API_URL_PREFIX + "/users", method='GET', body=body, headers={"Cookie": cookie})
+
+        # response = list of users?
+        # Possible checks:
+        # - type(response) is list?
+        # - current_user_name in response?
+
+        # Use whoami to get current user?
+        who_am_i_response = self.fetch(API_URL_PREFIX + '/users/login', method='GET', body=body, headers={"Cookie": cookie})
+
+        # self.assertEqual(200, response.code)
+        # self.assertEqual('Please login.', response.reason)
+
+    def test_list_user_as_submit(self):
+        cookie = self.login_submit()
+
+        response = self.fetch(API_URL_PREFIX + "/users", method='GET', body=body, headers={"Cookie": cookie})
+
+        self.assertEqual(403, response.code)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+
+    def test_list_user_not_logged_in(self):
+        response = self.fetch(API_URL_PREFIX + "/users", method='GET', body=body)
+
+        self.assertEqual(403, response.code)
+        self.assertEqual('Please login.', response.reason)
+
+    def test_add_user_as_submit_user(self):
+        cookie = self.login_submit()
+
+        data = {
+            'name': 'hinz',
+            'first_name': 'Hinz',
+            'last_name': 'Kunz',
+            'password': 'lappig9',
+            'email': None,
+            'phone': None,
+            'roles': ['admin']
+        }
+        body = tornado.escape.json_encode(data)
+
+        response = self.fetch(API_URL_PREFIX + "/users", method='POST', body=body, headers={"Cookie": cookie})
+        # Todo:Please check response code and reason
+        self.assertEqual(403, response.code)
+        self.assertEqual('Please login.', response.reason)
+
+    def test_add_user_without_being_logged_in(self):
         data = {
             'name': 'hinz',
             'first_name': 'Hinz',
@@ -1754,7 +1803,7 @@ class HandleUsersTest(WsTestCase):
         self.assertEqual(403, response.code)
         self.assertEqual('Please login.', response.reason)
 
-    def test_add_admin(self):
+    def test_add_admin_user_as_admin(self):
         cookie = self.login_admin()
 
         try:
@@ -1776,12 +1825,35 @@ class HandleUsersTest(WsTestCase):
         finally:
             self.logout_admin()
 
+    def test_add_existing_user(self):
+        cookie = self.login_admin()
+
+        data = {
+            'name': 'hinz',
+            'first_name': 'Hinz',
+            'last_name': 'Kunz',
+            'password': 'lappig9',
+            'email': None,
+            'phone': None,
+            'roles': ['admin']
+        }
+        body = tornado.escape.json_encode(data)
+
+        response = self.fetch(API_URL_PREFIX + "/users", method='POST', body=body, headers={"Cookie": cookie})
+
+        self.assertEqual(200, response.code)
+        self.assertEqual('User ' + data['name'] + ' added', response.reason)
+
+        response = self.fetch(API_URL_PREFIX + "/users", method='POST', body=body, headers={"Cookie": cookie})
+
+        # Todo:Please check response code and reason
+        self.assertEqual(400, response.code)
+        self.assertEqual('User exists:  ' + data['name'], response.reason)
+
 
 class LoginUsersTest(WsTestCase):
 
-    # Todo: Shall this test could be split into "ocdb-cli user login" (PUT) and "ocdb-cli user pwd" (POST)?
-
-    # 1. Tests for ocdb-cli command "user login": method LoginUser ('/users/login', POST)
+    # 1.1 Tests for ocdb-cli command "user login": method LoginUser ('/users/login', POST)
     def test_login_existing_user(self):
         user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
                     first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
@@ -1832,11 +1904,28 @@ class LoginUsersTest(WsTestCase):
         self.assertEqual(401, response.code)
         self.assertEqual('Unknown username or password', response.reason)
 
+    # 1.2 Tests for ocdb-cli command "user login": method LoginUser ('/users/login', GET)
+    # who_am_i_response = self.fetch(API_URL_PREFIX + '/users/login', method='GET', body=body, headers={"Cookie": cookie})
+    def test_who_am_i_as_submit(self):
+        cookie = self.login_submit()
+
+        response = self.fetch(API_URL_PREFIX + '/users/login', method='GET', headers={"Cookie": cookie})
+
+        # Todo: Check who_am_i_response for correctness
+        self.assertEqual('I am ', response['message'][0:6])
+
+    def test_whoami_not_logged_in(self):
+
+        response = self.fetch(API_URL_PREFIX + '/users/login', method='GET')
+
+        # self.assertEqual(200, response.code)
+        self.assertEqual('Not Logged in', response['message'])
+
 
 # Tests e.g. for ocdb-cli command "user pwd": method LoginUser ('/users/login', PUT)
 class UsecasesForChangingPasswordsTest(WsTestCase):
 
-    # Submit user is logged in and tries to change its own password
+    # 2.1 Submit user is logged in and tries to change its own password
     def test_submit_user_changes_own_password(self):
         cookie = self.login_submit()
 
