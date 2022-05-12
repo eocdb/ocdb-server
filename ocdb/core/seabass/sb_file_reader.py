@@ -68,16 +68,16 @@ class SbFileReader:
 
         # @Sabine: Folgende Änderungen habe ich durchgeführt, um den Bug ocdb-cli#37 zu lösen.
         #          "Explain inconsistency in number of fields, units and columns"
-        #
+        #          Mein Ansatz:
         #          Es sollte erst geprüft werden, ob die Anzahl von Fields, Units und Columns
         #          identisch sind, bevor aus den beiden Spalte "date" und "time" der Zeitpunkt
-        #          ausgelesen wird. Schließlich kann dieser Fehler der Auslöser sein, warum die
-        #          Zeit- oder Datumsangabe nicht in der richtigen Spalte steht und damit der
-        #          Formattest nicht erfolgreich verläuft.
-        #          Offene Fragen:
-        #          Gehe ich richtig in der Annahme, dass der Submit-Vorgang über die Web-UI
-        #          abgebrochen wird und unten links die Fehlermeldung erscheint?
-        #          Auf dem CLI würde die Meldung entsprechend als Text ausgegeben, richtig?
+        #          ausgelesen wird. Schließlich kann die Inkonsistenz in Fields, Units und
+        #          Spaltenanzahl der Auslöser sein, warum die Zeit- oder Datumsangabe nicht in
+        #          der richtigen Spalte steht und damit der Formattest nicht erfolgreich verläuft.
+        #          Meine Annahmen:
+        #          1. Ich gehe davon aus, dass der Submit-Vorgang, der über die die Web-UI durchgeführt
+        #          wurde, abgebrochen wird, und unten links die Fehlermeldung erscheint.
+        #          2. Auf dem CLI würde die Meldung entsprechend als Text ausgegeben.
         #
         #          Fortsetzung in _extract_date(cls, date_str, time_str, check_gmt=False).
 
