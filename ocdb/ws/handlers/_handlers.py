@@ -368,18 +368,20 @@ class UpdateSubmissionStatus(WsRequestHandler):
         # Does the value None for key publication_date corresponds to and is interpreted as 'unset'?
         new_publication_date = self._extract_date(body_dict)
 
-        current_publication_date = submission.publication_date
+        current_publication_date = None
+        if 'publication_date' in submission:
+            current_publication_date = submission['publication_date']
+
         if new_publication_date is None:
             new_publication_date = current_publication_date
 
-        # Does the value None for key status corresponds to and is interpreted as 'unset'?
+        # Does the value None for the value of key status corresponds to and is interpreted as 'unset'?
+        new_status = None
         if 'status' in body_dict:
             new_status = body_dict['status']
-        else:
-            new_status = None
 
         if new_status is None:
-            current_status = submission.status
+            current_status = submission['status']
             new_status = current_status
 
         try:
