@@ -213,10 +213,9 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
     ensure_valid_path(submission.path)
     ensure_valid_submission_id(submission.submission_id)
 
-    submission.publication_date = None
     submission.status = status
 
-    if status == QC_STATUS_PUBLISHED or status == QC_STATUS_PROCESSED:
+    if status == QC_STATUS_PUBLISHED or status == QC_STATUS_PROCESSED or status == QC_STATUS_VALIDATED:
         submission.publication_date = publication_date
         result = find_datasets(ctx=ctx, submission_id=submission.submission_id)
 
@@ -226,6 +225,7 @@ def update_submission(ctx: WsContext, submission: DbSubmission, status: str, pub
         _publish_submission(ctx, submission, status)
 
     if status == QC_STATUS_CANCELED:
+        submission.publication_date = None
         result = find_datasets(ctx=ctx, submission_id=submission.submission_id)
 
         for ds in result.datasets:
