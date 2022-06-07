@@ -36,6 +36,7 @@ from ..webservice import WsRequestHandler
 from ...core.models.dataset_ids import DatasetIds
 from ...core.models.user import User
 from ...version import MIN_CLIENT_VERSION, MIN_WEBUI_VERSION
+from ._version_check import is_version_valid
 
 MTYPE_DEFAULT = 'all'
 WLMODE_DEFAULT = 'all'
@@ -926,10 +927,10 @@ class LoginUser(WsRequestHandler):
 
         client_allowed = True
 
-        if client == 'cli' and client_version < MIN_CLIENT_VERSION:
+        if client == 'cli' and not is_version_valid(client_version, MIN_CLIENT_VERSION):
             client_allowed = False
 
-        if client == 'webui' and client_version < MIN_WEBUI_VERSION:
+        if client == 'webui' and not is_version_valid(client_version, MIN_WEBUI_VERSION):
             client_allowed = False
 
         if not client_allowed:
