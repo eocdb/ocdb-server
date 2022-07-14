@@ -887,7 +887,7 @@ class HandleUsers(WsRequestHandler):
     @_login_required
     @_user_authorization_required
     def post(self):
-        """Provide API operation createUser()."""
+        """Provide API operation create_user()."""
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
         user = User.from_dict(data_dict)
@@ -899,7 +899,7 @@ class HandleUsers(WsRequestHandler):
     @_login_required
     @_admin_required
     def get(self):
-        """Provide API operation createUser()."""
+        """Provide API operation get_user_names()."""
 
         # transform body with mime-type application/json into a User
         result = get_user_names(self.ws_context)
@@ -911,6 +911,7 @@ class HandleUsers(WsRequestHandler):
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class LoginUser(WsRequestHandler):
     def get(self):
+        """Is used only by 'ocdb-cli whoami'."""
         current_user = self.get_current_user()
         if current_user is None:
             return self.finish(tornado.escape.json_encode({'message': f'Not Logged in'}))
