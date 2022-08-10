@@ -27,6 +27,50 @@ class SbFileReaderTest(unittest.TestCase):
             self.reader._parse(sb_file)
         self.assertEqual('Missing delimiter tag in header', f"{cm.exception}")
 
+    def test_parse__length_of_fields_and_units_are_different(self):
+        sb_file = ['/begin_header\n',
+                   '/delimiter=space\n',
+                   '/start_date=20010723\n',
+                   '/start_time=00:08:00[GMT]\n',
+                   '/north_latitude=11.713[DEG]\n',
+                   '/east_longitude=109.587[DEG]\n',
+                   '/fields=AB,CD,EF,GH,IJ,KL\n', # <-- 6 elements
+                   '/units=ab,cd,ef,gh,ij\n',     # <-- 5 elements
+                   '/end_header\n',
+                   '1 2 3 4 5 6\n']
+        with self.assertRaises(SbFormatError) as cm:
+            self.reader._parse(sb_file)
+        self.assertEqual('Number of fields (6) does not match number of units (5).', f"{cm.exception}")
+
+    def test_parse__length_of_fields_and_number_of_collumns_are_different(self):
+        sb_file = ['/begin_header\n',
+                   '/delimiter=space\n',
+                   '/start_date=20010723\n',
+                   '/start_time=00:08:00[GMT]\n',
+                   '/north_latitude=11.713[DEG]\n',
+                   '/east_longitude=109.587[DEG]\n',
+                   '/fields=AB,CD,EF,GH,IJ,KL\n', # <-- 6 elements
+                   '/units=ab,cd,ef,gh,ij\n',
+                   '/end_header\n',
+                   '1 2 3 4 5 6 23\n']            # <-- 7 elements
+        with self.assertRaises(SbFormatError) as cm:
+            self.reader._parse(sb_file)
+        self.assertEqual('Number of fields (6) does not match number of columns (7).', f"{cm.exception}")
+
+    def test_parse__length_of_fields_units_record_columns_are_all_equal(self):
+        sb_file = ['/begin_header\n',
+                   '/delimiter=space\n',
+                   '/start_date=20010723\n',
+                   '/start_time=00:08:00[GMT]\n',
+                   '/north_latitude=11.713[DEG]\n',
+                   '/east_longitude=109.587[DEG]\n',
+                   '/fields=AB,CD,EF,GH,IJ,KL\n',
+                   '/units=ab,cd,ef,gh,ij,kl\n',
+                   '/end_header\n',
+                   '1 2 3 4 5 6\n']
+        dataset = self.reader._parse(sb_file)
+        self.assertEqual(6, dataset.attribute_count)
+
     def test_parse_location_in_header_time_info_in_header_and_records(self):
         sb_file = ['/begin_header\n',
                    '/data_file_name=pro_03_04AA_L2s.dat\n',
@@ -201,11 +245,11 @@ class SbFileReaderTest(unittest.TestCase):
                    '/end_time=17:48:00[GMT]\n',
                    '/fields=depth,Wt,sal,agp412,agp440,agp488,agp510,agp532,agp555,agp650,agp676,agp715,cgp412,cgp440,cgp488,cgp510,cgp532,cgp555,cgp650,cgp676,cgp715\n',
                    '/end_header\n',
-                   '1.0	-1.67 	 30.515 	 0.172957 	 0.114344 	 0.064189 	 0.053668 	 0.046506 	 0.041751 	 0.03159 	 0.030531 	 0.025931 	 0.246614 	 0.178616 	 0.134436 	 0.1365 	 0.104338 	 0.098068 	 0.080178 	 0.080863 	 0.071719\n',
-                   '1.5	-1.671 	 30.514 	 0.157698 	 0.098079 	 0.051644 	 0.042618 	 0.035022 	 0.030336 	 0.020861 	 0.019751 	 0.016011 	 0.227774 	 0.155066 	 0.104526 	 0.08393 	 0.084763 	 0.071008 	 0.056643 	 0.045593 	 0.041029\n',
-                   '2.0	-1.671 	 30.486 	 0.138603 	 0.081831 	 0.033446 	 0.024684 	 0.018127 	 0.013611 	 0.003874 	 0.003721 	 0.001485 	 0.206371 	 0.137294 	 0.085409 	 0.074618 	 0.065446 	 0.058116 	 0.036772 	 0.035281 	 0.028068\n',
-                   '2.5	-1.671 	 30.489 	 0.138417 	 0.081566 	 0.032896 	 0.02452 	 0.017878 	 0.013523 	 0.003648 	 0.003748 	 0.001215 	 0.192826 	 0.123139 	 0.071535 	 0.058058 	 0.047781 	 0.040366 	 0.020996 	 0.016802 	 0.014773\n',
-                   '3.0	-1.672 	 30.473 	 0.140683 	 0.084343 	 0.035572 	 0.027182 	 0.020158 	 0.01573 	 0.005666 	 0.005809 	 0.002923 	 0.194957 	 0.124843 	 0.073786 	 0.059254 	 0.049095 	 0.041698 	 0.022461 	 0.018807 	 0.016752\n']
+                   '1.0 	 -1.67  	 30.515 	 0.172957 	 0.114344 	 0.064189 	 0.053668 	 0.046506 	 0.041751 	 0.03159 	 0.030531 	 0.025931 	 0.246614 	 0.178616 	 0.134436 	 0.1365 	 0.104338 	 0.098068 	 0.080178 	 0.080863 	 0.071719\n',
+                   '1.5 	 -1.671 	 30.514 	 0.157698 	 0.098079 	 0.051644 	 0.042618 	 0.035022 	 0.030336 	 0.020861 	 0.019751 	 0.016011 	 0.227774 	 0.155066 	 0.104526 	 0.08393 	 0.084763 	 0.071008 	 0.056643 	 0.045593 	 0.041029\n',
+                   '2.0 	 -1.671 	 30.486 	 0.138603 	 0.081831 	 0.033446 	 0.024684 	 0.018127 	 0.013611 	 0.003874 	 0.003721 	 0.001485 	 0.206371 	 0.137294 	 0.085409 	 0.074618 	 0.065446 	 0.058116 	 0.036772 	 0.035281 	 0.028068\n',
+                   '2.5 	 -1.671 	 30.489 	 0.138417 	 0.081566 	 0.032896 	 0.02452 	 0.017878 	 0.013523 	 0.003648 	 0.003748 	 0.001215 	 0.192826 	 0.123139 	 0.071535 	 0.058058 	 0.047781 	 0.040366 	 0.020996 	 0.016802 	 0.014773\n',
+                   '3.0 	 -1.672 	 30.473 	 0.140683 	 0.084343 	 0.035572 	 0.027182 	 0.020158 	 0.01573 	 0.005666 	 0.005809 	 0.002923 	 0.194957 	 0.124843 	 0.073786 	 0.059254 	 0.049095 	 0.041698 	 0.022461 	 0.018807 	 0.016752\n']
 
         dataset = self.reader._parse(sb_file)
         self.assertEqual(2, len(dataset.groups))

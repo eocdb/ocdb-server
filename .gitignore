@@ -1,5 +1,5 @@
 # Config files
-eocdb-server.yml
+ocdb-server.yml
 # Generated files by eocdb/ws/openapi tool
 _openapi_stubs
 
