@@ -36,6 +36,7 @@ from ..webservice import WsRequestHandler
 from ...core.models.dataset_ids import DatasetIds
 from ...core.models.user import User
 from ...version import MIN_CLIENT_VERSION, MIN_WEBUI_VERSION
+from ._version_check import is_version_valid
 
 MTYPE_DEFAULT = 'all'
 WLMODE_DEFAULT = 'all'
@@ -338,10 +339,14 @@ class DownloadSubmissionFile(WsRequestHandler):
                 self.write(data)
 
 
+# Todo: The class UpdateSubmissionStatus is misleading and should be refactored to
+#       UpdateSubmissionDetails (see name of former action button!).
+#       If the code is correct, the action button might work again and could be enabled.
+
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class UpdateSubmissionStatus(WsRequestHandler):
     @_login_required
-    @_submission_authorization_required
+    @_admin_required
     def put(self, submission_id: str):
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
         if submission is None:
@@ -349,19 +354,32 @@ class UpdateSubmissionStatus(WsRequestHandler):
             return
 
         body_dict = tornado.escape.json_decode(self.request.body)
-        status = body_dict["status"]
-        publication_date = self._extract_date(body_dict)
+
+        # Does the value None for key publication_date corresponds to and is interpreted as 'unset'?
+        new_publication_date = self._extract_date(body_dict)
+        if new_publication_date is None and submission.publication_date is not None:
+            new_publication_date = submission.publication_date
+
+        # Does the value None for the value of key status corresponds to and is interpreted as 'unset'?
+        new_status = None
+        if 'status' in body_dict:
+            new_status = body_dict['status']
+
+        if new_status is None:
+            new_status = submission.status
 
         try:
-            success = update_submission(ctx=self.ws_context, submission=submission, status=status,
-                                        publication_date=publication_date)
+            success = update_submission(ctx=self.ws_context, submission=submission, status=new_status,
+                                        publication_date=new_publication_date)
             if not success:
-                self.set_status(400, reason="Error updating submission")
+                self.set_status(400, reason="Error updating submission details (" + str(submission_id) + '/' +
+                                            new_status + '/' + str(new_publication_date) + ')'
+                                )
 
         except SbFormatError as e:
             self.set_status(403, reason="Error in data format. If status is VALIDATED please contact ops: " + str(e))
 
-        self.finish(tornado.escape.json_encode({'message': f'Status of {submission_id} set to {status}'}))
+        self.finish(tornado.escape.json_encode({'message': f'Status of {submission_id} set to {new_status}'}))
 
     @staticmethod
     def _extract_date(body_dict):
@@ -422,6 +440,11 @@ class GetSubmissions(WsRequestHandler):
 
             if sub_dict["publication_date"]:
                 sub_dict["publication_date"] = sub_dict["publication_date"]
+
+            for file_ref in sub_dict['file_refs']:
+                if isinstance(file_ref["creationdate"], datetime.datetime):
+                    file_ref["creationdate"] = file_ref["creationdate"].isoformat()
+
             result_list.append(sub_dict)
 
         self.set_header('Content-Type', 'application/json')
@@ -479,7 +502,7 @@ class HandleSubmissionFile(WsRequestHandler):
         else:
             self.set_status(400,
                             reason=f"File name {files[0].filename} "
-                            f"exists already in submission. Please use re-upload feature")
+                                   f"exists already in submission. Please use re-upload feature")
             return
 
         self.set_status(200, reason="OK")
@@ -546,7 +569,7 @@ class HandleSubmissionFile(WsRequestHandler):
 
 
 class Handledecode(WsRequestHandler):
-    #def options(self):
+    # def options(self):
     #    print('Hello')
 
     def get(self):
@@ -864,7 +887,7 @@ class HandleUsers(WsRequestHandler):
     @_login_required
     @_user_authorization_required
     def post(self):
-        """Provide API operation createUser()."""
+        """Provide API operation create_user()."""
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
         user = User.from_dict(data_dict)
@@ -876,7 +899,7 @@ class HandleUsers(WsRequestHandler):
     @_login_required
     @_admin_required
     def get(self):
-        """Provide API operation createUser()."""
+        """Provide API operation get_user_names()."""
 
         # transform body with mime-type application/json into a User
         result = get_user_names(self.ws_context)
@@ -888,6 +911,7 @@ class HandleUsers(WsRequestHandler):
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class LoginUser(WsRequestHandler):
     def get(self):
+        """Is used only by 'ocdb-cli whoami'."""
         current_user = self.get_current_user()
         if current_user is None:
             return self.finish(tornado.escape.json_encode({'message': f'Not Logged in'}))
@@ -904,10 +928,10 @@ class LoginUser(WsRequestHandler):
 
         client_allowed = True
 
-        if client == 'cli' and client_version < MIN_CLIENT_VERSION:
+        if client == 'cli' and not is_version_valid(client_version, MIN_CLIENT_VERSION):
             client_allowed = False
 
-        if client == 'webui' and client_version < MIN_WEBUI_VERSION:
+        if client == 'webui' and not is_version_valid(client_version, MIN_WEBUI_VERSION):
             client_allowed = False
 
         if not client_allowed:
@@ -922,7 +946,7 @@ class LoginUser(WsRequestHandler):
 
         user_info = login_user(self.ws_context, username=username, password=password)
         if user_info is not None:
-            #expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)
+            # expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)
             self.set_secure_cookie("user", username, expires_days=1, expires=None)
 
         if 'password' in user_info:
@@ -1004,6 +1028,12 @@ class GetUserByName(WsRequestHandler):
             raise WsUnprocessable("Cannot handle changing password using 'user update'. Use specific password (pwd) "
                                   "operation.")
 
+        for key in data_dict:
+            if isinstance(key, str) and not key.startswith('_'):
+                                                                                         # todo why "id_"
+                if not (key in ["name", "first_name", "last_name", "email", "phone", "roles", "id", "id_"]):
+                    raise WsBadRequestError("Key '" + key + "' is invalid.")
+
         if not user_name:
             user_name = self.get_current_user()
 
@@ -1056,6 +1086,7 @@ def _ensure_string_argument(arg_value, arg_name: str):
         arg_value = arg_value.decode("utf-8")
 
     return arg_value
+
 
 def _ensure_int_argument(arg_value, arg_name: str):
     if isinstance(arg_value, list):

@@ -1,5 +1,5 @@
 # Image from https://hub.docker.com (syntax: repo/image:version)
-FROM continuumio/miniconda3:4.10.3-alpine
+FROM continuumio/miniconda3:4.12.0
 
 # Person responsible
 LABEL maintainer=helge.dzierzon@brockmann-consult.de

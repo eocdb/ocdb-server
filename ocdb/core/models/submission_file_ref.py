@@ -11,7 +11,7 @@ class SubmissionFileRef(Model):
                  filename: str,
                  filetype: str,
                  status: str,
-                 creationdate: Optional[datetime] = None):
+                 creationdate: Optional[datetime] = datetime.now()):
         self._index = index
         self._submission_id = submission_id
         self._filename = filename

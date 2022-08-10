@@ -76,6 +76,6 @@ The web service API can be found [here](https://app.swaggerhub.com/apis-docs/for
 
 ## Development Guide
 
-Our development guide can be found [here](https://github.com/bcdev/ocdb-server/tree/master/docs/devguide.md).
+Our development guide can be found [here](https://gitlab.eumetsat.int/OC/External/OC-DB/ocdb-server/-/blob/master/docs/devguide.md).
 
 

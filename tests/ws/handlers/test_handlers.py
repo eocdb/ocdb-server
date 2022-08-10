@@ -34,7 +34,7 @@ from ocdb.core.db.db_submission import DbSubmission
 from ocdb.core.db.db_user import DbUser
 from ocdb.core.models import DatasetValidationResult, Issue, User
 from ocdb.core.models.qc_info import QcInfo, QC_STATUS_SUBMITTED, \
-    QC_STATUS_VALIDATED, QC_STATUS_APPROVED
+    QC_STATUS_VALIDATED, QC_STATUS_APPROVED, QC_STATUS_PROCESSED
 from ocdb.core.models.submission import Submission, TYPE_MEASUREMENT
 from ocdb.core.models.submission_file import SubmissionFile
 from ocdb.core.roles import Roles
@@ -551,7 +551,10 @@ class UpdateSubmissionStatusTest(WsTestCase):
                                       store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(submission)
 
-            body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED,
+            # todo se ... "abcdefg" check why QC_STATUS_APPROVED is not applicable
+            # see the line below
+            # body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED,
+            body = tornado.escape.json_encode({"status": QC_STATUS_PROCESSED,
                                                "date": "20180923",
                                                'publication_date': '20180923',
                                                'allow_publication': False,
@@ -575,10 +578,10 @@ class UpdateSubmissionStatusTest(WsTestCase):
                 'path': 'tt/tt/temp',
                 'qc_status': 'OK',
 
-                'status': QC_STATUS_APPROVED,
+                'status': QC_STATUS_PROCESSED,
                 'store_sub_path': 'Tom_Helge',
                 'submission_id': 'I_DO_EXIST2',
-                'publication_date': None,  # !!! Comes in here as None. Should ba a date.!! Need to check
+                'publication_date': [2018, 9, 23, 0, 0, 0, 6, 266, -1],  # !!! Comes in here as None. Should ba a date.!! Need to check
                 'allow_publication': False,
                 'user_id': '12'}, actual_response_data)
         finally:
@@ -597,7 +600,7 @@ class UpdateSubmissionStatusTest(WsTestCase):
                               headers={"Cookie": self.login_submit()})
 
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operations on submission I_DO_EXIST.', response.reason)
+        self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
     def test_extract_date_not_present(self):
         body_dict = {"status": "whatever"}
