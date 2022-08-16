@@ -359,7 +359,7 @@ class SbFileReader:
         if (not(1900 <= year <= current_year) or
                 not(1 <= month <= 12) or
                 not(1 <= day <= 31)):
-            raise SbFormatError(f"Invalid date ({date_str}).\n" +
+            raise SbFormatError(f"Invalid date ({date_str}). Format corresponds to YYYYMMDD.\n" +
                                 f"Valid value ranges for year month day are (1900-current_year) (1-12) (1-31)")
 
         if '[GMT]' in time_str:

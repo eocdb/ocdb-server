@@ -9,35 +9,37 @@ class UtilsTest(unittest.TestCase):
         submission_id = "tintin"
         ensure_valid_submission_id(submission_id)
 
+        msg = "HTTP 400: Please use only alphanumeric characters or underscore in your submission id."
+
         submission_id = "tintin\nhelge"
         with self.assertRaises(WsBadRequestError) as e:
             ensure_valid_submission_id(submission_id)
 
-        self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", str(e.exception))
+        self.assertEqual(msg, str(e.exception))
 
         submission_id = "/tintin"
         with self.assertRaises(WsBadRequestError) as e:
             ensure_valid_submission_id(submission_id)
 
-        self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", str(e.exception))
+        self.assertEqual(msg, str(e.exception))
 
         submission_id = "./tintin"
         with self.assertRaises(WsBadRequestError) as e:
             ensure_valid_submission_id(submission_id)
 
-        self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", str(e.exception))
+        self.assertEqual(msg, str(e.exception))
 
         submission_id = "./tintin\n/."
         with self.assertRaises(WsBadRequestError) as e:
             ensure_valid_submission_id(submission_id)
 
-        self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", str(e.exception))
+        self.assertEqual(msg, str(e.exception))
 
         submission_id = "tintin##"
         with self.assertRaises(WsBadRequestError) as e:
             ensure_valid_submission_id(submission_id)
 
-        self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", str(e.exception))
+        self.assertEqual(msg, str(e.exception))
 
     def test_ensure_valid_path(self):
         path = "test/bla/tintin"
