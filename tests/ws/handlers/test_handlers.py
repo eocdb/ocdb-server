@@ -1765,7 +1765,7 @@ class HandleUsersTest(WsTestCase):
         self.assertEqual(403, response.code)
         self.assertEqual('Please login.', response.reason)
 
-    def test_add_user_as_submit_user(self):
+    def test__add_user__as_submit_user(self):
         cookie = self.login_submit()
 
         data = {
@@ -1784,7 +1784,7 @@ class HandleUsersTest(WsTestCase):
         self.assertEqual(403, response.code)
         self.assertEqual('Not enough access rights to perform operation.', response.reason)
 
-    def test_add_user_without_being_logged_in(self):
+    def test__add_user__without_being_logged_in(self):
         data = {
             'name': 'hinz',
             'first_name': 'Hinz',
@@ -1800,7 +1800,7 @@ class HandleUsersTest(WsTestCase):
         self.assertEqual(403, response.code)
         self.assertEqual('Please login.', response.reason)
 
-    def test_add_admin_user_as_admin(self):
+    def test__add_user__as_admin(self):
         cookie = self.login_admin()
 
         try:

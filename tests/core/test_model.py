@@ -1,7 +1,7 @@
 import unittest
-from typing import List
+from typing import List, Dict, Any, Type
 
-from ocdb.core.model import Model
+from ocdb.core.model import Model, T
 
 
 class ModelTest(unittest.TestCase):
@@ -129,6 +129,19 @@ class PersonQueryResult(Model):
     def __init__(self):
         self._query = None
         self._persons = None
+
+    @classmethod
+    def from_dict(cls: Type[T], dictionary: Dict[str, Any]) -> T:
+        from_dict = super().from_dict(dictionary)
+        persons = from_dict.persons
+        idx = -1
+        for person in persons:
+            idx += 1
+            if isinstance(person, dict):
+                p = Person.from_dict(person)
+                persons.pop(idx)
+                persons.insert(idx, p)
+        return from_dict
 
     @property
     def query(self) -> PersonQuery:
