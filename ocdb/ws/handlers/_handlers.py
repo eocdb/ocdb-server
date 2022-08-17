@@ -36,6 +36,7 @@ from ..webservice import WsRequestHandler
 from ...core.models.dataset_ids import DatasetIds
 from ...core.models.user import User
 from ...version import MIN_CLIENT_VERSION, MIN_WEBUI_VERSION
+from ._version_check import is_version_valid
 
 MTYPE_DEFAULT = 'all'
 WLMODE_DEFAULT = 'all'
@@ -368,9 +369,7 @@ class UpdateSubmissionStatus(WsRequestHandler):
         # Does the value None for key publication_date corresponds to and is interpreted as 'unset'?
         new_publication_date = self._extract_date(body_dict)
 
-        current_publication_date = None
-        if 'publication_date' in submission:
-            current_publication_date = submission['publication_date']
+        current_publication_date = submission.publication_date
 
         if new_publication_date is None:
             new_publication_date = current_publication_date
@@ -889,10 +888,9 @@ class HandleMatchupFiles(WsRequestHandler):
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class HandleUsers(WsRequestHandler):
     @_login_required
-    @_user_authorization_required
+    @_admin_required
     def post(self):
         """Provide API operation createUser()."""
-        # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
         user = User.from_dict(data_dict)
         create_user(self.ws_context, user=user)
@@ -903,9 +901,7 @@ class HandleUsers(WsRequestHandler):
     @_login_required
     @_admin_required
     def get(self):
-        """Provide API operation createUser()."""
-
-        # transform body with mime-type application/json into a User
+        """Provide API operation get_user_names()."""
         result = get_user_names(self.ws_context)
 
         self.set_header('Content-Type', 'application/json')
@@ -917,9 +913,9 @@ class LoginUser(WsRequestHandler):
     def get(self):
         current_user = self.get_current_user()
         if current_user is None:
-            return self.finish(tornado.escape.json_encode({'message': f'Not Logged in'}))
+            return self.finish(tornado.escape.json_encode({'message': f'Not Logged in.'}))
 
-        return self.finish(tornado.escape.json_encode({'message': f'I am {current_user}', 'name': current_user}))
+        return self.finish(tornado.escape.json_encode({'message': f'I am {current_user}.', 'name': current_user}))
 
     def post(self):
         """Provide API operation loginUser()."""
@@ -931,10 +927,10 @@ class LoginUser(WsRequestHandler):
 
         client_allowed = True
 
-        if client == 'cli' and client_version < MIN_CLIENT_VERSION:
+        if client == 'cli' and not is_version_valid(client_version, MIN_CLIENT_VERSION):
             client_allowed = False
 
-        if client == 'webui' and client_version < MIN_WEBUI_VERSION:
+        if client == 'webui' and not is_version_valid(client_version, MIN_WEBUI_VERSION):
             client_allowed = False
 
         if not client_allowed:
