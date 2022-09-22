@@ -2,6 +2,11 @@ import re
 import sys
 
 def readFRMfile(file):
+    """ 
+    read a text file
+    :param file:the path for the uploaded file
+    :return: a list of strings corresponding to each line of the file
+    """
     sc = open(file, 'r')
     sc = sc.readlines()
     # split lines, trim and remove leading slash
@@ -11,6 +16,11 @@ def readFRMfile(file):
     return(alllines)
 
 def getfilekey(scan):
+    """
+    Determine the type of calibration file 
+    :param scan: a list of strings corresponding to each line of the cal file
+    :return: a string, the keyword corresponding to file type
+    """
     ALF = {'!RADCAL':False, '!ANGDATA':False, '!POLDATA':False, '!STRAYDATA':False, '!TEMPDATA':False}
     for key in ALF.keys():
         if key in scan:
@@ -32,6 +42,11 @@ def getfilekey(scan):
 
 ### read all metadata information
 def readFRMmetadata(scan):
+    """
+    Read the medatadata 
+    :param scan: a list of strings corresponding to each line of the cal file
+    :return: a diectionnary with metadata names as keys and metadata information as values
+    """
     metadata = {}
     for line in scan:
         RES = re.match(r'\[(.*?)\]', line)
@@ -51,6 +66,15 @@ def readFRMmetadata(scan):
 
 ### Check that mandatory metadata are valid
 def checkFRMmetadata(filekey, metadataQC, MANDATORY, OPTIONAL):
+    """
+    Determine if file contains enought metadata information
+    :param filekey:  the keyword corresponding to file type (string)
+    :param metadataQC: a dictionnary with metadata names as keys and "valid" or "not valid" as values
+    :param MANDATORY: a dictionnary with file types keywords as kays and the list of mandatory metadata as values
+    :Param OPTIONAL: a dictionnary with file types keywords as kays and the list of optional metadata as values
+    :return: True if file contains enought information, process is stopped otherwhise
+    """
+
     for met in MANDATORY[filekey]:
         try:
             metadataQC[met]

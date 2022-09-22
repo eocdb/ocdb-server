@@ -3,6 +3,13 @@ import re
 
 
 def FRMmetadataQC(metadata, scan, filekey):
+    """
+    Determine for each metadata is their corresponding information is correct
+    :param scan: a list of strings corresponding to each line of the cal file
+    :param metdata: a dictionnary with metadata names as keys and metadata information as values
+    :param filekey:  the keyword corresponding to file type (string)
+    :return: a dictionnary with metadata names as keys and "valid" or "not valid" as values
+    """
     metadataQC = {}
     inst = checkinst(metadata)
     for key in metadata.keys():
@@ -28,6 +35,7 @@ def FRMmetadataQC(metadata, scan, filekey):
     return(metadataQC)
 
 def checkinst(metadata):
+    """return the instrument type code (i.e. SAT for SATLANTIC and SAM for TrIOS)"""
     try:
         dev = metadata['DEVICE']
         code_inst = dev[0:3]
@@ -39,6 +47,7 @@ def checkinst(metadata):
         return "unkown"
 
 def FRMcheckDATE(strdate):
+    """determine if the date is correct"""
     res = "not valid"
     if len(strdate) == 19:
         year = strdate[0:4]
@@ -63,6 +72,9 @@ def FRMcheckDATE(strdate):
 
 
 def FRMcheckDEVICE(dev):
+    """Determine if information for the metadata "DEVICE" is valid
+        valid informations are SAMXXXX or SAT_XXXX for TrIOS and SATLANTIC sensors
+    """
     res = "not valid"
     if len(dev) >= 7:
         code_inst = dev[0:3]
@@ -77,6 +89,7 @@ def FRMcheckDEVICE(dev):
 
 
 def is_valid_float(element: str) -> bool:
+    """determine if a string corresponds to a decimal number"""
     try:
         float(element)
         return True
@@ -84,18 +97,21 @@ def is_valid_float(element: str) -> bool:
         return False
 
 def FRMisempty(element: str) -> str:
+    """determine if a string is not empty and not a decimal number"""
     if element and is_valid_float(element) == False:
         return 'valid'
     else:
         return 'not valid'
 
 def FRMisfloat(element: str) -> str:
+    """return 'valid' is a string corresponds to a decimal number"""
     if is_valid_float(element) :
         return 'valid'
     else :
         return 'not valid'
 
 def FRMcheckCALDATA(caldata, scan, inst):
+    """determine if informations corresponding to CALDATA metadata are valid"""
     # split lines, trim and remove leading slash
     line1 = re.split("[\t]+",caldata)
     isfloat = [is_valid_float(el) for el in line1]
@@ -116,6 +132,7 @@ def FRMcheckCALDATA(caldata, scan, inst):
 
 
 def FRMisNCOLdata(line, key, scan, ncol=4):
+    """determine if metadata informations which have a multi-columns formats are valid"""
     line1 = re.split("[\t]+",line)
     isfloat = [is_valid_float(el) for el in line1]
     res = "not valid"

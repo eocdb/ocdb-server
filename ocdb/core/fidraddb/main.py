@@ -14,6 +14,11 @@ DIR_uploaded_files = "/FRM4SOC/fileformats/"
 file = DIR_uploaded_files+"filename.txt"
 
 def check_FRM_uploaded_file(file):
+    """
+    determin if an uplodaded FRM calibration file has a valid format
+    If yes, file is renamed and copy to the "valid files directories"
+    :param file: the path for the uploaded file
+    """
     # read the file and scann all lines
     scan = readFRMfile(file)
 
