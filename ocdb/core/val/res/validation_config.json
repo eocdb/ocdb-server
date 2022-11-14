@@ -1444,6 +1444,14 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "exact_wavelength",
+      "unit": "nm",
+      "lower_bound": 100,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "f-initial",
       "unit": "none",
       "lower_bound": 0,
@@ -1937,6 +1945,14 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "no2ot",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "no3",
       "unit": "mmol/m^3",
       "lower_bound": 0,
@@ -1987,6 +2003,14 @@
     {
       "name": "oz",
       "unit": "dobson",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "o3ot",
+      "unit": "none",
       "lower_bound": 0,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
@@ -2421,6 +2445,14 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "rho",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "rl",
       "unit": "1/sr",
       "lower_bound": 0,
@@ -2432,6 +2464,14 @@
       "name": "roll",
       "unit": "degrees",
       "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "rot",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
     },
     {
@@ -2771,6 +2811,22 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "total_no2",
+      "unit": "dobson",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "total_precipitable_water",
+      "unit": "cm",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "tpg",
       "unit": "mg/m^3,ug/l",
       "lower_bound": 0,
@@ -2961,6 +3017,14 @@
     {
       "name": "wvp",
       "unit": "cm",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "wvot",
+      "unit": "none",
       "lower_bound": 0,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",

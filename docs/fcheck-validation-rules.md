@@ -408,6 +408,7 @@ See also validation rule configuration section for further details.
     NH4                                 | mmol/m^3                     | positive          |          |       |                         |
     NO2                                 | mmol/m^3                     | positive          |          |       |                         |
     NO2_NO3                             | mmol/m^3                     | positive          |          |       |                         |
+    no2ot                               | unitless                     | positive          |          |       |                         |
     NO3                                 | mmol/m^3                     | positive          |          |       |                         |
     nPF                                 | none                         | positive          |          |       |                         |
     NPP                                 | mg/m^3/d,ug/l/d              | positive          |          |       |                         |
@@ -415,6 +416,7 @@ See also validation rule configuration section for further details.
     oxygen                              | ml/L                         | positive          |          |       |                         |
     oxygen_saturation                   | %                            | positive          |          |       |                         |
     Oz                                  | dobson                       | positive          |          |       |                         |
+    o3ot                                | unitless                     | positive          |          |       |                         |
     P-457                               | mg/m^3,ug/l                  | positive          |          |       |                         |
     PAR                                 | uE/cm^2/s                    | positive          |          |       |                         |
     PC                                  | mg/m^3                       | positive          |          |       |                         |
@@ -472,10 +474,12 @@ See also validation rule configuration section for further details.
     RelAbundance                        | %                            |                   |          |       |                         |
     RelAz                               | degrees                      |                   |          |       |                         |
     Rf                                  | uW/cm^2/nm/sr                | positive          |          |       |                         |
+    Rho                                 | unitless                     | positive          |          |       |                         |
     Rl                                  | 1/sr                         | positive          |          |       |                         |
     roll                                | degrees                      |                   |          |       |                         |
     esroll                              | degrees                      |                   |          |       |                         |
     edroll                              | degrees                      |                   |          |       |                         |
+    rot                                 | unitless                     | positive          |          |       |                         |
     Rpi                                 | unitless                     | positive          |          |       |                         |
     Rrs                                 | 1/sr,sr^-1                   | positive          |          |       |                         |
     rtilt                               | degrees                      |                   |          |       |                         |
@@ -530,6 +534,11 @@ See also validation rule configuration section for further details.
     Tot_Chl_a                           | mg/m^3,ug/l                  | positive          |          |       |                         |
     Tot_Chl_b                           | mg/m^3,ug/l                  | positive          |          |       |                         |
     Tot_Chl_c                           | mg/m^3,ug/l                  | positive          |          |       |                         |
+    total_no2                           | Dobson                       | positive          |          |       |                         |
+    total_precipitable_water            | cm                           | positive          |          |       |                         |
+    Tot_Chl_a                           | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Tot_Chl_b                           | mg/m^3,ug/l                  | positive          |          |       |                         |
+    Tot_Chl_c                           | mg/m^3,ug/l                  | positive          |          |       |                         |
     Tpg                                 | mg/m^3,ug/l                  | positive          |          |       |                         |
     trans                               | %                            | positive          |          |       |                         |
     turbidity                           | NTU                          |                   |          |       |                         |
@@ -560,6 +569,7 @@ See also validation rule configuration section for further details.
     wind                                | m/s                          | positive          |          |       |                         |
     Wt                                  | degreesC                     |                   | -4       | 40    | field_out_of_bounds     |
     Wvp                                 | cm                           | positive          |          |       |                         |
+    wvot                                | unitless                     | positive          |          |       |                         |
     year                                | yyyy                         | non_null year     | 1975     | today |                         |
     Z_90                                | m                            | positive          |          |       |                         |
     Z_DCM                               | m                            | positive          |          |       |                         |
