@@ -17,18 +17,23 @@ def FRMmetadataQC(metadata, scan, filekey):
             metadataQC[key] = FRMcheckDATE(metadata[key])
         if key == 'DEVICE':
             metadataQC[key] = FRMcheckDEVICE(metadata[key])
-        if key == 'CALDATA':
-            if filekey == 'RADCAL':
-                metadataQC[key] = FRMcheckCALDATA(metadata[key], scan, inst)
-            elif filekey in ['POLDATA', 'ANGDATA']:
-                metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=5)
-            elif filekey == 'STRAYDATA':
-                metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=257)
-            elif filekey == 'TEPDATA':
-                metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=3)
+        if key == 'LSF':
+            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=256)
+        if key == 'UNCERTAINTY' and filekey == 'STRAYDATA':
+            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=256)
+        if key == 'UNCERTAINTY' and filekey == 'ANGDATA':
+            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=47)
+        if key == 'COSERROR':
+            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=47)
+        if key == 'CALDATA' and filekey == 'RADCAL':
+            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=10)
+        if  key == 'CALDATA' and filekey in ['POLDATA', 'ANGDATA']:
+            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=6)
+        if key == 'CALDATA' and filekey == 'TEMPDATA':
+            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=4)
         if key in ['PANEL_ID', 'LAMP_ID', 'USER', 'CALLAB']:
             metadataQC[key] = FRMisempty(metadata[key])
-        if key in ['AMBIENT_TEMP', 'LAMP_CCT', 'VERSION', 'POLANGLE', 'REFTEMP']:
+        if key in ['DEVICE_TEMP','AMBIENT_TEMP', 'LAMP_CCT', 'VERSION', 'POLANGLE', 'REFERENCE_TEMP', 'AZIMUTH_ANGLE']:
             metadataQC[key] = FRMisfloat(metadata[key])
         if key in ['PANELDATA', 'LAMPDATA']:
             metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=4)
@@ -80,7 +85,7 @@ def FRMcheckDEVICE(dev):
         code_inst = dev[0:3]
         devQC = None
         if code_inst == 'SAM':
-            devQC = re.search(r'\b(?:\_[0-9][0-9][0-9][0-9])\b', dev[3:8])
+            devQC = re.search(r'\b(?:\_[0-9][0-9][a-zA-Z0-9][a-zA-Z0-9])\b', dev[3:8])
         if code_inst == 'SAT':
             devQC = re.search(r'\b(?:[0-9][0-9][0-9][0-9])\b', dev[3:7])
     if devQC :
@@ -110,38 +115,48 @@ def FRMisfloat(element: str) -> str:
     else :
         return 'not valid'
 
-def FRMcheckCALDATA(caldata, scan, inst):
-    """determine if informations corresponding to CALDATA metadata are valid"""
-    # split lines, trim and remove leading slash
-    line1 = re.split("[\t]+",caldata)
-    isfloat = [is_valid_float(el) for el in line1]
-    res = "not valid"
-    try:
-        istart = scan.index('[CALDATA]')
-        iend = scan.index('[END_OF_CALDATA]')
-        Nlines = iend - istart
-    except:
-        Nlines = 0
-    if Nlines > 5 & all(isfloat):
-        if  inst == 'SAM' and len(line1) == 8:
-        ## check TriOS instrument
-            res = 'valid'
-        elif inst == 'SAT' and len(line1) == 10:
-            res = 'valid'
-    return(res)
-
 
 def FRMisNCOLdata(line, key, scan, ncol=4):
     """determine if metadata informations which have a multi-columns formats are valid"""
     line1 = re.split("[\t]+",line)
+#    print(key)
+#    print(len(line1))
     isfloat = [is_valid_float(el) for el in line1]
     res = "not valid"
     try:
         istart = scan.index('['+key+']')
         iend = scan.index('[END_OF_'+key+']')
         Nlines = iend - istart
+        az = allzeros(scan, key)
     except:
         Nlines = 0
-    if Nlines > 5 and all(isfloat) and len(line1) == ncol:
+    if Nlines > 5 and all(isfloat) and len(line1) == ncol and az == 'NO':
        res = 'valid'
     return res
+
+
+def allzeros(scan, key):
+    """Check if a table of metadata (several columns) are not all zeros """
+    res = 'NO'
+    istart = scan.index('[' + key + ']')
+    iend = scan.index('[END_OF_' + key + ']')
+    p = istart + 2  # first line is skipped because sometime contains non float
+    LOZ = []
+    while p <= iend - 1:
+        line = re.split("[\t]+",scan[p])
+        LOZ.append(islineofzeros(line))
+        p = p + 1
+    if sum(LOZ) == 0:
+        res = 'YES'
+    return(res)
+
+def islineofzeros(line):
+    """ Check if a line is not full of zeros"""
+    res = 0 # we assume this is only zeros
+    for el in line:
+        if is_valid_float(el):
+            if float(el) != 0:
+                res = 1
+    return(res)
+
+
