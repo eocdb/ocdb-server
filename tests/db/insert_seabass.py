@@ -35,7 +35,7 @@ class InsertSeabass():
             for name in files:
                 full_path = os.path.join(root, name)
 
-                if os.path.getsize(full_path) > 8500000:
+                if os.path.getsize(full_path) > 40000000:
                     print("SKIPPING - too large:" + full_path)
                     continue
 

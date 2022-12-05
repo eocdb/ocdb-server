@@ -49,7 +49,6 @@ from ocdb.ws.handlers._handlers import _ensure_string_argument, WsBadRequestErro
 from tests.core.mpf import MultiPartForm
 from tests.helpers import new_test_service_context, new_test_dataset, NOW
 
-
 TEST_DATA = """/begin_header
 /identifier_product_doi=10.5067/SeaBASS/SCOTIA_PRINCE_FERRY/DATA001
 /received=20040220
@@ -86,7 +85,6 @@ TEST_DATA = """/begin_header
 20030603 14:00:38 43.7620 -66.4551 1.30 7.05
 """
 
-
 TEST_DATA_FILE_NAME = ""
 
 
@@ -101,15 +99,15 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
             last_name="Submit",
             email="",
             phone="",
-            roles=["submit", ]
+            roles=["submit"]
         )
         create_user(ctx=self.ctx, user=user)
 
         user = DbUser(
-            id_='eocdb_chef_id',
+            id_='ocdb_chef_id',
             name="chef",
-            password="eocdb_chef",
-            first_name='eocdb',
+            password="ocdb_chef",
+            first_name='ocdb',
             last_name="chef",
             email="",
             phone="",
@@ -192,7 +190,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def login_admin(self, client_version=None) -> Optional[str]:
         client_version = client_version or MIN_CLIENT_VERSION
-        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': client_version}
+        credentials = {'username': "chef", 'password': "ocdb_chef", 'client_version': client_version}
         body = tornado.escape.json_encode(credentials)
         response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
         self.assertEqual(200, response.code)
@@ -205,7 +203,7 @@ class WsTestCase(tornado.testing.AsyncHTTPTestCase):
 
     def login_admin_no_assert(self, client_version=None):
         client_version = client_version or MIN_CLIENT_VERSION
-        credentials = {'username': "chef", 'password': "eocdb_chef", 'client_version': client_version}
+        credentials = {'username': "chef", 'password': "ocdb_chef", 'client_version': client_version}
         body = tornado.escape.json_encode(credentials)
 
         return self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
@@ -535,7 +533,7 @@ class UpdateSubmissionStatusTest(WsTestCase):
         finally:
             self.logout_admin()
 
-    def test_put_approve(self):
+    def test_put_processed(self):
         cookie = self.login_admin()
         try:
             submission_id = "I_DO_EXIST2"
@@ -551,12 +549,9 @@ class UpdateSubmissionStatusTest(WsTestCase):
                                       store_user_path='Tom_Helge')
             self.ctx.db_driver.add_submission(submission)
 
-            # todo se ... "abcdefg" check why QC_STATUS_APPROVED is not applicable
-            # see the line below
-            # body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED,
             body = tornado.escape.json_encode({"status": QC_STATUS_PROCESSED,
-                                               "date": "20180923",
-                                               'publication_date': '20180923',
+                                               "date": "20250923",
+                                               'publication_date': '20250923',
                                                'allow_publication': False,
                                                })
             response = self.fetch(API_URL_PREFIX + f"/store/status/submission/{submission_id}", body=body, method='PUT',
@@ -581,7 +576,7 @@ class UpdateSubmissionStatusTest(WsTestCase):
                 'status': QC_STATUS_PROCESSED,
                 'store_sub_path': 'Tom_Helge',
                 'submission_id': 'I_DO_EXIST2',
-                'publication_date': [2018, 9, 23, 0, 0, 0, 6, 266, -1],  # !!! Comes in here as None. Should ba a date.!! Need to check
+                'publication_date': [2025, 9, 23, 0, 0, 0, 1, 266, -1],  # !!! Comes in here as None. Should ba a date.!! Need to check
                 'allow_publication': False,
                 'user_id': '12'}, actual_response_data)
         finally:
@@ -595,12 +590,14 @@ class UpdateSubmissionStatusTest(WsTestCase):
         self.assertEqual('Please login.', response.reason)
 
     def test_put_not_belong(self):
+        cookie = self.login_submit()
+
         body = tornado.escape.json_encode({"status": QC_STATUS_APPROVED, "date": "20170822"})
         response = self.fetch(API_URL_PREFIX + f"/store/status/submission/I_DO_EXIST", body=body, method='PUT',
-                              headers={"Cookie": self.login_submit()})
+                              headers={"Cookie": cookie})
 
         self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
+        self.assertEqual('Not enough access rights to perform operations on submission I_DO_EXIST.', response.reason)
 
     def test_extract_date_not_present(self):
         body_dict = {"status": "whatever"}
@@ -688,8 +685,10 @@ class HandleSubmissionFileTest(WsTestCase):
         self.assertEqual('Please login.', response.reason)
 
     def test_get_not_belong(self):
+        cookie = self.login_submit()
+
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/I_DO_EXIST/0", method='GET',
-                              headers={"Cookie": self.login_submit()})
+                              headers={"Cookie": cookie})
 
         self.assertEqual(403, response.code)
         self.assertEqual('Not enough access rights to perform operations on submission I_DO_EXIST.', response.reason)
@@ -724,6 +723,7 @@ class HandleSubmissionFileTest(WsTestCase):
                                     status=QC_STATUS_VALIDATED,
                                     result=DatasetValidationResult(status="WARNING", issues=[
                                         Issue(type="WARNING", description="This might be wrong")]))]
+            # user.id calls the getter method to get the property "id_"!
             db_subm = DbSubmission(status="Hellyeah", user_id=user.id, submission_id="submitme", files=files,
                                    qc_status="OK",
                                    path="/root/hell/yeah", date=datetime.datetime(2001, 2, 3, 4, 5, 6),
@@ -753,8 +753,9 @@ class HandleSubmissionFileTest(WsTestCase):
         self.assertEqual('Please login.', response.reason)
 
     def test_delete_not_belong(self):
+        cookie = self.login_submit()
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/I_DO_EXIST/0", method='DELETE',
-                              headers={"Cookie": self.login_submit()})
+                              headers={"Cookie": cookie})
 
         self.assertEqual(403, response.code)
         self.assertEqual('Not enough access rights to perform operations on submission I_DO_EXIST.', response.reason)
@@ -909,13 +910,14 @@ class HandleSubmissionFileTest(WsTestCase):
         self.assertEqual('Please login.', response.reason)
 
     def test_put_not_belong(self):
+        cookie = self.login_submit()
         submissionid = "I_DO_EXIST"
         mpf = MultiPartForm(boundary="HEFFALUMP")
         mpf.add_field("submissionid", submissionid)
         index = 0
         response = self.fetch(API_URL_PREFIX + f"/store/upload/submissionfile/{submissionid}/{index}", method='PUT',
                               body=bytes(mpf),
-                              headers={"Content-Type": mpf.content_type, "Cookie": self.login_submit()})
+                              headers={"Content-Type": mpf.content_type, "Cookie": cookie})
 
         self.assertEqual(403, response.code)
         self.assertEqual('Not enough access rights to perform operations on submission I_DO_EXIST.', response.reason)
@@ -934,9 +936,6 @@ class HandleSubmissionFileTest(WsTestCase):
                "/data_type=scan\n" \
                "/water_depth=-999\n" \
                "/missing=-999\n" \
-               "/delimiter=space\n" \
-               "/fields=wavelength,abs_ap,ap,abs_ad,ad\n" \
-               "/units=nm,unitless,1/m,unitless,1/m\n" \
                "/north_latitude=25.010[DEG]\n" \
                "/south_latitude=25.010[DEG]\n" \
                "/east_longitude=-80.380[DEG]\n" \
@@ -945,6 +944,9 @@ class HandleSubmissionFileTest(WsTestCase):
                "/end_time=21:18:00[GMT]\n" \
                "/start_date=20151116\n" \
                "/end_date=20151116\n" \
+               "/delimiter=space\n" \
+               "/fields=wavelength,abs_ap,ap,abs_ad,ad\n" \
+               "/units=nm,unitless,1/m,unitless,1/m\n" \
                "/end_header\n" \
                "400 0.120725 0.018486 0.059251 0.00714\n" \
                "401  0.121268  0.018595  0.058999  0.007099"
@@ -1066,12 +1068,13 @@ class UpdateSubmissionFileStatusTest(WsTestCase):
         self.assertEqual('Please login.', response.reason)
 
     def test_update_not_belong(self):
+        cookie = self.login_submit()
         submission_id = "I_DO_EXIST"
         index = 8
         status = QC_STATUS_VALIDATED
 
         response = self.fetch(API_URL_PREFIX + f"/store/status/submissionfile/{submission_id}/{index}/{status}",
-                              method='GET', headers={"Cookie": self.login_submit()})
+                              method='GET', headers={"Cookie": cookie})
 
         self.assertEqual(403, response.code)
         self.assertEqual('Not enough access rights to perform operations on submission I_DO_EXIST.', response.reason)
@@ -1111,11 +1114,13 @@ class GetSubmissionsForUserTest(WsTestCase):
         cookie = self.login_submit()
 
         response = self.fetch(API_URL_PREFIX + f"/store/upload/user/submit?"
-                                               f"query-column=user_id&query-operator=equals&query-value=submit2",
+                                               f"query-column=user_id&query-operator=equals&query-value=submit",
                               method='GET', headers={"Cookie": cookie})
         actual_response_data = tornado.escape.json_decode(response.body)
         self.assertEqual(200, response.code)
         self.assertEqual(2, len(actual_response_data))
+        self.assertEqual(True, 'submissions' in actual_response_data)
+        self.assertEqual(1, len(actual_response_data['submissions']))
         self.assertEqual('submit', actual_response_data['submissions'][0]['user_id'])
         self.logout_submit()
 
@@ -1243,8 +1248,9 @@ class StoreDownloadTest(WsTestCase):
 
 class StoreDownloadsubmissionFileTest(WsTestCase):
     def test_get_not_exists(self):
+        cookie = self.login_admin()
         response = self.fetch(API_URL_PREFIX + f"/store/download/submissionfile/I_DO_EXIST2/0", method='GET',
-                              headers={'Cookie': self.login_admin()})
+                              headers={'Cookie': cookie})
         self.assertEqual(400, response.code)
         self.assertEqual('Submission File not found', response.reason)
 
@@ -1740,321 +1746,6 @@ class DocfilesAffilProjectCruiseNameTest(WsTestCase):
         self.assertEqual(expected_response_data, actual_response_data)
 
 
-class HandleUsersTest(WsTestCase):
-
-    def test_add_no_admin(self):
-        data = {
-            'name': 'hinz',
-            'first_name': 'Hinz',
-            'last_name': 'Kunz',
-            'password': 'lappig9',
-            'email': None,
-            'phone': None,
-            'roles': ['admin']
-        }
-        body = tornado.escape.json_encode(data)
-
-        response = self.fetch(API_URL_PREFIX + "/users", method='POST', body=body)
-        self.assertEqual(403, response.code)
-        self.assertEqual('Please login.', response.reason)
-
-    def test_add_admin(self):
-        cookie = self.login_admin()
-
-        try:
-            data = {
-                'name': 'hinz',
-                'first_name': 'Hinz',
-                'last_name': 'Kunz',
-                'password': 'lappig9',
-                'email': None,
-                'phone': None,
-                'roles': ['admin']
-            }
-            body = tornado.escape.json_encode(data)
-
-            response = self.fetch(API_URL_PREFIX + "/users", method='POST', body=body, headers={"Cookie": cookie})
-            self.assertEqual(200, response.code)
-            self.assertEqual('OK', response.reason)
-
-        finally:
-            self.logout_admin()
-
-
-class LoginUsersTest(WsTestCase):
-
-    def test_login_existing_user(self):
-        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
-
-        create_user(self.ctx, user)
-
-        credentials = {'username': "scott", 'password': "tiger", 'client_version': MIN_CLIENT_VERSION}
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        expected_response_data = {
-            'id': '',
-            'name': 'scott',
-            'email': 'bruce.scott@gmail.com',
-            'first_name': 'Bruce',
-            'last_name': 'Scott',
-            'phone': '+34 5678901234',
-            'roles': ['submit', 'admin']
-        }
-
-        actual_response_data = tornado.escape.json_decode(response.body)
-        actual_response_data['id'] = ''
-        self.assertEqual(expected_response_data, actual_response_data)
-
-    def test_login_existing_user_wrong_password(self):
-        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
-
-        create_user(self.ctx, user)
-
-        credentials = {'username': "scott", 'password': "lion", 'client_version': MIN_CLIENT_VERSION}
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
-
-        self.assertEqual(401, response.code)
-        self.assertEqual('Unknown username or password', response.reason)
-
-    def test_login_unknown_user(self):
-        credentials = {'username': "malcolm", 'password': "rattenloch", 'client_version': MIN_CLIENT_VERSION}
-
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='POST', body=body)
-
-        self.assertEqual(401, response.code)
-        self.assertEqual('Unknown username or password', response.reason)
-
-    def test_login_too_low_client_version(self):
-        res = self.login_admin_no_assert(client_version="0.1")
-        self.assertEqual(409, res.code)
-
-    def test_change_passwd(self):
-        cookie = self.login_admin()
-
-        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
-
-        create_user(self.ctx, user)
-
-        credentials = dict(username="scott", oldpassword="eocdb_chef", newpassword1='sdfv', newpassword2='sdfv')
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        expected_response_data = {'id': '', 'message': "User scott's password updated."}
-
-        actual_response_data = tornado.escape.json_decode(response.body)
-        actual_response_data['id'] = ''
-        self.assertEqual(expected_response_data, actual_response_data)
-
-    def test_change_own_passwd(self):
-        cookie = self.login_admin()
-
-        credentials = dict(username="submit", oldpassword="eocdb_chef", newpassword1='submit2', newpassword2='submit2')
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
-
-        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-        # self.assertEqual('submit2', user['password'])
-
-    def test_change_own_passwd_wrong_old_passwd(self):
-        cookie = self.login_submit()
-
-        credentials = dict(username="submit", oldpassword="submit22", newpassword1='submit2', newpassword2='submit2')
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
-
-        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
-
-        self.assertEqual(403, response.code)
-        self.assertEqual('Current password does not match.', response.reason)
-
-    def test_change_passwd_as_admin(self):
-        cookie = self.login_admin()
-
-        credentials = dict(username='submit', oldpassword="eocdb_chef", newpassword1='submit2', newpassword2='submit2')
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
-
-        # user = get_user_by_name(ctx=self.ctx, user_name='submit', retain_password=True)
-
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-        # self.assertEqual('submit2', user['password'])
-
-    def test_change_passwd_from_somone_else_without_rights(self):
-        cookie = self.login_submit()
-
-        user = User(name='scott', last_name='Scott', password='tiger', email='bruce.scott@gmail.com',
-                    first_name='Bruce', roles=[Roles.SUBMIT.value, Roles.ADMIN.value], phone='+34 5678901234')
-
-        create_user(self.ctx, user)
-
-        credentials = dict(username="scott", oldpassword="tiger", newpassword1='sdfv', newpassword2='sdfv')
-        body = tornado.escape.json_encode(credentials)
-        response = self.fetch(API_URL_PREFIX + f"/users/login", method='PUT', body=body, headers={"Cookie": cookie})
-
-        self.assertEqual(403, response.code)
-        self.assertEqual('Current password does not match.', response.reason)
-
-
-class LogoutUsersTest(WsTestCase):
-
-    def test_get_no_user_logged_in(self):
-        response = self.fetch(API_URL_PREFIX + "/users/logout", method='GET')
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-    def test_get(self):
-        self.login_admin()
-
-        response = self.fetch(API_URL_PREFIX + "/users/logout", method='GET')
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-
-class GetUserByNameTest(WsTestCase):
-
-    def test_get(self):
-        name = 'chef'
-
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='GET', headers={"Cookie": self.login_admin()})
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual("chef", actual_response_data['name'])
-        self.assertEqual(['submit', 'admin'], actual_response_data['roles'])
-
-    def test_get_not_logged_in(self):
-        name = 'chef'
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='GET')
-        self.assertEqual(403, response.code)
-        self.assertEqual('Please login.', response.reason)
-
-    def test_get_not_own_user_name(self):
-        name = 'chef'
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='GET', headers={"Cookie": self.login_submit()})
-        self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operations on user chef.', response.reason)
-
-    def test_put(self):
-        data = dict(
-            id_='asdoökvn',
-            name="submit",
-            first_name='Submit',
-            last_name="Submit",
-            email="sdfv",
-            phone="",
-            roles=["submit", ]
-        )
-
-        name = 'chef'
-
-        body = tornado.escape.json_encode(data)
-
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
-                              headers={"Cookie": self.login_admin()})
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        expected_response_data = {'message': 'User chef updated'}
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual(expected_response_data, actual_response_data)
-
-    def test_put_prevent_key_password(self):
-        data = dict(
-            password="submit",
-        )
-
-        name = 'chef'
-
-        body = tornado.escape.json_encode(data)
-
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
-                              headers={"Cookie": self.login_admin()})
-        self.assertEqual(422, response.code)
-        self.assertEqual("Cannot handle changing password using 'user update'. Use specific password (pwd) operation.",
-                         response.reason)
-
-    def test_put_not_logged_in(self):
-        name = 'chef'
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=tornado.escape.json_encode({}))
-        self.assertEqual(403, response.code)
-        self.assertEqual('Please login.', response.reason)
-
-    def test_put_not_own_user_name(self):
-        user = DbUser(
-            id_='asdoökvn',
-            name="helge",
-            password="submit",
-            first_name='Submit',
-            last_name="Submit",
-            email="sdfv",
-            phone="",
-            roles=["submit", ]
-        )
-
-        name = 'chef'
-
-        data = user.to_dict()
-
-        body = tornado.escape.json_encode(data)
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='PUT', body=body,
-                              headers={"Cookie": self.login_submit()})
-        self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operations on user chef.', response.reason)
-
-    def test_delete(self):
-        user = DbUser(
-            id_='asdoökvnd',
-            name="helge",
-            password="submit",
-            first_name='Submit',
-            last_name="Submit",
-            email="sdfv",
-            phone="",
-            roles=["submit", ]
-        )
-        create_user(self.ctx, user=user)
-
-        response = self.fetch(API_URL_PREFIX + "/users/helge", method='DELETE', headers={'Cookie': self.login_admin()})
-        self.assertEqual(200, response.code)
-        self.assertEqual('OK', response.reason)
-
-        expected_response_data = {'message': 'User helge deleted'}
-        actual_response_data = tornado.escape.json_decode(response.body)
-        self.assertEqual(expected_response_data, actual_response_data)
-
-    def test_delete_not_logged_in(self):
-        name = 'chef'
-
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='DELETE')
-        self.assertEqual(403, response.code)
-        self.assertEqual('Please login.', response.reason)
-
-    def test_delete_not_admin(self):
-        name = 'chef'
-
-        response = self.fetch(API_URL_PREFIX + f"/users/{name}", method='DELETE',
-                              headers={"Cookie": self.login_submit()})
-        self.assertEqual(403, response.code)
-        self.assertEqual('Not enough access rights to perform operation.', response.reason)
-
-
 class HelpersTest(unittest.TestCase):
 
     def test_ensure_string_argument_list(self):
@@ -2070,14 +1761,16 @@ class HelpersTest(unittest.TestCase):
         try:
             _ensure_string_argument(arg_value, "name")
             self.fail("WsBadRequestError expected")
-        except WsBadRequestError:
-            pass
+        except WsBadRequestError as e:
+            self.assertEqual("Invalid argument 'name' in body: ['heffalump', 'winnie']", e.reason)
+
 
         try:
             _ensure_string_argument([], "name")
             self.fail("WsBadRequestError expected")
-        except WsBadRequestError:
-            pass
+        except WsBadRequestError as e:
+            self.assertEqual("Invalid argument 'name' in body: []", e.reason)
+
 
     def test_ensure_string_argument(self):
         string_value = _ensure_string_argument("nasenmann", "name")
@@ -2088,8 +1781,8 @@ class HelpersTest(unittest.TestCase):
         try:
             _ensure_string_argument(118876, "name")
             self.fail("WsBadRequestError expected")
-        except WsBadRequestError:
-            pass
+        except WsBadRequestError as e:
+            self.assertEqual("Invalid argument 'name' in body: 118876", e.reason)
 
     def test_ensure_string_argument_decodes_byte_array(self):
         string_as_bytes = "hampelmann".encode()
@@ -2097,36 +1790,49 @@ class HelpersTest(unittest.TestCase):
         str_val = _ensure_string_argument(string_as_bytes, "name")
         self.assertEqual("hampelmann", str_val)
 
-    def test_ensure_integer_argument_list(self):
+    def test__ensure_int_argument__valid_value_type(self):
+        arg_value = 101
+
+        int_value = _ensure_int_argument(arg_value, "name")
+        self.assertTrue(isinstance(int_value, int))
+        self.assertEqual(arg_value, int_value)
+
+    def test__ensure_int_argument__valid_list_size__valid_value_type(self):
         arg_value = [95523]
 
         int_value = _ensure_int_argument(arg_value, "name")
         self.assertTrue(isinstance(int_value, int))
         self.assertEqual(95523, int_value)
 
-    def test_ensure_integer_argument_list_wrong_size(self):
+    def test__ensure_int_argument__invalid_value_type(self):
+        arg_value = "hoppla!"
+
+        try:
+            _ensure_int_argument(arg_value, "name")
+            self.fail("WsBadRequestError expected")
+        except WsBadRequestError as e:
+            self.assertEqual("Invalid argument 'name' in body: 'hoppla!'", e.reason)
+
+    def test__ensure_int_argument__valid_list_size__invalid_value_type(self):
+        arg_value = ['nose']
+
+        try:
+            _ensure_int_argument(arg_value, "name")
+            self.fail("WsBadRequestError expected")
+        except WsBadRequestError as e:
+            self.assertEqual("Invalid argument 'name' in body: 'nose'", e.reason)
+
+    def test__ensure_int_argument__invalid_list_size(self):
         arg_value = [99, 100]
 
         try:
             _ensure_int_argument(arg_value, "name")
             self.fail("WsBadRequestError expected")
-        except WsBadRequestError:
-            pass
+        except WsBadRequestError as e:
+            self.assertEqual("Invalid argument 'name' in body: [99, 100]", e.reason)
 
         try:
             _ensure_int_argument([], "name")
             self.fail("WsBadRequestError expected")
-        except WsBadRequestError:
-            pass
-
-    def test_ensure_integer_argument(self):
-        int_value = _ensure_int_argument(101, "name")
-        self.assertTrue(isinstance(int_value, int))
-        self.assertEqual(101, int_value)
-
-    def test_ensure_int_argument_wrong_type(self):
-        try:
-            _ensure_int_argument("hoppla!", "name")
-            self.fail("WsBadRequestError expected")
-        except WsBadRequestError:
-            pass
+        except WsBadRequestError as e:
+            self.assertEqual("Invalid argument 'name' in body: []", e.reason)

@@ -66,37 +66,25 @@ class SbFileReader:
         delimiter_regex = self._extract_delimiter_regex(metadata)
         records = self._parse_records(delimiter_regex)
 
-        # @Sabine: Folgende Änderungen habe ich durchgeführt, um den Bug ocdb-cli#37 zu lösen.
-        #          "Explain inconsistency in number of fields, units and columns"
-        #          Mein Ansatz:
-        #          Es sollte erst geprüft werden, ob die Anzahl von Fields, Units und Columns
-        #          identisch sind, bevor aus den beiden Spalte "date" und "time" der Zeitpunkt
-        #          ausgelesen wird. Schließlich kann die Inkonsistenz in Fields, Units und
-        #          Spaltenanzahl der Auslöser sein, warum die Zeit- oder Datumsangabe nicht in
-        #          der richtigen Spalte steht und damit der Formattest nicht erfolgreich verläuft.
-        #          Meine Annahmen:
-        #          1. Ich gehe davon aus, dass der Submit-Vorgang, der über die die Web-UI durchgeführt
-        #          wurde, abgebrochen wird, und unten links die Fehlermeldung erscheint.
-        #          2. Auf dem CLI würde die Meldung entsprechend als Text ausgegeben.
-        #
-        #          Fortsetzung in _extract_date(cls, date_str, time_str, check_gmt=False).
+        if 'fields' not in metadata:
+            raise SbFormatError(
+                'SeaBASS header field "fields" required. See: https://seabass.gsfc.nasa.gov/wiki/metadataheaders#fields')
+
+        if 'units' not in metadata:
+            raise SbFormatError(
+                'SeaBASS header field "units" required. See: https://seabass.gsfc.nasa.gov/wiki/metadataheaders#units')
 
         num_fields = len(metadata['fields'].split(','))
+        num_units = len(metadata['units'].split(','))
         len_record = len(records[0])
 
         if num_fields != len_record:
             raise SbFormatError('Number of fields (' + str(num_fields) + ') does not match ' +
                                 'number of columns (' + str(len_record) + ').')
 
-        if 'units' in metadata:
-            num_units = len(metadata['units'].split(','))
-            if num_fields != num_units:
-                raise SbFormatError('Number of fields (' + str(num_fields) + ') does not match ' +
-                                    'number of units (' + str(num_units) + ').')
-        #     todo adapt unit level tests according to mandatory "units" field
-        #     see: https://seabass.gsfc.nasa.gov/wiki/metadataheaders#units
-        # else:
-        #     raise SbFormatError('Field "units" of SeaBASS header not available.')
+        if num_fields != num_units:
+            raise SbFormatError('Number of fields (' + str(num_fields) + ') does not match ' +
+                                'number of units (' + str(num_units) + ').')
 
         dataset = DbDataset(metadata, records)
         dataset.attributes = self._extract_field_list()
@@ -147,6 +135,22 @@ class SbFileReader:
             value = value.strip()
             if key == 'fields':
                 self._field_list = value
+
+            # handle angular key value pairs
+            if key in ["north_latitude", "east_longitude", "south_latitude", "west_longitude"]:
+                value = self._extract_angle(value)
+            elif key.lower().endswith("_date"):
+                pass
+            else:
+                match = re.match(r"^[-+]?\d+\.?\d*(e?[-+]?\d+)?$", value)
+                if match is None:
+                    pass
+                else:
+                    try:
+                        value = float(value)
+                    except ValueError as e:
+                        raise SbFormatError(
+                            f"Invalid {key} value ({value}). Value must be numeric: {str(e)}")
 
             metadata.update({key: value})
 
@@ -230,9 +234,12 @@ class SbFileReader:
             dataset.add_time(timestamp)
 
         else:
-            # Todo update to ocdb.readthedocs.io as soon as the website is repaired,
+            # Todo after deployment
+            #  Update to ocdb.readthedocs.io as soon as the website is repaired,
             #  i. e. the menu becomes visible.
-            raise SbFormatError("Acquisition time not properly encoded. For details see: https://seabass.gsfc.nasa.gov/wiki/stdfields or https://seabass.gsfc.nasa.gov/wiki/metadataheaders#Example%20Header.")
+            raise SbFormatError(
+                "Acquisition time not properly encoded. For details see: https://seabass.gsfc.nasa.gov/wiki/stdfields "
+                "or https://seabass.gsfc.nasa.gov/wiki/metadataheaders#Example%20Header.")
 
     def _extract_geo_locations(self, dataset):
         if 'lon' in dataset.attribute_names and 'lat' in dataset.attribute_names:
@@ -250,10 +257,8 @@ class SbFileReader:
             raise SbFormatError("Geolocation not properly encoded")
 
     def _extract_geo_location_from_header(self, dataset):
-        east_lon_string = dataset.metadata['east_longitude']
-        lon = self._extract_angle(east_lon_string)
-        north_lat_string = dataset.metadata['north_latitude']
-        lat = self._extract_angle(north_lat_string)
+        lon = dataset.metadata['east_longitude']
+        lat = dataset.metadata['north_latitude']
         dataset.add_geo_location(lon, lat)
 
     @classmethod
@@ -274,6 +279,7 @@ class SbFileReader:
                 continue
 
             tokens = re.split(delimiter_regex, line)
+            tokens = [s.strip() for s in tokens]
             if len(tokens) <= 1:
                 # some files have whitespace between header and records - skip this here tb 2018-09-21
                 continue
@@ -281,7 +287,11 @@ class SbFileReader:
             record = []
             for token in tokens:
                 if len(token) < 1:
-                    continue
+                    row = len(records) + 1
+                    column = len(record) + 1
+                    raise SbFormatError('Value missing in data row {row} and column {col}. Please use '
+                                        'the placeholder as defined in metadata header “/missing”.'
+                                        .format(row=row, col=column))
 
                 if self._is_number(token):
                     if self._is_integer(token):
@@ -302,11 +312,11 @@ class SbFileReader:
 
         delimiter = metadata['delimiter']
         if delimiter == 'comma':
-            return ',+'
+            return ','
         elif delimiter == 'space':
-            return '\s+'
+            return ' +'
         elif delimiter == 'tab':
-            return '\t+'
+            return '\t'
         else:
             raise SbFormatError('Invalid delimiter-value in header')
 
@@ -356,9 +366,9 @@ class SbFileReader:
             raise SbFormatError(f"Invalid date format ({date_str}). Format must correspond to YYYYMMDD: {str(e)}")
 
         current_year = datetime.datetime.now().year
-        if (not(1900 <= year <= current_year) or
-                not(1 <= month <= 12) or
-                not(1 <= day <= 31)):
+        if (not (1900 <= year <= current_year) or
+                not (1 <= month <= 12) or
+                not (1 <= day <= 31)):
             raise SbFormatError(f"Invalid date ({date_str}). Format corresponds to YYYYMMDD.\n" +
                                 f"Valid value ranges for year month day are (1900-current_year) (1-12) (1-31)")
 
@@ -366,10 +376,9 @@ class SbFileReader:
             gmt_index = time_str.index('[GMT]')
             time_str = time_str[0:gmt_index]
 
-        if not re.fullmatch('\d?\d:\d?\d:\d?\d', time_str):
-            # todo really allow e.g. '2:18:4' instead of '02:18:04'
-            # see: https://seabass.gsfc.nasa.gov/wiki/metadataheaders#start_date
-            raise SbFormatError(f"Invalid time format ({time_str}). Format must correspond to HH:MM:SS.")
+        if not re.fullmatch(r"([0-1]\d|2[0-3]):[0-5]\d:[0-5]\d", time_str):
+            raise SbFormatError(f"Invalid time format ({time_str}). Format must correspond to HH:MM:SS. "
+                                "see: https://seabass.gsfc.nasa.gov/wiki/metadataheaders#start_date")
 
         tokens = time_str.split(':')
 
@@ -380,9 +389,9 @@ class SbFileReader:
         except Exception as e:
             raise SbFormatError(f"Invalid time format ({time_str}). Format must correspond to HH:MM:SS: {str(e)}")
 
-        if (not(0 <= hour < 24) or
-            not(0 <= minute < 60) or
-            not(0 <= second < 60)):
+        if (not (0 <= hour < 24) or
+                not (0 <= minute < 60) or
+                not (0 <= second < 60)):
             raise SbFormatError(f"Invalid time format ({time_str}).\n"
                                 f"Valid value ranges for HH MM SS are (0-23) (0-59) (0-59)")
 
@@ -391,6 +400,7 @@ class SbFileReader:
         except Exception as e:
             date_time_str = date_str + ' ' + time_str
             raise SbFormatError(f"Invalid date or time format ({date_time_str}): {str(e)}")
+
 
 # noinspection PyArgumentList
 class SbFormatError(Exception):

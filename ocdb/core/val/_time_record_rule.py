@@ -18,9 +18,9 @@ class TimeRecordRule:
 
     def __init__(self, name: str, unit: str, error: str):
         self._name = name
-        self._time_string_pattern = re.compile("[0-9]{2}:[0-9]{2}:[0-9]{2}")
-        self._hour_range = range(0,24)
-        self._min_sec_range = range(0,60)
+        self._time_string_pattern = re.compile(r"\d{2}:\d{2}:\d{2}")
+        self._hour_range = range(0, 24)
+        self._min_sec_range = range(0, 60)
         self._units = unit.lower().split(",")
         self._unit_error = error
 

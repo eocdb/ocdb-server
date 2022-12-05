@@ -40,7 +40,6 @@ def login_user(ctx: WsContext,
                username: str,
                password: str,
                retain_password: bool = False) -> Dict[str, str]:
-
     assert_not_none(username, name='username')
     assert_not_none(password, name='password')
 
@@ -55,9 +54,7 @@ def login_user(ctx: WsContext,
     return user
 
 
-# noinspection PyUnusedLocal
-def create_user(ctx: WsContext,
-                user: User):
+def create_user(ctx: WsContext, user: User):
     user_test = ctx.get_user(user.name)
     if user_test is not None:
         raise WsBadRequestError(f"User exists:  {user.name}")

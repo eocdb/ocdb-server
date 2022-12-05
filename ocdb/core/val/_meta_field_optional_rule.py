@@ -15,7 +15,7 @@ class MetaFieldOptionalRule(Rule):
             return None
 
         value = dataset.metadata[self._name]
-        if len(value) > 0:
+        if len(str(value)) > 0:
             return None
         else:
             message_dict = GapAwareDict({"reference": self._name})
