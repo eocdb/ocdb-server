@@ -205,7 +205,8 @@ def delete_submission(ctx: WsContext, submission_id: str) -> bool:
 
 
 def update_submission(ctx: WsContext, submission: DbSubmission, status: str, publication_date: datetime) -> bool:
-    # old_status = submission.status
+    # todo se .. why is the old_status relevant and reactivated?
+    old_status = submission.status
 
     # new_stati = QC_TRANSITIONS[old_status]
     # if status not in new_stati:

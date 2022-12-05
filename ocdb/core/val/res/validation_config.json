@@ -3100,8 +3100,10 @@
     {"name": "_biovol", "unit": "m^3/L", "unit_error": "@suffix_has_wrong_unit"},
     {"name": "_carbon", "unit": "ug/L", "unit_error": "@suffix_has_wrong_unit"},
     {"name": "_cv"},
+    {"name": "_quality", "unit": "none", "unit_error": "@suffix_has_wrong_unit"},
     {"name": "_sd"},
-    {"name": "_se"}
+    {"name": "_se"},
+    {"name": "_unc", "unit": "none", "unit_error": "@suffix_has_wrong_unit"}
   ],
   "errors": [
     {

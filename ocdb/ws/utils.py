@@ -5,7 +5,7 @@ from ocdb.ws.errors import WsBadRequestError
 
 def ensure_valid_submission_id(submission_id: str) -> bool:
     # noinspection RegExpRedundantEscape
-    prog = re.compile(r'^[a-zA-Z\d_-]*$', re.DOTALL)
+    prog = re.compile(r'^[\w-]*$', re.DOTALL)
     if prog.match(submission_id):
         return True
     else:
@@ -13,7 +13,7 @@ def ensure_valid_submission_id(submission_id: str) -> bool:
 
 
 def ensure_valid_path(path: str) -> bool:
-    prog = re.compile(r'^[a-zA-Z0-9_-]*/[a-zA-Z0-9_-]*/[a-zA-Z0-9_-]*$', re.DOTALL)
+    prog = re.compile(r'^[\w-]*/[\w-]*/[\w-]*$', re.DOTALL)
     if prog.match(path):
         return True
     else:

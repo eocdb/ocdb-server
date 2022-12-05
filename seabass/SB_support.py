@@ -350,8 +350,8 @@ class readSB:
                 'time' in self.data:
 
             for d, t in zip([str(de) for de in self.data['date']], self.data['time']):
-                da = re.search("(\d{4})(\d{2})(\d{2})", d)
-                ti = re.search("(\d{1,2})\:(\d{2})\:(\d{2})", t)
+                da = re.search(r"(\d{4})(\d{2})(\d{2})", d)
+                ti = re.search(r"(\d{1,2})\:(\d{2})\:(\d{2})", t)
                 try:
                     dt.append(datetime(int(da.group(1)), \
                                        int(da.group(2)), \
@@ -392,7 +392,7 @@ class readSB:
                 'time' in self.data:
 
             for y, m, d, t in zip(self.data['year'], self.data['month'], self.data['day'], self.data['time']):
-                ti = re.search("(\d{1,2})\:(\d{2})\:(\d{2})", t)
+                ti = re.search(r"(\d{1,2})\:(\d{2})\:(\d{2})", t)
                 try:
                     dt.append(datetime(int(y), \
                                        int(m), \
@@ -413,7 +413,7 @@ class readSB:
 
             for d, h, mn, s in zip([str(de) for de in self.data['date']], self.data['hour'], self.data['minute'],
                                    self.data['second']):
-                da = re.search("(\d{4})(\d{2})(\d{2})", d)
+                da = re.search(r"(\d{4})(\d{2})(\d{2})", d)
                 try:
                     dt.append(datetime(int(da.group(1)), \
                                        int(da.group(2)), \
@@ -430,7 +430,7 @@ class readSB:
         elif 'date_time' in self.data:
 
             for i in self.data('date_time'):
-                da = re.search("(\d{4})-(\d{2})-(\d{2})\s(\d{1,2})\:(\d{2})\:(\d{2})", i)
+                da = re.search(r"(\d{4})-(\d{2})-(\d{2})\s(\d{1,2})\:(\d{2})\:(\d{2})", i)
                 try:
                     dt.append(datetime(int(da.group(1)), \
                                        int(da.group(2)), \
@@ -471,7 +471,7 @@ class readSB:
 
             for y, sdy, t in zip(self.data['year'], self.data['sdy'], self.data['time']):
                 [m, d] = doy2mndy(y, sdy)
-                ti = re.search("(\d{1,2})\:(\d{2})\:(\d{2})", t)
+                ti = re.search(r"(\d{1,2})\:(\d{2})\:(\d{2})", t)
                 try:
                     dt.append(datetime(int(y), \
                                        int(m), \
@@ -487,8 +487,8 @@ class readSB:
 
         elif 'start_date' in self.headers and 'start_time' in self.headers:
 
-            da = re.search("(\d{4})(\d{2})(\d{2})", self.headers['start_date'])
-            ti = re.search("(\d{1,2})\:(\d{2})\:(\d{2})\[(gmt|GMT)\]", self.headers['start_time'])
+            da = re.search(r"(\d{4})(\d{2})(\d{2})", self.headers['start_date'])
+            ti = re.search(r"(\d{1,2})\:(\d{2})\:(\d{2})\[(gmt|GMT)\]", self.headers['start_time'])
             for i in range(self.length):
                 try:
                     dt.append(datetime(int(da.group(1)), \

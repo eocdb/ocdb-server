@@ -24,19 +24,14 @@ from time import strptime
 import tornado.escape
 import tornado.httputil
 
-from ocdb.ws.controllers.links import get_links, update_links
 from ..controllers.datasets import *
 from ..controllers.docfiles import *
 from ..controllers.service import *
 from ..controllers.store import *
 from ..controllers.users import *
-from ..errors import WsUnprocessable
 from ..utils import ensure_valid_submission_id, ensure_valid_path
 from ..webservice import WsRequestHandler
 from ...core.models.dataset_ids import DatasetIds
-from ...core.models.user import User
-from ...version import MIN_CLIENT_VERSION, MIN_WEBUI_VERSION
-from ._version_check import is_version_valid
 
 MTYPE_DEFAULT = 'all'
 WLMODE_DEFAULT = 'all'
@@ -83,29 +78,6 @@ def _admin_required(func):
     def wrapper(self, *args, **kwargs):
         if not self.has_admin_rights():
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
-        func(self, *args, **kwargs)
-
-    return wrapper
-
-
-def _user_authorization_required(func):
-    @functools.wraps(func)
-    def wrapper(self, *args, **kwargs):
-        current_user_name = self.get_current_user()
-
-        user_name = kwargs['user_name'] if 'user_name' in kwargs else None
-
-        authorized = False
-        if self.has_admin_rights():
-            authorized = True
-        elif current_user_name == user_name:
-            authorized = True
-
-        if not authorized:
-            self.set_status(status_code=403, reason='Not enough access rights to perform operations on user '
-                                                    f'{user_name}.')
             return
 
         func(self, *args, **kwargs)
@@ -263,9 +235,9 @@ class HandleSubmission(WsRequestHandler):
         user = self.ws_context.get_user(user_name)
 
         if user is not None:
-            user_id = user.id
+            user_name = user.name
         else:
-            user_id = 0
+            user_name = 0
 
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
 
@@ -278,7 +250,7 @@ class HandleSubmission(WsRequestHandler):
         new_submission_id = _ensure_string_argument(new_submission_id, "submissionid")
         ensure_valid_submission_id(new_submission_id)
 
-        temp_area_path = str(user_id) + "_" + submission_id
+        temp_area_path = str(user_name) + "_" + submission_id
 
         path = body_dict["path"]
         path = _ensure_string_argument(path, "path")
@@ -342,22 +314,36 @@ class DownloadSubmissionFile(WsRequestHandler):
 # Todo: The class UpdateSubmissionStatus is misleading and should be refactored to
 #       UpdateSubmissionDetails (see name of former action button!).
 #       If the code is correct, the action button might work again and could be enabled.
+#       This class is called by two client actions:
+#       - updateSubmissionStatus
+#       - updateSubmissionDetails
+#       If the class name will be changed in the future, take care that the url dispatching
+#       is not broken. @see ws.handlers._mappings.py
 
 # noinspection PyAbstractClass,PyShadowingBuiltins
 class UpdateSubmissionStatus(WsRequestHandler):
     @_login_required
-    @_admin_required
+    @_submission_authorization_required
     def put(self, submission_id: str):
+
         submission = get_submission(ctx=self.ws_context, submission_id=submission_id)
+
         if submission is None:
             self.set_status(404, reason="Submission not found")
             return
 
         body_dict = tornado.escape.json_decode(self.request.body)
+        # Todo se : Sabine, please assure that body_dict contains value publication date for key date!
+        #           Let's discuss together if required.
+        #           Submission has two date attributes: date and publication_data (see submission.py).
+        #           _extract_date(body_dict) searches for 'date'! This might be correct, but is misleading.
 
         # Does the value None for key publication_date corresponds to and is interpreted as 'unset'?
         new_publication_date = self._extract_date(body_dict)
-        if new_publication_date is None and submission.publication_date is not None:
+        if new_publication_date is None:
+            # Todo se : Does this line really make sense? The method is also used when the user wants to change
+            #  submission details. What if the user has intentionally set the publication date to None in order to
+            #  remove the existing publication date?
             new_publication_date = submission.publication_date
 
         # Does the value None for the value of key status corresponds to and is interpreted as 'unset'?
@@ -366,7 +352,7 @@ class UpdateSubmissionStatus(WsRequestHandler):
             new_status = body_dict['status']
 
         if new_status is None:
-            new_status = submission.status
+            new_status = submission['status']
 
         try:
             success = update_submission(ctx=self.ws_context, submission=submission, status=new_status,
@@ -415,10 +401,10 @@ class GetSubmissions(WsRequestHandler):
         if current_user_name != user_name:
             raise WsUnauthorizedError('User not allowed.')
 
-        if self.has_submit_rights():
-            user_id = current_user_name
-        elif self.has_admin_rights():
+        if self.has_admin_rights():
             user_id = None
+        elif self.has_submit_rights():
+            user_id = current_user_name
         else:
             raise WsUnauthorizedError('You are not allowed querying submissions.')
 
@@ -693,12 +679,11 @@ class Datasets(WsRequestHandler):
         geojson = self.query.get_param_bool('geojson', default=False)
         offset = self.query.get_param_int('offset', default=None)
         count = self.query.get_param_int('count', default=None)
-        user_id = self.query.get_param_int('user_id', default=None)
+        user_id = self.query.get_param('user_id', default=None)
 
         if self.has_admin_rights():
             status = None
-        elif self.has_submit_rights():
-            status = None
+            user_id = None
         else:
             status = 'PUBLISHED'
 
@@ -719,8 +704,11 @@ class Datasets(WsRequestHandler):
         start_time = self.query.get_param('start_time', default=None)
         end_time = self.query.get_param('end_time', default=None)
         if start_time is not None or end_time is not None:
-            start_time = self.query.to_date('start_time', start_time + "T00:00", raises=True)
-            end_time = self.query.to_date('start_time', end_time + "T23:59", raises=True)
+            if start_time is not None:
+                start_time = self.query.to_date('start_time', start_time + "T00:00", raises=True)
+
+            if end_time is not None:
+                end_time = self.query.to_date('end_time', end_time + "T23:59", raises=True)
             t = [start_time, end_time]
         else:
             t = None
@@ -882,198 +870,6 @@ class HandleMatchupFiles(WsRequestHandler):
         self.finish(tornado.escape.json_encode(data))
 
 
-# noinspection PyAbstractClass,PyShadowingBuiltins
-class HandleUsers(WsRequestHandler):
-    @_login_required
-    @_user_authorization_required
-    def post(self):
-        """Provide API operation create_user()."""
-        # transform body with mime-type application/json into a User
-        data_dict = tornado.escape.json_decode(self.request.body)
-        user = User.from_dict(data_dict)
-        create_user(self.ws_context, user=user)
-
-        self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode({'message': f'User {user.name} added'}))
-
-    @_login_required
-    @_admin_required
-    def get(self):
-        """Provide API operation get_user_names()."""
-
-        # transform body with mime-type application/json into a User
-        result = get_user_names(self.ws_context)
-
-        self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result))
-
-
-# noinspection PyAbstractClass,PyShadowingBuiltins
-class LoginUser(WsRequestHandler):
-    def get(self):
-        """Is used only by 'ocdb-cli whoami'."""
-        current_user = self.get_current_user()
-        if current_user is None:
-            return self.finish(tornado.escape.json_encode({'message': f'Not Logged in'}))
-
-        return self.finish(tornado.escape.json_encode({'message': f'I am {current_user}', 'name': current_user}))
-
-    def post(self):
-        """Provide API operation loginUser()."""
-        credentials = tornado.escape.json_decode(self.request.body)
-        username = credentials.get('username')
-        password = credentials.get('password')
-        client_version = credentials.get('client_version', 0)
-        client = credentials.get('client', 'cli')
-
-        client_allowed = True
-
-        if client == 'cli' and not is_version_valid(client_version, MIN_CLIENT_VERSION):
-            client_allowed = False
-
-        if client == 'webui' and not is_version_valid(client_version, MIN_WEBUI_VERSION):
-            client_allowed = False
-
-        if not client_allowed:
-            self.set_header('Content-Type', 'application/json')
-            self.set_status(409)
-            return self.finish(tornado.escape.json_encode({'message': f'You are using a deprecated version of '
-                                                                      f'the ocdb client. Please update to at least '
-                                                                      f'version {MIN_CLIENT_VERSION}.'
-                                                                      f' Please update with '
-                                                                      f'conda update -c ocdb ocdb-client'
-                                                           }))
-
-        user_info = login_user(self.ws_context, username=username, password=password)
-        if user_info is not None:
-            # expires = datetime.datetime.utcnow() + datetime.timedelta(minutes=1440)
-            self.set_secure_cookie("user", username, expires_days=1, expires=None)
-
-        if 'password' in user_info:
-            del user_info['password']
-
-        self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(user_info))
-
-    @_login_required
-    # @_user_authorization_required
-    def put(self):
-        """Provide API operation changeLoginUser()."""
-        current_user = self.get_current_user()
-        credentials = tornado.escape.json_decode(self.request.body)
-        username = credentials.get('username')
-        new_password1 = credentials.get('newpassword1')
-        new_password2 = credentials.get('newpassword2')
-        old_password = credentials.get('oldpassword')
-
-        if username is None:
-            username = current_user
-
-        user = self.ws_context.get_user(current_user, old_password)
-        if user is None:
-            self.set_status(status_code=403, reason="Current password does not match.")
-            return
-
-        if username != current_user and not self.has_admin_rights():
-            self.set_status(status_code=403, reason="Not enough rights to perform this operation.")
-            return
-
-        if new_password1 != new_password2:
-            self.set_status(status_code=403, reason="Passwords don't match")
-            return
-
-        user = get_user_by_name(ctx=self.ws_context, user_name=username, retain_password=True)
-
-        user['password'] = new_password1
-
-        update_user(self.ws_context, user_name=username, data=user)
-
-        self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode({'message': f'User {username}\'s password updated.'}))
-
-
-# noinspection PyAbstractClass,PyShadowingBuiltins
-class LogoutUser(WsRequestHandler):
-
-    def get(self):
-        current_user = self.get_current_user()
-        if current_user is not None:
-            self.clear_cookie("user")
-            return self.finish(tornado.escape.json_encode({'message': f'User {current_user} logged out'}))
-
-        return self.finish(tornado.escape.json_encode({'message': f'No user logged in'}))
-
-
-# noinspection PyAbstractClass,PyShadowingBuiltins
-class GetUserByName(WsRequestHandler):
-    @_login_required
-    @_user_authorization_required
-    def get(self, user_name: str):
-        """Provide API operation getUserByID()."""
-
-        result = get_user_by_name(self.ws_context, user_name=user_name)
-        # transform result of type User into response with mime-type application/json
-        self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result))
-
-    @_login_required
-    @_user_authorization_required
-    def put(self, user_name: str):
-        """Provide API operation updateUser()."""
-
-        # transform body with mime-type application/json into a User
-        data_dict = tornado.escape.json_decode(self.request.body)
-
-        if 'password' in data_dict:
-            raise WsUnprocessable("Cannot handle changing password using 'user update'. Use specific password (pwd) "
-                                  "operation.")
-
-        for key in data_dict:
-            if isinstance(key, str) and not key.startswith('_'):
-                                                                                         # todo why "id_"
-                if not (key in ["name", "first_name", "last_name", "email", "phone", "roles", "id", "id_"]):
-                    raise WsBadRequestError("Key '" + key + "' is invalid.")
-
-        if not user_name:
-            user_name = self.get_current_user()
-
-        update_user(self.ws_context, user_name=user_name, data=data_dict)
-        self.finish(tornado.escape.json_encode({'message': f'User {user_name} updated'}))
-
-    @_login_required
-    @_admin_required
-    def delete(self, user_name: str):
-        """Provide API operation deleteUser()."""
-        if not self.has_admin_rights():
-            self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
-            return
-
-        delete_user(self.ws_context, user_name)
-
-        self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode({'message': f'User {user_name} deleted'}))
-
-
-# noinspection PyAbstractClass
-class Links(WsRequestHandler):
-    def get(self):
-        """Provide API operation getUserByID()."""
-        result = get_links(self.ws_context)
-        self.set_header('Content-Type', 'application/txt')
-        self.finish(tornado.escape.json_encode({'content': result['content']}))
-
-    @_admin_required
-    def post(self):
-        """Provide API operation getUserByID()."""
-        result = tornado.escape.json_decode(self.request.body)
-
-        content = result['content']
-
-        result = update_links(self.ws_context, content)
-        self.set_header('Content-Type', 'application/txt')
-        self.finish(result)
-
-
 def _ensure_string_argument(arg_value, arg_name: str):
     if isinstance(arg_value, list):
         if len(arg_value) != 1:
@@ -1093,7 +889,7 @@ def _ensure_int_argument(arg_value, arg_name: str):
         if len(arg_value) != 1:
             raise WsBadRequestError(f"Invalid argument '{arg_name}' in body: {repr(arg_value)}")
         arg_value = arg_value[0]
-    elif not isinstance(arg_value, int):
+    if not isinstance(arg_value, int):
         raise WsBadRequestError(f"Invalid argument '{arg_name}' in body: {repr(arg_value)}")
 
     return arg_value

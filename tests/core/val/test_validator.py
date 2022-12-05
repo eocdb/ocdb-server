@@ -33,14 +33,17 @@ class ValidatorTest(TestCase):
         self.assertFalse(result)
 
     def test_check_suffixes(self):
-        result = self._validator._check_suffixes('helge_sd')
-        self.assertTrue(result)
+        checked = self._validator._check_suffixes('sabine_sd')
+        self.assertTrue(checked.get('result'))
+        self.assertEqual('sabine', checked.get('without_suffix'))
 
-        result = self._validator._check_suffixes('helge_ssd')
-        self.assertFalse(result)
+        checked = self._validator._check_suffixes('sabine_ssd')
+        self.assertFalse(checked.get('result'))
+        self.assertEqual(None, checked.get('without_suffix'))
 
-        result = self._validator._check_suffixes('helge_sd_suff')
-        self.assertFalse(result)
+        checked = self._validator._check_suffixes('sabine_sd_more')
+        self.assertFalse(checked.get('result'))
+        self.assertEqual(None, checked.get('without_suffix'))
 
     def test_validate_dataset_valid(self):
         dataset = self._create_valid_dataset()
