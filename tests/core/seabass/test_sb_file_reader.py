@@ -19,13 +19,27 @@ class SbFileReaderTest(unittest.TestCase):
         sb_file = ['/end_header\n']
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-        self.assertEqual('Missing delimiter tag in header', f"{cm.exception}")
+        self.assertEqual('/begin_header tag missing', f"{cm.exception}")
+
+    def test_parse_empty_header_missing_begin__begin_is_commented_out(self):
+        sb_file = ['!/begin_header\n',
+                   '/end_header\n']
+        with self.assertRaises(SbFormatError) as cm:
+            self.reader._parse(sb_file)
+        self.assertEqual('/begin_header tag missing', f"{cm.exception}")
 
     def test_parse_empty_header_missing_end(self):
         sb_file = ['/begin_header\n']
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-        self.assertEqual('Missing delimiter tag in header', f"{cm.exception}")
+        self.assertEqual('/end_header tag missing', f"{cm.exception}")
+
+    def test_parse_empty_header_missing_end__end_is_commented_out(self):
+        sb_file = ['/begin_header\n',
+                   '!/end_header\n']
+        with self.assertRaises(SbFormatError) as cm:
+            self.reader._parse(sb_file)
+        self.assertEqual('/end_header tag missing', f"{cm.exception}")
 
     def test_parse__length_of_fields_and_units_are_different(self):
         sb_file = ['/begin_header\n',

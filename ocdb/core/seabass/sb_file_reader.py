@@ -59,9 +59,14 @@ class SbFileReader:
 
         metadata = {}
         line = self._next_line()
-        if '/begin_header' in line.lower():
+        if '/begin_header' == line.strip().lower():
             self.handle_header = True
             metadata = self._parse_header()
+
+        if self.handle_header is None:
+            raise SbFormatError("/begin_header tag missing")
+        if self.handle_header is True:
+            raise SbFormatError("/end_header tag missing")
 
         delimiter_regex = self._extract_delimiter_regex(metadata)
         records = self._parse_records(delimiter_regex)
@@ -92,8 +97,6 @@ class SbFileReader:
 
         self._extract_searchfields(dataset)
 
-        if self.handle_header is None or self.handle_header is True:
-            raise SbFormatError("/end_header tag missing")
 
         return dataset
 
@@ -117,7 +120,7 @@ class SbFileReader:
                 continue
 
             # done with header
-            if '/end_header' in line.lower():
+            if '/end_header' == line.lower():
                 if self.handle_header:
                     self.handle_header = False
                     break
