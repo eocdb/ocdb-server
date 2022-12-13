@@ -875,11 +875,12 @@ def _ensure_string_argument(arg_value, arg_name: str):
         if len(arg_value) != 1:
             raise WsBadRequestError(f"Invalid argument '{arg_name}' in body: {repr(arg_value)}")
         arg_value = arg_value[0]
-    elif not (isinstance(arg_value, str) or isinstance(arg_value, bytes)):
-        raise WsBadRequestError(f"Invalid argument '{arg_name}' in body: {repr(arg_value)}")
 
     if isinstance(arg_value, bytes):
         arg_value = arg_value.decode("utf-8")
+
+    if not isinstance(arg_value, str):
+        raise WsBadRequestError(f"Invalid argument '{arg_name}' in body: {repr(arg_value)}")
 
     return arg_value
 

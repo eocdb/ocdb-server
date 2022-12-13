@@ -110,10 +110,13 @@ class SbFileReader:
 
     def _parse_header(self) -> dict:
         metadata = dict()
+        number_pattern = re.compile(r"^[-+]?\d+\.?\d*(e?[-+]?\d+)?$")
         while True:
             line = self._next_line()
             if line == EOF:
                 break
+
+            line = line.strip()
 
             # strip comments
             if line.startswith('!'):
@@ -140,20 +143,16 @@ class SbFileReader:
                 self._field_list = value
 
             # handle angular key value pairs
-            if key in ["north_latitude", "east_longitude", "south_latitude", "west_longitude"]:
+            elif key in ["north_latitude", "east_longitude", "south_latitude", "west_longitude"]:
                 value = self._extract_angle(value)
             elif key.lower().endswith("_date"):
                 pass
-            else:
-                match = re.match(r"^[-+]?\d+\.?\d*(e?[-+]?\d+)?$", value)
-                if match is None:
-                    pass
-                else:
-                    try:
-                        value = float(value)
-                    except ValueError as e:
-                        raise SbFormatError(
-                            f"Invalid {key} value ({value}). Value must be numeric: {str(e)}")
+            elif number_pattern.match(value):
+                try:
+                    value = float(value)
+                except ValueError as e:
+                    raise SbFormatError(
+                        f"Invalid {key} value ({value}). Value must be numeric: {str(e)}")
 
             metadata.update({key: value})
 

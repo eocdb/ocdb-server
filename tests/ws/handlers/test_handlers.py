@@ -1764,13 +1764,11 @@ class HelpersTest(unittest.TestCase):
         except WsBadRequestError as e:
             self.assertEqual("Invalid argument 'name' in body: ['heffalump', 'winnie']", e.reason)
 
-
         try:
             _ensure_string_argument([], "name")
             self.fail("WsBadRequestError expected")
         except WsBadRequestError as e:
             self.assertEqual("Invalid argument 'name' in body: []", e.reason)
-
 
     def test_ensure_string_argument(self):
         string_value = _ensure_string_argument("nasenmann", "name")
