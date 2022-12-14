@@ -114,7 +114,9 @@ class StoreTest(unittest.TestCase):
                                         doc_files=[],
                                         store_user_path='Tom_Helge')
 
-            self.assertEqual("HTTP 400: Submission label is empty!", f"{cm.exception}")
+            expected = "HTTP 400: Please use only alphanumeric characters, underscore or minus sign in your " \
+                       "submission id. At least one letter must be used."
+            self.assertEqual(expected, f"{cm.exception}")
 
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
@@ -152,8 +154,10 @@ class StoreTest(unittest.TestCase):
                                         doc_files=[],
                                         store_user_path='Tom_Helge')
 
-            self.assertEqual("HTTP 400: Please provide the path as format: AFFILIATION (acronym)/EXPERIMENT/CRUISE and use "
-                             "characters, numbers and underscores only.", f"{cm.exception}")
+            expected = "HTTP 400: Provide the path as follows: name/name/name (AFFILIATION/EXPERIMENT/CRUISE). " \
+                       "Each name must contain at least one letter. " \
+                       "Use characters, numbers, minus and underscores only."
+            self.assertEqual(expected, f"{cm.exception}")
 
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
@@ -190,8 +194,10 @@ class StoreTest(unittest.TestCase):
                                         allow_publication=False,
                                         doc_files=[],
                                         store_user_path='Tom_Helge')
-            self.assertEqual("HTTP 400: Please provide the path as format: AFFILIATION (acronym)/EXPERIMENT/CRUISE and use "
-                             "characters, numbers and underscores only.", f"{cm.exception}")
+            expected = "HTTP 400: Provide the path as follows: name/name/name (AFFILIATION/EXPERIMENT/CRUISE). " \
+                       "Each name must contain at least one letter. " \
+                       "Use characters, numbers, minus and underscores only."
+            self.assertEqual(expected, f"{cm.exception}")
 
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")
@@ -228,7 +234,9 @@ class StoreTest(unittest.TestCase):
                                         allow_publication=False,
                                         doc_files=[],
                                         store_user_path='Tom_Helge')
-            self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", f"{cm.exception}")
+            expected = "HTTP 400: Please use only alphanumeric characters, underscore or minus sign in your " \
+                       "submission id. At least one letter must be used."
+            self.assertEqual(expected, f"{cm.exception}")
 
             with self.assertRaises(WsBadRequestError) as cm:
                 upload_submission_files(ctx=self.ctx,
@@ -240,7 +248,7 @@ class StoreTest(unittest.TestCase):
                                         allow_publication=False,
                                         doc_files=[],
                                         store_user_path='Tom_Helge')
-            self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", f"{cm.exception}")
+            self.assertEqual(expected, f"{cm.exception}")
 
             with self.assertRaises(WsBadRequestError) as cm:
                 upload_submission_files(ctx=self.ctx,
@@ -252,7 +260,7 @@ class StoreTest(unittest.TestCase):
                                         allow_publication=False,
                                         doc_files=[],
                                         store_user_path='Tom_Helge')
-            self.assertEqual("HTTP 400: Please use only alphanumeric characters or underscore in your submission id.", f"{cm.exception}")
+            self.assertEqual(expected, f"{cm.exception}")
 
         finally:
             self.delete_test_file("DEL1012_Station_097_CTD_Data.txt")

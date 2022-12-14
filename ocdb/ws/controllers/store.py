@@ -72,9 +72,6 @@ def upload_submission_files(ctx: WsContext,
     ensure_valid_path(path)
     ensure_valid_submission_id(submission_id)
 
-    if submission_id == '':
-        raise WsBadRequestError(f"Submission label is empty!")
-
     result = ctx.db_driver.get_submission(submission_id)
     if result is not None:
         raise WsBadRequestError(f"Submission identifier already exists: {submission_id}")
@@ -294,9 +291,6 @@ def update_submission_files(ctx: WsContext,
 
     ensure_valid_path(path)
     ensure_valid_submission_id(submission_id)
-
-    if new_submission_id == '':
-        raise WsBadRequestError(f"Submission label is empty!")
 
     if path.count('/') < 2:
         raise WsBadRequestError(f"Please provide the path as format: acronym of affiliation/cruise/experiment")
