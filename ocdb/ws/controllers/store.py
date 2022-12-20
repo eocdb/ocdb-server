@@ -76,9 +76,6 @@ def upload_submission_files(ctx: WsContext,
     if result is not None:
         raise WsBadRequestError(f"Submission identifier already exists: {submission_id}")
 
-    if path.count('/') < 2:
-        raise WsBadRequestError(f"Please provide the path as format: AFFILIATION (acronym)/EXPERIMENT/CRUISE")
-
     if len(dataset_files) < 1:
         raise WsBadRequestError(f"Please provide at least one dataset.")
 
@@ -291,9 +288,6 @@ def update_submission_files(ctx: WsContext,
 
     ensure_valid_path(path)
     ensure_valid_submission_id(submission_id)
-
-    if path.count('/') < 2:
-        raise WsBadRequestError(f"Please provide the path as format: acronym of affiliation/cruise/experiment")
 
     # archive_path = ctx.get_submission_path(path)
 
