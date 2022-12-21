@@ -2,7 +2,7 @@
 FROM continuumio/miniconda3:4.12.0
 
 # Person responsible
-LABEL maintainer=helge.dzierzon@brockmann-consult.de
+LABEL maintainer=sabine.embacher@brockmann-consult.de
 LABEL name=ocdb-server
 LABEL conda_env=ocdb-server
 
