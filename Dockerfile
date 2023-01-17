@@ -1,5 +1,6 @@
 # Image from https://hub.docker.com (syntax: repo/image:version)
-FROM continuumio/miniconda3:4.12.0
+#FROM continuumio/miniconda3:4.12.0
+FROM continuumio/miniconda3:4.10.3-alpine
 
 # Person responsible
 LABEL maintainer=sabine.embacher@brockmann-consult.de
@@ -44,7 +45,6 @@ RUN mkdir /ocdb-server && chown $OCDB_USERNAME:$OCDB_GROUP /ocdb-server;
 
 USER $OCDB_USERNAME
 WORKDIR /ocdb-server
-
 
 # Export web server port 4000
 EXPOSE 4000

@@ -1,4 +1,4 @@
-# Changes in Version 0.1.20 (in development)
+# Changes in Version 0.1.20
 - upload file size ... maximum file size for upload changed from 8500000 to 40000000
 - sb_file_reader ... Ensure that wrong time notation raises an error.
   see https://seabass.gsfc.nasa.gov/wiki/metadataheaders#start_date

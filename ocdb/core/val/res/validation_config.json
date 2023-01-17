@@ -275,6 +275,11 @@
       "type": "field_obsolete",
       "warning": "@obsolete_field"
     },
+	{
+      "name": "geoform_originljdyspo",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
     {
       "name": "geoform",
       "type": "field_obsolete",
@@ -565,6 +570,12 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "asrfa",
+      "unit": "1/m",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "allo",
       "unit": "mg/m^3,ug/l",
       "lower_bound": 0,
@@ -663,12 +674,6 @@
       "lower_bound": 0,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
-      "unit_error": "@field_has_wrong_unit"
-    },
-    {
-      "name": "asrfa",
-      "unit": "1/m",
-      "data_type": "number",
       "unit_error": "@field_has_wrong_unit"
     },
     {
@@ -981,6 +986,15 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "chl_experiment",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "upper_bound": 100,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "chl_a",
       "unit": "mg/m^3,ug/l",
       "lower_bound": 0,
@@ -1049,15 +1063,6 @@
       "name": "chl_c3",
       "unit": "mg/m^3,ug/l",
       "lower_bound": 0,
-      "data_type": "number",
-      "value_error": "@field_out_of_bounds",
-      "unit_error": "@field_has_wrong_unit"
-    },
-    {
-      "name": "chl_experiment",
-      "unit": "mg/m^3,ug/l",
-      "lower_bound": 0,
-      "upper_bound": 100,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
@@ -1436,17 +1441,17 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
-      "name": "f0",
-      "unit": "uW/cm^2/nm",
-      "lower_bound": 0,
+      "name": "exact_wavelength",
+      "unit": "nm",
+      "lower_bound": 100,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
     },
     {
-      "name": "exact_wavelength",
-      "unit": "nm",
-      "lower_bound": 100,
+      "name": "f0",
+      "unit": "uW/cm^2/nm",
+      "lower_bound": 0,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
@@ -3015,16 +3020,16 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
-      "name": "wvp",
-      "unit": "cm",
+      "name": "wvot",
+      "unit": "none",
       "lower_bound": 0,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
     },
     {
-      "name": "wvot",
-      "unit": "none",
+      "name": "wvp",
+      "unit": "cm",
       "lower_bound": 0,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",

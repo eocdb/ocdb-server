@@ -65,14 +65,23 @@ class HandleUsers(WsRequestHandler):
 class LoginUser(WsRequestHandler):
 
     def get(self):
+        return self.whoami()
+
+    def post(self):
+        return self.login_user()
+
+    @_login_required
+    def put(self):
+        return self.change_password()
+
+    def whoami(self):
         """Is used only by 'ocdb-cli whoami'."""
         current_user = self.get_current_user()
         if current_user is None:
             return self.finish(tornado.escape.json_encode({'message': f'Not Logged in.'}))
-
         return self.finish(tornado.escape.json_encode({'message': f'I am {current_user}.', 'name': current_user}))
 
-    def post(self):
+    def login_user(self):
         """Provide API operation loginUser()."""
         credentials = tornado.escape.json_decode(self.request.body)
         username = credentials.get('username')
@@ -113,9 +122,7 @@ class LoginUser(WsRequestHandler):
         self.set_header('Content-Type', 'application/json')
         self.finish(tornado.escape.json_encode(user_info))
 
-    @_login_required
-    def put(self):
-        """Provide API operation changeLoginUser()."""
+    def change_password(self):
         current_user = self.get_current_user()
         credentials = tornado.escape.json_decode(self.request.body)
         username = credentials.get('username')
@@ -181,17 +188,27 @@ class GetUserByName(WsRequestHandler):
     @_user_authorization_required
     def get(self, user_name: str):
         """Provide API operation getUserByID()."""
-
-        result = get_user_by_name(self.ws_context, user_name=user_name)
-        # transform result of type User into response with mime-type application/json
-        self.set_header('Content-Type', 'application/json')
-        self.finish(tornado.escape.json_encode(result))
+        return self.get_user_by_name(user_name)
 
     @_login_required
     @_user_authorization_required
     def put(self, user_name: str):
         """Provide API operation updateUser()."""
+        return self.update_user(user_name)
 
+    @_login_required
+    @_admin_required
+    def delete(self, user_name: str):
+        """Provide API operation deleteUser()."""
+        return self.delete_user(user_name)
+
+    def get_user_by_name(self, user_name: str):
+        result = get_user_by_name(self.ws_context, user_name=user_name)
+        # transform result of type User into response with mime-type application/json
+        self.set_header('Content-Type', 'application/json')
+        self.finish(tornado.escape.json_encode(result))
+
+    def update_user(self, user_name: str):
         # transform body with mime-type application/json into a User
         data_dict = tornado.escape.json_decode(self.request.body)
 
@@ -246,10 +263,7 @@ class GetUserByName(WsRequestHandler):
             msg = f'User {user_name} not updated.'
             self.finish(tornado.escape.json_encode({'message': msg}))
 
-    @_login_required
-    @_admin_required
-    def delete(self, user_name: str):
-        """Provide API operation deleteUser()."""
+    def delete_user(self, user_name: str):
         if not self.has_admin_rights():
             self.set_status(status_code=403, reason='Not enough access rights to perform operation.')
             return
