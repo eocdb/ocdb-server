@@ -99,17 +99,17 @@ class LoginUser(WsRequestHandler):
 
         if not client_allowed:
             self.set_header('Content-Type', 'application/json')
-            self.set_status(409)
             if client == 'cli':
-                return self.finish(tornado.escape.json_encode({
-                    'message': f'You are using a deprecated version of the ocdb client. Please update to at least '
-                               f'version {MIN_CLIENT_VERSION}. Please update with conda update -c ocdb ocdb-client'
-                }))
+                reason = f'You are using a deprecated version of the ocdb client. Please update to at least ' \
+                              f'version {MIN_CLIENT_VERSION}. Please update with conda update -c ocdb ocdb-client'
             else:
-                return self.finish(tornado.escape.json_encode({
-                    'message': f'You are using an outdated version of the ocdb website. Please clear your browser '
-                               f'cache and reload the page.'
-                }))
+                reason = f'You are using an outdated version of the ocdb website. Please clear your browser ' \
+                        f'cache and reload the page.'
+
+            self.set_status(409, reason)
+            return self.finish(tornado.escape.json_encode({
+                'message': reason
+            }))
 
         user_info = login_user(self.ws_context, username=username, password=password)
         if user_info is not None:
