@@ -1,3 +1,6 @@
+# Changes in Version 0.1.21.dev0
+- added library six to environment.yml
+
 # Changes in Version 0.1.20
 - upload file size ... maximum file size for upload changed from 8500000 to 40000000
 - sb_file_reader ... Ensure that wrong time notation raises an error.
