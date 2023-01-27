@@ -18,8 +18,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
-
-
+from ._handle_users import HandleUsers, LoginUser, LogoutUser, GetUserByName
+from ._handler_links import Links
 from ._handlers import *
 from ..webservice import url_pattern
 from ...version import API_VERSION_TAG

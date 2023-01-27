@@ -19,13 +19,27 @@ class SbFileReaderTest(unittest.TestCase):
         sb_file = ['/end_header\n']
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-        self.assertEqual('Missing delimiter tag in header', f"{cm.exception}")
+        self.assertEqual('/begin_header tag missing', f"{cm.exception}")
+
+    def test_parse_empty_header_missing_begin__begin_is_commented_out(self):
+        sb_file = ['!/begin_header\n',
+                   '/end_header\n']
+        with self.assertRaises(SbFormatError) as cm:
+            self.reader._parse(sb_file)
+        self.assertEqual('/begin_header tag missing', f"{cm.exception}")
 
     def test_parse_empty_header_missing_end(self):
         sb_file = ['/begin_header\n']
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
-        self.assertEqual('Missing delimiter tag in header', f"{cm.exception}")
+        self.assertEqual('/end_header tag missing', f"{cm.exception}")
+
+    def test_parse_empty_header_missing_end__end_is_commented_out(self):
+        sb_file = ['/begin_header\n',
+                   '!/end_header\n']
+        with self.assertRaises(SbFormatError) as cm:
+            self.reader._parse(sb_file)
+        self.assertEqual('/end_header tag missing', f"{cm.exception}")
 
     def test_parse__length_of_fields_and_units_are_different(self):
         sb_file = ['/begin_header\n',
@@ -34,8 +48,8 @@ class SbFileReaderTest(unittest.TestCase):
                    '/start_time=00:08:00[GMT]\n',
                    '/north_latitude=11.713[DEG]\n',
                    '/east_longitude=109.587[DEG]\n',
-                   '/fields=AB,CD,EF,GH,IJ,KL\n', # <-- 6 elements
-                   '/units=ab,cd,ef,gh,ij\n',     # <-- 5 elements
+                   '/fields=AB,CD,EF,GH,IJ,KL\n',  # <-- 6 elements
+                   '/units=ab,cd,ef,gh,ij\n',  # <-- 5 elements
                    '/end_header\n',
                    '1 2 3 4 5 6\n']
         with self.assertRaises(SbFormatError) as cm:
@@ -49,10 +63,10 @@ class SbFileReaderTest(unittest.TestCase):
                    '/start_time=00:08:00[GMT]\n',
                    '/north_latitude=11.713[DEG]\n',
                    '/east_longitude=109.587[DEG]\n',
-                   '/fields=AB,CD,EF,GH,IJ,KL\n', # <-- 6 elements
+                   '/fields=AB,CD,EF,GH,IJ,KL\n',  # <-- 6 elements
                    '/units=ab,cd,ef,gh,ij\n',
                    '/end_header\n',
-                   '1 2 3 4 5 6 23\n']            # <-- 7 elements
+                   '1 2 3 4 5 6 23\n']  # <-- 7 elements
         with self.assertRaises(SbFormatError) as cm:
             self.reader._parse(sb_file)
         self.assertEqual('Number of fields (6) does not match number of columns (7).', f"{cm.exception}")
@@ -70,6 +84,46 @@ class SbFileReaderTest(unittest.TestCase):
                    '1 2 3 4 5 6\n']
         dataset = self.reader._parse(sb_file)
         self.assertEqual(6, dataset.attribute_count)
+
+    def test_parse__convert_number_strings_field_to_float_field(self):
+        sb_file = ['/begin_header\n',
+                   '/delimiter=space\n',
+                   '/numberField_1=123\n',
+                   '/numberField_2=+123\n',
+                   '/numberField_3=-123\n',
+                   '/numberField_4=12.34\n',
+                   '/numberField_5=+12.34\n',
+                   '/numberField_6=-12.34\n',
+                   '/numberField_7=12.34e56\n',
+                   '/numberField_8=12.34e+56\n',
+                   '/numberField_9=12.34e-56\n',
+                   '/numberField_10=-12.34e56\n',
+                   '/numberField_11=-12.34e+56\n',
+                   '/numberField_12=-12.34e-56\n',
+                   '/numberField_2=123\n',
+                   '/start_date=20010723\n',
+                   '/start_time=00:08:00[GMT]\n',
+                   '/north_latitude=11.713[DEG]\n',
+                   '/east_longitude=109.587[DEG]\n',
+                   '/fields=AB,CD,EF,GH,IJ,KL\n',
+                   '/units=ab,cd,ef,gh,ij,kl\n',
+                   '/end_header\n',
+                   '1 2 3 4 5 6\n']
+        dataset = self.reader._parse(sb_file)
+        self.assertEqual(6, dataset.attribute_count)
+        self.assertEqual({'delimiter': 'space',
+                          'east_longitude': 109.587,
+                          'fields': 'AB,CD,EF,GH,IJ,KL',
+                          'north_latitude': 11.713,
+                          'numberField_1': 123.0, 'numberField_10': -1.234e+57,
+                          'numberField_11': -1.234e+57, 'numberField_12': -1.234e-55,
+                          'numberField_2': 123.0, 'numberField_3': -123.0,
+                          'numberField_4': 12.34, 'numberField_5': 12.34,
+                          'numberField_6': -12.34, 'numberField_7': 1.234e+57,
+                          'numberField_8': 1.234e+57, 'numberField_9': 1.234e-55,
+                          'start_date': '20010723',
+                          'start_time': '00:08:00[GMT]',
+                          'units': 'ab,cd,ef,gh,ij,kl'}, dataset.metadata)
 
     def test_parse_location_in_header_time_info_in_header_and_records(self):
         sb_file = ['/begin_header\n',
@@ -89,6 +143,8 @@ class SbFileReaderTest(unittest.TestCase):
                    '/east_longitude=109.587[DEG]\n',
                    '/delimiter=comma\n',
                    '/fields=time,depth,ED379.9,ED412.1,ED442.6,ED470.4,ED490.5,ED510.8,ED532.4,ED555.3,ED589.6,ED619.7,ED669.8,ED683.3,ED704.9,ED779.4,LU380.3,LU470.4,LU510.1,LU589.8,LU619.7,LU704.8,LU779.9,tilt,COND,Wt,pvel\n',
+                   # duplication of line fields to ensure "units" have the same entry count.
+                   '/units=time,depth,ED379.9,ED412.1,ED442.6,ED470.4,ED490.5,ED510.8,ED532.4,ED555.3,ED589.6,ED619.7,ED669.8,ED683.3,ED704.9,ED779.4,LU380.3,LU470.4,LU510.1,LU589.8,LU619.7,LU704.8,LU779.9,tilt,COND,Wt,pvel\n',
                    '/end_header\n',
                    '05:42:49,0.40000000,56.61060942,122.66957337,132.33737132,114.44906813,121.14584599,129.14107229,164.93812382,153.82678513,107.74022908,74.84475416,112.73332494,117.61951804,44.97546967,12.29104733,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999,-999',
                    '05:42:50,0.50000000,56.90948085,115.97783666,171.51381329,100.38906060,161.96556721,113.75394300,113.36437951,77.19171621,94.68081637,74.03389812,80.24165958,92.87650441,41.91937544,7.05047058,-999,-999,-999,-999,-999,-999,-999,2.32841663,53.06609583,27.46488778,0.37780480']
@@ -98,9 +154,11 @@ class SbFileReaderTest(unittest.TestCase):
                           'data_status': 'preliminary',
                           'experiment': 'LAMONT_SCS',
                           'fields': 'time,depth,ED379.9,ED412.1,ED442.6,ED470.4,ED490.5,ED510.8,ED532.4,ED555.3,ED589.6,ED619.7,ED669.8,ED683.3,ED704.9,ED779.4,LU380.3,LU470.4,LU510.1,LU589.8,LU619.7,LU704.8,LU779.9,tilt,COND,Wt,pvel',
+                          # duplication of line fields to ensure "units" have the same entry count.
+                          'units': 'time,depth,ED379.9,ED412.1,ED442.6,ED470.4,ED490.5,ED510.8,ED532.4,ED555.3,ED589.6,ED619.7,ED669.8,ED683.3,ED704.9,ED779.4,LU380.3,LU470.4,LU510.1,LU589.8,LU619.7,LU704.8,LU779.9,tilt,COND,Wt,pvel',
                           'cruise': 'jun16scs', 'station': '03_04', 'delimiter': 'comma',
-                          'east_longitude': '109.587[DEG]', 'west_longitude': '109.587[DEG]',
-                          'north_latitude': '11.713[DEG]', 'south_latitude': '11.713[DEG]', 'start_date': '20020616'},
+                          'east_longitude': 109.587, 'west_longitude': 109.587,
+                          'north_latitude': 11.713, 'south_latitude': 11.713, 'start_date': '20020616'},
                          dataset.metadata)
 
         self.assertEqual(27, dataset.attribute_count)
@@ -122,6 +180,8 @@ class SbFileReaderTest(unittest.TestCase):
         sb_file = ['/begin_header\n',
                    '/delimiter=space\n',
                    '/fields=year,month,day,hour,minute,second,lat,lon,CHL,depth\n',
+                   # duplication of line fields to ensure "units" have the same entry count.
+                   '/units=year,month,day,hour,minute,second,lat,lon,CHL,depth\n',
                    '/end_header\n',
                    '1992 03 01 23 04 00 12.00 -110.03 0.1700 18\n',
                    '1992 03 01 23 04 00 12.00 -110.03 0.1900 29\n',
@@ -129,7 +189,11 @@ class SbFileReaderTest(unittest.TestCase):
                    '1992 03 01 23 04 00 12.00 -110.03 0.3600 70\n']
 
         dataset = self.reader._parse(sb_file)
-        self.assertEqual({'delimiter': 'space', 'fields': 'year,month,day,hour,minute,second,lat,lon,CHL,depth'},
+        self.assertEqual({'delimiter': 'space',
+                          'fields': 'year,month,day,hour,minute,second,lat,lon,CHL,depth',
+                          # duplication of line fields to ensure "units" have the same entry count.
+                          'units': 'year,month,day,hour,minute,second,lat,lon,CHL,depth',
+                          },
                          dataset.metadata)
 
         self.assertEqual(10, dataset.attribute_count)
@@ -154,6 +218,8 @@ class SbFileReaderTest(unittest.TestCase):
         sb_file = ['/begin_header\n',
                    '/delimiter=space\n',
                    '/fields=year,month,day,hour,minute,lat,lon,CHL,depth\n',
+                   # duplication of line fields to ensure "units" have the same entry count.
+                   '/units=year,month,day,hour,minute,lat,lon,CHL,depth\n',
                    '/end_header\n',
                    '1992 03 01 23 04 12.00 -110.03 0.1700 18\n',
                    '1992 03 01 23 04 12.00 -110.03 0.1900 29\n',
@@ -161,7 +227,11 @@ class SbFileReaderTest(unittest.TestCase):
                    '1992 03 01 23 04 12.00 -110.03 0.3600 70\n']
 
         dataset = self.reader._parse(sb_file)
-        self.assertEqual({'delimiter': 'space', 'fields': 'year,month,day,hour,minute,lat,lon,CHL,depth'},
+        self.assertEqual({'delimiter': 'space',
+                          'fields': 'year,month,day,hour,minute,lat,lon,CHL,depth',
+                          # duplication of line fields to ensure "units" have the same entry count.
+                          'units': 'year,month,day,hour,minute,lat,lon,CHL,depth'
+                          },
                          dataset.metadata)
 
         self.assertEqual(9, dataset.attribute_count)
@@ -192,6 +262,8 @@ class SbFileReaderTest(unittest.TestCase):
                    '/start_time=00:08:00[GMT]\n',
                    '/end_time=00:08:00[GMT]\n',
                    '/fields=depth,CHL\n',
+                   # duplication of line fields to ensure "units" have the same entry count.
+                   '/units=depth,CHL\n',
                    '/end_header\n',
                    '2.000000 0.158000\n',
                    '3.000000 0.158000\n',
@@ -200,9 +272,12 @@ class SbFileReaderTest(unittest.TestCase):
                    '6.000000 0.158000\n']
 
         dataset = self.reader._parse(sb_file)
-        self.assertEqual({'delimiter': 'space', 'east_longitude': '125.198[DEG]', 'end_date': '20010723',
-                          'end_time': '00:08:00[GMT]', 'fields': 'depth,CHL',
-                          'north_latitude': '26.957[DEG]', 'start_date': '20010723',
+        self.assertEqual({'delimiter': 'space', 'east_longitude': 125.198, 'end_date': '20010723',
+                          'end_time': '00:08:00[GMT]',
+                          'fields': 'depth,CHL',
+                          # duplication of line fields to ensure "units" have the same entry count.
+                          'units': 'depth,CHL',
+                          'north_latitude': 26.957, 'start_date': '20010723',
                           'start_time': '00:08:00[GMT]'}, dataset.metadata)
 
         self.assertEqual(1, len(dataset.times))
@@ -218,6 +293,8 @@ class SbFileReaderTest(unittest.TestCase):
                    '/start_time=04:37:00[GMT]\n',
                    '/end_time=04:37:00[GMT]\n',
                    '/fields=date,time,depth,ad,wavelength\n',
+                   # duplication of line fields to ensure "units" have the same entry count.
+                   '/units=date,time,depth,ad,wavelength\n',
                    '/end_header\n',
                    '20010510 04:37:00 0.0 1.0340 300\n',
                    '20010510 04:37:00 0.0 1.0340 301\n',
@@ -226,9 +303,12 @@ class SbFileReaderTest(unittest.TestCase):
                    '20010510 04:37:00 0.0 1.0290 304\n']
 
         dataset = self.reader._parse(sb_file)
-        self.assertEqual({'delimiter': 'space', 'east_longitude': '114.196[DEG]', 'end_date': '20010510',
-                          'end_time': '04:37:00[GMT]', 'fields': 'date,time,depth,ad,wavelength',
-                          'north_latitude': '22.442[DEG]', 'start_date': '20010510',
+        self.assertEqual({'delimiter': 'space', 'east_longitude': 114.196, 'end_date': '20010510',
+                          'end_time': '04:37:00[GMT]',
+                          'fields': 'date,time,depth,ad,wavelength',
+                          # duplication of line fields to ensure "units" have the same entry count.
+                          'units': 'date,time,depth,ad,wavelength',
+                          'north_latitude': 22.442, 'start_date': '20010510',
                           'start_time': '04:37:00[GMT]'}, dataset.metadata)
 
         self.assertEqual(5, len(dataset.times))
@@ -244,6 +324,7 @@ class SbFileReaderTest(unittest.TestCase):
                    '/start_time=14:48:00[GMT]\n',
                    '/end_time=17:48:00[GMT]\n',
                    '/fields=depth,Wt,sal,agp412,agp440,agp488,agp510,agp532,agp555,agp650,agp676,agp715,cgp412,cgp440,cgp488,cgp510,cgp532,cgp555,cgp650,cgp676,cgp715\n',
+                   '/units=a,b,c,d,e,f,g,h,i,j,k,l,m,n,o,p,q,r,s,t,u\n',
                    '/end_header\n',
                    '1.0 	 -1.67  	 30.515 	 0.172957 	 0.114344 	 0.064189 	 0.053668 	 0.046506 	 0.041751 	 0.03159 	 0.030531 	 0.025931 	 0.246614 	 0.178616 	 0.134436 	 0.1365 	 0.104338 	 0.098068 	 0.080178 	 0.080863 	 0.071719\n',
                    '1.5 	 -1.671 	 30.514 	 0.157698 	 0.098079 	 0.051644 	 0.042618 	 0.035022 	 0.030336 	 0.020861 	 0.019751 	 0.016011 	 0.227774 	 0.155066 	 0.104526 	 0.08393 	 0.084763 	 0.071008 	 0.056643 	 0.045593 	 0.041029\n',
@@ -267,15 +348,15 @@ class SbFileReaderTest(unittest.TestCase):
         metadata = {'delimiter': 'comma'}
 
         regex = self.reader._extract_delimiter_regex(metadata)
-        self.assertEqual(",+", regex)
+        self.assertEqual(",", regex)
 
         metadata = {'delimiter': 'space'}
         regex = self.reader._extract_delimiter_regex(metadata)
-        self.assertEqual("\s+", regex)
+        self.assertEqual(" +", regex)
 
         metadata = {'delimiter': 'tab'}
         regex = self.reader._extract_delimiter_regex(metadata)
-        self.assertEqual("\t+", regex)
+        self.assertEqual("\t", regex)
 
     def test_extract_delimiter_regex_invalid(self):
         metadata = {'delimiter': 'double-slash-and-semicolon'}
@@ -309,12 +390,26 @@ class SbFileReaderTest(unittest.TestCase):
         self.assertAlmostEqual(-2.00987, self.reader._extract_angle("-2.00987"), 8)
 
     def test_extract_date(self):
-        self.assertEqual(datetime.datetime(2002, 7, 11, 14, 22, 53),
-                         self.reader._extract_date("20020711", "14:22:53[GMT]"))
+        extracted = self.reader._extract_date("20020711", "14:22:53[GMT]")
+        expected = datetime.datetime(2002, 7, 11, 14, 22, 53)
+        self.assertEqual(expected, extracted)
 
-    def test_extract_date_no_leading_zero(self):
-        self.assertEqual(datetime.datetime(2002, 7, 11, 2, 23, 54),
-                         self.reader._extract_date("20020711", "2:23:54[GMT]"))
+    def test_extract_date___time_segments_with_leading_zero(self):
+        # Time segments ( hh:mm:ss) always have to consist of 2 digits. If the value is less
+        # than 10, a leading zero must be placed in front.
+        # Time without leading zero e.g. '2:18:4' is not allowed.
+        # Correct time notation is '02:18:04'
+        # see: https://seabass.gsfc.nasa.gov/wiki/metadataheaders#start_date
+        expected = datetime.datetime(2002, 7, 11, 2, 18, 4)
+        extracted = self.reader._extract_date("20020711", "02:18:04[GMT]")
+        self.assertEqual(expected, extracted)
+
+    def test_extract_date_throws_an_exception_if_time_segments_without_leading_zero(self):
+        with self.assertRaises(SbFormatError) as em:
+            self.reader._extract_date("20020711", "2:18:4[GMT]")
+        self.assertEqual("Invalid time format (2:18:4). Format must correspond to HH:MM:SS. see: "
+                         "https://seabass.gsfc.nasa.gov/wiki/metadataheaders#start_date",
+                         f"{em.exception}")
 
     def test_extract_date_throws_on_missing_GMT(self):
         with self.assertRaises(SbFormatError) as cm:
@@ -332,8 +427,8 @@ class SbFileReaderTest(unittest.TestCase):
 
     def test_extract_geo_location_from_header(self):
         dataset = new_test_db_dataset(2)
-        dataset.add_metadatum('east_longitude', '22.7')
-        dataset.add_metadatum('north_latitude', '-17.09')
+        dataset.add_metadatum('east_longitude', 22.7)
+        dataset.add_metadatum('north_latitude', -17.09)
 
         self.reader._extract_geo_location_from_header(dataset)
 

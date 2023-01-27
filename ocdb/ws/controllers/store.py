@@ -72,15 +72,9 @@ def upload_submission_files(ctx: WsContext,
     ensure_valid_path(path)
     ensure_valid_submission_id(submission_id)
 
-    if submission_id == '':
-        raise WsBadRequestError(f"Submission label is empty!")
-
     result = ctx.db_driver.get_submission(submission_id)
     if result is not None:
         raise WsBadRequestError(f"Submission identifier already exists: {submission_id}")
-
-    if path.count('/') < 2:
-        raise WsBadRequestError(f"Please provide the path as format: AFFILIATION (acronym)/EXPERIMENT/CRUISE")
 
     if len(dataset_files) < 1:
         raise WsBadRequestError(f"Please provide at least one dataset.")
@@ -205,7 +199,8 @@ def delete_submission(ctx: WsContext, submission_id: str) -> bool:
 
 
 def update_submission(ctx: WsContext, submission: DbSubmission, status: str, publication_date: datetime) -> bool:
-    # old_status = submission.status
+    # todo se .. why is the old_status relevant and reactivated?
+    old_status = submission.status
 
     # new_stati = QC_TRANSITIONS[old_status]
     # if status not in new_stati:
@@ -293,12 +288,6 @@ def update_submission_files(ctx: WsContext,
 
     ensure_valid_path(path)
     ensure_valid_submission_id(submission_id)
-
-    if new_submission_id == '':
-        raise WsBadRequestError(f"Submission label is empty!")
-
-    if path.count('/') < 2:
-        raise WsBadRequestError(f"Please provide the path as format: acronym of affiliation/cruise/experiment")
 
     # archive_path = ctx.get_submission_path(path)
 

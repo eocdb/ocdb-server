@@ -1,1 +1,1 @@
-eodbc-server's static test resources
+odbc-server's static test resources

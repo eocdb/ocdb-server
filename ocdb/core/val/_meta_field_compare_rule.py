@@ -64,6 +64,8 @@ class MetaFieldCompareRule(Rule):
             return TimeHelper.parse_datetime(converted_value)
 
         if self._data_type == "number":
+            if type(value) is float:
+                return value
             if '[' in value:
                 unit_index = value.find('[')
                 value = value[0:unit_index]

@@ -275,6 +275,11 @@
       "type": "field_obsolete",
       "warning": "@obsolete_field"
     },
+	{
+      "name": "geoform_originljdyspo",
+      "type": "field_obsolete",
+      "warning": "@obsolete_field"
+    },
     {
       "name": "geoform",
       "type": "field_obsolete",
@@ -565,6 +570,12 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "asrfa",
+      "unit": "1/m",
+      "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "allo",
       "unit": "mg/m^3,ug/l",
       "lower_bound": 0,
@@ -663,12 +674,6 @@
       "lower_bound": 0,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
-      "unit_error": "@field_has_wrong_unit"
-    },
-    {
-      "name": "asrfa",
-      "unit": "1/m",
-      "data_type": "number",
       "unit_error": "@field_has_wrong_unit"
     },
     {
@@ -981,6 +986,15 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "chl_experiment",
+      "unit": "mg/m^3,ug/l",
+      "lower_bound": 0,
+      "upper_bound": 100,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "chl_a",
       "unit": "mg/m^3,ug/l",
       "lower_bound": 0,
@@ -1049,15 +1063,6 @@
       "name": "chl_c3",
       "unit": "mg/m^3,ug/l",
       "lower_bound": 0,
-      "data_type": "number",
-      "value_error": "@field_out_of_bounds",
-      "unit_error": "@field_has_wrong_unit"
-    },
-    {
-      "name": "chl_experiment",
-      "unit": "mg/m^3,ug/l",
-      "lower_bound": 0,
-      "upper_bound": 100,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
@@ -1431,6 +1436,14 @@
       "name": "eupar",
       "unit": "uE/cm^2/s",
       "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "exact_wavelength",
+      "unit": "nm",
+      "lower_bound": 100,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
@@ -1937,6 +1950,14 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "no2ot",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "no3",
       "unit": "mmol/m^3",
       "lower_bound": 0,
@@ -1987,6 +2008,14 @@
     {
       "name": "oz",
       "unit": "dobson",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "o3ot",
+      "unit": "none",
       "lower_bound": 0,
       "data_type": "number",
       "value_error": "@field_out_of_bounds",
@@ -2421,6 +2450,14 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "rho",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "rl",
       "unit": "1/sr",
       "lower_bound": 0,
@@ -2432,6 +2469,14 @@
       "name": "roll",
       "unit": "degrees",
       "data_type": "number",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "rot",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
       "unit_error": "@field_has_wrong_unit"
     },
     {
@@ -2771,6 +2816,22 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "total_no2",
+      "unit": "dobson",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
+      "name": "total_precipitable_water",
+      "unit": "cm",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "tpg",
       "unit": "mg/m^3,ug/l",
       "lower_bound": 0,
@@ -2959,6 +3020,14 @@
       "unit_error": "@field_has_wrong_unit"
     },
     {
+      "name": "wvot",
+      "unit": "none",
+      "lower_bound": 0,
+      "data_type": "number",
+      "value_error": "@field_out_of_bounds",
+      "unit_error": "@field_has_wrong_unit"
+    },
+    {
       "name": "wvp",
       "unit": "cm",
       "lower_bound": 0,
@@ -3036,8 +3105,10 @@
     {"name": "_biovol", "unit": "m^3/L", "unit_error": "@suffix_has_wrong_unit"},
     {"name": "_carbon", "unit": "ug/L", "unit_error": "@suffix_has_wrong_unit"},
     {"name": "_cv"},
+    {"name": "_quality", "unit": "none", "unit_error": "@suffix_has_wrong_unit"},
     {"name": "_sd"},
-    {"name": "_se"}
+    {"name": "_se"},
+    {"name": "_unc", "unit": "none", "unit_error": "@suffix_has_wrong_unit"}
   ],
   "errors": [
     {

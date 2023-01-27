@@ -34,6 +34,9 @@ def _collect_query(user_id: str = None, query_column: str = None,
                    query_value: Union[str, datetime, bool] = None, query_operator: str = None):
     query_dict = dict()
 
+    if user_id is not None:
+        query_dict['user_id'] = user_id
+
     if not query_value:
         return query_dict
 
@@ -67,9 +70,6 @@ def _collect_query(user_id: str = None, query_column: str = None,
             query_dict[query_column] = {"$lte": query_value}
         else:
             query_dict[query_column] = query_value
-
-    if user_id is not None:
-        query_dict['user_id'] = user_id
 
     return query_dict
 
@@ -127,12 +127,10 @@ class MongoDbDriver(DbDriver):
             return DatasetQueryResult({}, total_num_results, [], query)
         else:
             dataset_refs = []
-            dataset_ids = []
             locations = {}
             for dataset_dict in cursor:
                 ds_ref, points = self._to_dataset_ref(dataset_dict, query.geojson)
                 dataset_refs.append(ds_ref)
-                dataset_ids.append(ds_ref.id)
                 if points is not None:
                     feature_collection = self._to_geojson(points)
                     locations.update({ds_ref.id: feature_collection})
@@ -499,15 +497,21 @@ class MongoDbDriver(DbDriver):
         def to_dict(self, query: DatasetQuery) -> dict:
             query_dict = {}
 
-            if query.user_id is not None:
-                query_dict.update({'user_id': query.user_id})
-                query.user_id = None
-
             if query.expr is not None:
                 query_generator = MongoQueryGenerator()
                 q = QueryParser.parse(query.expr)
                 q.accept(query_generator)
                 query_dict = query_generator.query
+
+            if query.user_id is not None and query.status is not None:
+                query_dict.update({'$or': [{'user_id': query.user_id}, {'status': query.status}]})
+            else:
+                if query.status is not None:
+                    query_dict.update({'status': query.status})
+
+                if query.user_id is not None:
+                    query_dict.update({'user_id': query.user_id})
+                    query.user_id = None
 
             if query.region is not None:
                 query_dict["longitudes"] = {'$gte': query.region[0], '$lte': query.region[2]}
@@ -536,9 +540,6 @@ class MongoDbDriver(DbDriver):
             if query.submission_id is not None:
                 query_dict.update({'submission_id': query.submission_id})
 
-            if query.status is not None:
-                query_dict.update({'status': query.status})
-
             if query.pgroup is not None:
                 query_dict.update({'groups': {'$in': query.pgroup}})
 
@@ -547,7 +548,11 @@ class MongoDbDriver(DbDriver):
                 query_dict.update({'attributes': {'$in': query.pname}})
 
             if query.wdepth is not None:
-                query_dict.update({'water_depth': {'$gte': query.wdepth[0], '$lte': query.wdepth[1]}})
+                wd_from = query.wdepth[0]
+                # wd_from = str(query.wdepth[0])
+                wd_to = query.wdepth[1]
+                # wd_to = str(query.wdepth[1])
+                query_dict.update({'metadata.water_depth': {'$gte': wd_from, '$lte': wd_to}})
 
             if query.shallow is not None:
                 if query.shallow == 'no':
@@ -555,7 +560,7 @@ class MongoDbDriver(DbDriver):
                 elif query.shallow == 'exclusively':
                     query_dict.update({'metadata.optical_depth_warning': 'true'})
 
-            if query.mtype != 'all':
+            if query.mtype is not None and query.mtype != 'all':
                 query_dict.update({'metadata.data_type': query.mtype})
 
             if query.wlmode is not None:

@@ -79,7 +79,8 @@
       "c",
       "cg",
       "cnw",
-      "cp"
+      "cp",
+      "cpg"
     ]
   },
   {
@@ -110,7 +111,8 @@
       "cdom",
       "dic",
       "doc",
-      "pco2"
+      "pco2",
+      "total_Alkalinity"
     ]
   },
   {
@@ -209,7 +211,9 @@
     "description": "Productivity",
     "products": [
       "npp",
-      "pp"
+      "pp",
+      "ncp",
+      "gpp"
     ]
   },
   {
