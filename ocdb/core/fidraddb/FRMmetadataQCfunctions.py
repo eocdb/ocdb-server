@@ -17,12 +17,12 @@ def FRMmetadataQC(metadata, scan, filekey):
                 metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=5)
             elif filekey == 'STRAYDATA':
                 metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=257)
-            elif filekey == 'TEPDATA':
+            elif filekey == 'TEMPDATA':
                 metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=3)
         if key in ['PANEL_ID', 'LAMP_ID', 'USER', 'CALLAB']:
-            metadataQC[key] = FRMisempty(metadata[key])
+            metadataQC[key] = FRMisNotempty(metadata[key])
         if key in ['AMBIENT_TEMP', 'LAMP_CCT', 'VERSION', 'POLANGLE', 'REFTEMP']:
-            metadataQC[key] = FRMisfloat(metadata[key])
+            metadataQC[key] = FRMisFloat(metadata[key])
         if key in ['PANELDATA', 'LAMPDATA']:
             metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=4)
     return(metadataQC)
@@ -60,8 +60,6 @@ def FRMcheckDATE(strdate):
             res = "valid"
     return(res)
 
-
-
 def FRMcheckDEVICE(dev):
     res = "not valid"
     if len(dev) >= 7:
@@ -75,7 +73,6 @@ def FRMcheckDEVICE(dev):
         res = 'valid'
     return(res)
 
-
 def is_valid_float(element: str) -> bool:
     try:
         float(element)
@@ -83,17 +80,24 @@ def is_valid_float(element: str) -> bool:
     except ValueError:
         return False
 
-def FRMisempty(element: str) -> str:
-    if element and is_valid_float(element) == False:
+def FRMisNotEmpty(element: str) -> str:
+    """This function checks, whether an element is ...
+    returns 'valid' if ...
+    returns 'not valid' if ...
+    UweL: I added brackets and replaced == by is
+    """
+    if element and (is_valid_float(element) is False):
         return 'valid'
     else:
         return 'not valid'
 
-def FRMisfloat(element: str) -> str:
+
+def FRMisFloat(element: str) -> str:
     if is_valid_float(element) :
         return 'valid'
     else :
         return 'not valid'
+
 
 def FRMcheckCALDATA(caldata, scan, inst):
     # split lines, trim and remove leading slash
@@ -106,8 +110,9 @@ def FRMcheckCALDATA(caldata, scan, inst):
         Nlines = iend - istart
     except:
         Nlines = 0
+
     if Nlines > 5 & all(isfloat):
-        if  inst == 'SAM' and len(line1) == 8:
+        if inst == 'SAM' and len(line1) == 8:
         ## check TriOS instrument
             res = 'valid'
         elif inst == 'SAT' and len(line1) == 10:
