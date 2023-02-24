@@ -1,0 +1,28 @@
+# configuration file for FIDradDB;;;;
+# metadata: the name of the metadata to be tested;;;;
+# applied on: either ‘all’ for all cal/char files either the name of a sigle file type.;;;;
+# function: the name of the function to use for checking validity of the metadata;;;;
+# ncol: if function is FRMisNCOLdata"," the number of column in the table;;;;
+# status: either “M” for mandatory or “O” for optional;;;;
+metadata;applied on;function;ncol;status
+CALDATE;all;FRMcheckDATE;;M
+DEVICE;all;FRMcheckDEVICE;;M
+CALLAB;all;FRMisNotempty;;M
+USER;all;FRMisNotempty;;O
+VERSION;all;FRMisfloat;;O
+CALDATA;POLDATA;FRMisNCOLdata;6;M
+CALDATA;RADCAL;FRMisNCOLdata;10;M
+CALDATA;TEMPDATA;FRMisNCOLdata;4;M
+UNCERTAINTY;ANGDATA;FRMisNCOLdata;47;M
+UNCERTAINTY;STRAYDATA;FRMisNCOLdata;256;M
+COSERROR;ANGDATA;FRMisNCOLdata;47;M
+LSF;STRAYDATA;FRMisNCOLdata;256;M
+PANEL_ID;RADCAL;FRMisNotempty;;O
+LAMP_ID;RADCAL;FRMisNotempty;;O
+AZIMUTH_ANGLE;ANGDATA;FRMisfloat;;M
+LAMP_CCT;RADCAL;FRMisfloat;;O
+AMBIENT_TEMP;all;FRMisfloat;;O
+DEVICE_TEMP;ANGDATA;FRMisfloat;;O
+REFERENCE_TEMP;TEMPDATA;FRMisfloat;;M
+PANELDATA;RADCAL;FRMisNCOLdata;4;O
+LAMPDATA;RADCAL;FRMisNCOLdata;4;O
