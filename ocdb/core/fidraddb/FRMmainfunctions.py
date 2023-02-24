@@ -1,5 +1,14 @@
 import re
 import sys
+import pandas as pd
+
+def Read_config_file(config_file, filekey):
+    cftab = pd.read_csv(config_file, sep=";", comment='#' )
+    config = cftab.loc[cftab['applied on'].isin(['all', filekey])]
+    print('configuration data had been extracted')
+    print(config)
+    print('-----------------------')
+    return(config)
 
 def readFRMfile(file):
     """
@@ -11,6 +20,12 @@ def readFRMfile(file):
     sc = sc.readlines()
     # split lines, trim and remove leading slash
     alllines = [re.sub("[\r\n]+", '', line).strip() for line in sc]
+    # remove lines wich starts with #
+    irm = [line.startswith('#') for line in alllines]
+    irm = [i for i, x in enumerate(irm) if x]
+    irm.reverse()
+    for i in irm:
+        del alllines[i]
     print(file+" has been read")
     print('--------------------------')
     return(alllines)
@@ -71,7 +86,7 @@ def readFRMmetadata(scan):
     return(metadata)
 
 ### Check that mandatory metadata are valid
-def checkFRMmetadata(filekey, metadataQC, MANDATORY, OPTIONAL):
+def checkFRMmetadata(filekey, metadataQC, config):
     """
     Determine if file contains enought metadata information
     :param filekey:  the keyword corresponding to file type (string)
@@ -80,7 +95,11 @@ def checkFRMmetadata(filekey, metadataQC, MANDATORY, OPTIONAL):
     :Param OPTIONAL: a dictionnary with file types keywords as kays and the list of optional metadata as values
     :return: True if file contains enought information, process is stopped otherwhise
     """
-    for met in MANDATORY[filekey]:
+
+    MANDATORY = list(config.loc[config['status'] == 'M']['metadata'])
+    OPTIONAL = list(config.loc[config['status'] == 'O']['metadata'])
+
+    for met in MANDATORY:
         try:
             metadataQC[met]
         except:
@@ -91,7 +110,7 @@ def checkFRMmetadata(filekey, metadataQC, MANDATORY, OPTIONAL):
                 print('Error: metadata '+met+' is mandatory but is invalid')
                 exit()
 
-    for met in OPTIONAL[filekey]:
+    for met in OPTIONAL:
         try:
             metadataQC[met]
         except:
