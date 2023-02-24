@@ -3,13 +3,20 @@
 # Press Shift+F10 to execute it or replace it with your code.
 # Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
 
-from FRMmetadataQCfunctions import FRMmetadataQC
-from FRMmainfunctions import readFRMfile, getfilekey, readFRMmetadata, checkFRMmetadata
+from FRMmetadataQCfunctions_V3 import FRMmetadataQC, FRMisfloat, FRMcheckDATE, FRMcheckDEVICE, FRMisNotempty, FRMisNCOLdata
+from FRMmainfunctions_V3 import Read_config_file, readFRMfile, getfilekey, readFRMmetadata, checkFRMmetadata
 import shutil
 import os
 
+## directory for non-checked FRM4SOC files /// To be adapted ///
+DIR_uploaded_files = "/home/hlavigne/Documents/FRM4SOC/fileformats/UPDATE_NOV_2022/"
+valid_files_dir = "/home/hlavigne/Documents/FRM4SOC/file_QC_OK"
+config_file= '/home/hlavigne/Documents/FRM4SOC/fidradDB_config.csv'
 
-def check_FRM_uploaded_file(file, valid_files_dir):
+#/// To be adapted ///
+file = DIR_uploaded_files+"cp_radcal_SAT0233.txt"
+
+def check_FRM_uploaded_file(file, valid_files_dir, config_file):
     # read the file and scann all lines
     scan = readFRMfile(file)
 
@@ -19,33 +26,23 @@ def check_FRM_uploaded_file(file, valid_files_dir):
     # read all metadata info
     metadata = readFRMmetadata(scan)
 
+    ## read conbfiguration file
+    config = Read_config_file(config_file, filekey)
+
     print('check metadata validity:')
 # apply QC on metadata
-    metadataQC = FRMmetadataQC(metadata, scan, filekey)
+    metadataQC = FRMmetadataQC(metadata, scan, filekey, config, FRMisfloat, FRMcheckDATE, FRMcheckDEVICE, FRMisNotempty, FRMisNCOLdata)
 
     for k in metadataQC.keys():
         print(k + ': ' + metadataQC[k])
     print('------------------------')
 
-## define dictionnary with for each file type which are mandatory and not mandatory metadata
-    MANDATORY = {'RADCAL' : ['CALDATE', 'CALLAB', 'DEVICE', 'CALDATA'],
-             'ANGDATA' : ['DEVICE', 'CALDATE', 'COSERROR', 'AZIMUTH_ANGLE', 'UNCERTAINTY'],
-             'POLDATA' : ['CALDATE', 'CALLAB', 'DEVICE', 'CALDATA'],
-             'STRAYDATA': ['CALDATE', 'CALLAB', 'DEVICE', 'LSF', 'UNCERTAINTY'],
-             'TEMPDATA' : ['CALDATE', 'CALLAB', 'DEVICE', 'CALDATA', 'REFERENCE_TEMP']}
-
-    OPTIONAL = {'RADCAL' : ['PANELDATA', 'LAMPDATA', 'LAMP_CCT', 'VERSION', 'USER', 'LAMP_ID', 'PANEL_ID', 'AMBIENT_TEMP'],
-            'ANGDATA' : ['VERSION', 'USER'],
-            'POLDATA': ['VERSION', 'USER', 'AMBIENT_TEMP'],
-            'STRAYDATA': ['VERSION', 'USER', 'AMBIENT_TEMP'],
-            'TEMPDATA' : ['VERSION', 'USER', 'AMBIENT_TEMP']}
-
-    OK = checkFRMmetadata(filekey, metadataQC, MANDATORY, OPTIONAL)
+    OK = checkFRMmetadata(filekey, metadataQC, config)
 
     ## directory for checked FRM4SOC files (files are copied and file names are adapted) /// To be adapted ///
     output_dir = valid_files_dir+'/'+metadata['DEVICE']+'/'+filekey+'/'
-    datechar = metadata['CALDATE'][0:4]+metadata['CALDATE'][5:7]+metadata['CALDATE'][8:10]
-    newfilename = 'CAL_'+ filekey+'_'+metadata['DEVICE']+'_'+datechar+'.csv'
+    datechar = metadata['CALDATE'][0:4]+metadata['CALDATE'][5:7]+metadata['CALDATE'][8:10]+metadata['CALDATE'][11:13]+metadata['CALDATE'][14:16]+metadata['CALDATE'][17:19]
+    newfilename = 'cp_'+ filekey+'_'+metadata['DEVICE']+'_'+datechar+'.csv'
 
     if OK:
 
@@ -56,3 +53,4 @@ def check_FRM_uploaded_file(file, valid_files_dir):
 
         print("uploaded file passed all QC on file format and is accepted!")
 
+check_FRM_uploaded_file(file, valid_files_dir, config_file)
