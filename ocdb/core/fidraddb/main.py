@@ -42,7 +42,7 @@ def check_FRM_uploaded_file(file, valid_files_dir, config_file):
     ## directory for checked FRM4SOC files (files are copied and file names are adapted) /// To be adapted ///
     output_dir = valid_files_dir+'/'+metadata['DEVICE']+'/'+filekey+'/'
     datechar = metadata['CALDATE'][0:4]+metadata['CALDATE'][5:7]+metadata['CALDATE'][8:10]+metadata['CALDATE'][11:13]+metadata['CALDATE'][14:16]+metadata['CALDATE'][17:19]
-    newfilename = 'cp_'+ filekey+'_'+metadata['DEVICE']+'_'+datechar+'.csv'
+    newfilename = 'cp_'+ filekey+'_'+metadata['DEVICE']+'_'+datechar+'.txt'
 
     if OK:
 
