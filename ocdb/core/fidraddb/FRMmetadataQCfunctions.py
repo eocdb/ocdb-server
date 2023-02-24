@@ -1,8 +1,8 @@
 ### all functions that check that the value for each metadata label is valid
 import re
+import sys
 
-
-def FRMmetadataQC(metadata, scan, filekey):
+def FRMmetadataQC(metadata, scan, filekey, config, FRMisfloat, FRMcheckDATE, FRMcheckDEVICE, FRMisNotempty, FRMisNCOLdata):
     """
     Determine for each metadata is their corresponding information is correct
     :param scan: a list of strings corresponding to each line of the cal file
@@ -12,31 +12,17 @@ def FRMmetadataQC(metadata, scan, filekey):
     """
     metadataQC = {}
     inst = checkinst(metadata)
-    for key in metadata.keys():
-        if key == 'CALDATE':
-            metadataQC[key] = FRMcheckDATE(metadata[key])
-        if key == 'DEVICE':
-            metadataQC[key] = FRMcheckDEVICE(metadata[key])
-        if key == 'LSF':
-            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=256)
-        if key == 'UNCERTAINTY' and filekey == 'STRAYDATA':
-            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=256)
-        if key == 'UNCERTAINTY' and filekey == 'ANGDATA':
-            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=47)
-        if key == 'COSERROR':
-            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=47)
-        if key == 'CALDATA' and filekey == 'RADCAL':
-            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=10)
-        if  key == 'CALDATA' and filekey in ['POLDATA', 'ANGDATA']:
-            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=6)
-        if key == 'CALDATA' and filekey == 'TEMPDATA':
-            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=4)
-        if key in ['PANEL_ID', 'LAMP_ID', 'USER', 'CALLAB']:
-            metadataQC[key] = FRMisempty(metadata[key])
-        if key in ['DEVICE_TEMP','AMBIENT_TEMP', 'LAMP_CCT', 'VERSION', 'POLANGLE', 'REFERENCE_TEMP', 'AZIMUTH_ANGLE']:
-            metadataQC[key] = FRMisfloat(metadata[key])
-        if key in ['PANELDATA', 'LAMPDATA']:
-            metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=4)
+    for key in list(metadata.keys()):
+        try:
+            config_line = config.loc[config['metadata'] == key,]
+            fun = config_line['function'].iloc[0]
+            ncol = config_line['ncol'].iloc[0]
+            if fun == 'FRMisNCOLdata':
+                metadataQC[key] = locals()[fun](metadata[key], key, scan, ncol=ncol)
+            else :
+                metadataQC[key] = locals()[fun](metadata[key])
+        except:
+            print("warning: unknown metadata " + key)
     return(metadataQC)
 
 def checkinst(metadata):
@@ -44,12 +30,14 @@ def checkinst(metadata):
     try:
         dev = metadata['DEVICE']
         code_inst = dev[0:3]
-        if code_inst in ["SAM", "SAT"]:
-            return code_inst
-        else:
-            return "unknown"
-    except ValueError:
-        return "unkown"
+        if code_inst not in ["SAM", "SAT"]:
+            code_inst = "unknown"
+    except:
+        print("Error: the metadata DEVICE could not be is found")
+        sys.exit()
+    return(code_inst)
+
+
 
 def FRMcheckDATE(strdate):
     """determine if the date is correct"""
@@ -85,9 +73,9 @@ def FRMcheckDEVICE(dev):
         code_inst = dev[0:3]
         devQC = None
         if code_inst == 'SAM':
-            devQC = re.search(r'\b(?:\_[0-9][0-9][a-zA-Z0-9][a-zA-Z0-9])\b', dev[3:8])
+            devQC = re.search(r'\b(?:\_[0-9][0-9][a-zA-Z0-9][a-zA-Z0-9])\b', dev[3:])
         if code_inst == 'SAT':
-            devQC = re.search(r'\b(?:[0-9][0-9][0-9][0-9])\b', dev[3:7])
+            devQC = re.search(r'\b(?:[0-9][0-9][0-9][0-9])\b', dev[3:])
     if devQC :
         res = 'valid'
     return(res)
@@ -101,7 +89,7 @@ def is_valid_float(element: str) -> bool:
     except ValueError:
         return False
 
-def FRMisempty(element: str) -> str:
+def FRMisNotempty(element: str) -> str:
     """determine if a string is not empty and not a decimal number"""
     if element and is_valid_float(element) == False:
         return 'valid'
@@ -130,7 +118,8 @@ def FRMisNCOLdata(line, key, scan, ncol=4):
         az = allzeros(scan, key)
     except:
         Nlines = 0
-    if Nlines > 5 and all(isfloat) and len(line1) == ncol and az == 'NO':
+        az = ''
+    if Nlines > 5 and len(line1) == ncol and az == 'NO':
        res = 'valid'
     return res
 
