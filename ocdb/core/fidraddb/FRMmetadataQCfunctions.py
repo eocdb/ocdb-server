@@ -27,6 +27,7 @@ def FRMmetadataQC(metadata, scan, filekey):
             metadataQC[key] = FRMisNCOLdata(metadata[key], key, scan, ncol=4)
     return(metadataQC)
 
+
 def checkinst(metadata):
     try:
         dev = metadata['DEVICE']
@@ -37,6 +38,7 @@ def checkinst(metadata):
             return "unknown"
     except ValueError:
         return "unkown"
+
 
 def FRMcheckDATE(strdate):
     res = "not valid"
@@ -60,6 +62,7 @@ def FRMcheckDATE(strdate):
             res = "valid"
     return(res)
 
+
 def FRMcheckDEVICE(dev):
     res = "not valid"
     if len(dev) >= 7:
@@ -73,12 +76,14 @@ def FRMcheckDEVICE(dev):
         res = 'valid'
     return(res)
 
+
 def is_valid_float(element: str) -> bool:
     try:
         float(element)
         return True
     except ValueError:
         return False
+
 
 def FRMisNotEmpty(element: str) -> str:
     """This function checks, whether an element is ...
