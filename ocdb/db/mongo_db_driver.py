@@ -1,3 +1,4 @@
+import pickle
 import re
 from datetime import datetime
 from typing import Any, Dict, Optional, List, Tuple, Union
@@ -5,6 +6,7 @@ from typing import Any, Dict, Optional, List, Tuple, Union
 import bson.objectid
 import numpy as np
 import pymongo
+import gridfs
 import pymongo.errors
 from bson import errors
 
@@ -22,6 +24,9 @@ from ..core.models.submission_file import SubmissionFile
 from ..core.time_helper import TimeHelper
 from ..db.mongo_query_generator import MongoQueryGenerator
 
+RECORDS = 'records'
+
+GRID_FS_ID = 'grid_fs_id'
 
 LAT_INDEX_NAME = "_latitudes_"
 LON_INDEX_NAME = "_longitudes_"
@@ -78,7 +83,14 @@ class MongoDbDriver(DbDriver):
 
     def add_dataset(self, dataset: Dataset) -> str:
         dateset_dict = dataset.to_dict()
+        return self._add_dataset_dict(dateset_dict)
+
+    def _add_dataset_dict(self, dateset_dict):
         converted_dict = MongoDbDriver._convert_times(dateset_dict)
+        records = converted_dict.pop(RECORDS)
+        records_dumped = pickle.dumps(records)
+        grid_fs_id = self._fs.put(records_dumped)
+        converted_dict[GRID_FS_ID] = grid_fs_id
         result = self._collection.insert_one(converted_dict)
         return str(result.inserted_id)
 
@@ -91,13 +103,23 @@ class MongoDbDriver(DbDriver):
         if "id" in dataset_dict:
             del dataset_dict["id"]
 
-        result = self._collection.replace_one({"_id": obj_id}, dataset_dict, upsert=True)
-        return result.modified_count == 1
+        self.delete_dataset(obj_id)
+
+        dataset_dict['_id'] = obj_id
+        return self._add_dataset_dict(dataset_dict) is not None
+        # result = self._collection.replace_one({"_id": obj_id}, dataset_dict, upsert=True)
+        # return result.modified_count == 1
 
     def delete_dataset(self, dataset_id: str) -> bool:
         obj_id = self._obj_id(dataset_id)
         if obj_id is None:
             return False
+
+        dataset_dict = self._collection.find_one({"_id": obj_id})
+        if dataset_dict is not None:
+            if GRID_FS_ID in dataset_dict:
+                grid_fs_id = dataset_dict[GRID_FS_ID]
+                self._fs.delete(grid_fs_id)
 
         result = self._collection.delete_one({'_id': obj_id})
         return result.deleted_count == 1
@@ -109,6 +131,13 @@ class MongoDbDriver(DbDriver):
 
         dataset_dict = self._collection.find_one({"_id": obj_id})
         if dataset_dict is not None:
+            grid_fs_id = dataset_dict.get(GRID_FS_ID)
+            if grid_fs_id is not None:
+                del dataset_dict[GRID_FS_ID]
+                fs_get = self._fs.get(grid_fs_id)
+                fs_get_read = fs_get.read()
+                records_from_grid_fs = pickle.loads(fs_get_read)
+                dataset_dict[RECORDS] = records_from_grid_fs
             del dataset_dict["_id"]
             dataset_dict["id"] = dataset_id
             return Dataset.from_dict(dataset_dict)
@@ -354,6 +383,7 @@ class MongoDbDriver(DbDriver):
 
     def __init__(self):
         self._db = None
+        self._fs = None
         self._client = None
         self._collection = None
         self._submit_collection = None
@@ -378,7 +408,9 @@ class MongoDbDriver(DbDriver):
         if self._client is not None:
             raise OperationalError("Database already connected")
 
+        is_mocking_case = False
         if self._config.get("mock", False):
+            is_mocking_case = True
             import mongomock
             self._client = mongomock.MongoClient()
         else:
@@ -392,6 +424,12 @@ class MongoDbDriver(DbDriver):
 
         # Create database "ocdb"
         self._db = self._client.ocdb
+        if is_mocking_case:
+            self.__test_grid_fs_client = pymongo.MongoClient()
+            self.__test_grid_fs_mock_db = self.__test_grid_fs_client.ocdb_grid_fs_mock
+            self._fs = gridfs.GridFS(self.__test_grid_fs_mock_db)
+        else:
+            self._fs = gridfs.GridFS(self._db)
         # Create collection "ocdb.sb_datasets"
         self._collection = self._client.ocdb.sb_datasets
         self._submit_collection = self._client.ocdb.submission_files
@@ -402,11 +440,16 @@ class MongoDbDriver(DbDriver):
     def close(self):
         if self._client is not None:
             self._client.close()
+        if self.__test_grid_fs_client is not None:
+            self.__test_grid_fs_client.close()
 
     def clear(self):
         if self._client is not None:
             self._collection.drop()
             self._submit_collection.drop()
+        if self.__test_grid_fs_client is not None:
+            self.__test_grid_fs_mock_db['fs.chunks'].drop()
+            self.__test_grid_fs_mock_db['fs.files'].drop()
 
     def _set_config(self, config: Dict[str, Any]):
         for key in ("url", "uri"):
