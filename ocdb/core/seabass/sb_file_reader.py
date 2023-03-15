@@ -97,7 +97,6 @@ class SbFileReader:
 
         self._extract_searchfields(dataset)
 
-
         return dataset
 
     def _next_line(self) -> str:

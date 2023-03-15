@@ -44,7 +44,7 @@ from .reqparams import RequestParams
 from ..core import UNDEFINED
 
 _LOG = logging.getLogger('ocdb')
-
+_LOG_FidRadDb = logging.getLogger('fidraddb')
 
 class WebService:
     """
@@ -297,6 +297,17 @@ class WsRequestHandler(RequestHandler):
 
         user = self.ws_context.get_user(user_name)
         if not Roles.is_submit(user.roles):
+            return False
+
+        return True
+
+    def has_fidrad_rights(self):
+        user_name = self.get_current_user()
+        if not user_name:
+            return False
+
+        user = self.ws_context.get_user(user_name)
+        if not Roles.is_fidrad(user.roles):
             return False
 
         return True

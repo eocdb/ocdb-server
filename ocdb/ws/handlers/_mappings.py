@@ -19,6 +19,7 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from ._handle_users import HandleUsers, LoginUser, LogoutUser, GetUserByName
+from ._handle_fidraddb import HandleCalCharUpload, HandleFidradHistoryTail, HandleFidRadHistoryBottomUpSearch
 from ._handler_links import Links
 from ._handlers import *
 from ..webservice import url_pattern
@@ -30,6 +31,10 @@ API_URL_PREFIX = f"/ocdb/api/{API_VERSION_TAG}"
 MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/service/info'), ServiceInfo),
     (url_pattern(API_URL_PREFIX + '/store/info'), StoreInfo),
+    (url_pattern(API_URL_PREFIX + '/store/FidRadDB/upload/cal_char'), HandleCalCharUpload),
+    (url_pattern(API_URL_PREFIX + '/store/FidRadDB/history/search/{search_string}/{max_num_lines}'),
+     HandleFidRadHistoryBottomUpSearch),
+    (url_pattern(API_URL_PREFIX + '/store/FidRadDB/history/tail/{num_lines}'), HandleFidradHistoryTail),
     (url_pattern(API_URL_PREFIX + '/store/upload/submission'), HandleSubmission),
     (url_pattern(API_URL_PREFIX + '/store/upload/submission/validate'), ValidateSubmission),
     (url_pattern(API_URL_PREFIX + '/store/upload/submission/{submission_id}'), HandleSubmission),

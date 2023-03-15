@@ -70,7 +70,7 @@ def create_user(ctx: WsContext, user: User):
 def get_user_by_name(ctx: WsContext,
                      user_name: str,
                      retain_password: bool = False) -> dict:
-    assert_not_none(user_name, name='user_id')
+    assert_not_none(user_name, name='user_name')
 
     user = ctx.get_user(user_name)
     if not user:
