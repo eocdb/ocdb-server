@@ -19,7 +19,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 from ._handle_users import HandleUsers, LoginUser, LogoutUser, GetUserByName
-from ._handle_fidraddb import HandleCalCharUpload, HandleFidradHistoryTail, HandleFidRadHistoryBottomUpSearch
+from ._handle_fidraddb import HandleCalCharUpload, HandleGetHistoryTail, HandleHistoryBottomUpSearch, \
+    HandleListFiles, HandleDeleteFile, HandleDownloadFile
 from ._handler_links import Links
 from ._handlers import *
 from ..webservice import url_pattern
@@ -33,8 +34,11 @@ MAPPINGS = [
     (url_pattern(API_URL_PREFIX + '/store/info'), StoreInfo),
     (url_pattern(API_URL_PREFIX + '/store/FidRadDB/upload/cal_char'), HandleCalCharUpload),
     (url_pattern(API_URL_PREFIX + '/store/FidRadDB/history/search/{search_string}/{max_num_lines}'),
-     HandleFidRadHistoryBottomUpSearch),
-    (url_pattern(API_URL_PREFIX + '/store/FidRadDB/history/tail/{num_lines}'), HandleFidradHistoryTail),
+     HandleHistoryBottomUpSearch),
+    (url_pattern(API_URL_PREFIX + '/store/FidRadDB/history/tail/{num_lines}'), HandleGetHistoryTail),
+    (url_pattern(API_URL_PREFIX + '/store/FidRadDB/list/files/{name_part}'), HandleListFiles),
+    (url_pattern(API_URL_PREFIX + '/store/FidRadDB/delete/file/{filename}'), HandleDeleteFile),
+    (url_pattern(API_URL_PREFIX + '/store/FidRadDB/download/file/{filename}'), HandleDownloadFile),
     (url_pattern(API_URL_PREFIX + '/store/upload/submission'), HandleSubmission),
     (url_pattern(API_URL_PREFIX + '/store/upload/submission/validate'), ValidateSubmission),
     (url_pattern(API_URL_PREFIX + '/store/upload/submission/{submission_id}'), HandleSubmission),
@@ -65,3 +69,4 @@ MAPPINGS = [
     (url_pattern('/jwt/decode'), Handledecode)
     #(r'/(.*)', web.StaticFileHandler, {"path": 'static/webui', 'default_filename': 'index.html'}),
 ]
+

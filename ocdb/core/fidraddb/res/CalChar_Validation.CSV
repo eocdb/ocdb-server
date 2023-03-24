@@ -1,0 +1,18 @@
+Metadata;ANGDATA;POLDATA;RADCAL;STRAYDATA;TEMPDATA;Data type;Function;F_ANGDATA;F_POLDATA;F_RADCAL;F_STRAYDATA;F_TEMPDATA
+CALDATE;M;M;M;M;M;date;FRMcheckDATE(metadata[key]);;;;;
+DEVICE;M;M;M;M;M;str;FRMcheckDEVICE(metadata[key]);;;;;
+CALLAB;M;M;M;M;M;str;FRMisNotempty(metadata[key]);;;;;
+USER;O;O;O;O;O;str;FRMisNotempty(metadata[key]);;;;;
+VERSION;O;O;O;O;O;float;FRMisfloat(metadata[key]);;;;;
+CALDATA;x;M;M;x;M;block;;;FRMisNCOLdata(metadata[key], key, scan, ncol=6);FRMisNCOLdata(metadata[key], key, scan, ncol=10);;FRMisNCOLdata(metadata[key], key, scan, ncol=4)
+UNCERTAINTY;M;x;x;M;x;block;;FRMisNCOLdata(metadata[key], key, scan, ncol=47);;;FRMisNCOLdata(metadata[key], key, scan, ncol=256);
+COSERROR;M;x;x;x;x;block;FRMisNCOLdata(metadata[key], key, scan, ncol=47);;;;;
+LSF;x;x;x;M;x;block;FRMisNCOLdata(metadata[key], key, scan, ncol=256);;;;;
+PANEL_ID;x;x;O;x;x;str;FRMisNotempty(metadata[key]);;;;;
+LAMP_ID;x;x;O;x;x;str;FRMisNotempty(metadata[key]);;;;;
+AZIMUTH_ANGLE;M;x;x;x;x;float;FRMisfloat(metadata[key]);;;;;
+LAMP_CCT;x;x;O;x;x;float;FRMisfloat(metadata[key]);;;;;
+AMBIENT_TEMP;O;O;O;O;O;float;FRMisfloat(metadata[key]);;;;;
+REFERENCE_TEMP;x;x;x;x;M;float;FRMisfloat(metadata[key]);;;;;
+PANELDATA;x;x;O;x;x;block;FRMisNCOLdata(metadata[key], key, scan, ncol=4);;;;;
+LAMPDATA;x;x;O;x;x;block;FRMisNCOLdata(metadata[key], key, scan, ncol=4);;;;;
