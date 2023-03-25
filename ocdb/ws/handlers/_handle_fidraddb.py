@@ -185,17 +185,17 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
         for file in cal_char_files:
             filename = file.filename
             if not CalCharValidator.isValidFilename(filename):
-                log.warning(f"Invalid filename: '{filename}'. Upload cal/char file canceled.")
+                log.warning(f"Invalid filename: '{filename}'. Upload cal/char file aborted.")
                 results[key_invalid_filename].append(filename)
                 continue
             file_path = os.path.join(cal_char_dir_path, filename)
             if os.path.isfile(file_path):
-                log.warning(f"File '{filename}' already exists. Upload cal/char file canceled.")
+                log.warning(f"File '{filename}' already exists. Upload cal/char file aborted.")
                 results[key_already_existing_files].append(filename)
                 continue
             validation_result = cal_char_validator.validate(filename, file.body)
             if validation_result:
-                log.warning(f"Filename: '{filename}' not valid. Upload cal/char file canceled. "
+                log.warning(f"File '{filename}' not valid. Upload cal/char file aborted. "
                             + validation_result.get(filename))
                 results[key_file_not_valid].update(validation_result)
                 continue
