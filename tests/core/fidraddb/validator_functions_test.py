@@ -355,3 +355,84 @@ class DeviceValidationTest(unittest.TestCase):
         # verification
         self.assertEqual(None,  # good result
                          invalid_value_message)
+
+
+class StaticMethodsTest(unittest.TestCase):
+
+    def test_extract_metadata_key_information_from_lines(self):
+        lines = [
+            "# Some comment",
+            "  ",
+            "[META_KEY_1]",
+            "  ",
+            "[META_KEY_2]",
+            "  ",
+            "[END_OF_META_KEY_2]",
+        ]
+        information_from_file = CalCharValidator._extract_metadata_key_information_from(lines)
+        expected = {
+            2: "[META_KEY_1]",
+            4: "[META_KEY_2]",
+            6: "[END_OF_META_KEY_2]",
+        }
+        self.assertEqual(expected, information_from_file)
+
+    def test_block_n_col_data__valid_result(self):
+        lines = [
+            "# Comment",
+            "",
+            "[Meta_key]",
+            "{}\t{}\t{}\t{}".format(0.1, 1.2, 2.3, 3.4),
+            "{}\t{}\t{}\t{}".format(4.5, 5.6, 6.7, 7.8),
+            "{}\t{}\t{}\t{}".format(8.9, 9.0, 0.2, 1.3),
+            "[END_OF_Meta_key]",
+        ]
+        info = CalCharValidator._extract_metadata_key_information_from(lines)
+        keyList = list(info.keys())
+        message = v.is_n_col_data(lines, keyList[0] + 1, keyList[1], ncol=4)
+        self.assertEqual("", message)
+
+    def test_block_n_col_data__with_a_single_invalid_value(self):
+        lines = [
+            "# Comment",
+            "",
+            "[Meta_key]",
+            "{}\t{}\t{}\t{}".format(0.1, 1.2, 2.3, 3.4),
+            "{}\t{}\t{}\t{}".format(4.5, "a", 6.7, 7.8),
+            "{}\t{}\t{}\t{}".format(8.9, 9.0, 0.2, 1.3),
+            "[END_OF_Meta_key]",
+        ]
+        info = CalCharValidator._extract_metadata_key_information_from(lines)
+        keyList = list(info.keys())
+        message = v.is_n_col_data(lines, keyList[0] + 1, keyList[1], ncol=4)
+        self.assertEqual("Value 'a' in line 5 at pos 2 is not a valid float.", message)
+
+    def test_block_n_col_data__line_with_less_then_expected_cols(self):
+        lines = [
+            "# Comment",
+            "",
+            "[Meta_key]",
+            "{}\t{}\t{}\t{}".format(0.1, 1.2, 2.3, 3.4),
+            "{}\t{}\t{}".format(4.5, 6.7, 7.8),
+            "{}\t{}\t{}\t{}".format(8.9, 9.0, 0.2, 1.3),
+            "[END_OF_Meta_key]",
+        ]
+        info = CalCharValidator._extract_metadata_key_information_from(lines)
+        keyList = list(info.keys())
+        message = v.is_n_col_data(lines, keyList[0] + 1, keyList[1], ncol=4)
+        self.assertEqual("Line 5 contains 3 columns instead of expected 4 columns.", message)
+
+    def test_block_n_col_data__line_with_more_then_expected_cols(self):
+        lines = [
+            "# Comment",
+            "",
+            "[Meta_key]",
+            "{}\t{}\t{}\t{}".format(0.1, 1.2, 2.3, 3.4),
+            "{}\t{}\t{}\t{}\t{}".format(4.5, 5.6, 6.7, 7.8, 10.0),
+            "{}\t{}\t{}\t{}".format(8.9, 9.0, 0.2, 1.3),
+            "[END_OF_Meta_key]",
+        ]
+        info = CalCharValidator._extract_metadata_key_information_from(lines)
+        keyList = list(info.keys())
+        message = v.is_n_col_data(lines, keyList[0] + 1, keyList[1], ncol=4)
+        self.assertEqual("Line 5 contains 5 columns instead of expected 4 columns.", message)

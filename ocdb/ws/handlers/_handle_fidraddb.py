@@ -141,8 +141,17 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
         for file in files.get("docfiles", []):
             doc_files.append(UploadedFile.from_dict(file))
 
-        result = self.upload_cal_char_files(cal_char_files=cal_char_files,
-                                            doc_files=doc_files)
+        result = None
+        try:
+            result = self.upload_cal_char_files(cal_char_files=cal_char_files,
+                                                doc_files=doc_files)
+        except Exception as e:
+            import traceback
+            tb = traceback.format_exc()
+            log.error(f"A {type(e)} occurred, while uploading files")
+            log.error(f"Error message: {e}")
+            log.error(f"Traceback-Informationen: {tb}")
+            result = {f"A {type(e)} occurred": str(e)}
         self.finish(tornado.escape.json_encode(result))
         log.info("upload stop")
 

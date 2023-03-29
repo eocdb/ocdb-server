@@ -1,7 +1,6 @@
 import os
 import re
 from datetime import datetime
-from typing import Any, Tuple
 
 import chardet
 
@@ -14,6 +13,28 @@ def read_lines_split_and_strip(csv_f):
         for j in range(len(split)):
             split[j] = split[j].strip()
     return csv
+
+
+def is_valid_float(element: str) -> bool:
+    try:
+        float(element)
+        return True
+    except ValueError:
+        return False
+
+
+def is_n_col_data(lines, start, stop, ncol=4) -> str:
+    for i in range(start, stop):
+        line = lines[i]
+        strings = re.split("\t+", line)
+        num_cols = len(strings)
+        if num_cols != ncol:
+            return f"Line {i +1} contains {num_cols} columns instead of expected {ncol} columns."
+        for j in range(num_cols):
+            val = strings[j]
+            if not is_valid_float(val):
+                return f"Value '{val}' in line {i + 1} at pos {j + 1} is not a valid float."
+    return ""
 
 
 def transpose_list_per_row_to_list_per_column(csv: list or None):
@@ -108,11 +129,13 @@ class CalCharValidator:
             return {filename: f"Unknown filetype. Valid filetypes are {valid_types}."}
 
         lines = self._convert_bytes_to_lines(text)
+        num_lines = len(lines)
+
         not_same_date = self._check_same_date_time_in_filename_and_inside_file(date_time, lines)
         if not_same_date:
             return {filename: not_same_date}
 
-        if "_class" in class_or_serial:
+        if "_class" in class_or_serial.lower():
             filename_class = class_or_serial
             invalid_value_message = self._validate_device_value_in_class_file_content(filename_class, lines)
             if invalid_value_message:
@@ -122,95 +145,92 @@ class CalCharValidator:
             invalid_value_message = self._validate_device_value_in_serial_number_file(serial_number, lines)
             if invalid_value_message:
                 return {filename: invalid_value_message}
-            type_info = self._extractFileTypeConfigurationFor(file_type)
 
-            all_keys_in_file: list[str] = self._extract_existing_keys_from_file(lines)
+        type_info = self._extractFileTypeConfigurationFor(file_type)
 
-            # check if all mandatory metadata names are present in the file
-            mandatory_keys: list[str] = type_info.get(self.__KEY_MANDATORY)
-            missing_result = self._find_missing_mandatory_keys(mandatory_keys, all_keys_in_file, filename)
-            if missing_result:
-                return missing_result
+        metadata_index_and_keys_in_file: dict[int, str] = self._extract_metadata_key_information_from(lines)
+        list_metadata_index_in_files: list[int] = list(metadata_index_and_keys_in_file.keys())
+        list_metadata_keys_in_files: list[str] = list(metadata_index_and_keys_in_file.values())
+        all_keys_in_file = [x for x in list_metadata_keys_in_files if not x.startswith("[END_OF_")]
 
-            # check if all metadata keys, extracted from file, are present in the list of allowed keys
-            allowed_keys: list[str] = type_info.get(self.__KEY_METADATA)
-            unexpected_result = self._find_unexpected_metadata_keys(allowed_keys, all_keys_in_file, filename)
-            if unexpected_result:
-                return unexpected_result
+        # check if all mandatory metadata names are present in the file
+        mandatory_keys: list[str] = type_info.get(self.__KEY_MANDATORY)
+        missing_result = self._find_missing_mandatory_keys(mandatory_keys, all_keys_in_file, filename)
+        if missing_result:
+            return missing_result
 
-            for i in range(len(allowed_keys)):
-                meta_name: str = allowed_keys[i]
-                braced_meta_name: str = "[" + meta_name + "]"
+        # check if all metadata keys, extracted from file, are present in the list of allowed keys
+        allowed_keys: list[str] = type_info.get(self.__KEY_METADATA)
+        unexpected_result = self._find_unexpected_metadata_keys(allowed_keys, all_keys_in_file, filename)
+        if unexpected_result:
+            return unexpected_result
 
-                occurrences: list[int] = self._find_occurrences(braced_meta_name, lines)
+        metadata_types: list[str] = type_info.get(self.__KEY_DATA_TYPE)
+        val_functions: list[str] = type_info.get(self.__KEY_FUNCTION)
 
-                is_mandatory: bool = meta_name in mandatory_keys
-                # count_min: int = 1 if is_mandatory else 0
+        for i in range(len(allowed_keys)):
+            meta_name: str = allowed_keys[i]
+            metadata_type: str = metadata_types[i]
+            val_function: str = val_functions[i]
 
-                current_type: str = type_info.get(self.__KEY_DATA_TYPE)[i]
+            braced_meta_name: str = "[" + meta_name + "]"
+            braced_end_name = "[END_OF_" + meta_name + "]"
 
-                braced_end_name = None
-                end_occurrences = None
-                if current_type.lower() == "block":
-                    braced_end_name = "[END_OF_" + braced_meta_name[1:]
-                    end_occurrences = self._find_occurrences(braced_end_name, lines)
-                    times_opened = len(occurrences)
-                    times_closed = len(end_occurrences)
-                    if times_opened != times_closed:
-                        return {filename: f"There is something wrong with the file. The section {braced_meta_name} was "
-                                          f"opened {times_opened} times but closed {times_closed} times."}
+            braced_meta_count = list_metadata_keys_in_files.count(braced_meta_name)
+            braced_end_count = list_metadata_keys_in_files.count(braced_end_name)
 
-                if len(occurrences) == 0:
-                    continue  # this is the case if an optional metadata key is not present
+            if metadata_type.lower() == "block":
+                times_opened = braced_meta_count
+                times_closed = braced_end_count
+                if times_opened != times_closed:
+                    return {filename: f"There is something wrong with the file. The section {braced_meta_name} was "
+                                      f"opened {times_opened} times but closed {times_closed} times."}
 
-                if meta_name == "CALDATE":
-                    pass  # already checked
-                elif meta_name == "DEVICE":
-                    oc_idx = occurrences[0]
-                    val = lines[oc_idx + 1]
+            if braced_meta_count == 0:
+                continue  # this is the case if an optional metadata key is not present
 
-                elif meta_name == "CALLAB":
-                    pass
-                elif meta_name == "USER":
-                    pass
-                elif meta_name == "VERSION":
-                    pass
-                elif meta_name == "CALDATA":
-                    pass
-                elif meta_name == "UNCERTAINTY":
-                    pass
-                elif meta_name == "COSERROR":
-                    pass
-                elif meta_name == "LSF":
-                    pass
-                elif meta_name == "PANEL_ID":
-                    pass
-                elif meta_name == "LAMP_ID":
-                    pass
-                elif meta_name == "AZIMUTH_ANGLE":
-                    pass
-                elif meta_name == "LAMP_CCT":
-                    pass
-                elif meta_name == "AMBIENT_TEMP":
-                    pass
-                elif meta_name == "REFERENCE_TEMP":
-                    pass
-                elif meta_name == "PANELDATA":
-                    pass
-                elif meta_name == "LAMPDATA":
-                    pass
-
+            if meta_name == "CALDATE":
+                continue  # already checked
+            elif meta_name == "DEVICE":
+                continue  # already checked ... see lines after the line --> if "_class" in class_or_serial.lower():
+            elif metadata_type == "str":
+                keys_list_start_idx = 0
+                for i in range(braced_meta_count):
+                    list_idx = list_metadata_keys_in_files.index(braced_meta_name, keys_list_start_idx)
+                    keys_list_start_idx = list_idx + 1
+                    start_line = list_metadata_index_in_files[list_idx] + 1
+                    if start_line < num_lines:
+                        value = lines[start_line]
+                        if value is not None and value.strip():
+                            # print("is not None and not empty")
+                            continue
+                    return {filename: f"Value for {braced_meta_name} is missing"}
+            elif metadata_type == "float":
+                keys_list_start_idx = 0
+                for i in range(braced_meta_count):
+                    list_idx = list_metadata_keys_in_files.index(braced_meta_name, keys_list_start_idx)
+                    keys_list_start_idx = list_idx + 1
+                    start_line = list_metadata_index_in_files[list_idx] + 1
+                    if start_line >= num_lines:
+                        return {filename: f"Float value for {braced_meta_name} is missing"}
+                    value = lines[start_line]
+                    if is_valid_float(value):
+                        continue
+                    return {filename: f"Float value for {braced_meta_name} is missing"}
+            elif metadata_type == "block":
+                keys_list_start_idx = 0
+                ncols_start = val_function.index("ncol=") + 5
+                ncols_end = val_function.index(")", ncols_start)
+                ncols = int(val_function[ncols_start:ncols_end])
+                for i in range(braced_meta_count):
+                    list_idx = list_metadata_keys_in_files.index(braced_meta_name, keys_list_start_idx)
+                    keys_list_start_idx = list_idx + 1
+                    start_line = list_metadata_index_in_files[list_idx] + 1
+                    end_line = list_metadata_index_in_files[list_idx + 1]
+                    result = is_n_col_data(lines, start_line, end_line, ncols)
+                    if result:
+                        return {filename: f"Col check for {braced_meta_name}. {result}"}
         return None
-
-    @staticmethod
-    def _find_occurrences(braced_meta_name, lines) -> list[int]:
-        indices = []
-        start = 0
-        for n in range(lines.count(braced_meta_name)):
-            idx = lines.index(braced_meta_name, start)
-            start = idx + 1
-            indices.append(idx)
-        return indices
 
     def _get_valid_types_as_list(self) -> list:
         return self._REGULAR_EXPRESSION_VALID_TYPES[1:-1].split("|")
@@ -240,13 +260,19 @@ class CalCharValidator:
         lines = re.split('(\n\r|\r\n|\n|\r)', text)  # also returns the split characters
         separators = ['\n', '\r', '\n\r', '\r\n']
         lines = [x.strip() for x in lines if x not in separators]  # removes the separators and strip the lines
-        lines = [x for x in lines if not x.startswith("#") or x != ""]  # removes comment lines and empty lines
+        # lines = [x for x in lines if not x.startswith("#")]  # removes comment lines but keeps empty lines
+        # lines = [x for x in lines if not x.startswith("#") or x != ""]  # removes comment lines and empty lines
         return lines
 
     @staticmethod
-    def _extract_existing_keys_from_file(lines):
-        all_keys_in_file = [x for x in lines if x.startswith("[")]
-        all_keys_in_file = [x for x in all_keys_in_file if not x.startswith("[END_OF_")]
+    def _extract_metadata_key_information_from(lines) -> dict[int, str]:
+        idx = -1
+        all_keys_in_file = {}
+        for line in lines:
+            idx += 1
+            if line.startswith("["):
+                all_keys_in_file.update({idx: line})
+
         return all_keys_in_file
 
     @staticmethod
@@ -325,4 +351,3 @@ class CalCharValidator:
         if expected_value != value.upper():
             return f"The value found in the file for the metadata key '{key}' should be equal to the " \
                    f"serial number '{filename_serial_number}' from the file name, but '{value}' was found."
-
