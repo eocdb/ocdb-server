@@ -166,6 +166,28 @@ class MongoDbDriver(DbDriver):
 
             return DatasetQueryResult(locations, total_num_results, dataset_refs, query)
 
+    def add_cal_char_file(self, cal_char_info: dict):
+        result = self._fidraddb_collection.insert_one(cal_char_info)
+        return str(result.inserted_id)
+
+    def get_cal_char_files_list(self, current_user_name: str, is_admin: bool, for_deletion: bool = False) -> list[str]:
+        fidraddb = self._fidraddb_collection
+        results = None
+        if is_admin:
+            results = fidraddb.find({})
+        elif for_deletion and current_user_name:
+            results = fidraddb.find({'user_name': current_user_name})
+        elif current_user_name:
+            results = fidraddb.find({'$or': [{'public': True}, {'user_name': current_user_name}]})
+        else:
+            results = fidraddb.find({'public': True})
+        filenames = [result['filename'] for result in results]
+        return filenames
+
+    def remove_cal_char_file_entry(self, filename: str):
+        fidraddb = self._fidraddb_collection
+        fidraddb.delete_many({'filename': filename})
+
     def add_submission(self, submission: DbSubmission):
         sf_dict = submission.to_dict()
         result = self._submit_collection.insert_one(sf_dict)
@@ -389,6 +411,7 @@ class MongoDbDriver(DbDriver):
         self._submit_collection = None
         self._user_collection = None
         self._links_collection = None
+        self._fidraddb_collection = None
         self._config = None
         self._query_converter = MongoDbDriver.QueryConverter()
 
@@ -435,6 +458,7 @@ class MongoDbDriver(DbDriver):
         self._submit_collection = self._client.ocdb.submission_files
         self._user_collection = self._client.ocdb.users
         self._links_collection = self._client.ocdb.links
+        self._fidraddb_collection = self._client.ocdb.fidraddb
         self._ensure_indices()
 
     def close(self):

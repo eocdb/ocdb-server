@@ -1,7 +1,7 @@
 import functools
 import logging
 import os.path
-import re
+import datetime
 from mimetypes import guess_type
 
 import tornado.httputil
@@ -9,7 +9,8 @@ import tornado.escape
 
 from collections import deque
 from ocdb.core.fidraddb.validator import CalCharValidator
-from ocdb.ws.handlers._handlers import _login_required, _admin_required, _submission_send_authorization_required
+from ocdb.ws.handlers._handlers import _login_required, _admin_required, _submission_send_authorization_required, \
+    _ensure_string_argument
 from ocdb.ws.webservice import WsRequestHandler, _LOG_FidRadDb
 from ocdb.ws.controllers.store import *
 
@@ -141,10 +142,14 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
         for file in files.get("docfiles", []):
             doc_files.append(UploadedFile.from_dict(file))
 
+        allow_publication = arguments.get("allow_publication")
+        allow_publication = _ensure_string_argument(allow_publication, "allow_publication")
+        allow_publication = True if allow_publication and allow_publication.strip().lower() == "true" else False
+
         result = None
         try:
-            result = self.upload_cal_char_files(cal_char_files=cal_char_files,
-                                                doc_files=doc_files)
+            result = self.upload_cal_char_files(cal_char_files=cal_char_files, doc_files=doc_files,
+                                                allow_publication=allow_publication)
         except Exception as e:
             import traceback
             tb = traceback.format_exc()
@@ -152,12 +157,14 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
             log.error(f"Error message: {e}")
             log.error(f"Traceback-Informationen: {tb}")
             result = {f"A {type(e)} occurred": str(e)}
+
         self.finish(tornado.escape.json_encode(result))
         log.info("upload stop")
 
     def upload_cal_char_files(self,
                               cal_char_files: List[UploadedFile],
-                              doc_files: List[UploadedFile]) -> Dict[str, any]:
+                              doc_files: List[UploadedFile],
+                              allow_publication: bool) -> Dict[str, any]:
         """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
         assert_not_none(cal_char_files)
         assert_not_none(doc_files)
@@ -212,6 +219,12 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
                 fp.write(file.body)
                 results[key_upload_count] = results[key_upload_count] + 1
                 log.info(f"file: {filename} successfully uploaded.")
+                user_name = self.get_current_user()
+                utc_time = datetime.datetime.now(datetime.timezone.utc)
+                ctx.db_driver.add_cal_char_file({"filename": filename,
+                                                 "user_name": user_name,
+                                                 "public": allow_publication,
+                                                 "utc_upload_time": str(utc_time)})
 
         # Write documentation files into store
         # document_existing = []
@@ -295,7 +308,10 @@ class HandleListFiles(FidRadDbRequestHandler):
     # are not logged in.
     def get(self, name_part: str):
         data_dir_path = self.ws_context.get_fidraddb_store_path(_DATA_DIR_NAME)
-        files = os.listdir(data_dir_path)
+        # files = os.listdir(data_dir_path)
+        current_user_name = self.get_current_user()
+        is_admin = self.has_admin_rights()
+        files = self.ws_context.db_driver.get_cal_char_files_list(current_user_name, is_admin)
         result = []
         if name_part == "__ALL__":
             result = files
@@ -312,13 +328,16 @@ class HandleListFiles(FidRadDbRequestHandler):
 class HandleDeleteFile(FidRadDbRequestHandler):
 
     @_login_required
-    @_admin_required
-    # todo se ... Implement that users who are not admins are allowed to delete those files
-    #             they have uploaded themselves.
+    # @_admin_required
     def delete(self, filename: str):
         assert_not_none(filename, name="filename")
+        current_user_name = self.get_current_user()
+        is_admin = self.has_admin_rights()
+        files_list = self.ws_context.db_driver.get_cal_char_files_list(current_user_name, is_admin, for_deletion=True)
+        if files_list.count(filename) == 0:
+            raise WsBadRequestError(f"You are not allowed to delete the file '{filename}' because you are not the "
+                                    f"owner of this file or you are not an administrator.")
         data_dir_path = self.ws_context.get_fidraddb_store_path(_DATA_DIR_NAME)
-
         file_path = os.path.join(data_dir_path, filename)
         log = self.logger
         message = ''
@@ -336,6 +355,7 @@ class HandleDeleteFile(FidRadDbRequestHandler):
                 else:
                     message = f"Deletion requested for {filename}. Successfully deleted."
                     log.info(message)
+                    self.ws_context.db_driver.remove_cal_char_file_entry(filename)
                     self.set_status(200, message)
             else:
                 message = f"Deletion requested for {filename}. File exist but can not be deleted."

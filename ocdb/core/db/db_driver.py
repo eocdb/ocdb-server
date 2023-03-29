@@ -34,6 +34,21 @@ class DbDriver(Service):
         """Find datasets for given query and return list of dataset references."""
 
     @abstractmethod
+    def add_cal_char_file(self, cal_char_info: dict) -> str:
+        """Add cal char file information."""
+
+    @abstractmethod
+    def get_cal_char_files_list(self, current_user_name: str, is_admin: bool, for_deletion: bool = False) -> list[str]:
+        """Fetches a list of files from the database.
+        If is_admin is true, all files wil be listed.
+        If is_admin is false only public files or files from the current user will be listed.
+        if for_deletion is true and is_admin is false only own files will be listed."""
+
+    @abstractmethod
+    def remove_cal_char_file_entry(self, filename: str):
+        """Removes cal char file information for 'filename' from database."""
+
+    @abstractmethod
     def add_submission(self, submission: DbSubmission) -> str:
         """Add new submission file and return ID."""
 
