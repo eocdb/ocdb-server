@@ -375,8 +375,14 @@ class HandleDownloadFile(FidRadDbRequestHandler):
     # All are allowed to download cal/char files, even for guest users who are not logged in.
     def get(self, filename: str):
         assert_not_none(filename, name="filename")
-        data_dir_path = self.ws_context.get_fidraddb_store_path(_DATA_DIR_NAME)
 
+        current_user_name = self.get_current_user()
+        is_admin = self.has_admin_rights()
+        allowed_files_list = self.ws_context.db_driver.get_cal_char_files_list(current_user_name, is_admin)
+        if allowed_files_list.count(filename) == 0:
+            raise WsBadRequestError(f"You are not allowed to download the file '{filename}'")
+
+        data_dir_path = self.ws_context.get_fidraddb_store_path(_DATA_DIR_NAME)
         file_path = os.path.join(data_dir_path, filename)
         log = self.logger
         message = ''
