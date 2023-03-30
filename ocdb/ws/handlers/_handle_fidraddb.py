@@ -67,7 +67,7 @@ def _fidrad_submit_authorization_required(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         allowed = False
-        if self.has_fidrad_rights():
+        if self.has_fidrad_rights() or self.has_admin_rights():
             allowed = True
 
         if not allowed:
