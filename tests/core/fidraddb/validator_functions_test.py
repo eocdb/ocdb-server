@@ -432,7 +432,119 @@ class StaticMethodsTest(unittest.TestCase):
             "{}\t{}\t{}\t{}".format(8.9, 9.0, 0.2, 1.3),
             "[END_OF_Meta_key]",
         ]
+        # execution
         info = CalCharValidator._extract_metadata_key_information_from(lines)
+        # validation
         keyList = list(info.keys())
         message = v.is_n_col_data(lines, keyList[0] + 1, keyList[1], ncol=4)
         self.assertEqual("Line 5 contains 5 columns instead of expected 4 columns.", message)
+
+    def test_keyword_check__radcal(self):
+        # preparation
+        lines = [
+            "!FRM4SOC_CP",
+            "!RADCAL",
+            "",
+            "some",
+            "!RADCAL",
+            "other",
+            "lines",
+            "",
+            "# comment line",
+        ]
+        method = CalCharValidator._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name
+
+        # validation
+        self.assertEqual("Keyword '!RADCAL' found 2 times but expected 1 times.", method("radcal", lines))
+        lines.remove("!RADCAL")
+        self.assertEqual(None, method("radcal", lines))
+        lines.remove("!RADCAL")
+        self.assertEqual("Keyword '!RADCAL' found 0 times but expected 1 times.", method("radcal", lines))
+
+    def test_keyword_check__angdata(self):
+        # preparation
+        lines = [
+            "!FRM4SOC_CP",
+            "!ANGDATA",
+            "",
+            "some",
+            "other",
+            "lines",
+            "!ANGDATA",
+            "",
+            "# comment line",
+        ]
+        method = CalCharValidator._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name
+
+        # validation
+        self.assertEqual("Keyword '!ANGDATA' found 2 times but expected 1 times.", method("angular", lines))
+        lines.remove("!ANGDATA")
+        self.assertEqual(None, method("angular", lines))
+        lines.remove("!ANGDATA")
+        self.assertEqual("Keyword '!ANGDATA' found 0 times but expected 1 times.", method("angular", lines))
+
+    def test_keyword_check__poldata(self):
+        # preparation
+        lines = [
+            "!FRM4SOC_CP",
+            "!POLDATA",
+            "",
+            "some",
+            "other",
+            "lines",
+            "!POLDATA",
+            "",
+            "# comment line",
+        ]
+        method = CalCharValidator._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name
+
+        # validation
+        self.assertEqual("Keyword '!POLDATA' found 2 times but expected 1 times.", method("polar", lines))
+        lines.remove("!POLDATA")
+        self.assertEqual(None, method("polar", lines))
+        lines.remove("!POLDATA")
+        self.assertEqual("Keyword '!POLDATA' found 0 times but expected 1 times.", method("polar", lines))
+
+    def test_keyword_check__straydata(self):
+        # preparation
+        lines = [
+            "!FRM4SOC_CP",
+            "!STRAYDATA",
+            "",
+            "some",
+            "other",
+            "lines",
+            "!STRAYDATA",
+            "",
+            "# comment line",
+        ]
+        method = CalCharValidator._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name
+
+        # validation
+        self.assertEqual("Keyword '!STRAYDATA' found 2 times but expected 1 times.", method("stray", lines))
+        lines.remove("!STRAYDATA")
+        self.assertEqual(None, method("stray", lines))
+        lines.remove("!STRAYDATA")
+        self.assertEqual("Keyword '!STRAYDATA' found 0 times but expected 1 times.", method("stray", lines))
+
+    def test_keyword_check__tempdata(self):
+        # preparation
+        lines = [
+            "!FRM4SOC_CP",
+            "!TEMPDATA",
+            "",
+            "some",
+            "other",
+            "lines",
+            "!TEMPDATA",
+            "",
+            "# comment line",
+        ]
+        method = CalCharValidator._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name
+
+        # validation
+        self.assertEqual("Keyword '!TEMPDATA' found 2 times but expected 1 times.", method("thermal", lines))
+        lines.remove("!TEMPDATA")
+        self.assertEqual(None, method("thermal", lines))
+        lines.remove("!TEMPDATA")
+        self.assertEqual("Keyword '!TEMPDATA' found 0 times but expected 1 times.", method("thermal", lines))

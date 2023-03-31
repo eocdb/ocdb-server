@@ -12,6 +12,7 @@ PANEL_ID;x;x;O;x;x;str;FRMisNotempty(metadata[key]);;;;;
 LAMP_ID;x;x;O;x;x;str;FRMisNotempty(metadata[key]);;;;;
 AZIMUTH_ANGLE;M;x;x;x;x;float;FRMisfloat(metadata[key]);;;;;
 LAMP_CCT;x;x;O;x;x;float;FRMisfloat(metadata[key]);;;;;
+DEVICE_TEMP;O;O;O;O;O;float;FRMisfloat(metadata[key]);;;;;
 AMBIENT_TEMP;O;O;O;O;O;float;FRMisfloat(metadata[key]);;;;;
 REFERENCE_TEMP;x;x;x;x;M;float;FRMisfloat(metadata[key]);;;;;
 PANELDATA;x;x;O;x;x;block;FRMisNCOLdata(metadata[key], key, scan, ncol=4);;;;;

@@ -131,6 +131,10 @@ class CalCharValidator:
         lines = self._convert_bytes_to_lines(text)
         num_lines = len(lines)
 
+        wrong_keyword = self._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name(file_type, lines)
+        if wrong_keyword:
+            return {filename: wrong_keyword}
+
         not_same_date = self._check_same_date_time_in_filename_and_inside_file(date_time, lines)
         if not_same_date:
             return {filename: not_same_date}
@@ -216,7 +220,7 @@ class CalCharValidator:
                     value = lines[start_line]
                     if is_valid_float(value):
                         continue
-                    return {filename: f"Float value for {braced_meta_name} is missing"}
+                    return {filename: f"Float value for {braced_meta_name} is not a float"}
             elif metadata_type == "block":
                 keys_list_start_idx = 0
                 ncols_start = val_function.index("ncol=") + 5
@@ -351,3 +355,23 @@ class CalCharValidator:
         if expected_value != value.upper():
             return f"The value found in the file for the metadata key '{key}' should be equal to the " \
                    f"serial number '{filename_serial_number}' from the file name, but '{value}' was found."
+
+    @staticmethod
+    def _check_keyword_in_file_matches_the_file_type_specified_in_the_file_name(file_type, lines) -> str or None:
+        # Get all lines that begin with an exclamation mark.
+        extract = [x for x in lines if x and x.startswith("!")]
+
+        expected_counts = [
+            ("!RADCAL", 1 if file_type == "radcal" else 0),
+            ("!ANGDATA", 1 if file_type == "angular" else 0),
+            ("!POLDATA", 1 if file_type == "polar" else 0),
+            ("!STRAYDATA", 1 if file_type == "stray" else 0),
+            ("!TEMPDATA", 1 if file_type == "thermal" else 0),
+        ]
+
+        for _tuple in expected_counts:
+            keyword = _tuple[0]
+            expected_count = _tuple[1]
+            count = extract.count(keyword)
+            if count != expected_count:
+                return f"Keyword '{keyword}' found {count} times but expected {expected_count} times."
