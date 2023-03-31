@@ -199,29 +199,29 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
         cal_char_dir_path = ctx.get_fidraddb_store_path(_DATA_DIR_NAME)
         os.makedirs(cal_char_dir_path, exist_ok=True)
         for file in cal_char_files:
-            filename = file.filename
-            if not CalCharValidator.isValidFilename(filename):
-                log.warning(f"Invalid filename: '{filename}'. Upload cal/char file aborted.")
-                results[key_invalid_filename].append(filename)
+            filename_upper = file.filename.upper()
+            if not CalCharValidator.isValidFilename(filename_upper):
+                log.warning(f"Invalid filename: '{filename_upper}'. Upload cal/char file aborted.")
+                results[key_invalid_filename].append(filename_upper)
                 continue
-            file_path = os.path.join(cal_char_dir_path, filename)
+            file_path = os.path.join(cal_char_dir_path, filename_upper)
             if os.path.isfile(file_path):
-                log.warning(f"File '{filename}' already exists. Upload cal/char file aborted.")
-                results[key_already_existing_files].append(filename)
+                log.warning(f"File '{filename_upper}' already exists. Upload cal/char file aborted.")
+                results[key_already_existing_files].append(filename_upper)
                 continue
-            validation_result = cal_char_validator.validate(filename, file.body)
+            validation_result = cal_char_validator.validate(filename_upper, file.body)
             if validation_result:
-                log.warning(f"File '{filename}' not valid. Upload cal/char file aborted. "
-                            + validation_result.get(filename))
+                log.warning(f"File '{filename_upper}' not valid. Upload cal/char file aborted. "
+                            + validation_result.get(filename_upper))
                 results[key_file_not_valid].update(validation_result)
                 continue
             with open(file_path, "wb") as fp:
                 fp.write(file.body)
                 results[key_upload_count] = results[key_upload_count] + 1
-                log.info(f"file: {filename} successfully uploaded.")
+                log.info(f"file: {filename_upper} successfully uploaded.")
                 user_name = self.get_current_user()
                 utc_time = datetime.datetime.now(datetime.timezone.utc)
-                ctx.db_driver.add_cal_char_file({"filename": filename,
+                ctx.db_driver.add_cal_char_file({"filename": filename_upper,
                                                  "user_name": user_name,
                                                  "public": allow_publication,
                                                  "utc_upload_time": str(utc_time)})
@@ -252,8 +252,10 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
         if key_already_existing_files in results:
             results.update({"Warning!": ["Files with the same name already exist on the server.",
                                          "If you have a newer or corrected version of the file with ",
-                                         "the same name to replace the existing file, please inform an ",
-                                         "administrator to delete the existing file first. ",
+                                         "the same name to replace the existing file, the existing "
+                                         "file must be deleted first. If you are not allowed to delete "
+                                         "the file, because you are not the owner of the file, please "
+                                         "inform an administrator to delete the existing file first. ",
                                          "Then repeat the upload with those files that could not ",
                                          "be written at the first attempt."]})
 

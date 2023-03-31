@@ -76,7 +76,7 @@ class CalCharValidator:
     __KEY_METADATA = "Metadata"
     __KEY_MANDATORY = "Mandatory"
 
-    _REGULAR_EXPRESSION_VALID_TYPES = r"(angular|polar|radcal|stray|thermal)"
+    _REGULAR_EXPRESSION_VALID_TYPES = r"(ANGULAR|POLAR|RADCAL|STRAY|THERMAL)"
     _filename_compiled_reg_ex: re.Pattern = None
 
     def __init__(self) -> None:
@@ -103,21 +103,21 @@ class CalCharValidator:
     def _getCompiledFileNameExpression(cls) -> re.Pattern:
         if cls._filename_compiled_reg_ex is None:
             prefix = r"CP_"
-            classes_and_types = r"(RAMSES|HyperOCR)_[EL]_class_(ANGULAR|POLAR|STRAY|THERMAL)"
-            serial_and_types = r"(SAM_[0-9A-Fa-f]{4}|SAT\d{4})_(ANGULAR|POLAR|RADCAL|STRAY|THERMAL)"
+            classes_and_types = r"(RAMSES|HYPEROCR)_[EL]_CLASS_(ANGULAR|POLAR|STRAY|THERMAL)"
+            serial_and_types = r"(SAM_[0-9A-F]{4}|SAT\d{4})_(ANGULAR|POLAR|RADCAL|STRAY|THERMAL)"
             class_or_serial_and_types = r"(" + classes_and_types + r"|" + serial_and_types + r")_"
             year = r"(19\d\d|2[01]\d\d)"
             month = r"(0[1-9]|1[012])"
             day = r"(0[1-9]|[12]\d|3[01])"
             hour = r"([01]\d|2[0123])"
             min_or_sec = r"[012345]\d"
-            txt_ending = r"\.txt"
+            txt_ending = r"\.TXT"
 
             expressions = [prefix, class_or_serial_and_types, year, month, day, hour, min_or_sec, min_or_sec,
                            txt_ending]
             expression = "".join(expressions)
             # print(expression)
-            cls._filename_compiled_reg_ex = re.compile(expression, re.IGNORECASE)
+            cls._filename_compiled_reg_ex = re.compile(expression)
 
         return cls._filename_compiled_reg_ex
 
@@ -139,7 +139,7 @@ class CalCharValidator:
         if not_same_date:
             return {filename: not_same_date}
 
-        if "_class" in class_or_serial.lower():
+        if "_CLASS" in class_or_serial():
             filename_class = class_or_serial
             invalid_value_message = self._validate_device_value_in_class_file_content(filename_class, lines)
             if invalid_value_message:
@@ -329,11 +329,10 @@ class CalCharValidator:
             "RAMSES_E_CLASS": "CLASS_RAMSES_IRRADIANCE",
             "RAMSES_L_CLASS": "CLASS_RAMSES_RADIANCE"
         }
-        filename_class_upper = filename_class.upper()
-        if filename_class_upper not in known_classes:
+        if filename_class not in known_classes:
             return f"Class file type '{filename_class}' not known."
 
-        expected_value = known_classes.get(filename_class_upper)
+        expected_value = known_classes.get(filename_class)
 
         key = "[DEVICE]"
         dev_index = lines.index(key)
@@ -345,14 +344,12 @@ class CalCharValidator:
 
     @staticmethod
     def _validate_device_value_in_serial_number_file(filename_serial_number: str, lines: list[str]) -> str or None:
-        expected_value = filename_serial_number.upper()
-
         key = "[DEVICE]"
         dev_index = lines.index(key)
         val_index = dev_index + 1
         value = lines[val_index]
 
-        if expected_value != value.upper():
+        if filename_serial_number != value.upper():
             return f"The value found in the file for the metadata key '{key}' should be equal to the " \
                    f"serial number '{filename_serial_number}' from the file name, but '{value}' was found."
 
@@ -362,11 +359,11 @@ class CalCharValidator:
         extract = [x for x in lines if x and x.startswith("!")]
 
         expected_counts = [
-            ("!RADCAL", 1 if file_type == "radcal" else 0),
-            ("!ANGDATA", 1 if file_type == "angular" else 0),
-            ("!POLDATA", 1 if file_type == "polar" else 0),
-            ("!STRAYDATA", 1 if file_type == "stray" else 0),
-            ("!TEMPDATA", 1 if file_type == "thermal" else 0),
+            ("!RADCAL", 1 if file_type == "RADCAL" else 0),
+            ("!ANGDATA", 1 if file_type == "ANGULAR" else 0),
+            ("!POLDATA", 1 if file_type == "POLAR" else 0),
+            ("!STRAYDATA", 1 if file_type == "STRAY" else 0),
+            ("!TEMPDATA", 1 if file_type == "THERMAL" else 0),
         ]
 
         for _tuple in expected_counts:

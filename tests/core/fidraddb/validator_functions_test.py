@@ -131,14 +131,14 @@ class FilenameValidationTest(unittest.TestCase):
     valid_days = ["01", "09", "10", "20", "29", "30", "31"]
     valid_hours = ["00", "19", "21", "23"]
     valid_min_or_sec = ["00", "12", "24", "36", "48", "59"]
-    valid_endings = [".tXt", ".TxT"]
+    valid_endings = [".TXT"]
 
-    valid_classes = ["Cp_RaMsEs_E_cLaSs_", "cP_rAmSeS_l_ClAsS_", "CP_HyperOCR_E_class_", "CP_HyperOCR_L_class_"]
-    valid_types_for_class_files = ["AnGuLaR_", "PoLaR_", "StRaY_", "ThErMaL_"]
+    valid_classes = ["CP_RAMSES_E_CLASS_", "CP_RAMSES_L_CLASS_", "CP_HYPEROCR_E_CLASS_", "CP_HYPEROCR_L_CLASS_"]
+    valid_types_for_class_files = ["ANGULAR_", "POLAR_", "STRAY_", "THERMAL_"]
 
-    valid_sam_names = ["Cp_SaM_1234_", "Cp_SaM_5678_", "Cp_SaM_9aBc_", "Cp_SaM_Df01_"]
-    valid_sat_names = ["Cp_SaT1234_", "Cp_sAt5678_", "Cp_SaT9342_"]
-    valid_types_for_serial_files = ["RaDcAl_", "AnGuLaR_", "PoLaR_", "StRaY_", "ThErMaL_"]
+    valid_sam_names = ["CP_SAM_1234_", "CP_SAM_5678_", "CP_SAM_9ABC_", "CP_SAM_DF01_"]
+    valid_sat_names = ["CP_SAT1234_", "CP_SAT5678_", "CP_SAT9342_"]
+    valid_types_for_serial_files = ["RADCAL_", "ANGULAR_", "POLAR_", "STRAY_", "THERMAL_"]
 
     def testThatCalCharClassFilenamesAreValid(self):
 
@@ -164,16 +164,6 @@ class FilenameValidationTest(unittest.TestCase):
                                             self.assertEqual(
                                                 True, v.CalCharValidator.isValidFilename(current_name),
                                                 f"Name '{current_name}' is expected to be valid.")
-
-                                            current_name_upper = current_name.upper()
-                                            self.assertEqual(
-                                                True, v.CalCharValidator.isValidFilename(current_name_upper),
-                                                f"Name '{current_name_upper}' is expected to be valid.")
-
-                                            current_name_lower = current_name.lower()
-                                            self.assertEqual(
-                                                True, v.CalCharValidator.isValidFilename(current_name_lower),
-                                                f"Name '{current_name_lower}' is expected to be valid.")
 
         current_name = "_" + current_name
         self.assertEqual(False, v.CalCharValidator.isValidFilename(current_name),
@@ -204,16 +194,6 @@ class FilenameValidationTest(unittest.TestCase):
                                                 True, v.CalCharValidator.isValidFilename(current_name),
                                                 f"Name '{current_name}' is expected to be valid.")
 
-                                            current_name_upper = current_name.upper()
-                                            self.assertEqual(
-                                                True, v.CalCharValidator.isValidFilename(current_name_upper),
-                                                f"Name '{current_name_upper}' is expected to be valid.")
-
-                                            current_name_lower = current_name.lower()
-                                            self.assertEqual(
-                                                True, v.CalCharValidator.isValidFilename(current_name_lower),
-                                                f"Name '{current_name_lower}' is expected to be valid.")
-
         current_name = "_" + current_name
         self.assertEqual(False, v.CalCharValidator.isValidFilename(current_name),
                          f"Name '{current_name}' is expected to be valid.")
@@ -242,16 +222,6 @@ class FilenameValidationTest(unittest.TestCase):
                                                 True, v.CalCharValidator.isValidFilename(current_name),
                                                 f"Name '{current_name}' is expected to be valid.")
 
-                                            current_name_upper = current_name.upper()
-                                            self.assertEqual(
-                                                True, v.CalCharValidator.isValidFilename(current_name_upper),
-                                                f"Name '{current_name_upper}' is expected to be valid.")
-
-                                            current_name_lower = current_name.lower()
-                                            self.assertEqual(
-                                                True, v.CalCharValidator.isValidFilename(current_name_lower),
-                                                f"Name '{current_name_lower}' is expected to be valid.")
-
         current_name = "_" + current_name
         self.assertEqual(False, v.CalCharValidator.isValidFilename(current_name),
                          f"Name '{current_name}' is expected to be valid.")
@@ -279,7 +249,7 @@ class DeviceValidationTest(unittest.TestCase):
         )
 
         # preparation
-        filename_class = "HyperOCR_E_class"  # valid class
+        filename_class = "HYPEROCR_E_CLASS"  # valid class
 
         # execution
         device_check_result = CalCharValidator._validate_device_value_in_class_file_content(filename_class, lines)
@@ -287,7 +257,7 @@ class DeviceValidationTest(unittest.TestCase):
         # verification
         self.assertEqual(
             "Value 'CLASS_HYPEROCR_IRRADIANCE' expected for metadata key '[DEVICE]' in file for class "
-            "'HyperOCR_E_class', but found 'wrong'.",
+            "'HYPEROCR_E_CLASS', but found 'wrong'.",
             device_check_result
         )
 
@@ -302,7 +272,7 @@ class DeviceValidationTest(unittest.TestCase):
                          device_check_result)
 
         # preparation
-        filename_class = "HyperOCR_L_class"  # valid class
+        filename_class = "HYPEROCR_L_CLASS"  # valid class
         lines[2] = "CLASS_HYPEROCR_RADIANCE"
 
         # execution
@@ -313,7 +283,7 @@ class DeviceValidationTest(unittest.TestCase):
                          device_check_result)
 
         # preparation
-        filename_class = "RAMSES_E_class"  # valid class
+        filename_class = "RAMSES_E_CLASS"  # valid class
         lines[2] = "CLASS_RAMSES_IRRADIANCE"
 
         # execution
@@ -324,7 +294,7 @@ class DeviceValidationTest(unittest.TestCase):
                          device_check_result)
 
         # preparation
-        filename_class = "RAMSES_L_class"  # valid class
+        filename_class = "RAMSES_L_CLASS"  # valid class
         lines[2] = "CLASS_RAMSES_RADIANCE"
 
         # execution
@@ -455,11 +425,11 @@ class StaticMethodsTest(unittest.TestCase):
         method = CalCharValidator._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name
 
         # validation
-        self.assertEqual("Keyword '!RADCAL' found 2 times but expected 1 times.", method("radcal", lines))
+        self.assertEqual("Keyword '!RADCAL' found 2 times but expected 1 times.", method("RADCAL", lines))
         lines.remove("!RADCAL")
-        self.assertEqual(None, method("radcal", lines))
+        self.assertEqual(None, method("RADCAL", lines))
         lines.remove("!RADCAL")
-        self.assertEqual("Keyword '!RADCAL' found 0 times but expected 1 times.", method("radcal", lines))
+        self.assertEqual("Keyword '!RADCAL' found 0 times but expected 1 times.", method("RADCAL", lines))
 
     def test_keyword_check__angdata(self):
         # preparation
@@ -477,11 +447,11 @@ class StaticMethodsTest(unittest.TestCase):
         method = CalCharValidator._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name
 
         # validation
-        self.assertEqual("Keyword '!ANGDATA' found 2 times but expected 1 times.", method("angular", lines))
+        self.assertEqual("Keyword '!ANGDATA' found 2 times but expected 1 times.", method("ANGULAR", lines))
         lines.remove("!ANGDATA")
-        self.assertEqual(None, method("angular", lines))
+        self.assertEqual(None, method("ANGULAR", lines))
         lines.remove("!ANGDATA")
-        self.assertEqual("Keyword '!ANGDATA' found 0 times but expected 1 times.", method("angular", lines))
+        self.assertEqual("Keyword '!ANGDATA' found 0 times but expected 1 times.", method("ANGULAR", lines))
 
     def test_keyword_check__poldata(self):
         # preparation
@@ -499,11 +469,11 @@ class StaticMethodsTest(unittest.TestCase):
         method = CalCharValidator._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name
 
         # validation
-        self.assertEqual("Keyword '!POLDATA' found 2 times but expected 1 times.", method("polar", lines))
+        self.assertEqual("Keyword '!POLDATA' found 2 times but expected 1 times.", method("POLAR", lines))
         lines.remove("!POLDATA")
-        self.assertEqual(None, method("polar", lines))
+        self.assertEqual(None, method("POLAR", lines))
         lines.remove("!POLDATA")
-        self.assertEqual("Keyword '!POLDATA' found 0 times but expected 1 times.", method("polar", lines))
+        self.assertEqual("Keyword '!POLDATA' found 0 times but expected 1 times.", method("POLAR", lines))
 
     def test_keyword_check__straydata(self):
         # preparation
@@ -521,11 +491,11 @@ class StaticMethodsTest(unittest.TestCase):
         method = CalCharValidator._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name
 
         # validation
-        self.assertEqual("Keyword '!STRAYDATA' found 2 times but expected 1 times.", method("stray", lines))
+        self.assertEqual("Keyword '!STRAYDATA' found 2 times but expected 1 times.", method("STRAY", lines))
         lines.remove("!STRAYDATA")
-        self.assertEqual(None, method("stray", lines))
+        self.assertEqual(None, method("STRAY", lines))
         lines.remove("!STRAYDATA")
-        self.assertEqual("Keyword '!STRAYDATA' found 0 times but expected 1 times.", method("stray", lines))
+        self.assertEqual("Keyword '!STRAYDATA' found 0 times but expected 1 times.", method("STRAY", lines))
 
     def test_keyword_check__tempdata(self):
         # preparation
@@ -543,8 +513,8 @@ class StaticMethodsTest(unittest.TestCase):
         method = CalCharValidator._check_keyword_in_file_matches_the_file_type_specified_in_the_file_name
 
         # validation
-        self.assertEqual("Keyword '!TEMPDATA' found 2 times but expected 1 times.", method("thermal", lines))
+        self.assertEqual("Keyword '!TEMPDATA' found 2 times but expected 1 times.", method("THERMAL", lines))
         lines.remove("!TEMPDATA")
-        self.assertEqual(None, method("thermal", lines))
+        self.assertEqual(None, method("THERMAL", lines))
         lines.remove("!TEMPDATA")
-        self.assertEqual("Keyword '!TEMPDATA' found 0 times but expected 1 times.", method("thermal", lines))
+        self.assertEqual("Keyword '!TEMPDATA' found 0 times but expected 1 times.", method("THERMAL", lines))
