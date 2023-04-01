@@ -1,7 +1,6 @@
 import os
 import re
 from datetime import datetime
-
 import chardet
 
 
@@ -139,7 +138,7 @@ class CalCharValidator:
         if not_same_date:
             return {filename: not_same_date}
 
-        if "_CLASS" in class_or_serial():
+        if "_CLASS" in class_or_serial:
             filename_class = class_or_serial
             invalid_value_message = self._validate_device_value_in_class_file_content(filename_class, lines)
             if invalid_value_message:
@@ -199,7 +198,7 @@ class CalCharValidator:
                 continue  # already checked ... see lines after the line --> if "_class" in class_or_serial.lower():
             elif metadata_type == "str":
                 keys_list_start_idx = 0
-                for i in range(braced_meta_count):
+                for j in range(braced_meta_count):
                     list_idx = list_metadata_keys_in_files.index(braced_meta_name, keys_list_start_idx)
                     keys_list_start_idx = list_idx + 1
                     start_line = list_metadata_index_in_files[list_idx] + 1
@@ -211,7 +210,7 @@ class CalCharValidator:
                     return {filename: f"Value for {braced_meta_name} is missing"}
             elif metadata_type == "float":
                 keys_list_start_idx = 0
-                for i in range(braced_meta_count):
+                for j in range(braced_meta_count):
                     list_idx = list_metadata_keys_in_files.index(braced_meta_name, keys_list_start_idx)
                     keys_list_start_idx = list_idx + 1
                     start_line = list_metadata_index_in_files[list_idx] + 1
@@ -226,7 +225,7 @@ class CalCharValidator:
                 ncols_start = val_function.index("ncol=") + 5
                 ncols_end = val_function.index(")", ncols_start)
                 ncols = int(val_function[ncols_start:ncols_end])
-                for i in range(braced_meta_count):
+                for j in range(braced_meta_count):
                     list_idx = list_metadata_keys_in_files.index(braced_meta_name, keys_list_start_idx)
                     keys_list_start_idx = list_idx + 1
                     start_line = list_metadata_index_in_files[list_idx] + 1
