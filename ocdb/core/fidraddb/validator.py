@@ -29,6 +29,9 @@ def is_n_col_data(lines, start, stop, ncol=4) -> str:
         num_cols = len(strings)
         if num_cols != ncol:
             return f"Line {i +1} contains {num_cols} columns instead of expected {ncol} columns."
+        # Ignore column headings if present
+        if strings[0].strip().lower() == "px":
+            continue
         for j in range(num_cols):
             val = strings[j]
             if not is_valid_float(val):
