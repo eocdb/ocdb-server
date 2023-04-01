@@ -333,17 +333,23 @@ class HandleDeleteFile(FidRadDbRequestHandler):
     # @_admin_required
     def delete(self, filename: str):
         assert_not_none(filename, name="filename")
-        current_user_name = self.get_current_user()
-        is_admin = self.has_admin_rights()
-        files_list = self.ws_context.db_driver.get_cal_char_files_list(current_user_name, is_admin, for_deletion=True)
-        if files_list.count(filename) == 0:
-            raise WsBadRequestError(f"You are not allowed to delete the file '{filename}' because you are not the "
-                                    f"owner of this file or you are not an administrator.")
+        filename = filename.upper()
         data_dir_path = self.ws_context.get_fidraddb_store_path(_DATA_DIR_NAME)
         file_path = os.path.join(data_dir_path, filename)
         log = self.logger
         message = ''
-        if os.path.exists(file_path):
+        if not os.path.exists(file_path):
+            message = f"Deletion requested for {filename} but file does not exist."
+            log.warning(message)
+            self.set_status(404, message)
+        else:
+            current_user_name = self.get_current_user()
+            is_admin = self.has_admin_rights()
+            files_list = self.ws_context.db_driver.get_cal_char_files_list(current_user_name, is_admin,
+                                                                           for_deletion=True)
+            if files_list.count(filename) == 0:
+                raise WsBadRequestError(f"You are not allowed to delete the file '{filename}' because you are not the "
+                                        f"owner of this file or you are not an administrator.")
             if os.access(file_path, os.W_OK):
                 try:
                     os.remove(file_path)
@@ -363,10 +369,6 @@ class HandleDeleteFile(FidRadDbRequestHandler):
                 message = f"Deletion requested for {filename}. File exist but can not be deleted."
                 log.error(message)
                 self.set_status(403, message)
-        else:
-            message = f"Deletion requested for {filename} but file does not exist."
-            log.warning(message)
-            self.set_status(404, message)
 
         self.finish(tornado.escape.json_encode(message))
 
