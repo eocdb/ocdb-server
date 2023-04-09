@@ -138,18 +138,14 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
         for file in files.get("cal_char_files", []):
             cal_char_files.append(UploadedFile.from_dict(file))
 
-        doc_files = []
-        for file in files.get("docfiles", []):
-            doc_files.append(UploadedFile.from_dict(file))
-
-        allow_publication = arguments.get("allow_publication")
-        allow_publication = _ensure_string_argument(allow_publication, "allow_publication")
-        allow_publication = True if allow_publication and allow_publication.strip().lower() == "true" else False
+        disagree_publication = arguments.get("disagree_publication")
+        disagree_publication = _ensure_string_argument(disagree_publication, "disagree_publication")
+        disagree_publication = bool(disagree_publication) and disagree_publication.strip().lower() == "true"
 
         result = None
         try:
-            result = self.upload_cal_char_files(cal_char_files=cal_char_files, doc_files=doc_files,
-                                                allow_publication=allow_publication)
+            result = self.upload_cal_char_files(cal_char_files=cal_char_files,
+                                                disagree_publication=disagree_publication)
         except Exception as e:
             import traceback
             tb = traceback.format_exc()
@@ -163,11 +159,9 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
 
     def upload_cal_char_files(self,
                               cal_char_files: List[UploadedFile],
-                              doc_files: List[UploadedFile],
-                              allow_publication: bool) -> Dict[str, any]:
+                              disagree_publication: bool) -> Dict[str, any]:
         """ Return a dictionary mapping dataset file names to DatasetValidationResult."""
         assert_not_none(cal_char_files)
-        assert_not_none(doc_files)
         log = self.logger
 
         cal_char_count = len(cal_char_files)
@@ -223,32 +217,15 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
                 utc_time = datetime.datetime.now(datetime.timezone.utc)
                 ctx.db_driver.add_cal_char_file({"filename": filename_upper,
                                                  "user_name": user_name,
-                                                 "public": allow_publication,
+                                                 "public": not disagree_publication,
                                                  "utc_upload_time": str(utc_time)})
-
-        # Write documentation files into store
-        # document_existing = []
-        # docs_dir_path = ctx.get_fidraddb_store_path("additional_docs")
-        # os.makedirs(docs_dir_path, exist_ok=True)
-        # for file in doc_files:
-        #     filename = file.filename
-        #     file_path = os.path.join(docs_dir_path, filename)
-        #     if os.path.exists(file_path):
-        #         log.warning(f"File already exists. The document file {filename} is not uploaded.")
-        #         document_existing.append(filename)
-        #     else:
-        #         with open(file_path, "wb") as fp:
-        #             fp.write(file.body)
-        #             count += 1
-        #             log.info(f"file: {filename} successfully uploaded.")
 
         if len(results[key_invalid_filename]) == 0:
             results.pop(key_invalid_filename)
+
         if len(results[key_already_existing_files]) == 0:
             results.pop(key_already_existing_files)
-        # if len(document_existing) > 0:
-        #     results.update({"Already existing document files": document_existing})
-        #     existing_warning = True
+
         if key_already_existing_files in results:
             results.update({"Warning!": ["Files with the same name already exist on the server.",
                                          "If you have a newer or corrected version of the file with ",
