@@ -14,6 +14,6 @@ AZIMUTH_ANGLE;M;x;x;x;x;float;FRMisfloat(metadata[key]);;;;;
 LAMP_CCT;x;x;O;x;x;float;FRMisfloat(metadata[key]);;;;;
 DEVICE_TEMP;O;O;O;O;O;float;FRMisfloat(metadata[key]);;;;;
 AMBIENT_TEMP;O;O;O;O;O;float;FRMisfloat(metadata[key]);;;;;
-REFERENCE_TEMP;x;x;x;x;M;float;FRMisfloat(metadata[key]);;;;;
+REFERENCE_TEMP;O;O;x;O;M;float;FRMisfloat(metadata[key]);;;;;
 PANELDATA;x;x;O;x;x;block;FRMisNCOLdata(metadata[key], key, scan, ncol=4);;;;;
 LAMPDATA;x;x;O;x;x;block;FRMisNCOLdata(metadata[key], key, scan, ncol=4);;;;;
