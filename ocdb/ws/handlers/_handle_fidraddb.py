@@ -203,7 +203,7 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
                 log.warning(f"File '{filename_upper}' already exists. Upload cal/char file aborted.")
                 results[key_already_existing_files].append(filename_upper)
                 continue
-            validation_result = cal_char_validator.validate(filename_upper, file.body)
+            validation_result = cal_char_validator.validate(filename_upper, file.body, log)
             if validation_result:
                 log.warning(f"File '{filename_upper}' not valid. Upload cal/char file aborted. "
                             + validation_result.get(filename_upper))
@@ -225,6 +225,9 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
 
         if len(results[key_already_existing_files]) == 0:
             results.pop(key_already_existing_files)
+
+        if len(results[key_file_not_valid]) == 0:
+            results.pop(key_file_not_valid)
 
         if key_already_existing_files in results:
             results.update({"Warning!": ["Files with the same name already exist on the server.",
