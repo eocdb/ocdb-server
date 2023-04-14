@@ -1,7 +1,7 @@
 # Changes in Version 0.1.21
 - FidRadDB interface added
   - possibility to upload Cal/Char files
-    - only allowed for logged in users with the role fidrad 
+    - only allowed for logged in users with the role "fidrad" or admins  
     - Cal/Char file validation
     - Use Metadata-key / File-type Matrix from Héloïse
     - Generating meaningful error messages
@@ -11,24 +11,28 @@
       - containing the filename, username, public: bool, utc_upload_time 
     - create history via logging with user integrated
     - allow to set a database property for "publish" or "not publish" a file
-  - fetch a history tail (default size: last 50 lines)
-    - make num lines user defineable 
+  - fetch a history tail
+    - only allowed for logged in users with the role "fidrad" or admins  
+    - with user-definable num lines
+    - default: last 50 lines
   - grep like bottom up history search implemented
+    - only allowed for logged in users with the role "fidrad" or admins  
     - with user-definable maximum number of results
     - default: 20 results
   - list files
     - allowed for everyone
       - Guest users only see public files in the list
-      - Logged in fidrad users see all public and all own private files
-      - Logged in administrators see all files in the list
+      - Logged in users will see all public and own private files
+      - Logged in admin will see all files in the list
   - download file
     - allowed for everyone
       - Guest users can only download public files
-      - Logged in fidrad users can download all public and all own files
-      - Logged in administrators can download all files
+      - Logged in users can download public and own files
+      - Logged in admin can download any files
   - delete file
-    - Logged in fidrad users can delete own files
-    - Logged in administrators can delete all files
+    - only allowed for logged in users or admins  
+    - Logged in users can delete own files
+    - Logged in administrators can delete any files
 - added library six to environment.yml
 
 # Changes in Version 0.1.20

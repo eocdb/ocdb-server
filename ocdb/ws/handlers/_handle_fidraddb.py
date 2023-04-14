@@ -79,7 +79,7 @@ def _fidrad_submit_authorization_required(func):
     return wrapper
 
 
-def _fidrad_search_authorization_required(func):
+def _fidrad_history_authorization_required(func):
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         allowed = False
@@ -87,7 +87,7 @@ def _fidrad_search_authorization_required(func):
             allowed = True
 
         if not allowed:
-            self.set_status(status_code=403, reason='Not enough access rights to perform FidRadDb search operations.')
+            self.set_status(status_code=403, reason='Not enough access rights to perform FidRadDb history operations.')
             return
 
         func(self, *args, **kwargs)
@@ -246,7 +246,7 @@ class HandleCalCharUpload(FidRadDbRequestHandler):
 class HandleGetHistoryTail(FidRadDbRequestHandler):
 
     @_login_required
-    @_fidrad_search_authorization_required
+    @_fidrad_history_authorization_required
     def get(self, num_lines: str):
         assert_not_none(num_lines, name="num_lines")
         n_lines = int(num_lines)
@@ -263,7 +263,7 @@ class HandleGetHistoryTail(FidRadDbRequestHandler):
 class HandleHistoryBottomUpSearch(FidRadDbRequestHandler):
 
     @_login_required
-    @_fidrad_search_authorization_required
+    @_fidrad_history_authorization_required
     def get(self, search_string: str, max_num_lines):
         assert_not_none(search_string, name="search_string")
         assert_not_none(max_num_lines, name="max_num_lines")
