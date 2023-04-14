@@ -1,4 +1,34 @@
-# Changes in Version 0.1.21.dev0
+# Changes in Version 0.1.21
+- FidRadDB interface added
+  - possibility to upload Cal/Char files
+    - only allowed for logged in users with the role fidrad 
+    - Cal/Char file validation
+    - Use Metadata-key / File-type Matrix from Héloïse
+    - Generating meaningful error messages
+    - check for existing files
+    - rename all files to upper case
+    - create database entries per file
+      - containing the filename, username, public: bool, utc_upload_time 
+    - create history via logging with user integrated
+    - allow to set a database property for "publish" or "not publish" a file
+  - fetch a history tail (default size: last 50 lines)
+    - make num lines user defineable 
+  - grep like bottom up history search implemented
+    - with user-definable maximum number of results
+    - default: 20 results
+  - list files
+    - allowed for everyone
+      - Guest users only see public files in the list
+      - Logged in fidrad users see all public and all own private files
+      - Logged in administrators see all files in the list
+  - download file
+    - allowed for everyone
+      - Guest users can only download public files
+      - Logged in fidrad users can download all public and all own files
+      - Logged in administrators can download all files
+  - delete file
+    - Logged in fidrad users can delete own files
+    - Logged in administrators can delete all files
 - added library six to environment.yml
 
 # Changes in Version 0.1.20
