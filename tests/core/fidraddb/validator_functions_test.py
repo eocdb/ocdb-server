@@ -518,3 +518,26 @@ class StaticMethodsTest(unittest.TestCase):
         self.assertEqual(None, method("THERMAL", lines))
         lines.remove("!TEMPDATA")
         self.assertEqual("Keyword '!TEMPDATA' found 0 times but expected 1 times.", method("THERMAL", lines))
+
+    def test_find_unexpected_metadata_keys(self):
+        # preparation
+        allowed_keys = [
+            "A",
+            "b",
+            "k",
+        ]
+        all_keys_in_file = [
+            "[bb]",
+            "[b]",
+            "[A]",
+            "[AA]",
+            "[a]",
+        ]
+
+        # execution
+        unexpected_metadata_keys = CalCharValidator._find_unexpected_metadata_keys(allowed_keys, all_keys_in_file)
+
+        # verification
+        self.assertListEqual(["[bb]", "[AA]", "[a]"], unexpected_metadata_keys)
+        joined = ", ".join(unexpected_metadata_keys)
+        self.assertEqual("str [bb], [AA], [a]", f"str {joined}")

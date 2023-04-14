@@ -1,5 +1,6 @@
 import os
 import re
+from logging import LoggerAdapter
 from datetime import datetime
 import chardet
 
@@ -123,7 +124,7 @@ class CalCharValidator:
 
         return cls._filename_compiled_reg_ex
 
-    def validate(self, filename: str, text: bytes) -> dict[str: str] or None:
+    def validate(self, filename: str, text: bytes, log: LoggerAdapter) -> dict[str: str] or None:
         class_or_serial, file_type, date_time = self._split_up_filename(filename)
 
         valid_types = self._get_valid_types_as_list()
@@ -165,22 +166,24 @@ class CalCharValidator:
         if missing_result:
             return missing_result
 
-        # check if all metadata keys, extracted from file, are present in the list of allowed keys
-        allowed_keys: list[str] = type_info.get(self.__KEY_METADATA)
-        unexpected_result = self._find_unexpected_metadata_keys(allowed_keys, all_keys_in_file, filename)
-        if unexpected_result:
-            return unexpected_result
+        expected_keys: list[str] = type_info.get(self.__KEY_METADATA)
+
+        # check if all metadata keys, extracted from file, are present in the list of expected keys
+        unexpected_keys = self._find_unexpected_metadata_keys(expected_keys, all_keys_in_file)
+        if len(unexpected_keys) > 0:
+            joined = ", ".join(unexpected_keys)
+            log.warning(f"The file {filename} contains unexpected metadata keys: {joined}")
 
         metadata_types: list[str] = type_info.get(self.__KEY_DATA_TYPE)
         val_functions: list[str] = type_info.get(self.__KEY_FUNCTION)
 
-        for i in range(len(allowed_keys)):
-            meta_name: str = allowed_keys[i]
+        for i in range(len(expected_keys)):
+            meta_key_name: str = expected_keys[i]
             metadata_type: str = metadata_types[i]
             val_function: str = val_functions[i]
 
-            braced_meta_name: str = "[" + meta_name + "]"
-            braced_end_name = "[END_OF_" + meta_name + "]"
+            braced_meta_name: str = "[" + meta_key_name + "]"
+            braced_end_name = "[END_OF_" + meta_key_name + "]"
 
             braced_meta_count = list_metadata_keys_in_files.count(braced_meta_name)
             braced_end_count = list_metadata_keys_in_files.count(braced_end_name)
@@ -195,9 +198,9 @@ class CalCharValidator:
             if braced_meta_count == 0:
                 continue  # this is the case if an optional metadata key is not present
 
-            if meta_name == "CALDATE":
+            if meta_key_name == "CALDATE":
                 continue  # already checked
-            elif meta_name == "DEVICE":
+            elif meta_key_name == "DEVICE":
                 continue  # already checked ... see lines after the line --> if "_class" in class_or_serial.lower():
             elif metadata_type == "str":
                 keys_list_start_idx = 0
@@ -289,11 +292,13 @@ class CalCharValidator:
                 return {filename: f"The metadata key '{key}' must be included in this file."}
 
     @staticmethod
-    def _find_unexpected_metadata_keys(allowed_keys: list[str], all_keys_in_file: list[str], filename: str) -> dict:
+    def _find_unexpected_metadata_keys(allowed_keys: list[str], all_keys_in_file: list[str]) -> list:
+        unexpected_keys = []
         for key in all_keys_in_file:
             key_name = key.replace("[", "").replace("]", "")  # remove braces
             if key_name not in allowed_keys:
-                return {filename: f"The metadata key '{key}' is not expected."}
+                unexpected_keys.append(key)
+        return unexpected_keys
 
     def _extractFileTypeConfigurationFor(self, file_type: str):
         type_index: int = self._get_valid_types_as_list().index(file_type)
