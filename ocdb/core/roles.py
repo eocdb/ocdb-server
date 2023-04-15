@@ -6,6 +6,7 @@ from typing import List
 class Roles(Enum):
     ADMIN = 'admin'
     SUBMIT = 'submit'
+    FIDRAD = 'fidrad'
 
     @classmethod
     def is_admin(cls, roles: List[str]):
@@ -16,6 +17,12 @@ class Roles(Enum):
     @classmethod
     def is_submit(cls, roles: List[str]):
         if Roles.SUBMIT.value in roles:
+            return True
+        return False
+
+    @classmethod
+    def is_fidrad(cls, roles: List[str]):
+        if Roles.FIDRAD.value in roles:
             return True
         return False
 

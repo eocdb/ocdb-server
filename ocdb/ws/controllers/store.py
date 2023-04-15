@@ -236,7 +236,6 @@ def get_submissions(ctx: WsContext, user_id: str = None, offset: int = None, cou
                     sort_column: str = None,
                     sort_order: str = None) \
         -> Tuple[List[Submission], int]:
-
     result, tot_count = ctx.db_driver.get_submissions(offset=offset,
                                                       count=count,
                                                       user_id=user_id,
@@ -346,11 +345,11 @@ def update_submission_file(ctx: WsContext, submission: DbSubmission,
             validation_result = validator.validate_dataset(dataset, ctx.config)
         except SbFormatError as e:
             validation_result = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
-                                           [Issue(ISSUE_TYPE_ERROR,
-                                                  f"Invalid format: {e}")])
+                                                        [Issue(ISSUE_TYPE_ERROR,
+                                                               f"Invalid format: {e}")])
         except OSError as e:
             validation_result = DatasetValidationResult(DATASET_VALIDATION_RESULT_STATUS_ERROR,
-                                           [Issue(ISSUE_TYPE_ERROR, f"OSError: {e}")])
+                                                        [Issue(ISSUE_TYPE_ERROR, f"OSError: {e}")])
 
         write_path = ctx.get_datasets_upload_path(os.path.join(submission.store_sub_path, submission.path))
         os.makedirs(write_path, exist_ok=True)
