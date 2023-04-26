@@ -611,8 +611,8 @@ class MongoDbDriver(DbDriver):
                 query_dict.update({'groups': {'$in': query.pgroup}})
 
             if query.pname is not None:
-                query.pname = [pn.lower() for pn in query.pname]
-                query_dict.update({'attributes': {'$in': query.pname}})
+                compiled = [re.compile("^" + pn + r"_?\d*\.?\d*$", re.IGNORECASE) for pn in query.pname]
+                query_dict.update({'attributes': {'$in': compiled}})
 
             if query.wdepth is not None:
                 wd_from = query.wdepth[0]
