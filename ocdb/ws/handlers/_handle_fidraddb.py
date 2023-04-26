@@ -369,7 +369,6 @@ class HandleDownloadFile(FidRadDbRequestHandler):
         data_dir_path = self.ws_context.get_fidraddb_store_path(_DATA_DIR_NAME)
         file_path = os.path.join(data_dir_path, filename)
         log = self.logger
-        message = ''
         if os.path.exists(file_path):
             if os.access(file_path, os.R_OK):
                 try:
@@ -391,8 +390,8 @@ class HandleDownloadFile(FidRadDbRequestHandler):
                     self.set_status(404, message)
                 else:
                     message = f"Download requested for {filename}. Successfully downloaded."
-                    log.info(message)
                     self.set_status(200, message)
+                    log.info(message)
             else:
                 message = f"Download requested for {filename}. File exist but can not be read."
                 log.error(message)
@@ -402,4 +401,4 @@ class HandleDownloadFile(FidRadDbRequestHandler):
             log.warning(message)
             self.set_status(404, message)
 
-        self.finish(tornado.escape.json_encode(message))
+        self.finish()
