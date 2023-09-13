@@ -1,4 +1,5 @@
 import datetime
+import re
 import unittest
 
 from ocdb.core.models import DatasetQuery
@@ -65,13 +66,20 @@ class TestMongoQueryConverter(unittest.TestCase):
         query = DatasetQuery(pname=["diato"])
 
         mongo_dict = self.converter.to_dict(query)
-        self.assertEqual({'attributes': {'$in': ['diato']}}, mongo_dict)
+        self.assertEqual({'attributes': {
+            '$in': [
+                re.compile('^diato_?\\d*\\.?\\d*$', re.IGNORECASE)
+            ]}}, mongo_dict)
 
     def test_to_dict_two_pname(self):
         query = DatasetQuery(pname=["fuco", "perid"])
 
         mongo_dict = self.converter.to_dict(query)
-        self.assertEqual({'attributes': {'$in': ['fuco', 'perid']}}, mongo_dict)
+        self.assertEqual({'attributes': {
+            '$in': [
+                re.compile('^fuco_?\\d*\\.?\\d*$', re.IGNORECASE),
+                re.compile('^perid_?\\d*\\.?\\d*$', re.IGNORECASE)
+            ]}}, mongo_dict)
 
     def test_to_dict_shallow_no(self):
         query = DatasetQuery(shallow='no')
