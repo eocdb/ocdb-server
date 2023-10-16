@@ -1,3 +1,6 @@
+# Changes in Version 0.1.23
+- Added case insensitive for text search using product categories
+
 # Changes in Version 0.1.22
 - Fix for product search (e.g. "Rrs"). -> all product names are converted to expressions, so that they also work with wavelength suffix
 - Bugfix so that fidraddb Cal/Char files, that are downloaded, no longer get the message pinned to the end.

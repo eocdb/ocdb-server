@@ -89,7 +89,7 @@ class MongoQueryGenerator(QueryVisitor[str]):
 
         name = self._get_db_field_name(q.name)
 
-        self.last_field = {name: {'$regex': reg_exp}}
+        self.last_field = {name: {'$regex': reg_exp, '$options': 'i'}}
         return self.last_field
 
     def _get_db_field_name(self, name: str) -> str:
