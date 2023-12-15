@@ -3,6 +3,8 @@ ocdb-server.yml
 # Generated files by eocdb/ws/openapi tool
 _openapi_stubs
 
+# docker
+docker-compose.yml
 
 # JetBrains
 .idea/
