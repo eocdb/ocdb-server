@@ -5,4 +5,4 @@ databases:
     type: eocdb.db.sqlite_test_db_driver.SQLiteTestDbDriver
     parameters: {}
 
-fidrad_db_config_file: /the/path/to/the/fidraddb/configuration/csv/file/any.csv
+fidrad_db_config_file: /the/path/to/the/fidraddbb/configuration/csv/file/any.csv
