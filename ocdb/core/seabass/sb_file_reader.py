@@ -101,6 +101,7 @@ class SbFileReader:
         return dataset
 
     def _next_line(self) -> str:
+
         if self._line_index < len(self._lines):
             line = self._lines[self._line_index]
             self._line_index += 1
@@ -109,8 +110,10 @@ class SbFileReader:
         return EOF
 
     def _parse_header(self) -> dict:
+
         metadata = dict()
         number_pattern = re.compile(r"^[-+]?\d+\.?\d*(e?[-+]?\d+)?$")
+
         while True:
             line = self._next_line()
             if line == EOF:
@@ -139,6 +142,7 @@ class SbFileReader:
             [key, value] = line.split('=', 1)
             key = key[1:].strip()
             value = value.strip()
+
             if key == 'fields':
                 self._field_list = value
 

@@ -1,0 +1,838 @@
+[
+  {
+    "name": "Absorbance",
+    "description": "Absorbance",
+    "products": [
+      "A578_A434",
+      "abs"
+    ]
+  },
+  {
+    "name": "Absorption",
+    "description": "Absorption",
+    "products": [
+      "a",
+      "a*ph",
+      "a*srfa",
+      "ad",
+      "ad_model",
+      "ad_unc",
+      "adg",
+      "ag",
+      "ag_model",
+      "agp",
+      "ap",
+      "ap_unc",
+      "aph",
+      "aph_model",
+      "aph_unc",
+      "asrfa",
+      "aw",
+      "S_ad",
+      "S_ag"
+    ]
+  },
+  {
+    "name": "Atmosphere",
+    "description": "Atmosphere",
+    "products": [
+      "aaer",
+      "abs*",
+      "abs_ad",
+      "abs_ag",
+      "abs_ap",
+      "abs_blank_ad",
+      "abs_blank_ag",
+      "abs_blank_ap",
+      "abs_nacl",
+      "abs_zero",
+      "angstrom",
+      "AOT",
+      "At",
+      "C2H3N_H",
+      "C2H4O_H",
+      "C2H6S_H",
+      "C3H6O_H",
+      "C5H8_H",
+      "C6H6_H",
+      "CH4O_H",
+      "CH4S_H",
+      "cloud",
+      "dewpoint",
+      "DMSA",
+      "iso_C2H3N_H",
+      "iso_C2H4O_H",
+      "iso_C2H6S_H",
+      "iso_C3H6O_H",
+      "iso_CH4O_H",
+      "no2ot",
+      "o3ot",
+      "Oz",
+      "pressure_atm",
+      "rot",
+      "total_NO2",
+      "Total_precipitable_water",
+      "wdir",
+      "wind",
+      "wvot",
+      "Wvp"
+    ]
+  },
+  {
+    "name": "Beam Attenuation",
+    "description": "Beam Attenuation",
+    "products": [
+      "c",
+      "cg",
+      "cgp",
+      "cnw",
+      "cp",
+      "cp_gamma",
+      "cp_gamma_RMSE",
+      "cw"
+    ]
+  },
+  {
+    "name": "Carbon",
+    "description": "Carbon",
+    "products": [
+      "DIC",
+      "DIC_L",
+      "DOC",
+      "DOC_L",
+      "fecalpellet_production_carbon_carbonweight",
+      "fecalpellet_production_carbon_dryweight",
+      "PC",
+      "PIC",
+      "PIM",
+      "POC",
+      "POC_cp",
+      "TOC",
+      "TOC_L",
+      "Total_C",
+      "VOCair"
+    ]
+  },
+  {
+    "name": "CDOM",
+    "description": "CDOM",
+    "products": [
+      "cdmf",
+      "cdmf_counts",
+      "cdom",
+      "cdomf"
+    ]
+  },
+  {
+    "name": "CMECS",
+    "description": "CMECS",
+    "products": [
+      "biotic_class",
+      "biotic_community",
+      "biotic_group",
+      "biotic_setting",
+      "biotic_subclass",
+      "geoform",
+      "geoform_origin",
+      "geoform_physiographic_setting",
+      "geoform_tectonic_setting",
+      "geoform_type",
+      "substrate_class",
+      "substrate_group",
+      "substrate_origin",
+      "substrate_subclass",
+      "substrate_subgroup",
+      "water_column_biogeochemical_feature",
+      "water_column_hydroform",
+      "water_column_hydroform_class",
+      "water_column_hydroform_type",
+      "water_column_layer",
+      "water_column_salinity",
+      "water_column_temperature"
+    ]
+  },
+  {
+    "name": "Depth",
+    "description": "Depth",
+    "products": [
+      "depth",
+      "water_depth",
+      "Z_90",
+      "Z_DCM",
+      "Z_Eu",
+      "Z_MLD",
+      "Z_XML"
+    ]
+  },
+  {
+    "name": "Diffuse Attenuation",
+    "description": "Diffuse Attenuation",
+    "products": [
+      "Kd",
+      "Kl",
+      "Knf",
+      "Kpar",
+      "Ku"
+    ]
+  },
+  {
+    "name": "Dissolved",
+    "description": "Dissolved",
+    "products": [
+      "SiO4"
+    ]
+  },
+  {
+    "name": "Dissolved gases",
+    "description": "Dissolved gases",
+    "products": [
+      "13CO2_amps",
+      "amplitude",
+      "AOU",
+      "AOU_kg",
+      "Ar_amps",
+      "CO2_amps",
+      "DMSSW",
+      "H2O_amps",
+      "N2_amps",
+      "N2_Ar_ratio",
+      "N2_fix",
+      "N2_O2_ratio",
+      "NH4",
+      "NO2",
+      "NO2_NO3",
+      "NO3",
+      "O2_amps",
+      "O2_Ar_ratio",
+      "oxygen",
+      "oxygen_kg",
+      "oxygen_phase",
+      "oxygen_saturation",
+      "pCO2",
+      "PO4",
+      "TDN",
+      "TDN_kg"
+    ]
+  },
+  {
+    "name": "Flow cytometry",
+    "description": "Flow cytometry",
+    "products": [
+      "FSC-A",
+      "FSC-H",
+      "FSCpar-H",
+      "FSCperp-H",
+      "MUF",
+      "pulse_width"
+    ]
+  },
+  {
+    "name": "Fluorescence",
+    "description": "Fluorescence",
+    "products": [
+      "F-initial",
+      "FL-A",
+      "FL-H",
+      "Fm",
+      "Fv_Fm",
+      "natf",
+      "Rf",
+      "stimf",
+      "stimf_counts",
+      "TauAv"
+    ]
+  },
+  {
+    "name": "Flux",
+    "description": "Flux",
+    "products": [
+      "flux_ATN",
+      "flux_Ba",
+      "flux_bSi",
+      "flux_calibration_method",
+      "flux_mass",
+      "flux_P",
+      "flux_particles",
+      "flux_Pb_210",
+      "flux_PC",
+      "flux_PC_ATN",
+      "flux_PIC",
+      "flux_PN",
+      "flux_Po_210",
+      "flux_POC",
+      "flux_sampling_method",
+      "flux_sinking_speed_method",
+      "flux_submethod",
+      "flux_Th_234"
+    ]
+  },
+  {
+    "name": "Generic",
+    "description": "Generic",
+    "products": [
+      "ratio"
+    ]
+  },
+  {
+    "name": "Genetic",
+    "description": "Genetic",
+    "products": [
+      "DNA",
+      "RNA",
+      "rrna_gene"
+    ]
+  },
+  {
+    "name": "Geographic",
+    "description": "Geographic",
+    "products": [
+      "altitude",
+      "lat",
+      "lat_end",
+      "lat_recovery",
+      "lat_resurface",
+      "lat_start",
+      "lon",
+      "lon_end",
+      "lon_recovery",
+      "lon_resurface",
+      "lon_start"
+    ]
+  },
+  {
+    "name": "Geometric",
+    "description": "Geometric",
+    "products": [
+      "heading",
+      "nadir",
+      "pitch",
+      "pitch_Ed",
+      "pitch_Es",
+      "pitch_Lu",
+      "RelAz",
+      "roll",
+      "roll_Ed",
+      "roll_Es",
+      "roll_Lu",
+      "SAZ",
+      "sensor_azimuth",
+      "SenZ",
+      "SZA",
+      "tilt",
+      "tilt_Ed",
+      "tilt_Es",
+      "tilt_Lu"
+    ]
+  },
+  {
+    "name": "Granulometry",
+    "description": "Granulometry",
+    "products": [
+      "bin_depth",
+      "bin_diameter_center",
+      "bin_diameter_lower",
+      "bin_diameter_upper",
+      "bincount",
+      "PSD",
+      "PSD_DNSD",
+      "PSD_DVSD"
+    ]
+  },
+  {
+    "name": "Grazing",
+    "description": "Grazing",
+    "products": [
+      "g",
+      "g_herb"
+    ]
+  },
+  {
+    "name": "Hydrogeomorphology",
+    "description": "Hydrogeomorphology",
+    "products": [
+      "benthic_type"
+    ]
+  },
+  {
+    "name": "Ice",
+    "description": "Ice",
+    "products": [
+      "MSV"
+    ]
+  },
+  {
+    "name": "Identifier",
+    "description": "Identifier",
+    "products": [
+      "R2R_Event"
+    ]
+  },
+  {
+    "name": "Instrumental",
+    "description": "Instrumental",
+    "products": [
+      "It",
+      "pressure_instrument",
+      "SN"
+    ]
+  },
+  {
+    "name": "Irradiance",
+    "description": "Irradiance",
+    "products": [
+      "E_scalar",
+      "Ed",
+      "Ed_scalar",
+      "EdGND",
+      "EdPAR_scalar",
+      "Elw",
+      "Epar",
+      "EPAR_scalar",
+      "Es",
+      "EsGND",
+      "Esky",
+      "Esun",
+      "Esw",
+      "Eu",
+      "Eu_scalar",
+      "EuGND",
+      "EuPAR",
+      "EuPAR_scalar",
+      "F0"
+    ]
+  },
+  {
+    "name": "Isotopic",
+    "description": "Isotopic",
+    "products": [
+      "Ba_138_134_d_delta"
+    ]
+  },
+  {
+    "name": "Metals",
+    "description": "Metals",
+    "products": [
+      "conc_Ba_total",
+      "conc_particles",
+      "conc_Pb_210",
+      "conc_Po_210",
+      "conc_Th_234",
+      "conc_U_238"
+    ]
+  },
+  {
+    "name": "Minerals",
+    "description": "Minerals",
+    "products": [
+      "BSi",
+      "LSi"
+    ]
+  },
+  {
+    "name": "Nutrients",
+    "description": "Nutrients",
+    "products": [
+      "aa_alanine",
+      "aa_arginine",
+      "aa_aspartic_acid",
+      "aa_beta-alanine",
+      "aa_gamma_amino_butyric_acid",
+      "aa_glutamic_acid",
+      "aa_glycine",
+      "aa_histidine",
+      "aa_isoleucine",
+      "aa_leucine",
+      "aa_lysine",
+      "aa_methionine",
+      "aa_phenylalanine",
+      "aa_serine",
+      "aa_taurine",
+      "aa_threonine",
+      "aa_tyrosine",
+      "aa_valine",
+      "AMC",
+      "AMC-Leu",
+      "DCAA",
+      "MUF-But",
+      "MUF-Glu",
+      "MUF-PO4",
+      "Urea"
+    ]
+  },
+  {
+    "name": "PAR",
+    "description": "PAR",
+    "products": [
+      "PAR"
+    ]
+  },
+  {
+    "name": "Particulate",
+    "description": "Particulate",
+    "products": [
+      "PN",
+      "PN_mmol",
+      "POH",
+      "POM",
+      "PON",
+      "PTP",
+      "sinking_velocity",
+      "SPM",
+      "TEP_bottle",
+      "TEP_MSC",
+      "turbidity"
+    ]
+  },
+  {
+    "name": "Photosynthesis",
+    "description": "Photosynthesis",
+    "products": [
+      "sigma_PSII"
+    ]
+  },
+  {
+    "name": "Physical Oceanography",
+    "description": "Physical Oceanography",
+    "products": [
+      "cond",
+      "N2avg",
+      "pH",
+      "pressure",
+      "sal",
+      "sigma_theta",
+      "sigmaT",
+      "SST",
+      "total_alkalinity",
+      "VelEast",
+      "VelNorth",
+      "VelUp",
+      "waveht",
+      "Wt"
+    ]
+  },
+  {
+    "name": "Pigments",
+    "description": "Pigments",
+    "products": [
+      "Allo",
+      "alpha-beta-Car",
+      "Anth",
+      "Asta",
+      "BChl_a",
+      "beta-beta-Car",
+      "beta-epi-Car",
+      "beta-psi-Car",
+      "But-fuco",
+      "Cantha",
+      "Chl",
+      "Chl_a",
+      "Chl_a_allom",
+      "Chl_a_prime",
+      "Chl_b",
+      "Chl_c",
+      "Chl_c1",
+      "Chl_c1c2",
+      "Chl_c2",
+      "Chl_c3",
+      "Chl_experiment",
+      "Chl_lineheight",
+      "Chl_stimf",
+      "Chlide_a",
+      "Chlide_b",
+      "chors_id",
+      "Croco",
+      "Diadchr",
+      "Diadino",
+      "Diato",
+      "Dino",
+      "DP",
+      "DV_Chl_a",
+      "DV_Chl_b",
+      "Echin",
+      "epi-epi-Car",
+      "Fuco",
+      "Gyro",
+      "Hex-fuco",
+      "Hex-kfuco",
+      "hpl_id",
+      "hplc_gsfc_id",
+      "length_representation",
+      "Lyco",
+      "Me-chlide_a",
+      "Me-chlide_b",
+      "Mg_DVP",
+      "Monado",
+      "MV_Chl_a",
+      "MV_Chl_b",
+      "Neo",
+      "P-457",
+      "Perid",
+      "PHAEO",
+      "Phide_a",
+      "Phide_b",
+      "Phide_c",
+      "Phycocyanin",
+      "Phytin_a",
+      "Phytin_b",
+      "Phytin_c",
+      "Phytyl-chl_c",
+      "PPC",
+      "PPC_Tcar",
+      "PPC_Tpg",
+      "Pras",
+      "PSC",
+      "PSC_Tcar",
+      "PSP",
+      "PSP_Tpg",
+      "Pyrophide_a",
+      "Pyrophytin_a",
+      "Pyrophytin_b",
+      "Pyrophytin_c",
+      "Siphn",
+      "Siphx",
+      "Tacc",
+      "Tacc_Tchla",
+      "Tcar",
+      "Tchl",
+      "TChl_Tcar",
+      "Tchla_Tpg",
+      "Tot_Chl_a",
+      "Tot_Chl_b",
+      "Tot_Chl_c",
+      "Tpg",
+      "Vauch",
+      "Viola",
+      "Zea"
+    ]
+  },
+  {
+    "name": "Plankton",
+    "description": "Plankton",
+    "products": [
+      "3H_Leu",
+      "3H_Leu_L",
+      "abun",
+      "abun_bacterioplankton",
+      "abun_phyto",
+      "abun_zoop",
+      "abundance",
+      "area_based_diameter",
+      "area_cross_section",
+      "bactP",
+      "biomass_microzoop",
+      "biovol_bacterioplankton",
+      "biovolume",
+      "equivalent_spherical_diameter",
+      "Et-8-carot",
+      "Et-chlide_a",
+      "Et-chlide_b",
+      "mPF",
+      "nanoeukaryote",
+      "nPF",
+      "phyto_carbon",
+      "picoeukaryote",
+      "pPF",
+      "prochlorococcus",
+      "RelAbundance",
+      "scientificName_automated",
+      "scientificName_manual",
+      "scientificNameID_automated",
+      "scientificNameID_manual",
+      "synechococcus",
+      "u",
+      "u_ph",
+      "u_zoo",
+      "weight_dry",
+      "weight_protein_community",
+      "weight_protein_sample",
+      "weight_wet",
+      "width_representation",
+      "zoop_biomass_dry",
+      "zoop_biomass_wet"
+    ]
+  },
+  {
+    "name": "Primary Productivity",
+    "description": "Primary Productivity",
+    "products": [
+      "GPP",
+      "NPP",
+      "PP",
+      "rate_13C_uptake_bottle",
+      "rate_15N_uptake_bottle",
+      "rate_diff_02_dark_incub",
+      "rate_diff_C_dark_incub",
+      "rate_diff_O2_corrcoef",
+      "rate_nitrification",
+      "rate_production_DOC_inc",
+      "rate_respiration_C_ind",
+      "rate_respiration_carbon_zoop",
+      "rate_respiration_O2_ind"
+    ]
+  },
+  {
+    "name": "Productivity",
+    "description": "Productivity",
+    "products": [
+      "NCCb",
+      "NCP_O2_Ar_ratio_continuous",
+      "NCPb",
+      "oxygen_consumption_temcorr"
+    ]
+  },
+  {
+    "name": "Quality",
+    "description": "Quality",
+    "products": [
+      "quality"
+    ]
+  },
+  {
+    "name": "Radiance",
+    "description": "Radiance",
+    "products": [
+      "Lsky",
+      "Lt",
+      "Lu",
+      "LuGND",
+      "Lut",
+      "Lw",
+      "Lw_unc",
+      "Lwn",
+      "Lwnex"
+    ]
+  },
+  {
+    "name": "Reflectance",
+    "description": "Reflectance",
+    "products": [
+      "Q",
+      "R",
+      "Rb",
+      "rho",
+      "Rl",
+      "Rpi",
+      "Rrs",
+      "Rrs_unc"
+    ]
+  },
+  {
+    "name": "Sampling",
+    "description": "Sampling",
+    "products": [
+      "bottle",
+      "cast",
+      "data_provider_category_automated",
+      "data_provider_category_manual",
+      "net_interval",
+      "profile",
+      "pvel",
+      "sample",
+      "station",
+      "station_alt_id"
+    ]
+  },
+  {
+    "name": "Scattering",
+    "description": "Scattering",
+    "products": [
+      "b",
+      "bb",
+      "bb_counts",
+      "bbp",
+      "bbp_bp",
+      "bbp_gamma",
+      "bbw",
+      "bp",
+      "bw",
+      "nrb",
+      "Sv",
+      "VSF",
+      "VSFg",
+      "VSFp",
+      "VSFw"
+    ]
+  },
+  {
+    "name": "SeaBASS",
+    "description": "SeaBASS",
+    "products": [
+      "associated_file_types",
+      "associated_files",
+      "associatedMedia"
+    ]
+  },
+  {
+    "name": "Secchi",
+    "description": "Secchi",
+    "products": [
+      "SZ"
+    ]
+  },
+  {
+    "name": "Spectrometry",
+    "description": "Spectrometry",
+    "products": [
+      "cycle",
+      "mz",
+      "pDrift",
+      "Tdrift"
+    ]
+  },
+  {
+    "name": "Sunphotometry",
+    "description": "Sunphotometry",
+    "products": [
+      "sig"
+    ]
+  },
+  {
+    "name": "Time",
+    "description": "Time",
+    "products": [
+      "date",
+      "date_end",
+      "date_processed",
+      "date_recovery",
+      "date_resurface",
+      "date_start",
+      "day",
+      "elapsed_time",
+      "hour",
+      "incubation_duration",
+      "minute",
+      "month",
+      "sdy",
+      "second",
+      "time",
+      "time_end",
+      "time_processed",
+      "time_recovery",
+      "time_resurface",
+      "time_start",
+      "year"
+    ]
+  },
+  {
+    "name": "Transmission",
+    "description": "Transmission",
+    "products": [
+      "trans"
+    ]
+  },
+  {
+    "name": "Water sampling",
+    "description": "Water sampling",
+    "products": [
+      "volfilt",
+      "volume"
+    ]
+  },
+  {
+    "name": "Wavelength",
+    "description": "Wavelength",
+    "products": [
+      "wavelength"
+    ]
+  }
+]

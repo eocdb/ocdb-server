@@ -72,7 +72,7 @@ def FRMcheckDEVICE(dev):
             devQC = re.search(r'\b(?:\_[0-9][0-9][0-9][0-9])\b', dev[3:8])
         if code_inst == 'SAT':
             devQC = re.search(r'\b(?:[0-9][0-9][0-9][0-9])\b', dev[3:7])
-    if devQC :
+    if devQC:
         res = 'valid'
     return(res)
 
@@ -126,7 +126,7 @@ def FRMcheckCALDATA(caldata, scan, inst):
 
 
 def FRMisNCOLdata(line, key, scan, ncol=4):
-    line1 = re.split("[\t]+",line)
+    line1 = re.split("[\t]+", line)
     isfloat = [is_valid_float(el) for el in line1]
     res = "not valid"
     try:
@@ -138,3 +138,5 @@ def FRMisNCOLdata(line, key, scan, ncol=4):
     if Nlines > 5 and all(isfloat) and len(line1) == ncol:
        res = 'valid'
     return res
+
+print(is_valid_float(None))

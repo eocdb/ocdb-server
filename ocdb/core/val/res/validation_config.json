@@ -231,11 +231,6 @@
       "warning": "@obsolete_field"
     },
     {
-      "name": "null_correction",
-      "type": "field_obsolete",
-      "warning": "@obsolete_field"
-    },
-    {
       "name": "biotic_setting",
       "type": "field_obsolete",
       "warning": "@obsolete_field"
@@ -416,7 +411,37 @@
       "name": "processed",
       "type": "field_obsolete",
       "warning": "@obsolete_field"
-	}
+	},
+    {
+      "name": "BRDF_correction",
+      "type": "field_optional",
+      "error": "@field_value_missing"
+    },
+    {
+      "name": "NIR_residual_correction",
+      "type": "field_optional",
+      "error": "@field_value_missing"
+    },
+    {
+      "name": "null_correction",
+      "type": "field_optional",
+      "error": "@field_value_missing"
+    },
+    {
+      "name": "rho_correction",
+      "type": "field_optional",
+      "error": "@field_value_missing"
+    },
+    {
+      "name": "cruise_id",
+      "type": "field_optional",
+      "error": "@field_value_missing"
+    },
+    {
+      "name": "glider_id",
+      "type": "field_optional",
+      "error": "@field_value_missing"
+    }
   ],
   "record": [
     {
