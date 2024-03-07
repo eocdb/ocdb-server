@@ -4,7 +4,16 @@
     "description": "Absorbance",
     "products": [
       "A578_A434",
-      "abs"
+      "abs",
+      "abs*",
+      "abs_ad",
+      "abs_ag",
+      "abs_ap",
+      "abs_blank_ad",
+      "abs_blank_ag",
+      "abs_blank_ap",
+      "abs_nacl",
+      "abs_zero"
     ]
   },
   {
@@ -37,15 +46,6 @@
     "description": "Atmosphere",
     "products": [
       "aaer",
-      "abs*",
-      "abs_ad",
-      "abs_ag",
-      "abs_ap",
-      "abs_blank_ad",
-      "abs_blank_ag",
-      "abs_blank_ap",
-      "abs_nacl",
-      "abs_zero",
       "angstrom",
       "AOT",
       "At",
