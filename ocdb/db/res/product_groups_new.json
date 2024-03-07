@@ -176,13 +176,6 @@
     ]
   },
   {
-    "name": "Dissolved",
-    "description": "Dissolved",
-    "products": [
-      "SiO4"
-    ]
-  },
-  {
     "name": "Dissolved gases",
     "description": "Dissolved gases",
     "products": [
@@ -223,7 +216,9 @@
       "FSCpar-H",
       "FSCperp-H",
       "MUF",
-      "pulse_width"
+      "pulse_width",
+      "SSC-A",
+      "SSC-C"
     ]
   },
   {
@@ -425,7 +420,9 @@
     "description": "Minerals",
     "products": [
       "BSi",
-      "LSi"
+      "LSi",
+      "SiO4"
+
     ]
   },
   {
@@ -479,8 +476,7 @@
       "sinking_velocity",
       "SPM",
       "TEP_bottle",
-      "TEP_MSC",
-      "turbidity"
+      "TEP_MSC"
     ]
   },
   {
@@ -729,7 +725,9 @@
       "pvel",
       "sample",
       "station",
-      "station_alt_id"
+      "station_alt_id",
+      "volfilt",
+      "volume"
     ]
   },
   {
@@ -754,20 +752,9 @@
     ]
   },
   {
-    "name": "SeaBASS",
-    "description": "SeaBASS",
-    "products": [
-      "associated_file_types",
-      "associated_files",
-      "associatedMedia"
-    ]
-  },
-  {
     "name": "Secchi",
     "description": "Secchi",
-    "products": [
-      "SZ"
-    ]
+    "products": []
   },
   {
     "name": "Spectrometry",
@@ -821,18 +808,11 @@
     ]
   },
   {
-    "name": "Water sampling",
-    "description": "Water sampling",
-    "products": [
-      "volfilt",
-      "volume"
-    ]
-  },
-  {
-    "name": "Wavelength",
-    "description": "Wavelength",
-    "products": [
-      "wavelength"
-    ]
+      "name": "Water clarity",
+      "description": "Water clarity",
+      "products": [
+        "SZ",
+        "turbidity"
+      ]
   }
 ]
