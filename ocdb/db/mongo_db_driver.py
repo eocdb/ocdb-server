@@ -15,6 +15,7 @@ from ocdb.core.db.db_user import DbUser
 from ..core import QueryParser
 from ..core.db.db_driver import DbDriver
 from ..core.db.db_submission import DbSubmission
+from ..db.static_data import get_products_from_product_groups
 from ..core.db.errors import OperationalError
 from ..core.models.dataset import Dataset
 from ..core.models.dataset_query import DatasetQuery
@@ -607,8 +608,8 @@ class MongoDbDriver(DbDriver):
             if query.submission_id is not None:
                 query_dict.update({'submission_id': query.submission_id})
 
-            if query.pgroup is not None:
-                query_dict.update({'groups': {'$in': query.pgroup}})
+            if query.pname is None and query.pgroup is not None:
+                query.pname = get_products_from_product_groups(query.pgroup)
 
             if query.pname is not None:
                 compiled = [re.compile("^" + pn + r"_?\d*\.?\d*$", re.IGNORECASE) for pn in query.pname]

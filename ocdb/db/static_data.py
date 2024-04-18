@@ -38,6 +38,7 @@ def get_product_groups() -> List[ProductGroup]:
             _PRODUCT_GROUPS = json.load(fp)
     return _PRODUCT_GROUPS
 
+
 def get_groups_for_product(product) -> List[str]:
     """
         Return a list of product groups names the product passed in belongs to.
@@ -57,6 +58,15 @@ def get_groups_for_product(product) -> List[str]:
             return _WILDCARD_PRODUCT_TO_GROUP[wc_product]
 
     return []
+
+
+def get_products_from_product_groups(group_names) -> List[str]:
+    product_groups = get_product_groups()
+    products = []
+    for pg in product_groups:
+        if pg['name'] in group_names:
+            products.extend(pg['products'])
+    return products
 
 
 def _load_product_to_group_map():
