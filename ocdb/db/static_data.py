@@ -22,6 +22,7 @@ _NON_PRODUCT_FIELD_NAMES = {
 
 _FIELDS = None
 _PRODUCT_GROUPS = None
+__last_time_PRODUCT_GROUPS = None
 _PRODUCT_TO_GROUP = None
 _WILDCARD_PRODUCT_TO_GROUP = None
 
@@ -32,11 +33,22 @@ def get_product_groups() -> List[ProductGroup]:
     ``dict(name=<product-group-name>, units=<units>, description=<description>)``.
     """
     global _PRODUCT_GROUPS
+    global __last_time_PRODUCT_GROUPS
+    file = os.path.join(os.path.dirname(__file__), "res", "product-groups.json")
+    current_time = os.path.getmtime(file)
     if _PRODUCT_GROUPS is None:
-        file = os.path.join(os.path.dirname(__file__), "res", "product-groups.json")
-        with open(file, encoding="utf8") as fp:
-            _PRODUCT_GROUPS = json.load(fp)
+        _read_in_product_groups(current_time, file)
+    if __last_time_PRODUCT_GROUPS != current_time:
+        _read_in_product_groups(current_time, file)
+
     return _PRODUCT_GROUPS
+
+
+def _read_in_product_groups(current_time, file):
+    global _PRODUCT_GROUPS, __last_time_PRODUCT_GROUPS
+    with open(file, encoding="utf8") as fp:
+        _PRODUCT_GROUPS = json.load(fp)
+        __last_time_PRODUCT_GROUPS = current_time
 
 
 def get_groups_for_product(product) -> List[str]:

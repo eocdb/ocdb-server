@@ -807,11 +807,11 @@
     ]
   },
   {
-      "name": "Water clarity",
-      "description": "Water clarity",
-      "products": [
-        "SZ",
-        "turbidity"
-      ]
+    "name": "Water clarity",
+    "description": "Water clarity",
+    "products": [
+      "SZ",
+      "turbidity"
+    ]
   }
 ]
