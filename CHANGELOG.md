@@ -1,4 +1,7 @@
 # Changes in Version 0.1.23
+- Automatic re-reading of product-groups.json if the file was changed at runtime.
+- If no products but one or more product groups have been selected in the UI, all products belonging to the groups are automatically filtered out of the database.
+- product-groups.json has been updated.
 - Added case insensitive for text search using product categories
 
 # Changes in Version 0.1.22
